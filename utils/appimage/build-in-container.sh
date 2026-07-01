@@ -60,6 +60,9 @@ mkdir -p "$TARGET"
 # than copying apt's python3-gi / python3-dbus into the AppDir by hand)
 # keeps every runtime dep on a single, version-pinnable surface and
 # lets pycairo land naturally as a PyGObject dependency.
+#
+# --break-system-packages opts past Noble's PEP 668 guard; safe because
+# --target installs to the AppDir, not the system Python.
 python3 -m pip install --no-compile --break-system-packages --target="$TARGET" \
     certifi \
     distro \
@@ -89,7 +92,7 @@ install -m 0755 "$SRC/utils/appimage/AppRun" "$APPDIR/AppRun"
 
 # Run linuxdeploy with the gtk plugin to copy GTK libs/typelibs/loaders.
 # DEPLOY_GTK_VERSION tells the plugin which GTK major version to bundle.
-export DEPLOY_GTK_VERSION=3
+export DEPLOY_GTK_VERSION=4
 export LINUXDEPLOY_OUTPUT_VERSION=${LUTRIS_VERSION:-dev}
 
 # --executable on the bundled python3 lets linuxdeploy walk its NEEDED list
@@ -107,15 +110,15 @@ while IFS= read -r -d '' so; do
 done < <(find "$TARGET" -maxdepth 3 \( -name '_gi*.so' -o -name '_dbus*.so' -o -name 'gi.repository*.so' \) -print0 2>/dev/null)
 echo "Passing ${#LIB_ARGS[@]} native extensions to linuxdeploy: ${LIB_ARGS[*]}"
 
-# WebKit2 is loaded lazily via gi.repository (only when the user opens a
+# WebKitGTK is loaded lazily via gi.repository (only when the user opens a
 # service login dialog), so it never appears in any binary's NEEDED list
 # at build time. Without explicit --library hints linuxdeploy doesn't
-# bundle libwebkit2gtk-4.1 or libjavascriptcoregtk-4.1, and at runtime
-# dlopen() falls through to the host copies — invisible on Ubuntu (same
-# layout), fatal on Fedora/Arch/openSUSE (different versions, different
-# path layouts) with errors like "undefined symbol: webkit_web_context_new".
+# bundle libwebkitgtk-6.0 or libjavascriptcoregtk-6.0, and at runtime
+# dlopen() falls through to the host copies — typically older than ours,
+# causing missing-symbol errors like webkit_network_session_new. Pass
+# both sonames explicitly so linuxdeploy follows their NEEDED chains.
 WEBKIT_LIB_ARGS=()
-for soname in libwebkit2gtk-4.1.so.0 libjavascriptcoregtk-4.1.so.0; do
+for soname in libwebkitgtk-6.0.so.4 libjavascriptcoregtk-6.0.so.1; do
     so_path="$(ldconfig -p | awk -v n="$soname" '$1 == n { print $NF; exit }')"
     if [ -n "$so_path" ] && [ -f "$so_path" ]; then
         WEBKIT_LIB_ARGS+=(--library "$so_path")
@@ -180,32 +183,32 @@ if [ -d "$ADWAITA_ICONS_SRC" ]; then
     cp -a "$ADWAITA_ICONS_SRC"/. "$ADWAITA_ICONS_DST/"
 fi
 
-# WebKit2 4.1 spawns helper processes (WebKitNetworkProcess,
-# WebKitWebProcess) that live in /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/.
+# WebKitGTK 6.0 spawns helper processes (WebKitNetworkProcess,
+# WebKitWebProcess) that live in /usr/lib/x86_64-linux-gnu/webkitgtk-6.0/.
 # linuxdeploy bundles shared libraries but not auxiliary executables, so
-# without copying this directory by hand the bundled libwebkit2gtk-4.1
+# without copying this directory by hand the bundled libwebkitgtk-6.0
 # tries to spawn an absent /usr/lib/.../WebKitNetworkProcess and fatally
-# aborts. There is no WEBKIT_EXEC_PATH env override in this build
-# either (removed upstream), so we mirror the trick used on the GTK 4
-# branch for WebKitGTK 6.0: byte-patch the hardcoded path inside
-# libwebkit2gtk-4.1.so.0 to /tmp/.lutris-appimage.dir/webkit2gtk-4.1
-# (same byte length), and have AppRun create a symlink at that
-# location pointing at the bundled directory. The injected-bundle
-# path shares the same prefix so the byte replacement updates both
-# strings in one pass.
-WEBKIT_SRC_DIR="/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1"
-WEBKIT_DST_DIR="$APPDIR/usr/lib/webkit2gtk-4.1"
-WEBKIT_LIB="$APPDIR/usr/lib/libwebkit2gtk-4.1.so.0"
-WEBKIT_HARDCODED_PATH="/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1"
-WEBKIT_PATCHED_PATH="/tmp/.lutris-appimage.dir/webkit2gtk-4.1"
+# aborts. Place the dir inside the AppDir and patch RPATHs so the
+# processes find our bundled libwebkitgtk via $ORIGIN/..
+#
+# WebKitGTK 6.0 dropped the WEBKIT_EXEC_PATH env override that older
+# versions honored — the helper-process directory is now baked in at
+# compile time with no runtime hook. Work around this by patching the
+# hardcoded path inside libwebkitgtk-6.0.so.4 to a writable
+# /tmp/.lutris-appimage.dir/webkitgtk-6.0 location (exactly the same
+# byte length as the original so .rodata layout stays intact), and have
+# AppRun create that path as a symlink to the bundled directory at
+# startup. The injected-bundle path uses the same prefix so the byte
+# replacement updates both strings in one pass.
+WEBKIT_SRC_DIR="/usr/lib/x86_64-linux-gnu/webkitgtk-6.0"
+WEBKIT_DST_DIR="$APPDIR/usr/lib/webkitgtk-6.0"
+WEBKIT_LIB="$APPDIR/usr/lib/libwebkitgtk-6.0.so.4"
+WEBKIT_HARDCODED_PATH="/usr/lib/x86_64-linux-gnu/webkitgtk-6.0"
+WEBKIT_PATCHED_PATH="/tmp/.lutris-appimage.dir/webkitgtk-6.0"
 if [ -d "$WEBKIT_SRC_DIR" ]; then
-    echo "Copying WebKit2 auxiliary processes from $WEBKIT_SRC_DIR"
+    echo "Copying WebKitGTK auxiliary processes from $WEBKIT_SRC_DIR"
     mkdir -p "$WEBKIT_DST_DIR"
     cp -a "$WEBKIT_SRC_DIR"/. "$WEBKIT_DST_DIR/"
-    # Stamp every ELF in here with $ORIGIN/.. so the helper processes
-    # and their injected-bundle .so files load the bundled
-    # libwebkit2gtk-4.1 / libjavascriptcoregtk-4.1 rather than falling
-    # through to host copies.
     while IFS= read -r -d '' elf; do
         if file "$elf" | grep -q "ELF.*executable\|ELF.*shared object"; then
             patchelf --set-rpath '$ORIGIN/..' "$elf" 2>/dev/null || true
