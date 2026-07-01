@@ -7,6 +7,8 @@ from collections.abc import Iterable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
 
+from gi.repository import Gio
+
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
 from lutris.config import LutrisConfig
@@ -22,6 +24,7 @@ from lutris.exceptions import (
 )
 from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
+from lutris.gui.dialogs.missing_deps import MissingWineDepsDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix,
     delete_registry_key,
@@ -43,6 +46,7 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.process import Process
 from lutris.util.strings import split_arguments
+from lutris.util.system_packages import check_wine_dependencies
 from lutris.util.wine import proton
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
@@ -1129,6 +1133,13 @@ class wine(Runner):
             monitored_command.log_handlers.append(proton.UmuLaunchStatusParser(game))
 
     def prelaunch(self):
+        dep_info = check_wine_dependencies()
+        if dep_info:
+            application = Gio.Application.get_default()
+            parent = application.window if application else None
+            dialog = MissingWineDepsDialog(dep_info, parent=parent)
+            dialog.run_and_wait()
+
         prefix_path = self.prefix_path
         if prefix_path:
             if os.path.islink(prefix_path) and not os.path.exists(prefix_path):
