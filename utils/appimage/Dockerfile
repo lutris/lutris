@@ -1,11 +1,11 @@
 # Build environment for the Lutris AppImage.
 #
-# Ubuntu 24.04 LTS (Noble) ships a newer point release of WebKitGTK 4.1
-# (2.44+) than Jammy (2.42), fixing a bug where the bundled 22.04 WebKit
-# renderer would silently die after one input event on some login pages
-# (HumbleBundle, ZOOM). glibc floor moves to 2.39, so the AppImage
-# stops running on hosts older than roughly 2024 distros — the
-# documented trade-off.
+# Ubuntu 24.04 LTS (Noble) is the oldest currently-supported Ubuntu that
+# ships WebKitGTK 6.0 (the GIR namespace Lutris's GTK 4 build requires)
+# in its apt repos. It also ships GTK 4.14, Python 3.12, and glibc 2.39
+# — the glibc floor means AppImages built here won't run on hosts older
+# than roughly 2024 distros (Ubuntu 22.04 / Debian 12 are too old), which
+# is the documented trade-off of moving to a GTK 4 base.
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -40,19 +40,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsystemd-dev \
     python3-gi \
     python3-dbus \
-    gir1.2-gtk-3.0 \
+    gir1.2-gtk-4.0 \
     gir1.2-gdkpixbuf-2.0 \
     gir1.2-pango-1.0 \
-    gir1.2-gnomedesktop-3.0 \
-    gir1.2-webkit2-4.1 \
-    gir1.2-notify-0.7 \
-    gir1.2-ayatanaappindicator3-0.1 \
-    libgtk-3-0 \
-    libgtk-3-bin \
-    libwebkit2gtk-4.1-0 \
-    libnotify4 \
-    libayatana-appindicator3-1 \
-    libgnome-desktop-3-20t64 \
+    gir1.2-webkit-6.0 \
+    libgtk-4-1 \
+    libgtk-4-bin \
+    libgtk-4-dev \
+    libwebkitgtk-6.0-4 \
     glib-networking \
     adwaita-icon-theme \
     librsvg2-common \
