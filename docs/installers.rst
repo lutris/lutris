@@ -489,6 +489,12 @@ actions accordingly.
 If the source is a ``file ID``, it will be updated with the new destination
 path. It can then be used in following commands to access the copied file.
 
+Set the optional ``remove_source`` parameter to ``true`` to delete the source
+directory once its contents have been merged. This is useful when the source is
+throwaway scaffolding (for instance the install-directory subfolder a
+``gogdl_setup`` depot download creates) that would otherwise duplicate the
+merged data.
+
 Example::
 
     - merge:
@@ -957,6 +963,57 @@ Example gog linux game, alternative::
       - merge:
           dst: $GAMEDIR
           src: $CACHE/GOG/data/noarch/
+
+
+Downloading GOG games from the depot (gogdl)
+--------------------------------------------
+
+The ``gogdl_setup`` directive downloads a GOG game's files directly from GOG's
+CDN using ``gogdl`` (the depot downloader from the Heroic Games Launcher),
+instead of requiring the user to provide an offline installer. This requires
+the user to be connected to GOG in Lutris.
+
+Parameters:
+
+- ``game_id``: the GOG product ID. Defaults to the installer's ``gogid``, so
+  you normally only set it once; an explicit value still wins (for instance to
+  download a DLC). Product IDs can be looked up on
+  https://www.gogdb.org/products
+- ``platform``: ``windows`` or ``linux`` (defaults to the installer's runner).
+- ``lang``: language code (defaults to the system locale).
+- ``dlcs``: ``all``, ``none``, or comma-separated DLC IDs.
+- ``command``: ``download`` (default), ``update`` or ``repair``.
+
+``gogdl`` downloads into a subfolder of the destination named after the game's
+install directory, so a following ``merge`` is typically used to lift the data
+up into ``$GAMEDIR``.
+
+Example of a native source port (Quake3e) running over the GOG data of Quake
+III Arena::
+
+    name: Quake III Arena
+    game_slug: quake-iii-arena
+    version: GOG depot + Quake3e
+    slug: quake-iii-arena-gog-depot-quake3e
+    runner: linux
+    gogid: 1441704920
+
+    script:
+      files:
+      - engine: https://github.com/ec-/Quake3e/releases/download/latest/quake3e-linux-x86_64.zip
+      game:
+        exe: quake3e-vulkan.x64
+      installer:
+      - gogdl_setup:
+          platform: windows
+      - merge:
+          src: $GAMEDIR/Quake III
+          dst: $GAMEDIR
+          remove_source: true
+      - extract:
+          dst: $GAMEDIR
+          file: engine
+      - chmodx: $GAMEDIR/quake3e-vulkan.x64
 
 
 Example steam Linux game::

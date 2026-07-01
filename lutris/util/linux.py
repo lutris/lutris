@@ -200,6 +200,23 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         return [drive for drive in json.loads(findmnt_output)["filesystems"] if drive["fstype"] != "squashfs"]
 
     @staticmethod
+    def _iter_filesystems(devices: list[dict[str, Any]]) -> Iterator[dict[str, Any]]:
+        """Yield filesystems and nested filesystems from findmnt output."""
+        devices = list(devices)
+        while devices:
+            device = devices.pop()
+            devices.extend(device.get("children", []))
+            yield device
+
+    @staticmethod
+    def _path_is_on_mount(path: str, mount_point: str) -> bool:
+        try:
+            return os.path.commonpath((path, mount_point)) == mount_point
+        except ValueError:
+            # Paths on different drives can raise ValueError.
+            return False
+
+    @staticmethod
     def get_ram_info() -> dict[str, str]:
         """Parse the output of /proc/meminfo and return RAM information in kB"""
         mem = {}
@@ -217,7 +234,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         if self.is_flatpak():
             host_distro = distro.LinuxDistribution(root_dir="/run/host")
             return host_distro.name(), host_distro.version(), host_distro.codename()
-        return distro.linux_distribution()
+        return distro.name(), distro.version(), distro.codename()
 
     @staticmethod
     def get_arch() -> str | None:
@@ -305,18 +322,29 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     def get_fs_type_for_path(self, path: str) -> str | None:
         """Return the filesystem type a given path uses"""
-        mount_point = system.find_mount_point(path)
-        devices = list(self.get_drives())
-        while devices:
-            device = devices.pop()
-            devices.extend(device.get("children", []))
-            if mount_point == device.get("target"):
-                fs_type = device["fstype"]
-                if fs_type == "fuseblk":
-                    out = system.read_process_output(["blkid", "-o", "value", "-s", "TYPE", device["source"]])
-                    fs_type = out.strip() if out else fs_type
-                return cast(str, fs_type)
-        return None
+        path = os.path.realpath(os.path.expanduser(path))
+        matching_device = None
+        matching_mount_point = ""
+
+        for device in self._iter_filesystems(self.get_drives()):
+            target = device.get("target")
+            if not target:
+                continue
+
+            mount_point = os.path.realpath(os.path.expanduser(target))
+            if self._path_is_on_mount(path, mount_point) and len(mount_point) > len(matching_mount_point):
+                matching_device = device
+                matching_mount_point = mount_point
+
+        if not matching_device:
+            return None
+
+        fs_type = matching_device["fstype"]
+        if fs_type == "fuseblk":
+            out = system.read_process_output(["blkid", "-o", "value", "-s", "TYPE", matching_device["source"]])
+            fs_type = out.strip() if out else fs_type
+
+        return cast(str, fs_type)
 
     def get_glxinfo(self) -> GlxInfo | None:
         """Return a GlxInfo instance if the gfxinfo tool is available"""
@@ -530,7 +558,7 @@ def gather_system_info_dict() -> dict[str, Any]:
     system_info_readable = {}
     # Add system information
     system_dict = {}
-    system_dict["OS"] = " ".join(system_info["dist"])
+    system_dict["OS"] = " ".join(x for x in system_info["dist"] if x)
     system_dict["Arch"] = system_info["arch"]
     system_dict["Kernel"] = system_info["kernel"]
     system_dict["Lutris Version"] = settings.VERSION
