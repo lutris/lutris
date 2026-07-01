@@ -29,11 +29,11 @@ fi
 
 export APPDIR="$HERE"
 
-# WebKit2 4.1 spawns helper processes (WebKitNetworkProcess,
-# WebKitWebProcess) from a compile-time path baked into
-# libwebkit2gtk-4.1.so.0. WEBKIT_EXEC_PATH does not exist in this
-# build, so the build script byte-patched the hardcoded path inside
-# the .so to /tmp/.lutris-appimage.dir/webkit2gtk-4.1 (same length as
+# WebKitGTK 6.0 spawns helper processes (WebKitNetworkProcess,
+# WebKitWebProcess, WebKitGPUProcess) from a compile-time path baked
+# into libwebkitgtk-6.0.so.4. WEBKIT_EXEC_PATH was removed in this
+# version, so the build script byte-patched the hardcoded path inside
+# the .so to /tmp/.lutris-appimage.dir/webkitgtk-6.0 (same length as
 # the original). Symlink that location to our bundled helpers before
 # launching.
 #
@@ -45,9 +45,9 @@ export APPDIR="$HERE"
 # user-home access and spawns Wine binaries — a WebKit sandbox layered
 # on top adds negligible additional isolation, and disabling it is
 # standard practice for AppImage-packaged WebKitGTK apps.
-if [ -d "$HERE/usr/lib/webkit2gtk-4.1" ]; then
+if [ -d "$HERE/usr/lib/webkitgtk-6.0" ]; then
     mkdir -p /tmp/.lutris-appimage.dir
-    ln -snf "$HERE/usr/lib/webkit2gtk-4.1" /tmp/.lutris-appimage.dir/webkit2gtk-4.1
+    ln -snf "$HERE/usr/lib/webkitgtk-6.0" /tmp/.lutris-appimage.dir/webkitgtk-6.0
     export WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1
 fi
 
