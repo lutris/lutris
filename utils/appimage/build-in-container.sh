@@ -14,8 +14,8 @@ rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib" "$OUT"
 
 # Bundle the Python interpreter + standard library so the AppImage doesn't
-# depend on the host having python3.10 installed. We use whatever python3
-# the build image ships (Ubuntu 22.04 → 3.10).
+# depend on the host having a matching python3.X installed. We use whatever
+# python3 the build image ships (Ubuntu 24.04 → 3.12).
 PY_VER="$(python3 -c 'import sys;print("%d.%d"%sys.version_info[:2])')"
 cp -a "$(readlink -f /usr/bin/python3)" "$APPDIR/usr/bin/python${PY_VER}"
 ln -sf "python${PY_VER}" "$APPDIR/usr/bin/python3"
@@ -37,7 +37,7 @@ rm -rf "$APPDIR/usr/lib/python${PY_VER}/test" \
 # Install Lutris (Python package + bin/lutris + data files) into the AppDir.
 # --install-layout=deb is Debian's flag for "use dist-packages, not the
 # upstream-Python site-packages layout." This matters because the bundled
-# Python is Debian-patched (Ubuntu 22.04) and its default sys.path looks
+# Python is Debian-patched (Ubuntu 24.04) and its default sys.path looks
 # for modules in dist-packages, not site-packages. Installing here means
 # AppRun does not need to advertise our location on PYTHONPATH, which in
 # turn keeps PYTHONPATH out of host subprocesses (umu-run's #!/usr/bin/env
@@ -60,7 +60,10 @@ mkdir -p "$TARGET"
 # than copying apt's python3-gi / python3-dbus into the AppDir by hand)
 # keeps every runtime dep on a single, version-pinnable surface and
 # lets pycairo land naturally as a PyGObject dependency.
-python3 -m pip install --no-compile --target="$TARGET" \
+#
+# --break-system-packages opts past Noble's PEP 668 guard; safe because
+# --target installs to the AppDir, not the system Python.
+python3 -m pip install --no-compile --break-system-packages --target="$TARGET" \
     certifi \
     distro \
     evdev \
@@ -89,7 +92,7 @@ install -m 0755 "$SRC/utils/appimage/AppRun" "$APPDIR/AppRun"
 
 # Run linuxdeploy with the gtk plugin to copy GTK libs/typelibs/loaders.
 # DEPLOY_GTK_VERSION tells the plugin which GTK major version to bundle.
-export DEPLOY_GTK_VERSION=3
+export DEPLOY_GTK_VERSION=4
 export LINUXDEPLOY_OUTPUT_VERSION=${LUTRIS_VERSION:-dev}
 
 # --executable on the bundled python3 lets linuxdeploy walk its NEEDED list
@@ -107,11 +110,30 @@ while IFS= read -r -d '' so; do
 done < <(find "$TARGET" -maxdepth 3 \( -name '_gi*.so' -o -name '_dbus*.so' -o -name 'gi.repository*.so' \) -print0 2>/dev/null)
 echo "Passing ${#LIB_ARGS[@]} native extensions to linuxdeploy: ${LIB_ARGS[*]}"
 
+# WebKitGTK is loaded lazily via gi.repository (only when the user opens a
+# service login dialog), so it never appears in any binary's NEEDED list
+# at build time. Without explicit --library hints linuxdeploy doesn't
+# bundle libwebkitgtk-6.0 or libjavascriptcoregtk-6.0, and at runtime
+# dlopen() falls through to the host copies — typically older than ours,
+# causing missing-symbol errors like webkit_network_session_new. Pass
+# both sonames explicitly so linuxdeploy follows their NEEDED chains.
+WEBKIT_LIB_ARGS=()
+for soname in libwebkitgtk-6.0.so.4 libjavascriptcoregtk-6.0.so.1; do
+    so_path="$(ldconfig -p | awk -v n="$soname" '$1 == n { print $NF; exit }')"
+    if [ -n "$so_path" ] && [ -f "$so_path" ]; then
+        WEBKIT_LIB_ARGS+=(--library "$so_path")
+    else
+        echo "WARNING: $soname not found via ldconfig — WebKit dialogs will use host libs"
+    fi
+done
+echo "Passing ${#WEBKIT_LIB_ARGS[@]} WebKit libraries to linuxdeploy: ${WEBKIT_LIB_ARGS[*]}"
+
 linuxdeploy \
     --appdir "$APPDIR" \
     --plugin gtk \
     --executable "$APPDIR/usr/bin/python${PY_VER}" \
     "${LIB_ARGS[@]}" \
+    "${WEBKIT_LIB_ARGS[@]}" \
     --desktop-file "$DESKTOP_FILE" \
     --icon-file "$ICON_FILE"
 
@@ -157,6 +179,56 @@ while IFS= read -r -d '' so; do
     patchelf --set-rpath "\$ORIGIN/$rel" "$so"
     echo "  rpath \$ORIGIN/$rel -> $so"
 done < <(find "$TARGET" -maxdepth 3 \( -name '_gi*.so' -o -name '_dbus*.so' \) -print0 2>/dev/null)
+
+# WebKitGTK 6.0 forks helper processes (WebKitNetworkProcess,
+# WebKitWebProcess) that live in /usr/lib/x86_64-linux-gnu/webkitgtk-6.0/.
+# linuxdeploy bundles shared libraries but not auxiliary executables, so
+# without copying this directory by hand the bundled libwebkitgtk-6.0
+# tries to spawn an absent /usr/lib/.../WebKitNetworkProcess and fatally
+# aborts. Place the dir inside the AppDir and patch RPATHs so the
+# processes find our bundled libwebkitgtk via $ORIGIN/..
+#
+# WebKitGTK 6.0 dropped the WEBKIT_EXEC_PATH env override that older
+# versions honored — the helper-process directory is now baked in at
+# compile time with no runtime hook. Work around this by patching the
+# hardcoded path inside libwebkitgtk-6.0.so.4 to a writable
+# /tmp/.lutris-appimage.dir/webkitgtk-6.0 location (exactly the same
+# byte length as the original so .rodata layout stays intact), and have
+# AppRun create that path as a symlink to the bundled directory at
+# startup. The injected-bundle path uses the same prefix so the byte
+# replacement updates both strings in one pass.
+WEBKIT_SRC_DIR="/usr/lib/x86_64-linux-gnu/webkitgtk-6.0"
+WEBKIT_DST_DIR="$APPDIR/usr/lib/webkitgtk-6.0"
+WEBKIT_LIB="$APPDIR/usr/lib/libwebkitgtk-6.0.so.4"
+WEBKIT_HARDCODED_PATH="/usr/lib/x86_64-linux-gnu/webkitgtk-6.0"
+WEBKIT_PATCHED_PATH="/tmp/.lutris-appimage.dir/webkitgtk-6.0"
+if [ -d "$WEBKIT_SRC_DIR" ]; then
+    echo "Copying WebKitGTK auxiliary processes from $WEBKIT_SRC_DIR"
+    mkdir -p "$WEBKIT_DST_DIR"
+    cp -a "$WEBKIT_SRC_DIR"/. "$WEBKIT_DST_DIR/"
+    while IFS= read -r -d '' elf; do
+        if file "$elf" | grep -q "ELF.*executable\|ELF.*shared object"; then
+            patchelf --set-rpath '$ORIGIN/..' "$elf" 2>/dev/null || true
+            echo "  rpath \$ORIGIN/.. -> $elf"
+        fi
+    done < <(find "$WEBKIT_DST_DIR" -type f -print0)
+
+    if [ -f "$WEBKIT_LIB" ]; then
+        python3 - "$WEBKIT_LIB" "$WEBKIT_HARDCODED_PATH" "$WEBKIT_PATCHED_PATH" <<'PY'
+import sys
+path, old, new = sys.argv[1], sys.argv[2].encode(), sys.argv[3].encode()
+assert len(old) == len(new), f"length mismatch: {len(old)} != {len(new)}"
+data = open(path, 'rb').read()
+count = data.count(old)
+if count == 0:
+    sys.exit(f"FATAL: hardcoded WebKit path {old!r} not found in {path}")
+open(path, 'wb').write(data.replace(old, new))
+print(f"Patched {count} occurrence(s) of {old.decode()} -> {new.decode()} in {path}")
+PY
+    fi
+else
+    echo "WARNING: $WEBKIT_SRC_DIR not present — WebKit dialogs will fail at runtime"
+fi
 
 # Finally, pack the AppDir into a single-file AppImage.
 cd "$OUT"

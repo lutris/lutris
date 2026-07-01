@@ -1,10 +1,12 @@
-# Build environment for the Lutris AppImage proof-of-concept.
+# Build environment for the Lutris AppImage.
 #
-# Ubuntu 22.04 is chosen as a balance between glibc backward compatibility
-# (glibc 2.35) and shipping Python 3.10 + GTK3 + WebKit2GTK 4.1 in the
-# distro repos. If we promote this from PoC to a supported channel, we
-# may want to drop to 20.04 (glibc 2.31) for wider portability.
-FROM ubuntu:22.04
+# Ubuntu 24.04 LTS (Noble) is the oldest currently-supported Ubuntu that
+# ships WebKitGTK 6.0 (the GIR namespace Lutris's GTK 4 build requires)
+# in its apt repos. It also ships GTK 4.14, Python 3.12, and glibc 2.39
+# — the glibc floor means AppImages built here won't run on hosts older
+# than roughly 2024 distros (Ubuntu 22.04 / Debian 12 are too old), which
+# is the documented trade-off of moving to a GTK 4 base.
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LC_ALL=C.UTF-8
@@ -18,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     desktop-file-utils \
     gettext \
     appstream \
-    libfuse2 \
+    libfuse2t64 \
     fuse \
     patchelf \
     python3 \
@@ -29,6 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-wheel \
     pkg-config \
     build-essential \
+    meson \
     ninja-build \
     libcairo2-dev \
     libgirepository1.0-dev \
@@ -37,33 +40,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsystemd-dev \
     python3-gi \
     python3-dbus \
-    gir1.2-gtk-3.0 \
+    gir1.2-gtk-4.0 \
     gir1.2-gdkpixbuf-2.0 \
     gir1.2-pango-1.0 \
-    gir1.2-gnomedesktop-3.0 \
-    gir1.2-webkit2-4.1 \
-    gir1.2-notify-0.7 \
-    gir1.2-ayatanaappindicator3-0.1 \
-    libgtk-3-0 \
-    libgtk-3-bin \
-    libwebkit2gtk-4.1-0 \
-    libnotify4 \
-    libayatana-appindicator3-1 \
-    libgnome-desktop-3-19 \
+    gir1.2-webkit-6.0 \
+    libgtk-4-1 \
+    libgtk-4-bin \
+    libgtk-4-dev \
+    libwebkitgtk-6.0-4 \
     glib-networking \
     librsvg2-common \
  && rm -rf /var/lib/apt/lists/*
 
-# Jammy's apt meson (0.61) is older than meson-python requires (>=0.63),
-# so install a current meson from pip. ninja from apt is fine; pip's
-# meson invokes the apt-shipped ninja-build as its backend.
-#
-# pycairo is installed here too so PyGObject's meson build can find its
-# C headers (at /usr/local/lib/python3.10/dist-packages/cairo/include/);
-# apt's python3-cairo ships no headers, which is why python3-cairo /
-# python3-gi-cairo are deliberately not in the apt list above.
-RUN python3 -m pip install --no-cache-dir 'meson>=0.63.3'
-RUN python3 -m pip install --no-cache-dir pycairo
+# pycairo is installed via pip so PyGObject's meson build can find its
+# C headers (apt's python3-cairo ships no headers, which is why
+# python3-cairo / python3-gi-cairo are deliberately not in the apt
+# list above). PEP 668 makes Noble's system Python externally managed,
+# so use --break-system-packages — safe because this image is single-
+# purpose and the package is consumed by the same Python.
+RUN python3 -m pip install --no-cache-dir --break-system-packages pycairo
 
 # linuxdeploy + plugin-gtk handle library/typelib bundling and GTK env setup.
 # linuxdeploy-plugin-gtk is vendored from the repo (see the matching
