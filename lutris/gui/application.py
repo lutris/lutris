@@ -702,15 +702,18 @@ class LutrisApplication(Gtk.Application):
         if game_slug and not service:
             if action == "rungameid":
                 # Force db_game to use game id
-                self.quit_on_game_exit = True
+                if not self.has_tray_icon() and (not self.window or not self.window.is_visible()):
+                    self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "id")
             elif action == "rungame":
                 # Force db_game to use game slug
-                self.quit_on_game_exit = True
+                if not self.has_tray_icon() and (not self.window or not self.window.is_visible()):
+                    self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "slug")
             elif action == "install":
                 # Installers can use game or installer slugs
-                self.quit_on_game_exit = True
+                if not self.has_tray_icon() and (not self.window or not self.window.is_visible()):
+                    self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "slug") or games_db.get_game_by_field(
                     game_slug, "installer_slug"
                 )

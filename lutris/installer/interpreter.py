@@ -377,8 +377,13 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         # Mark cached files as successfully installed so cleanup can remove them
         self._update_cache_locks_state("installed")
 
-        # Check that the game's executable can actually be found
+        # Check that the game's executable can actually be found. A relative
+        # entry point is resolved against the install directory, the same way
+        # the runner resolves it at launch time, so we don't warn spuriously
+        # for scripts that use a relative exe.
         exe_path = get_entry_point_path(game_config.get("game", {})) if game_config else ""
+        if exe_path and not os.path.isabs(exe_path) and self.target_path:
+            exe_path = os.path.join(self.target_path, exe_path)
 
         if exe_path and not os.path.isfile(exe_path) and self.installer.runner != "web":
             status = (

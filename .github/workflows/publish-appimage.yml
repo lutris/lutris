@@ -1,0 +1,55 @@
+# Builds the Lutris AppImage and attaches it to the triggering GitHub
+# release. The build runs in the same Ubuntu 22.04 container the
+# `make appimage` recipe uses locally, so the artifact is bit-for-bit
+# the same as what developers produce on their own machines.
+#
+# Triggers:
+#   * release.released / release.prereleased — attaches to that release
+#   * workflow_dispatch                     — produces a workflow artifact
+#                                             only; does not touch a release
+name: Publish AppImage
+
+on:
+  release:
+    types: [released, prereleased]
+  workflow_dispatch:
+
+jobs:
+  appimage:
+    runs-on: ubuntu-22.04
+    permissions:
+      # Required so action-gh-release can upload the asset.
+      contents: write
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v6
+
+      - name: Build the AppImage
+        env:
+          # On release events, force the version to the tag (strip a
+          # leading 'v' if present). On workflow_dispatch this is empty,
+          # and build.sh falls back to awk'ing lutris/__init__.py.
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          if [ -n "$RELEASE_TAG" ]; then
+              export LUTRIS_VERSION="${RELEASE_TAG#v}"
+          fi
+          make appimage
+
+      - name: Upload as workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: lutris-appimage
+          path: dist/Lutris-*-x86_64.AppImage
+          if-no-files-found: error
+
+      # Only attach the asset when the workflow was actually triggered
+      # by a release event. workflow_dispatch runs stop at the artifact.
+      - name: Attach AppImage to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+              dist/Lutris-*-x86_64.AppImage \
+              --repo "${{ github.repository }}"
