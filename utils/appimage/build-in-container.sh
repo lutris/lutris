@@ -107,17 +107,111 @@ while IFS= read -r -d '' so; do
 done < <(find "$TARGET" -maxdepth 3 \( -name '_gi*.so' -o -name '_dbus*.so' -o -name 'gi.repository*.so' \) -print0 2>/dev/null)
 echo "Passing ${#LIB_ARGS[@]} native extensions to linuxdeploy: ${LIB_ARGS[*]}"
 
+# WebKit2 is loaded lazily via gi.repository (only when the user opens a
+# service login dialog), so it never appears in any binary's NEEDED list
+# at build time. Without explicit --library hints linuxdeploy doesn't
+# bundle libwebkit2gtk-4.1 or libjavascriptcoregtk-4.1, and at runtime
+# dlopen() falls through to the host copies — invisible on Ubuntu (same
+# layout), fatal on Fedora/Arch/openSUSE (different versions, different
+# path layouts) with errors like "undefined symbol: webkit_web_context_new".
+WEBKIT_LIB_ARGS=()
+for soname in libwebkit2gtk-4.1.so.0 libjavascriptcoregtk-4.1.so.0; do
+    so_path="$(ldconfig -p | awk -v n="$soname" '$1 == n { print $NF; exit }')"
+    if [ -n "$so_path" ] && [ -f "$so_path" ]; then
+        WEBKIT_LIB_ARGS+=(--library "$so_path")
+    else
+        echo "WARNING: $soname not found via ldconfig — WebKit dialogs will use host libs"
+    fi
+done
+echo "Passing ${#WEBKIT_LIB_ARGS[@]} WebKit libraries to linuxdeploy: ${WEBKIT_LIB_ARGS[*]}"
+
 linuxdeploy \
     --appdir "$APPDIR" \
     --plugin gtk \
     --executable "$APPDIR/usr/bin/python${PY_VER}" \
     "${LIB_ARGS[@]}" \
+    "${WEBKIT_LIB_ARGS[@]}" \
     --desktop-file "$DESKTOP_FILE" \
     --icon-file "$ICON_FILE"
 
 # linuxdeploy writes its own AppRun; restore ours (which knows to exec
 # python3 with bin/lutris and to source linuxdeploy-plugin-gtk's hook).
 install -m 0755 "$SRC/utils/appimage/AppRun" "$APPDIR/AppRun"
+
+# linuxdeploy-plugin-gtk copies libgio itself but not the GIO modules that
+# live at $gio_libdir/gio/modules/ — these include glib-networking's
+# libgiognutls.so, which provides GLib's TLS backend. Without it, WebKit
+# reports "TLS is not available" the moment it tries to open an HTTPS URL.
+# On Debian/Ubuntu hosts we happen to fall through to the host's copy at
+# the same path, but on Fedora/Arch/openSUSE the compile-time fallback
+# path doesn't exist and TLS silently breaks. Copy the whole modules
+# directory and let AppRun set GIO_MODULE_DIR.
+GIO_MODULES_SRC="/usr/lib/x86_64-linux-gnu/gio/modules"
+GIO_MODULES_DST="$APPDIR/usr/lib/gio/modules"
+if [ -d "$GIO_MODULES_SRC" ]; then
+    echo "Copying GIO modules from $GIO_MODULES_SRC"
+    mkdir -p "$GIO_MODULES_DST"
+    cp -a "$GIO_MODULES_SRC"/. "$GIO_MODULES_DST/"
+    # RPATH each .so at $ORIGIN/../.. so its NEEDED libs resolve back to
+    # $APPDIR/usr/lib. Without this, libgiognutls falls through to the
+    # host's libgnutls / libp11-kit which may have incompatible ABIs.
+    while IFS= read -r -d '' so; do
+        patchelf --set-rpath '$ORIGIN/../..' "$so" 2>/dev/null || true
+        echo "  rpath \$ORIGIN/../.. -> $so"
+    done < <(find "$GIO_MODULES_DST" -name '*.so' -print0)
+else
+    echo "WARNING: $GIO_MODULES_SRC not present — WebKit TLS will not work"
+fi
+
+# WebKit2 4.1 spawns helper processes (WebKitNetworkProcess,
+# WebKitWebProcess) that live in /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/.
+# linuxdeploy bundles shared libraries but not auxiliary executables, so
+# without copying this directory by hand the bundled libwebkit2gtk-4.1
+# tries to spawn an absent /usr/lib/.../WebKitNetworkProcess and fatally
+# aborts. There is no WEBKIT_EXEC_PATH env override in this build
+# either (removed upstream), so we mirror the trick used on the GTK 4
+# branch for WebKitGTK 6.0: byte-patch the hardcoded path inside
+# libwebkit2gtk-4.1.so.0 to /tmp/.lutris-appimage.dir/webkit2gtk-4.1
+# (same byte length), and have AppRun create a symlink at that
+# location pointing at the bundled directory. The injected-bundle
+# path shares the same prefix so the byte replacement updates both
+# strings in one pass.
+WEBKIT_SRC_DIR="/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1"
+WEBKIT_DST_DIR="$APPDIR/usr/lib/webkit2gtk-4.1"
+WEBKIT_LIB="$APPDIR/usr/lib/libwebkit2gtk-4.1.so.0"
+WEBKIT_HARDCODED_PATH="/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1"
+WEBKIT_PATCHED_PATH="/tmp/.lutris-appimage.dir/webkit2gtk-4.1"
+if [ -d "$WEBKIT_SRC_DIR" ]; then
+    echo "Copying WebKit2 auxiliary processes from $WEBKIT_SRC_DIR"
+    mkdir -p "$WEBKIT_DST_DIR"
+    cp -a "$WEBKIT_SRC_DIR"/. "$WEBKIT_DST_DIR/"
+    # Stamp every ELF in here with $ORIGIN/.. so the helper processes
+    # and their injected-bundle .so files load the bundled
+    # libwebkit2gtk-4.1 / libjavascriptcoregtk-4.1 rather than falling
+    # through to host copies.
+    while IFS= read -r -d '' elf; do
+        if file "$elf" | grep -q "ELF.*executable\|ELF.*shared object"; then
+            patchelf --set-rpath '$ORIGIN/..' "$elf" 2>/dev/null || true
+            echo "  rpath \$ORIGIN/.. -> $elf"
+        fi
+    done < <(find "$WEBKIT_DST_DIR" -type f -print0)
+
+    if [ -f "$WEBKIT_LIB" ]; then
+        python3 - "$WEBKIT_LIB" "$WEBKIT_HARDCODED_PATH" "$WEBKIT_PATCHED_PATH" <<'PY'
+import sys
+path, old, new = sys.argv[1], sys.argv[2].encode(), sys.argv[3].encode()
+assert len(old) == len(new), f"length mismatch: {len(old)} != {len(new)}"
+data = open(path, 'rb').read()
+count = data.count(old)
+if count == 0:
+    sys.exit(f"FATAL: hardcoded WebKit path {old!r} not found in {path}")
+open(path, 'wb').write(data.replace(old, new))
+print(f"Patched {count} occurrence(s) of {old.decode()} -> {new.decode()} in {path}")
+PY
+    fi
+else
+    echo "WARNING: $WEBKIT_SRC_DIR not present — WebKit dialogs will fail at runtime"
+fi
 
 # linuxdeploy patched RPATH on every binary it deployed itself, but it did
 # not touch the files we copied in by hand (_gi.so, _dbus*.so under
