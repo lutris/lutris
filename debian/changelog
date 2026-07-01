@@ -25,6 +25,7 @@ lutris (0.5.23) jammy; urgency=medium
   * Added Swedish (sv) translation
   * Added Galician (gl_ES) translation
   * Updated pt_BR translation
+  * Add AppImage packaging
 
  -- Mathieu Comandon <mathieucomandon@gmail.com>  Sat, 15 Mar 2026 21:00:00 -0800
 
