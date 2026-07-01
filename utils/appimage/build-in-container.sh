@@ -119,6 +119,31 @@ linuxdeploy \
 # python3 with bin/lutris and to source linuxdeploy-plugin-gtk's hook).
 install -m 0755 "$SRC/utils/appimage/AppRun" "$APPDIR/AppRun"
 
+# linuxdeploy-plugin-gtk copies libgio itself but not the GIO modules that
+# live at $gio_libdir/gio/modules/ — these include glib-networking's
+# libgiognutls.so, which provides GLib's TLS backend. Without it, WebKit
+# reports "TLS is not available" the moment it tries to open an HTTPS URL.
+# On Debian/Ubuntu hosts we happen to fall through to the host's copy at
+# the same path, but on Fedora/Arch/openSUSE the compile-time fallback
+# path doesn't exist and TLS silently breaks. Copy the whole modules
+# directory and let AppRun set GIO_MODULE_DIR.
+GIO_MODULES_SRC="/usr/lib/x86_64-linux-gnu/gio/modules"
+GIO_MODULES_DST="$APPDIR/usr/lib/gio/modules"
+if [ -d "$GIO_MODULES_SRC" ]; then
+    echo "Copying GIO modules from $GIO_MODULES_SRC"
+    mkdir -p "$GIO_MODULES_DST"
+    cp -a "$GIO_MODULES_SRC"/. "$GIO_MODULES_DST/"
+    # RPATH each .so at $ORIGIN/../.. so its NEEDED libs resolve back to
+    # $APPDIR/usr/lib. Without this, libgiognutls falls through to the
+    # host's libgnutls / libp11-kit which may have incompatible ABIs.
+    while IFS= read -r -d '' so; do
+        patchelf --set-rpath '$ORIGIN/../..' "$so" 2>/dev/null || true
+        echo "  rpath \$ORIGIN/../.. -> $so"
+    done < <(find "$GIO_MODULES_DST" -name '*.so' -print0)
+else
+    echo "WARNING: $GIO_MODULES_SRC not present — WebKit TLS will not work"
+fi
+
 # linuxdeploy patched RPATH on every binary it deployed itself, but it did
 # not touch the files we copied in by hand (_gi.so, _dbus*.so under
 # dist-packages). Since AppRun deliberately leaves LD_LIBRARY_PATH unset

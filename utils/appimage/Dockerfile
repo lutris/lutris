@@ -50,6 +50,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libnotify4 \
     libayatana-appindicator3-1 \
     libgnome-desktop-3-19 \
+    glib-networking \
     librsvg2-common \
  && rm -rf /var/lib/apt/lists/*
 

@@ -29,6 +29,16 @@ fi
 
 export APPDIR="$HERE"
 
+# GLib's GIO looks for extension modules (TLS backends, proxy resolvers,
+# etc.) at a compile-time libdir. Point it at our bundled copy explicitly;
+# otherwise WebKit reports "TLS is not available" and any HTTPS login flow
+# fails at the first request. This is silently masked on Debian/Ubuntu
+# hosts because the compile-time fallback path exists there, but breaks
+# on Fedora/Arch/openSUSE where it doesn't.
+if [ -d "$HERE/usr/lib/gio/modules" ]; then
+    export GIO_MODULE_DIR="$HERE/usr/lib/gio/modules"
+fi
+
 # Intentionally do NOT export LD_LIBRARY_PATH. linuxdeploy already set
 # RPATH=$ORIGIN/.. on every bundled binary, so they find their sibling libs
 # without an env override. Exporting LD_LIBRARY_PATH here would leak into
