@@ -1,5 +1,5 @@
 # Builds the Lutris AppImage and attaches it to the triggering GitHub
-# release. The build runs in the same Ubuntu 22.04 container the
+# release. The build runs in the same Ubuntu 24.04 container the
 # `make appimage` recipe uses locally, so the artifact is bit-for-bit
 # the same as what developers produce on their own machines.
 #
@@ -16,7 +16,7 @@ on:
 
 jobs:
   appimage:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       # Required so action-gh-release can upload the asset.
       contents: write

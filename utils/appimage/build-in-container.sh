@@ -14,8 +14,8 @@ rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib" "$OUT"
 
 # Bundle the Python interpreter + standard library so the AppImage doesn't
-# depend on the host having python3.10 installed. We use whatever python3
-# the build image ships (Ubuntu 22.04 → 3.10).
+# depend on the host having a matching python3.X installed. We use whatever
+# python3 the build image ships (Ubuntu 24.04 → 3.12).
 PY_VER="$(python3 -c 'import sys;print("%d.%d"%sys.version_info[:2])')"
 cp -a "$(readlink -f /usr/bin/python3)" "$APPDIR/usr/bin/python${PY_VER}"
 ln -sf "python${PY_VER}" "$APPDIR/usr/bin/python3"
@@ -37,7 +37,7 @@ rm -rf "$APPDIR/usr/lib/python${PY_VER}/test" \
 # Install Lutris (Python package + bin/lutris + data files) into the AppDir.
 # --install-layout=deb is Debian's flag for "use dist-packages, not the
 # upstream-Python site-packages layout." This matters because the bundled
-# Python is Debian-patched (Ubuntu 22.04) and its default sys.path looks
+# Python is Debian-patched (Ubuntu 24.04) and its default sys.path looks
 # for modules in dist-packages, not site-packages. Installing here means
 # AppRun does not need to advertise our location on PYTHONPATH, which in
 # turn keeps PYTHONPATH out of host subprocesses (umu-run's #!/usr/bin/env
@@ -60,7 +60,7 @@ mkdir -p "$TARGET"
 # than copying apt's python3-gi / python3-dbus into the AppDir by hand)
 # keeps every runtime dep on a single, version-pinnable surface and
 # lets pycairo land naturally as a PyGObject dependency.
-python3 -m pip install --no-compile --target="$TARGET" \
+python3 -m pip install --no-compile --break-system-packages --target="$TARGET" \
     certifi \
     distro \
     evdev \
