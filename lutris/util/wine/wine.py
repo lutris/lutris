@@ -248,6 +248,11 @@ def is_fsync_supported() -> bool:
     return fsync.get_fsync_support()
 
 
+def is_ntsync_supported() -> bool:
+    """Checks if the ntsync kernel module is loaded."""
+    return os.path.exists("/dev/ntsync")
+
+
 def get_default_wine_version() -> str:
     """Return the default version of wine."""
     return GE_PROTON_LATEST
