@@ -644,6 +644,23 @@ class LutrisSidebar(Gtk.ListBox):
                 self.select_row(row)
                 return
 
+    # Select the next (1) or previous (-1) visible sidebar row.
+    def select_adjacent_row(self, direction: int) -> None:
+        rows = get_widget_children(self, SidebarRow)
+        visible = [r for r in rows if r.get_visible()]
+        if not visible:
+            return
+        current = self.get_selected_row()
+        if not isinstance(current, SidebarRow):
+            idx = -1
+        else:
+            try:
+                idx = visible.index(current)
+            except ValueError:
+                idx = -1
+        next_idx = (idx + direction) % len(visible)
+        self.select_row(visible[next_idx])
+
     def _filter_func(self, row):
         def is_runner_visible(runner_name):
             if runner_name not in self.runner_visibility_cache:
