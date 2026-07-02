@@ -144,9 +144,6 @@ class Magic:
     def setparam(self, param, val):
         return magic_setparam(self.cookie, param, val)
 
-    def getparam(self, param):
-        return magic_getparam(self.cookie, param)
-
     def __del__(self):
         # no _thread_check here because there can be no other
         # references to this object at this point.
