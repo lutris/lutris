@@ -29,6 +29,38 @@ fi
 
 export APPDIR="$HERE"
 
+# WebKit2 4.1 spawns helper processes (WebKitNetworkProcess,
+# WebKitWebProcess) from a compile-time path baked into
+# libwebkit2gtk-4.1.so.0. WEBKIT_EXEC_PATH does not exist in this
+# build, so the build script byte-patched the hardcoded path inside
+# the .so to /tmp/.lutris-appimage.dir/webkit2gtk-4.1 (same length as
+# the original). Symlink that location to our bundled helpers before
+# launching.
+#
+# Disable WebKit's bubblewrap sandbox: it creates a fresh mount
+# namespace with only paths WebKit's own policy bind-mounts, and the
+# AppImage's FUSE mount at /tmp/.mount_LutrisXXX is not one of them.
+# The helpers execvp inside the sandbox and can't reach either the
+# symlink target or the bundled libs. Lutris already runs with full
+# user-home access and spawns Wine binaries — a WebKit sandbox layered
+# on top adds negligible additional isolation, and disabling it is
+# standard practice for AppImage-packaged WebKitGTK apps.
+if [ -d "$HERE/usr/lib/webkit2gtk-4.1" ]; then
+    mkdir -p /tmp/.lutris-appimage.dir
+    ln -snf "$HERE/usr/lib/webkit2gtk-4.1" /tmp/.lutris-appimage.dir/webkit2gtk-4.1
+    export WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1
+fi
+
+# GLib's GIO looks for extension modules (TLS backends, proxy resolvers,
+# etc.) at a compile-time libdir. Point it at our bundled copy explicitly;
+# otherwise WebKit reports "TLS is not available" and any HTTPS login flow
+# fails at the first request. This is silently masked on Debian/Ubuntu
+# hosts because the compile-time fallback path exists there, but breaks
+# on Fedora/Arch/openSUSE where it doesn't.
+if [ -d "$HERE/usr/lib/gio/modules" ]; then
+    export GIO_MODULE_DIR="$HERE/usr/lib/gio/modules"
+fi
+
 # Intentionally do NOT export LD_LIBRARY_PATH. linuxdeploy already set
 # RPATH=$ORIGIN/.. on every bundled binary, so they find their sibling libs
 # without an env override. Exporting LD_LIBRARY_PATH here would leak into

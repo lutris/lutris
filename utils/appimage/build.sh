@@ -12,7 +12,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-IMAGE_TAG="lutris-appimage-builder:ubuntu22.04"
+IMAGE_TAG="lutris-appimage-builder:ubuntu24.04"
 
 # Default LUTRIS_VERSION to whatever lutris/__init__.py advertises so a
 # plain `make appimage` produces a sensibly-named artifact on a release
