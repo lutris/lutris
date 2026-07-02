@@ -78,6 +78,18 @@ def add_icd_search_path(paths: str) -> list[str]:
     return icd_paths
 
 
+def log_vulkan_loader_messages(messages: str) -> None:
+    """Selectively log the messages the Vulkan loader writes to stderr while we run
+    vulkaninfo. Genuine errors are surfaced; the loader's warnings about ICDs that
+    can't initialize on this host (such as Mesa's dzn/Direct3D12 driver, which has
+    no D3D12 backend outside of WSL) are dropped entirely, as they're noise on
+    most systems and would otherwise clutter the output even in debug mode."""
+    for line in messages.splitlines():
+        line = line.strip()
+        if "ERROR" in line:
+            logger.error("vulkaninfo: %s", line)
+
+
 def get_vk_icd_files() -> list[str]:
     """Returns available vulkan ICD files in the same search order as vulkan-loader,
     but in a single list"""
@@ -153,13 +165,19 @@ class GPU:
             raise RuntimeError("vulkaninfo is not available")
         subprocess_env = dict(os.environ)
         vulkaninfo_output_raw = system.read_process_output(
-            [VULKANINFO_PATH, "--summary"], env=os.environ, error_result=None
+            [VULKANINFO_PATH, "--summary"],
+            env=os.environ,
+            error_result=None,
+            stderr_handler=log_vulkan_loader_messages,
         )
         if not vulkaninfo_output_raw:
             subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supporte
             subprocess_env["VK_ICD_FILENAMES"] = self.icd_files  # Deprecated
             vulkaninfo_output_raw = system.read_process_output(
-                [VULKANINFO_PATH, "--summary"], env=subprocess_env, error_result=""
+                [VULKANINFO_PATH, "--summary"],
+                env=subprocess_env,
+                error_result="",
+                stderr_handler=log_vulkan_loader_messages,
             )
 
         vulkaninfo_output = vulkaninfo_output_raw.split("\n") if vulkaninfo_output_raw else []

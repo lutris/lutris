@@ -1094,7 +1094,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.filters["installed"] = filter_installed
 
     def update_notification(self):
-        show_notification = self.is_showing_splash() and not read_api_key()
+        show_notification = (
+            self.is_showing_splash()
+            and not read_api_key()
+            and not settings.read_bool_setting("dismissed_login_notification")
+        )
         if show_notification:
             self.lutris_log_in_label.show()
         self.login_notification_revealer.set_reveal_child(show_notification)
@@ -1107,6 +1111,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.login_notification_revealer.set_reveal_child(False)
         login_dialog = ClientLoginDialog(parent=self)
         login_dialog.connect("connected", on_connect_success)
+
+    def on_login_notification_close_button_clicked(self, _button):
+        settings.write_setting("dismissed_login_notification", True)
+        self.login_notification_revealer.set_reveal_child(False)
 
     def on_version_notification_close_button_clicked(self, _button):
         dialog = QuestionDialog(
@@ -1129,8 +1137,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_service_games_loaded(self, service):
         """Request a view update when service games are loaded"""
-        if self.service and service.id == self.service.id:
-            self.update_store()
+        self.update_store()
 
     def on_categories_updated(self):
         self.update_store()

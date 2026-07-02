@@ -25,9 +25,19 @@ class db_cursor(object):
         cursor = self.db_conn.cursor()
         return cursor
 
-    def __exit__(self, _type: type[BaseException], value: BaseException, traceback: TracebackType) -> None:
-        self.db_conn.commit()
-        self.db_conn.close()
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        try:
+            if exc_type is None:
+                self.db_conn.commit()
+            else:
+                self.db_conn.rollback()
+        finally:
+            self.db_conn.close()
 
 
 def cursor_execute(cursor: sqlite3.Cursor, query: str, params: DBParams | None = None) -> sqlite3.Cursor:
@@ -184,6 +194,8 @@ def _create_filter(field: str, value: Any, params: list[Any], negate: bool = Fal
         else:
             return f"({field} IS NULL OR {sql})"
     else:
+        if negate:
+            return f"({field} IS NULL OR {sql})"
         return sql
 
 

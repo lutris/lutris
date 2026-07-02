@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from lutris.util.downloader import Downloader, DownloadStallError, get_time
+from lutris.util.downloader import BaseDownloader, DownloadStallError, SimpleDownloader, StallMonitor, get_time
 
 
 class TestDownloadStallError:
@@ -35,90 +35,125 @@ class TestDownloadStallError:
 
 
 class TestCheckStall:
-    """Test the _check_stall() method on Downloader."""
+    """Test the throughput-window logic in StallMonitor."""
 
-    def _make_downloader(self):
-        dl = Downloader("https://example.com/file.bin", "/tmp/test.bin")
-        dl._reset_stall_state()
-        return dl
+    def _make_monitor(self):
+        return StallMonitor(BaseDownloader.LOW_SPEED_LIMIT, BaseDownloader.LOW_SPEED_TIME)
 
     def test_first_call_initializes_window(self):
         """First call should set the stall window start, not raise."""
-        dl = self._make_downloader()
+        monitor = self._make_monitor()
         # Should not raise
-        dl._check_stall(1000)
-        assert dl._stall_start is not None
-        assert dl._stall_bytes_at_start == 1000
+        monitor.check(1000)
+        assert monitor.window_start is not None
+        assert monitor.bytes_at_window_start == 1000
 
     def test_good_throughput_resets_window(self):
         """When throughput is above threshold, the stall window resets."""
-        dl = self._make_downloader()
-        dl._stall_start = get_time() - 5.0  # 5 seconds ago
-        dl._stall_bytes_at_start = 0
+        monitor = self._make_monitor()
+        monitor.window_start = get_time() - 5.0  # 5 seconds ago
+        monitor.bytes_at_window_start = 0
         # 10000 bytes in 5 seconds = 2000 B/s — well above 200 B/s
-        dl._check_stall(10000)
+        monitor.check(10000)
         # Window should have been reset
-        assert dl._stall_bytes_at_start == 10000
+        assert monitor.bytes_at_window_start == 10000
 
     def test_low_throughput_does_not_raise_immediately(self):
         """Low throughput within the time window should not raise."""
-        dl = self._make_downloader()
-        dl._stall_start = get_time() - 10.0  # 10 seconds ago
-        dl._stall_bytes_at_start = 0
+        monitor = self._make_monitor()
+        monitor.window_start = get_time() - 10.0  # 10 seconds ago
+        monitor.bytes_at_window_start = 0
         # 100 bytes in 10 seconds = 10 B/s — below threshold but only 10s elapsed
-        dl._check_stall(100)
+        monitor.check(100)
         # Should not raise because LOW_SPEED_TIME (30s) not exceeded
 
     def test_stall_raises_after_timeout(self):
         """Low throughput exceeding LOW_SPEED_TIME should raise."""
-        dl = self._make_downloader()
-        dl._stall_start = get_time() - 31.0  # 31 seconds ago
-        dl._stall_bytes_at_start = 0
+        monitor = self._make_monitor()
+        monitor.window_start = get_time() - 31.0  # 31 seconds ago
+        monitor.bytes_at_window_start = 0
         # 100 bytes in 31 seconds = ~3.2 B/s — below 200 B/s for > 30s
         with pytest.raises(DownloadStallError) as exc_info:
-            dl._check_stall(100)
+            monitor.check(100)
         assert exc_info.value.duration >= 30.0
         assert exc_info.value.throughput < 200.0
 
     def test_zero_bytes_triggers_stall(self):
         """Zero bytes received should eventually trigger stall."""
-        dl = self._make_downloader()
-        dl._stall_start = get_time() - 35.0
-        dl._stall_bytes_at_start = 0
+        monitor = self._make_monitor()
+        monitor.window_start = get_time() - 35.0
+        monitor.bytes_at_window_start = 0
         with pytest.raises(DownloadStallError):
-            dl._check_stall(0)
+            monitor.check(0)
 
     def test_recovery_resets_timer(self):
         """If throughput recovers within the window, timer resets."""
-        dl = self._make_downloader()
-        dl._stall_start = get_time() - 20.0  # 20 seconds of slow speed
-        dl._stall_bytes_at_start = 100
+        monitor = self._make_monitor()
+        monitor.window_start = get_time() - 20.0  # 20 seconds of slow speed
+        monitor.bytes_at_window_start = 100
         # Now deliver a burst: enough bytes to push throughput above threshold
         # Need > 200 B/s over 20 seconds = 4000 bytes
-        dl._check_stall(100 + 5000)
+        monitor.check(100 + 5000)
         # Window should have reset (not raised)
-        assert dl._stall_bytes_at_start == 5100
+        assert monitor.bytes_at_window_start == 5100
 
-    def test_reset_stall_state(self):
-        dl = self._make_downloader()
-        dl._stall_start = 12345.0
-        dl._stall_bytes_at_start = 9999
-        dl._reset_stall_state()
-        assert dl._stall_start is None
-        assert dl._stall_bytes_at_start == 0
+
+class TestStallMonitorIsolation:
+    """Each download stream must own its StallMonitor.
+
+    Regression tests for the parallel-download stall race: GOGDownloader runs
+    several workers concurrently, each with its own byte counter. When they
+    shared a single window, one worker's counter polluted another's, producing
+    nonsensical (negative) throughput and spurious stalls on healthy downloads.
+    """
+
+    def test_separate_monitors_do_not_interfere(self):
+        """Two interleaved streams with independent counters never stall."""
+        fast = StallMonitor(BaseDownloader.LOW_SPEED_LIMIT, BaseDownloader.LOW_SPEED_TIME)
+        slow = StallMonitor(BaseDownloader.LOW_SPEED_LIMIT, BaseDownloader.LOW_SPEED_TIME)
+        # 'fast' streams huge byte counts, 'slow' streams small ones. If they
+        # shared a window, slow.check() would read fast's large start value and
+        # compute a negative throughput. With separate monitors, both are healthy.
+        fast_bytes = 0
+        slow_bytes = 0
+        for _ in range(50):
+            fast_bytes += 10_000_000
+            slow_bytes += 1_000_000
+            fast.check(fast_bytes)  # ~10 MB between calls — healthy
+            slow.check(slow_bytes)  # ~1 MB between calls — healthy
+        # No DownloadStallError raised: both windows reset on good throughput.
+
+    def test_shared_window_would_go_negative(self):
+        """Document the bug: one shared window across mismatched counters
+        yields negative throughput. This is what separate monitors prevent."""
+        shared = StallMonitor(BaseDownloader.LOW_SPEED_LIMIT, BaseDownloader.LOW_SPEED_TIME)
+        # Worker A opens the window at a high byte count.
+        shared.check(8_000_000)
+        # Worker B then reports its own, smaller counter into the same window.
+        shared.window_start = get_time() - 1.0  # 1s elapsed
+        bytes_in_window = 2_000_000 - shared.bytes_at_window_start
+        assert bytes_in_window < 0  # negative => bogus "stall" on a healthy stream
+
+    def test_monitor_raises_on_genuine_stall(self):
+        """A single monitor still detects a real stall (feature preserved)."""
+        monitor = StallMonitor(BaseDownloader.LOW_SPEED_LIMIT, BaseDownloader.LOW_SPEED_TIME)
+        monitor.check(0)  # open window
+        monitor.window_start = get_time() - 31.0  # 31s elapsed, no progress
+        with pytest.raises(DownloadStallError):
+            monitor.check(100)  # ~3 B/s for >30s
 
 
 class TestDownloaderRetry:
-    """Test retry logic in the base Downloader."""
+    """Test retry logic in SimpleDownloader."""
 
     def _make_downloader(self, tmp_path):
         dest = str(tmp_path / "test.bin")
-        dl = Downloader("https://example.com/file.bin", dest)
+        dl = SimpleDownloader("https://example.com/file.bin", dest)
         dl.stop_request = threading.Event()
         return dl
 
-    @patch.object(Downloader, "on_download_completed")
-    @patch.object(Downloader, "_do_download")
+    @patch.object(SimpleDownloader, "on_download_completed")
+    @patch.object(SimpleDownloader, "_do_download")
     def test_success_on_first_try(self, mock_do, mock_complete, tmp_path):
         """Successful download should not retry."""
         dl = self._make_downloader(tmp_path)
@@ -129,8 +164,8 @@ class TestDownloaderRetry:
         assert mock_do.call_count == 1
         mock_complete.assert_called_once()
 
-    @patch.object(Downloader, "on_download_completed")
-    @patch.object(Downloader, "_do_download")
+    @patch.object(SimpleDownloader, "on_download_completed")
+    @patch.object(SimpleDownloader, "_do_download")
     def test_retries_on_stall_error(self, mock_do, mock_complete, tmp_path):
         """DownloadStallError should trigger retry."""
         dl = self._make_downloader(tmp_path)
@@ -150,7 +185,7 @@ class TestDownloaderRetry:
         assert mock_do.call_count == 3
         mock_complete.assert_called_once()
 
-    @patch.object(Downloader, "_do_download")
+    @patch.object(SimpleDownloader, "_do_download")
     def test_fails_after_max_retries(self, mock_do, tmp_path):
         """Should fail after RETRY_ATTEMPTS exhausted."""
         dl = self._make_downloader(tmp_path)
@@ -167,7 +202,7 @@ class TestDownloaderRetry:
         assert dl.state == dl.ERROR
         assert dl.error is stall_err
 
-    @patch.object(Downloader, "_do_download")
+    @patch.object(SimpleDownloader, "_do_download")
     def test_no_retry_on_404(self, mock_do, tmp_path):
         """HTTP 404 should not retry."""
         dl = self._make_downloader(tmp_path)
@@ -181,8 +216,8 @@ class TestDownloaderRetry:
         assert mock_do.call_count == 1
         assert dl.state == dl.ERROR
 
-    @patch.object(Downloader, "on_download_completed")
-    @patch.object(Downloader, "_do_download")
+    @patch.object(SimpleDownloader, "on_download_completed")
+    @patch.object(SimpleDownloader, "_do_download")
     def test_retry_on_500(self, mock_do, mock_complete, tmp_path):
         """HTTP 500 should trigger retry."""
         dl = self._make_downloader(tmp_path)
@@ -200,8 +235,8 @@ class TestDownloaderRetry:
         assert mock_do.call_count == 2
         mock_complete.assert_called_once()
 
-    @patch.object(Downloader, "on_download_completed")
-    @patch.object(Downloader, "_do_download")
+    @patch.object(SimpleDownloader, "on_download_completed")
+    @patch.object(SimpleDownloader, "_do_download")
     def test_retry_on_429(self, mock_do, mock_complete, tmp_path):
         """HTTP 429 (rate limit) should trigger retry."""
         dl = self._make_downloader(tmp_path)
@@ -222,11 +257,11 @@ class TestDownloaderRetry:
     def test_is_retryable_http_error_no_response(self):
         """HTTP error with no response should be retryable."""
         err = requests.HTTPError(response=None)
-        assert Downloader._is_retryable_http_error(err) is True
+        assert SimpleDownloader._is_retryable_http_error(err) is True
 
     def test_is_retryable_http_error_403(self):
         """HTTP 403 should not be retryable."""
         response = MagicMock()
         response.status_code = 403
         err = requests.HTTPError(response=response)
-        assert Downloader._is_retryable_http_error(err) is False
+        assert SimpleDownloader._is_retryable_http_error(err) is False

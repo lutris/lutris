@@ -439,6 +439,70 @@ class InputDialog(ModalDialog):
         self.ok_button.set_sensitive(bool(self.user_value))
 
 
+class ComponentUpdateWaitDialog(ModalDialog):
+    """Shown while in-progress Lutris component downloads (runtime, wine, etc.)
+    finish before launching a game. Auto-resolves to OK once the download queue
+    empties; the user can also override with 'Launch Anyway' or cancel."""
+
+    def __init__(
+        self,
+        is_queue_empty: Callable[[], bool],
+        parent: Gtk.Widget | None = None,
+    ):
+        from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED  # noqa: PLC0415
+
+        super().__init__(title=_("Waiting for Lutris components"), parent=parent)
+        self.set_default_size(420, -1)
+
+        content = self.get_content_area()
+        content.set_margin_top(12)
+        content.set_margin_bottom(12)
+        content.set_margin_start(18)
+        content.set_margin_end(18)
+
+        column = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+
+        heading_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        heading = Gtk.Label(
+            label=_("A Lutris component update is in progress."),
+            xalign=0,
+            wrap=True,
+        )
+        heading_row.pack_start(heading, True, True, 0)
+
+        spinner = Gtk.Spinner()
+        spinner.start()
+        heading_row.pack_start(spinner, False, False, 0)
+        column.pack_start(heading_row, False, False, 0)
+
+        detail = Gtk.Label(
+            label="<small>%s</small>"
+            % _("Games can crash or corrupt their Wine prefix if launched before updates finish."),
+            use_markup=True,
+            xalign=0,
+            wrap=True,
+        )
+        detail.get_style_context().add_class("dim-label")
+        column.pack_start(detail, False, False, 0)
+
+        content.pack_start(column, False, False, 0)
+        content.show_all()
+
+        self.add_button(_("Cancel"), Gtk.ResponseType.CANCEL)
+        self.add_default_button(_("Launch Anyway"), Gtk.ResponseType.OK)
+
+        self._is_queue_empty = is_queue_empty
+        self._registration = DOWNLOAD_QUEUE_COMPLETED.register(self._on_queue_done)
+
+    def _on_queue_done(self, *_args: Any) -> None:
+        if self._is_queue_empty():
+            self.response(Gtk.ResponseType.OK)
+
+    def on_response(self, dialog: Gtk.Dialog, response: Gtk.ResponseType) -> None:
+        self._registration.unregister()
+        super().on_response(dialog, response)
+
+
 class DirectoryDialog:
     """Ask the user to select a directory."""
 

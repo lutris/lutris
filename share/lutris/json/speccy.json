@@ -55,7 +55,7 @@
             "type": "bool",
             "label": "128kB ZX Spectrum +3",
             "default": false,
-            "argument": "-3a"
+            "argument": "-3+"
         }
     ]
 }

@@ -811,28 +811,32 @@ class Game:
         if not launch_ui_delegate.check_game_launchable(self):
             return False
 
-        self.reload_config()  # Reload the config before launching it.
-
-        if self.id in LOG_BUFFERS:  # Reset game logs on each launch
-            log_buffer = LOG_BUFFERS[self.id]
-            log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
-
-        self.state = self.STATE_LAUNCHING
-        self.prelaunch_pids = system.get_running_pid_list()
-
-        if not self.prelaunch_pids:
-            logger.error("No prelaunch PIDs could be obtained. Game stop may be ineffective.")
-            self.prelaunch_pids = None
-
-        GAME_START.fire(self)
-
         @watch_game_errors(game_stop_result=False, game=self)
-        def configure_game(_ignored: Any, error: BaseException) -> None:
-            if error:
-                raise error
-            self.configure_game(launch_ui_delegate)
+        def proceed() -> None:
+            self.reload_config()  # Reload the config before launching it.
 
-        jobs.AsyncCall(self.runner.prelaunch, configure_game)
+            if self.id in LOG_BUFFERS:  # Reset game logs on each launch
+                log_buffer = LOG_BUFFERS[self.id]
+                log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
+
+            self.state = self.STATE_LAUNCHING
+            self.prelaunch_pids = system.get_running_pid_list()
+
+            if not self.prelaunch_pids:
+                logger.error("No prelaunch PIDs could be obtained. Game stop may be ineffective.")
+                self.prelaunch_pids = None
+
+            GAME_START.fire(self)
+
+            @watch_game_errors(game_stop_result=False, game=self)
+            def configure_game(_ignored: Any, error: BaseException) -> None:
+                if error:
+                    raise error
+                self.configure_game(launch_ui_delegate)
+
+            jobs.AsyncCall(self.runner.prelaunch, configure_game)
+
+        launch_ui_delegate.wait_for_component_updates(self, proceed)
         return True
 
     def start_game(self) -> None:
@@ -996,6 +1000,16 @@ class Game:
         runs_only_prelaunch = False
         if self.prelaunch_executor and self.prelaunch_executor.is_running and self.prelaunch_executor.game_process:
             runs_only_prelaunch = game_pids == {self.prelaunch_executor.game_process.pid}
+
+        # Some runners (e.g. Steam) launch the game out-of-process via a
+        # non-blocking handoff: game_thread exits within seconds and there is a
+        # brief window before the game's own process tree appears. Let the
+        # runner keep the monitor alive across that window and for the whole
+        # game lifetime, so beat() doesn't quit (or kill the game as "orphans")
+        # prematurely. Returns False for normal runners (unchanged behaviour).
+        if not runs_only_prelaunch and self.runner.keep_game_alive(game_pids, self.game_thread.is_running):
+            return True
+
         if runs_only_prelaunch or (not self.game_thread.is_running and not game_pids):
             logger.debug("Game thread stopped")
             self.on_game_quit()

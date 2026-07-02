@@ -206,11 +206,9 @@ def create_prefix(
         umu_command = None
         wineboot_path = os.path.join(os.path.dirname(wine_path), "wineboot")
         if not system.path_exists(wineboot_path):
-            logger.error(
-                "No wineboot executable found in %s, your wine installation is most likely broken",
-                wine_path,
+            raise RuntimeError(
+                _("No wineboot executable found in %s, your wine installation is most likely broken") % wine_path
             )
-            return
 
         system.execute([wineboot_path], env=wineenv)
 
@@ -224,13 +222,18 @@ def create_prefix(
             break
         # Check if umu crashed before prefix was created
         if umu_command and not umu_command.is_running:
-            logger.error("Umu exited unexpectedly during prefix creation (return code: %s)", umu_command.return_code)
-            return
+            raise RuntimeError(
+                _(
+                    "Umu exited unexpectedly during prefix creation (return code: %s). "
+                    "Proton could not be set up; check that a Proton build is available "
+                    "and that Lutris can reach the network."
+                )
+                % umu_command.return_code
+            )
         if loop_index == 60:
             logger.warning("Wine prefix creation is taking longer than expected...")
     if not os.path.exists(os.path.join(prefix, "user.reg")):
-        logger.error("No user.reg found after prefix creation. Prefix might not be valid")
-        return
+        raise RuntimeError(_("No user.reg found after prefix creation in %s. The prefix is not valid.") % prefix)
     logger.info("%s Prefix created in %s", arch, prefix)
     prefix_manager = WinePrefixManager(prefix)
     prefix_manager.setup_defaults()

@@ -16,7 +16,7 @@ from lutris.api import (
 )
 from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.util import http, system
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import SimpleDownloader
 from lutris.util.extract import extract_archive
 from lutris.util.jobs import AsyncCall
 from lutris.util.linux import LINUX_SYSTEM
@@ -319,7 +319,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
     def __init__(self, remote_runtime_info: dict[str, Any]) -> None:
         super().__init__(remote_runtime_info)
         self.url = remote_runtime_info["url"]
-        self.downloader: Downloader | None = None
+        self.downloader: SimpleDownloader | None = None
         self.complete_event = threading.Event()
 
     def get_progress(self) -> ProgressInfo:
@@ -340,7 +340,7 @@ class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
         self.complete_event.clear()
 
         archive_path = self.archive_path
-        self.downloader = Downloader(self.url, archive_path, overwrite=True)
+        self.downloader = SimpleDownloader(self.url, archive_path, overwrite=True)
         self.downloader.start()
         self.downloader.join()
         self.downloader = None

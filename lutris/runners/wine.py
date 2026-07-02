@@ -474,7 +474,7 @@ class wine(Runner):
             "option": "fsync",
             "label": _("Enable Fsync"),
             "type": "bool",
-            "default": is_fsync_supported(),
+            "default": is_fsync_supported,
             "warning": _get_fsync_warning,
             "active": True,
             "help": _(
@@ -1307,6 +1307,19 @@ class wine(Runner):
 
         if "PROTON_DXVK_D3D8" not in env:
             env["PROTON_DXVK_D3D8"] = "1" if using_dxvk else "0"
+
+        if (
+            using_dxvk
+            and is_proton_version
+            and "PROTON_DXVK_SAREK" not in env
+            and not os.environ.get("LUTRIS_NO_VKQUERY")
+        ):
+            lib_api_version = vkquery.get_vulkan_api_version()
+            devices = vkquery.get_device_info()
+            if (lib_api_version and lib_api_version < REQUIRED_VULKAN_API_VERSION) or (
+                devices and devices[0].api_version < REQUIRED_VULKAN_API_VERSION
+            ):
+                env["PROTON_DXVK_SAREK"] = "1"
 
         if (
             self.runner_config.get("Graphics") == "wayland"

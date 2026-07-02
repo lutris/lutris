@@ -20,7 +20,7 @@ from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import linux
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import SimpleDownloader
 from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -684,7 +684,7 @@ class ItchIoService(OnlineService):
                         "itchupload": {
                             "url": patch_url,
                             "filename": "update.zip",
-                            "downloader": lambda f, url=patch_url: Downloader(
+                            "downloader": lambda f, url=patch_url: SimpleDownloader(
                                 url, f.download_file, overwrite=True, headers=self.get_headers()
                             ),
                         }
@@ -783,7 +783,7 @@ class ItchIoService(OnlineService):
                     {
                         "url": link,
                         "filename": filename or file.filename or "setup.zip",
-                        "downloader": lambda f, url=link: Downloader(
+                        "downloader": lambda f, url=link: SimpleDownloader(
                             url, f.download_file, overwrite=True, headers=self.get_headers()
                         ),
                     },
@@ -816,7 +816,7 @@ class ItchIoService(OnlineService):
                     {
                         "url": link,
                         "filename": upload["filename"],
-                        "downloader": lambda f, url=link: Downloader(
+                        "downloader": lambda f, url=link: SimpleDownloader(
                             url, f.download_file, overwrite=True, headers=self.get_headers()
                         ),
                     },

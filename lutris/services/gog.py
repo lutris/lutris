@@ -29,6 +29,9 @@ from lutris.util.strings import human_size, slugify
 if typing.TYPE_CHECKING:
     from lutris.installer.installer import LutrisInstaller
 
+### GOG Api limits requests to 50 comma-separated ids: https://gogapidocs.readthedocs.io/en/latest/galaxy.html#get--products
+MAX_PRODUCT_IDS_PER_REQUEST = 50
+
 
 class GogSmallBanner(ServiceMedia):
     """Small size game logo"""
@@ -277,15 +280,79 @@ class GOGService(OnlineService):
         if search:
             params["search"] = search
         url = self.embed_url + "/account/getFilteredProducts?" + urlencode(params)
-        return self.make_request(url)
+        result = self.make_request(url)
+        # HACK:
+        # All of this works around the fact that the worksOn tag in the product
+        # JSON is currently broken, where a game apparently "worksOn" nothing. So
+        # we fall back to GOG's API for the games on sales.
+        #
+        # Retrieving this info may fail for games that are in your inventory,
+        # but no longer available from the store. In that case we fake it.
+        for product in result["products"]:
+            worksOn = product["worksOn"]
+            if worksOn.get("Windows") or worksOn.get("Linux") or worksOn.get("Mac"):
+                continue  # If the game works on any platform, that'll do.
+
+            try:
+                info = self.make_request("https://api.gog.com/v2/games/" + str(product["id"]))
+                supported_os = info["_embedded"]["supportedOperatingSystems"]
+            except Exception as ex:
+                logger.exception(
+                    "Unable to retreive corrected OS support from GOG, falling back to 'Windows only': %s", ex
+                )
+                supported_os = [{"operatingSystem": {"name": "windows"}}]
+
+            for cur_os in supported_os:
+                os_name = cur_os["operatingSystem"].get("name")
+                match os_name:
+                    case "windows":
+                        worksOn["Windows"] = True
+                    case "linux":
+                        worksOn["Linux"] = True
+                    case "osx":
+                        worksOn["Mac"] = True
+        # end hack
+        return result
 
     def get_game_dlcs(self, product_id: str) -> list[dict]:
         """Return the list of DLC products for a game"""
         game_details = self.get_game_details(product_id)
-        if not game_details["dlcs"]:
+        unified_json = []
+        if not game_details.get("dlcs") or game_details.get("dlcs") == []:
             return []
-        all_products_url = game_details["dlcs"]["expanded_all_products_url"]
-        return self.make_api_request(all_products_url)
+        # If ids greater than 50 split request
+        dlc_products = game_details["dlcs"].get("products")
+        if not dlc_products:
+            return []
+        if len(dlc_products) > MAX_PRODUCT_IDS_PER_REQUEST:
+            # Get product ids only form json
+            product_ids = []
+            for product in game_details["dlcs"]["products"]:
+                product_ids.append(product.get("id"))
+            # Get number of requests by batches of 50
+            for start_index in range(0, len(product_ids), MAX_PRODUCT_IDS_PER_REQUEST):
+                # Get last index of product list to query
+                end_index = start_index + MAX_PRODUCT_IDS_PER_REQUEST
+                if end_index > len(product_ids):
+                    end_index = len(product_ids)
+                # Build string of product ids
+                product_ids_subset = product_ids[start_index:end_index]
+                product_ids_string = ",".join(str(pid) for pid in product_ids_subset)
+                print("{} through {}".format(product_ids_subset[0], product_ids_subset[-1]))
+                # Send batched request
+                request_json = self.make_api_request(
+                    "{}/products/?ids={}&expand=downloads".format(self.api_url, product_ids_string)
+                )
+                # Append products from response to unified JSON
+                for product in request_json:
+                    unified_json.append(product)
+        else:
+            # Default logic
+            all_products_url = game_details["dlcs"]["expanded_all_products_url"]
+            unified_json = self.make_api_request(all_products_url)
+
+        # Return unified JSON object
+        return unified_json
 
     def get_game_details(self, product_id: str) -> dict:
         """Return game information for a given game"""
@@ -691,17 +758,27 @@ class GOGService(OnlineService):
         """Return all available DLC installers for game"""
         appid = db_game["service_id"]
         runner_name = db_game.get("runner")
+        install_dir = db_game.get("directory")
 
         filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
 
         dlcs = self.get_game_dlcs(appid)
+
+        # For depot-installed games, delegate DLC installation to gogdl.
+        # The offline-installer path below assumes the base game's goginstaller
+        # files exist and registry state was set up by the offline installer,
+        # neither of which is true for depot installs.
+        from lutris.util.gogdl import is_depot_installed
+
+        if is_depot_installed(appid, install_dir=install_dir, runner=runner_name):
+            return self._get_depot_dlc_installers(db_game, dlcs, runner_name)
 
         installers = []
 
         for dlc in dlcs:
             dlc_id = "gogdlc-%s" % dlc["slug"]
 
-            # remove mac installers for now
+            # remove Mac installers for now
             installfiles = [
                 installer for installer in dlc["downloads"].get("installers", []) if installer["os"] != "mac"
             ]
@@ -744,6 +821,44 @@ class GOGService(OnlineService):
 
         return installers
 
+    def _get_depot_dlc_installers(self, db_game: dict, dlcs: list[dict], runner_name: str | None) -> list[dict]:
+        """Generate depot-based DLC installers that delegate to gogdl.
+        gogdl operates on the base game's manifest and pulls in just the
+        requested DLC's files into the existing install directory."""
+        appid = db_game["service_id"]
+        runner = runner_name or "wine"
+        platform = "linux" if runner == "linux" else "windows"
+        installers = []
+        for dlc in dlcs:
+            installers.append(
+                {
+                    "name": db_game["name"],
+                    "version": f"{dlc['title']} (depot)",
+                    "slug": dlc["slug"],
+                    "description": _("DLC for %s (via GOG depot)") % db_game["name"],
+                    "game_slug": self.get_installed_slug(db_game),
+                    "runner": runner,
+                    "is_dlc": True,
+                    "dlcid": dlc["id"],
+                    "gogid": dlc["id"],
+                    "script": {
+                        "extends": db_game["installer_slug"],
+                        "installer": [
+                            {
+                                "gogdl_setup": {
+                                    "game_id": appid,
+                                    "platform": platform,
+                                    "command": "download",
+                                    "dlcs": str(dlc["id"]),
+                                    "preserve_manifest": True,
+                                }
+                            },
+                        ],
+                    },
+                }
+            )
+        return installers
+
     def get_dlc_installers_owned(self, db_game: dict) -> list[dict]:
         """Return DLC installers for owned DLC"""
 
@@ -773,12 +888,27 @@ class GOGService(OnlineService):
     def get_update_installers(self, db_game: dict) -> list[dict]:
         appid = db_game["service_id"]
         runner = db_game.get("runner")
+        install_dir = db_game.get("directory")
 
         # For depot-installed games, generate a depot update installer
         from lutris.util.gogdl import is_depot_installed
 
-        if is_depot_installed(appid):
+        if is_depot_installed(appid, install_dir=install_dir, runner=runner):
             platform = "linux" if runner == "linux" else "windows"
+            # Include currently-installed DLCs so they get updated alongside
+            # the base game. Without this gogdl only refreshes base files;
+            # passing "all" would surprise the user by installing every DLC
+            # they own but hadn't chosen to install.
+            from lutris.util.gog import find_installed_product_ids
+
+            installed_dlc_ids = find_installed_product_ids(install_dir) - {str(appid)}
+            gogdl_setup = {
+                "game_id": appid,
+                "platform": platform,
+                "command": "update",
+            }
+            if installed_dlc_ids:
+                gogdl_setup["dlcs"] = ",".join(sorted(installed_dlc_ids))
             return [
                 {
                     "name": db_game["name"],
@@ -789,15 +919,7 @@ class GOGService(OnlineService):
                     "runner": runner or "wine",
                     "script": {
                         "extends": db_game["installer_slug"],
-                        "installer": [
-                            {
-                                "gogdl_setup": {
-                                    "game_id": appid,
-                                    "platform": platform,
-                                    "command": "update",
-                                }
-                            },
-                        ],
+                        "installer": [{"gogdl_setup": gogdl_setup}],
                     },
                 }
             ]
