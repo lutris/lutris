@@ -15,6 +15,65 @@ from lutris.util.log import logger
 from lutris.util.mame.database import get_supported_systems
 from lutris.util.strings import split_arguments
 
+MAME_RUNNER_DIR = os.path.join(settings.RUNNER_DIR, "mame")
+
+DEVICE_CHOICES: list[tuple[str, str]] = [
+    (_("Floppy disk"), "flop"),
+    (_("Floppy drive 1"), "flop1"),
+    (_("Floppy drive 2"), "flop2"),
+    (_("Floppy drive 3"), "flop3"),
+    (_("Floppy drive 4"), "flop4"),
+    (_("Cassette (tape)"), "cass"),
+    (_("Cassette 1 (tape)"), "cass1"),
+    (_("Cassette 2 (tape)"), "cass2"),
+    (_("Cartridge"), "cart"),
+    (_("Cartridge 1"), "cart1"),
+    (_("Cartridge 2"), "cart2"),
+    (_("Cartridge 3"), "cart3"),
+    (_("Cartridge 4"), "cart4"),
+    (_("Snapshot"), "snapshot"),
+    (_("Hard Disk"), "hard"),
+    (_("Hard Disk 1"), "hard1"),
+    (_("Hard Disk 2"), "hard2"),
+    (_("CD-ROM"), "cdrm"),
+    (_("CD-ROM 1"), "cdrm1"),
+    (_("CD-ROM 2"), "cdrm2"),
+    (_("Snapshot (dump)"), "dump"),
+    (_("Quickload"), "quickload"),
+    (_("Memory Card"), "memc"),
+    (_("Cylinder"), "cyln"),
+    (_("Punch Tape 1"), "ptap1"),
+    (_("Punch Tape 2"), "ptap2"),
+    (_("Print Out"), "prin"),
+    (_("romimage1"), "rom1"),
+    (_("romimage2"), "rom2"),
+    (_("romimage3"), "rom3"),
+    (_("romimage4"), "rom4"),
+    (_("romimage5"), "rom5"),
+    (_("midiin"), "min"),
+    (_("midiout"), "mout"),
+    (_("bitbanger"), "bitb"),
+    (_("microtape1"), "utap1"),
+    (_("microtape2"), "utap2"),
+    (_("magtape1"), "mtap1"),
+    (_("magtape2"), "mtap2"),
+    (_("magtape3"), "mtap3"),
+    (_("magtape4"), "mtap4"),
+]
+
+UIMODEKEY_CHOICES: list[tuple[str, str]] = [
+    (_("Scroll Lock"), "SCRLOCK"),
+    (_("Num Lock"), "NUMLOCK"),
+    (_("Caps Lock"), "CAPSLOCK"),
+    (_("Menu"), "MENU"),
+    (_("Right Control"), "RCONTROL"),
+    (_("Left Control"), "LCONTROL"),
+    (_("Right Alt"), "RALT"),
+    (_("Left Alt"), "LALT"),
+    (_("Right Super"), "RWIN"),
+    (_("Left Super"), "LWIN"),
+]
+
 
 def _build_mame_systems_cache(force: bool = False) -> bool:
     """Build the MAME systems cache by generating the XML list and system JSON."""
@@ -36,13 +95,25 @@ def _build_mame_systems_cache(force: bool = False) -> bool:
     return True
 
 
+_machine_mapping_cache: dict[str, str] | None = None
+
+
+def _get_machine_mapping() -> dict[str, str]:
+    """Return a cached mapping of machine ID to platform name."""
+    global _machine_mapping_cache
+    if _machine_mapping_cache is not None:
+        return _machine_mapping_cache
+    _machine_mapping_cache = {choice[1]: choice[0] for choice in _get_system_choices(include_year=False)}
+    return _machine_mapping_cache
+
+
 @async_choices(
     generate=_build_mame_systems_cache,
     ready=lambda: system.path_exists(mame.SYSTEMS_PATH, exclude_empty=True),
     error_message="Failed to build MAME systems cache",
 )
 def _get_system_choices(include_year: bool = True) -> Generator[tuple[str, str], None, None]:
-    """Return list of systems for inclusion in dropdown.
+    """Yield system choices for inclusion in dropdown.
 
     This is a module-level function to support the async_choices decorator,
     which requires callables that can be referenced at module scope.
@@ -51,14 +122,18 @@ def _get_system_choices(include_year: bool = True) -> Generator[tuple[str, str],
         get_supported_systems(mame.XML_PATH).items(),
         key=lambda sys: (sys[1]["manufacturer"], sys[1]["description"]),
     ):
-        if info["description"].startswith(info["manufacturer"]):
-            template = ""
+        manufacturer = info["manufacturer"]
+        description = info["description"]
+        year = info.get("year", "")
+
+        if description.startswith(manufacturer):
+            system_name = description
         else:
-            template = "%(manufacturer)s "
-        template += "%(description)s"
-        if include_year:
-            template += " %(year)s"
-        system_name = template % info
+            system_name = f"{manufacturer} {description}"
+
+        if include_year and year:
+            system_name = f"{system_name} {year}"
+
         system_name = system_name.replace("<generic>", "").strip()
         yield (system_name, system_id)
 
@@ -100,49 +175,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "option": "device",
             "type": "choice_with_entry",
             "label": _("Storage type"),
-            "choices": [
-                (_("Floppy disk"), "flop"),
-                (_("Floppy drive 1"), "flop1"),
-                (_("Floppy drive 2"), "flop2"),
-                (_("Floppy drive 3"), "flop3"),
-                (_("Floppy drive 4"), "flop4"),
-                (_("Cassette (tape)"), "cass"),
-                (_("Cassette 1 (tape)"), "cass1"),
-                (_("Cassette 2 (tape)"), "cass2"),
-                (_("Cartridge"), "cart"),
-                (_("Cartridge 1"), "cart1"),
-                (_("Cartridge 2"), "cart2"),
-                (_("Cartridge 3"), "cart3"),
-                (_("Cartridge 4"), "cart4"),
-                (_("Snapshot"), "snapshot"),
-                (_("Hard Disk"), "hard"),
-                (_("Hard Disk 1"), "hard1"),
-                (_("Hard Disk 2"), "hard2"),
-                (_("CD-ROM"), "cdrm"),
-                (_("CD-ROM 1"), "cdrm1"),
-                (_("CD-ROM 2"), "cdrm2"),
-                (_("Snapshot (dump)"), "dump"),
-                (_("Quickload"), "quickload"),
-                (_("Memory Card"), "memc"),
-                (_("Cylinder"), "cyln"),
-                (_("Punch Tape 1"), "ptap1"),
-                (_("Punch Tape 2"), "ptap2"),
-                (_("Print Out"), "prin"),
-                (_("romimage1"), "rom1"),
-                (_("romimage2"), "rom2"),
-                (_("romimage3"), "rom3"),
-                (_("romimage4"), "rom4"),
-                (_("romimage5"), "rom5"),
-                (_("midiin"), "min"),
-                (_("midiout"), "mout"),
-                (_("bitbanger"), "bitb"),
-                (_("microtape1"), "utap1"),
-                (_("microtape2"), "utap2"),
-                (_("magtape1"), "mtap1"),
-                (_("magtape2"), "mtap2"),
-                (_("magtape3"), "mtap3"),
-                (_("magtape4"), "mtap4"),
-            ],
+            "choices": DEVICE_CHOICES,
         },
         {
             "option": "args",
@@ -161,10 +194,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "string",
             "section": _("Autoboot"),
             "label": _("Autoboot command"),
-            "help": _(
-                "Autotype this command when the system has started, "
-                "an enter keypress is automatically added."
-            ),
+            "help": _("Autotype this command when the system has started, an enter keypress is automatically added."),
         },
         {
             "option": "autoboot_delay",
@@ -230,10 +260,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             "type": "bool",
             "section": _("Graphics"),
             "label": _("Wait for VSync"),
-            "help": _(
-                "Enable waiting for the start of vblank before flipping screens; "
-                "reduces tearing effects."
-            ),
+            "help": _("Enable waiting for the start of vblank before flipping screens; reduces tearing effects."),
             "advanced": True,
             "default": False,
         },
@@ -241,30 +268,16 @@ class mame(Runner):  # pylint: disable=invalid-name
             "option": "uimodekey",
             "type": "choice_with_entry",
             "label": _("Menu mode key"),
-            "choices": [
-                (_("Scroll Lock"), "SCRLOCK"),
-                (_("Num Lock"), "NUMLOCK"),
-                (_("Caps Lock"), "CAPSLOCK"),
-                (_("Menu"), "MENU"),
-                (_("Right Control"), "RCONTROL"),
-                (_("Left Control"), "LCONTROL"),
-                (_("Right Alt"), "RALT"),
-                (_("Left Alt"), "LALT"),
-                (_("Right Super"), "RWIN"),
-                (_("Left Super"), "LWIN"),
-            ],
+            "choices": UIMODEKEY_CHOICES,
             "default": "SCRLOCK",
             "advanced": True,
-            "help": _(
-                "Key to switch between Full Keyboard Mode and "
-                "Partial Keyboard Mode (default: Scroll Lock)"
-            ),
+            "help": _("Key to switch between Full Keyboard Mode and Partial Keyboard Mode (default: Scroll Lock)"),
         },
     ]
 
     @property
     def working_dir(self) -> str:
-        return os.path.join(settings.RUNNER_DIR, "mame")
+        return MAME_RUNNER_DIR
 
     @property
     def default_path(self) -> str | None:
@@ -300,16 +313,14 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     def get_platform(self) -> str:
         if self.game_config.get("machine"):
-            machine_mapping = {
-                choice[1]: choice[0] for choice in _get_system_choices(include_year=False)
-            }
-            # _get_system_choices() can return [] if not yet ready, so we'll return
+            machine_mapping = _get_machine_mapping()
+            # _get_machine_mapping() returns {} if not yet ready, so we return
             # empty string in that case.
             return machine_mapping.get(self.game_config["machine"], "")
         rom_file = os.path.basename(self.game_config.get("main_file", ""))
         if rom_file.startswith("gnw_"):
             return _("Nintendo Game & Watch")
-        return self.platform_dict.get("arcade", "")
+        return _("Arcade")
 
     def prelaunch(self) -> None:
         """Ensure MAME config is created before launching."""
@@ -329,9 +340,7 @@ class mame(Runner):  # pylint: disable=invalid-name
     def get_shader_params(shader_dir: str, shaders: list[str]) -> list[str]:
         """Returns a list of CLI parameters to apply a list of shaders"""
         params: list[str] = []
-        shader_path = os.path.join(
-            os.path.join(settings.RUNNER_DIR, "mame"), "shaders", shader_dir
-        )
+        shader_path = os.path.join(MAME_RUNNER_DIR, "shaders", shader_dir)
         for index, shader in enumerate(shaders):
             params += ["-gl_glsl", f"-glsl_shader_mame{index}", os.path.join(shader_path, shader)]
         return params
@@ -374,9 +383,7 @@ class mame(Runner):  # pylint: disable=invalid-name
                 command.append(slot_arg)
         device = self.game_config.get("device")
         if not device:
-            raise GameConfigError(
-                _("No device is set for machine %s") % machine
-            )
+            raise GameConfigError(f"No device is set for machine {machine}")
         rom = self.game_config.get("main_file")
         if rom:
             command += [f"-{device}", rom]
@@ -390,9 +397,7 @@ class mame(Runner):  # pylint: disable=invalid-name
             rompath = self.runner_config.get("rompath")
         rom = os.path.basename(self.game_config.get("main_file", ""))
         if not rompath:
-            raise GameConfigError(
-                _("The ROM path is not set. Please set it in the options.")
-            )
+            raise GameConfigError(_("The ROM path is not set. Please set it in the options."))
         command += ["-rompath", rompath, rom]
         return command
 
