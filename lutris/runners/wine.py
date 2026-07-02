@@ -21,7 +21,7 @@ from lutris.exceptions import (
     UnspecifiedVersionError,
 )
 from lutris.game import Game
-from lutris.gui.dialogs import FileDialog
+from lutris.gui.dialogs import FileDialog, QuestionDialog
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix,
     delete_registry_key,
@@ -144,6 +144,23 @@ def _get_dxvk_warning() -> str | None:
         ) % (driver_info["version"],)
 
     return None
+
+
+def _kill_wine(*_args):
+    dlg = QuestionDialog(
+        {
+            "title": _("Kill all Wine processes"),
+            "question": _(
+                "This will kill <b>all</b> Wine processes on the system, "
+                "including any not launched by Lutris.\n\n"
+                "Are you sure you want to continue?"
+            ),
+        }
+    )
+    if dlg.result == dlg.YES:
+        from lutris.util.wine.wine import kill_all_wine_processes  # noqa: PLC0415
+
+        kill_all_wine_processes()
 
 
 def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feature: str) -> str | None:
@@ -682,6 +699,7 @@ class wine(Runner):
     def context_menu_entries(self):
         """Return the contexual menu entries for wine"""
         return [
+            ("kill-wine", _("Kill all Wine processes"), _kill_wine),
             ("wineexec", _("Run EXE inside Wine prefix"), self.run_wineexec),
             ("wineshell", _("Open Bash terminal"), self.run_wine_terminal),
             ("wineconsole", _("Open Wine console"), self.run_wineconsole),
