@@ -546,17 +546,6 @@ def get_pids_using_file(path: str) -> set[str]:
     return set(fuser_output.split())
 
 
-def reverse_expanduser(path: str) -> str:
-    """Replace '/home/username' with '~' in given path."""
-    if not path:
-        return path
-    user_path = os.path.expanduser("~")
-    if path.startswith(user_path):
-        path = path[len(user_path) :].strip("/")
-        return "~/" + path
-    return path
-
-
 def path_contains(parent: str | None, child: str | None, resolve_symlinks: bool = False) -> bool:
     """Tests if a child path is actually within a parent directory
     or a subdirectory of it. Resolves relative paths, and ~, and
@@ -610,16 +599,6 @@ def create_symlink(source: str, destination: str) -> None:
         logger.error("Failed linking %s to %s", source, destination)
 
 
-def reset_library_preloads() -> None:
-    """Remove library preloads from environment"""
-    for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
-        if os.environ.get(key):
-            try:
-                del os.environ[key]
-            except OSError:
-                logger.error("Failed to delete environment variable %s", key)
-
-
 def get_existing_parent(path: str) -> str | None:
     """Return the 1st existing parent for a folder (or itself if the path
     exists and is a directory). returns None, when none of the parents exists.
@@ -656,21 +635,6 @@ def get_disk_size(path: str) -> int:
     return total_size
 
 
-def get_locale_list() -> list[str]:
-    """Return list of available locales"""
-    try:
-        with subprocess.Popen(["locale", "-a"], stdout=subprocess.PIPE) as locale_getter:
-            output = locale_getter.communicate()
-        locales = output[0].decode("ASCII").split()  # locale names use only ascii characters
-    except FileNotFoundError:
-        lang = os.environ.get("LANG", "")
-        if lang:
-            locales = [lang]
-        else:
-            locales = []
-    return locales
-
-
 def get_running_pid_list() -> list[int]:
     """Return the list of PIDs from processes currently running"""
     return [int(p) for p in os.listdir("/proc") if p[0].isdigit()]
@@ -696,14 +660,6 @@ def get_mounted_discs() -> list[str | None]:
             if "/dev/sr" in device or "/dev/loop" in device:
                 drives.append(mount.get_root().get_path())
     return drives
-
-
-def find_mount_point(path: str) -> str:
-    """Return the mount point a file is located on"""
-    path = os.path.abspath(path)
-    while not os.path.ismount(path):
-        path = os.path.dirname(path)
-    return path
 
 
 def set_keyboard_layout(layout: str) -> None:
