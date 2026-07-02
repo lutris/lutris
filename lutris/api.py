@@ -47,13 +47,6 @@ def get_runtime_versions_date() -> float:
     return os.path.getmtime(settings.RUNTIME_VERSIONS_PATH)
 
 
-def get_runtime_versions_date_time_ago() -> str:
-    try:
-        return time_ago(get_runtime_versions_date())
-    except FileNotFoundError:
-        return _("never")
-
-
 def check_stale_runtime_versions() -> bool:
     """Check if the runtime needs to be updated"""
     try:

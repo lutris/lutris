@@ -445,36 +445,3 @@ def _binary_dump_gen(obj: dict[str, Any], level: int = 0, alt_format: bool = Fal
             raise TypeError("Unsupported type: %s" % type(value))
 
     yield BIN_END if not alt_format else BIN_END_ALT
-
-
-def vbkv_loads(s: bytes, mapper: type[dict[str, Any]] = dict, merge_duplicate_keys: bool = True) -> dict[str, Any]:
-    """
-    Deserialize ``s`` (``bytes`` containing a VBKV to a Python object.
-
-    ``mapper`` specifies the Python object used after deserializetion. ``dict` is
-    used by default. Alternatively, ``collections.OrderedDict`` can be used if you
-    wish to preserve key order. Or any object that acts like a ``dict``.
-
-    ``merge_duplicate_keys`` when ``True`` will merge multiple KeyValue lists with the
-    same key into one instead of overwriting. You can se this to ``False`` if you are
-    using ``VDFDict`` and need to preserve the duplicates.
-    """
-    if s[:4] != b"VBKV":
-        raise ValueError("Invalid header")
-
-    (checksum,) = struct.unpack("<i", s[4:8])
-
-    if checksum != crc32(s[8:]):
-        raise ValueError("Invalid checksum")
-
-    return binary_loads(s[8:], mapper, merge_duplicate_keys, alt_format=True)
-
-
-def vbkv_dumps(obj: dict[str, Any]) -> bytes:
-    """
-    Serialize ``obj`` to a VBKV formatted ``bytes``.
-    """
-    data = b"".join(_binary_dump_gen(obj, alt_format=True))
-    checksum = crc32(data)
-
-    return b"VBKV" + struct.pack("<i", checksum) + data
