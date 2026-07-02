@@ -54,6 +54,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libayatana-appindicator3-1 \
     libgnome-desktop-3-20t64 \
     glib-networking \
+    adwaita-icon-theme \
     librsvg2-common \
  && rm -rf /var/lib/apt/lists/*
 

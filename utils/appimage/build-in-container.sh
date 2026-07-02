@@ -163,6 +163,23 @@ else
     echo "WARNING: $GIO_MODULES_SRC not present — WebKit TLS will not work"
 fi
 
+# linuxdeploy-plugin-gtk doesn't bundle icon themes; it only extends
+# XDG_DATA_DIRS to /usr/share on the host, so icon lookups fall
+# through to whatever the host has installed. Newer Adwaita releases
+# (Fedora 43 ships 49) dropped `process-working-symbolic`, the icon
+# Adwaita's compiled-in GTK 3 CSS uses to render GtkSpinner — the
+# spinner ends up occupying its CSS min-size but showing nothing.
+# Copy Noble's older Adwaita (which still has the icon) into the
+# AppDir; since we place it before /usr/share in XDG_DATA_DIRS,
+# lookups find our copy first and the spinner renders.
+ADWAITA_ICONS_SRC="/usr/share/icons/Adwaita"
+ADWAITA_ICONS_DST="$APPDIR/usr/share/icons/Adwaita"
+if [ -d "$ADWAITA_ICONS_SRC" ]; then
+    echo "Copying Adwaita icon theme from $ADWAITA_ICONS_SRC"
+    mkdir -p "$ADWAITA_ICONS_DST"
+    cp -a "$ADWAITA_ICONS_SRC"/. "$ADWAITA_ICONS_DST/"
+fi
+
 # WebKit2 4.1 spawns helper processes (WebKitNetworkProcess,
 # WebKitWebProcess) that live in /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/.
 # linuxdeploy bundles shared libraries but not auxiliary executables, so
