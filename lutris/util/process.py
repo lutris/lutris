@@ -133,15 +133,4 @@ class Process:
             yield child
             yield from child.iter_children()
 
-    def wait_for_finish(self):
-        """Waits until the process finishes
-        This only works if self.pid is a child process of Lutris
-        """
-        try:
-            pid, ret_status = os.waitpid(int(self.pid) * -1, 0)
-        except OSError as ex:
-            logger.error("Failed to get exit status for PID %s", self.pid)
-            logger.error(ex)
-            return -1
-        logger.info("PID %s exited with code %s", pid, ret_status)
-        return ret_status
+
