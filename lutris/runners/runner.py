@@ -618,6 +618,26 @@ class Runner:  # pylint: disable=too-many-public-methods
             version,
             callback,
         )
+
+        # Guard: if this version (or the runner) is already installed, just continue.
+        # This prevents errors when "install" is invoked for an already-present "latest"
+        # wine (e.g. GE-Proton via umu) or other runners, allowing the overall
+        # installation (such as Ubisoft Connect) to proceed.
+        if version is not None:
+            try:
+                if self.is_installed(version=version):
+                    logger.info("%s version %s is already installed; skipping installation step.", self.name, version)
+                    if callback:
+                        callback()
+                    return
+            except Exception as ex:  # some runners' is_installed don't accept version= or may raise
+                logger.debug("is_installed check with version failed (proceeding to install): %s", ex)
+        elif self.is_installed():
+            logger.info("%s is already installed; skipping installation step.", self.name)
+            if callback:
+                callback()
+            return
+
         opts = {"install_ui_delegate": install_ui_delegate, "callback": callback}
         if self.download_url:
             opts["dest"] = self.directory

@@ -885,7 +885,10 @@ class wine(Runner):
         try:
             version = self.get_installer_runner_version(interpreter.installer, use_api=True)
             return self.is_installed(version=version, fallback=False)
-        except MisconfigurationError:
+        except (MisconfigurationError, MissingExecutableError):
+            return False
+        except Exception as ex:
+            logger.warning("Unexpected error checking if Wine is installed for installer: %s", ex)
             return False
 
     def get_installer_runner_version(
