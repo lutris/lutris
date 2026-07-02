@@ -575,8 +575,10 @@ class Runner:  # pylint: disable=too-many-public-methods
             return self.is_installed()
         return False
 
-    def is_installed(self, flatpak_allowed: bool = True) -> bool:
-        """Return whether the runner is installed"""
+    def is_installed(self, flatpak_allowed: bool = True, version: str | None = None) -> bool:
+        """Return whether the runner is installed. Subclasses that track specific
+        versions may use `version` to check for that version; the base implementation
+        ignores it and just checks whether the runner is installed at all."""
         try:
             # Don't care where the exe is, only if we can find it.
             exe = self.get_executable()
@@ -630,7 +632,7 @@ class Runner:  # pylint: disable=too-many-public-methods
                     if callback:
                         callback()
                     return
-            except Exception as ex:  # some runners' is_installed don't accept version= or may raise
+            except Exception as ex:  # is_installed() may raise for some runners; proceed to install
                 logger.debug("is_installed check with version failed (proceeding to install): %s", ex)
         elif self.is_installed():
             logger.info("%s is already installed; skipping installation step.", self.name)
