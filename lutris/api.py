@@ -11,7 +11,6 @@ import urllib.request
 from collections import OrderedDict
 from collections.abc import Callable, Collection, Iterable, Iterator
 from datetime import datetime
-from gettext import gettext as _
 from typing import Any, TypeAlias, cast
 
 import requests
@@ -23,7 +22,6 @@ from lutris.util.graphics.gpu import get_gpus_info
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.strings import time_ago
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
 USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")

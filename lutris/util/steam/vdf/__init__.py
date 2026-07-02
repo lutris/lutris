@@ -12,7 +12,6 @@ __author__ = "Rossen Georgiev"
 
 import re
 import struct
-from binascii import crc32
 from io import StringIO as unicodeIO
 from typing import IO, Any, Iterator
 
