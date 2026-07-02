@@ -132,5 +132,3 @@ class Process:
         for child in self.children:
             yield child
             yield from child.iter_children()
-
-
