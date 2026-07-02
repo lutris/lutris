@@ -721,6 +721,19 @@ class Runner:  # pylint: disable=too-many-public-methods
         the caller will SIGKILL them (after a delay)."""
         kill_processes(signal.SIGTERM, game_pids)
 
+    def keep_game_alive(self, game_pids: Iterable[int], game_thread_running: bool) -> bool:
+        """Whether beat() should keep monitoring even though Lutris's own launch
+        process (game_thread) may have exited.
+
+        Most runners keep the game under game_thread, so this returns False and
+        beat() uses its normal logic. Runners that launch the game out-of-process
+        (e.g. Steam, which hands off to a Steam-managed process tree via a
+        non-blocking URI) override this to (a) bridge the brief window between
+        the launcher exiting and the game's process tree appearing, and (b) keep
+        monitoring for the whole game lifetime.
+        """
+        return False
+
     def extract_icon(self, game_slug: str) -> bool | None:
         """The config UI calls this to extract the game icon. Most runners do not
         support this and do nothing. This is not called if a custom icon is installed

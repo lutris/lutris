@@ -7,7 +7,7 @@ from gi.repository import GObject, Gtk, Pango
 
 from lutris.gui.dialogs import display_error
 from lutris.util.download_cache import CacheState, create_cache_lock, update_cache_lock
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import BaseDownloader, SimpleDownloader
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
@@ -51,7 +51,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self,
         file_collection: "InstallerFileCollection",
         cancelable: bool = True,
-        downloader: Downloader | None = None,
+        downloader: BaseDownloader | None = None,
     ) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
 
@@ -135,7 +135,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
             os.remove(tmp_path)
 
         try:
-            downloader_cls = getattr(file, "downloader_class", None) or Downloader
+            downloader_cls = getattr(file, "downloader_class", None) or SimpleDownloader
             dl = downloader_cls(file.url, file.tmp_file, referer=file.referer, overwrite=True)
         except RuntimeError as ex:
             display_error(ex, parent=self.get_toplevel())

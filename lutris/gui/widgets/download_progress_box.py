@@ -6,7 +6,7 @@ from gi.repository import GObject, Gtk, Pango
 
 from lutris.gui.dialogs import display_error
 from lutris.util.download_cache import CacheState, create_cache_lock, update_cache_lock
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import BaseDownloader, SimpleDownloader
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
@@ -29,7 +29,7 @@ class DownloadProgressBox(Gtk.Box):
         referer: str | None = None,
         title: str | None = None,
         cancelable: bool = True,
-        downloader: Downloader | None = None,
+        downloader: BaseDownloader | None = None,
     ) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
 
@@ -80,9 +80,9 @@ class DownloadProgressBox(Gtk.Box):
             os.remove(self.temp)
 
     @property
-    def downloader(self) -> Downloader:
+    def downloader(self) -> BaseDownloader:
         if not self._downloader:
-            self._downloader = Downloader(self.url, self.temp, referer=self.referer, overwrite=True)
+            self._downloader = SimpleDownloader(self.url, self.temp, referer=self.referer, overwrite=True)
         return self._downloader
 
     def cancel_download(self):

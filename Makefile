@@ -89,6 +89,9 @@ snap:
 	snapcraft clean lutris -s pull
 	snapcraft
 
+appimage:
+	utils/appimage/build.sh
+
 req-python:
 	pip3 install PyYAML lxml requests Pillow setproctitle python-magic distro dbus-python types-requests \
 	 types-PyYAML evdev PyGObject pypresence protobuf moddb

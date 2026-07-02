@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from lutris.util.download_progress import DownloadProgress
-from lutris.util.downloader import DEFAULT_CHUNK_SIZE, Downloader
+from lutris.util.downloader import DEFAULT_CHUNK_SIZE, BaseDownloader
 from lutris.util.gog_downloader import GOGDownloader
 
 
@@ -16,8 +16,8 @@ class TestGOGDownloaderInit:
     """Test GOGDownloader initialization."""
 
     def test_inherits_from_downloader(self):
-        """GOGDownloader must be a Downloader subclass for API compat."""
-        assert issubclass(GOGDownloader, Downloader)
+        """GOGDownloader must share the BaseDownloader interface for API compat."""
+        assert issubclass(GOGDownloader, BaseDownloader)
 
     def test_default_workers(self):
         dl = GOGDownloader("https://example.com/file.bin", "/tmp/test.bin")
@@ -915,7 +915,7 @@ class TestResumeStartMethod:
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest, overwrite=True, num_workers=2)
 
         # Patch AsyncCall so start() doesn't actually launch a thread
-        with patch("lutris.util.gog_downloader.jobs.AsyncCall") as mock_async:
+        with patch("lutris.util.downloader.jobs.AsyncCall") as mock_async:
             mock_thread = MagicMock()
             mock_thread.stop_request = threading.Event()
             mock_async.return_value = mock_thread
@@ -934,7 +934,7 @@ class TestResumeStartMethod:
 
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest, overwrite=True, num_workers=2)
 
-        with patch("lutris.util.gog_downloader.jobs.AsyncCall") as mock_async:
+        with patch("lutris.util.downloader.jobs.AsyncCall") as mock_async:
             mock_thread = MagicMock()
             mock_thread.stop_request = threading.Event()
             mock_async.return_value = mock_thread

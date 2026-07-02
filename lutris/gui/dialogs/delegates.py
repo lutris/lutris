@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, cast
 
@@ -8,7 +9,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.services import SERVICES
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import BaseDownloader, SimpleDownloader
 
 if TYPE_CHECKING:
     from lutris.config import LaunchConfigDict
@@ -55,6 +56,17 @@ class LaunchUIDelegate(Delegate):
         """
         return {}  # primary game
 
+    def wait_for_component_updates(self, game: Game, on_ready: Callable[[], None]) -> None:
+        """Defer the launch until any in-progress Lutris component downloads
+        complete. Launching while runtime/wine components are being installed
+        can crash games or corrupt their Wine prefix (see issue #6702).
+
+        The default invokes on_ready() immediately; DialogLaunchUIDelegate
+        overrides this to show a wait dialog with a 'Launch Anyway' override.
+        If the user cancels, on_ready is never called.
+        """
+        on_ready()
+
 
 class InstallUIDelegate(Delegate):
     """These objects provide UI for a runner as it is installing itself.
@@ -92,7 +104,7 @@ class InstallUIDelegate(Delegate):
 
         The default is to download with no UI, and no option to cancel.
         """
-        downloader = Downloader(url, destination, overwrite=True)
+        downloader = SimpleDownloader(url, destination, overwrite=True)
         downloader.start()
         return downloader.join()
 
@@ -146,7 +158,7 @@ class DialogInstallUIDelegate(InstallUIDelegate):
     def download_install_file(self, url: str, destination: str) -> bool:
         dialog = DownloadDialog(url, destination, parent=self)
         dialog.run()
-        return dialog.downloader.state == Downloader.COMPLETED
+        return dialog.downloader.state == BaseDownloader.COMPLETED
 
 
 class DialogLaunchUIDelegate(LaunchUIDelegate):
@@ -159,6 +171,26 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
                 return False
 
         return True
+
+    def wait_for_component_updates(self, game: Game, on_ready: Callable[[], None]) -> None:
+        from lutris.gui.lutriswindow import LutrisWindow  # noqa: PLC0415
+
+        window = cast(LutrisWindow, self)
+        if window.is_download_queue_empty:
+            on_ready()
+            return
+
+        dialog = dialogs.ComponentUpdateWaitDialog(
+            is_queue_empty=lambda: window.is_download_queue_empty,
+            parent=window,
+        )
+
+        def on_response(_dialog, response):
+            if response == Gtk.ResponseType.OK:
+                on_ready()
+
+        dialog.connect("response", on_response)
+        dialog.show()
 
     def select_game_launch_config(self, game: Game) -> "LaunchConfigDict | None":
         config = game.config
