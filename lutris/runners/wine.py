@@ -74,9 +74,15 @@ if TYPE_CHECKING:
     from lutris.monitored_command import MonitoredCommand
 
 
-def _is_proton_config(config: LutrisConfig) -> bool:
-    version = config.runner_config.get("version")
+def is_umu_managed_version(version: str | None) -> bool:
+    """True if this Wine 'version' is actually launched through umu: the 'ge-proton'
+    sentinel or any Proton build. umu fetches Proton on demand, so there is no Wine
+    runner build for Lutris to download or install for these versions."""
     return version == GE_PROTON_LATEST or proton.is_proton_version(version)
+
+
+def _is_proton_config(config: LutrisConfig) -> bool:
+    return is_umu_managed_version(config.runner_config.get("version"))
 
 
 def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
@@ -884,9 +890,29 @@ class wine(Runner):
     def is_installed_for(self, interpreter):
         try:
             version = self.get_installer_runner_version(interpreter.installer, use_api=True)
+        except MisconfigurationError:
+            return False
+        # Proton versions (including the 'ge-proton' sentinel) are managed by umu and
+        # fetched on demand at launch; there is no Wine runner build to download, so the
+        # installer never needs to install one for them.
+        if is_umu_managed_version(version):
+            return True
+        try:
             return self.is_installed(version=version, fallback=False)
         except MisconfigurationError:
             return False
+
+    def install(self, install_ui_delegate, version=None, callback=None):
+        # umu manages Proton on demand; these versions have no downloadable Wine build,
+        # so "installing" one is a no-op. Skipping here keeps the installer flow, the
+        # "install runner?" dialog, and CLI installs from failing with a spurious
+        # "The 'ge-proton' version of the 'wine' runner can't be downloaded" error.
+        if is_umu_managed_version(version):
+            logger.info("Wine version '%s' is provided by umu; nothing to install.", version)
+            if callback:
+                callback()
+            return
+        super().install(install_ui_delegate, version=version, callback=callback)
 
     def get_installer_runner_version(
         self, installer, use_runner_config: bool = True, use_api: bool = False
