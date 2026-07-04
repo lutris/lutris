@@ -5,6 +5,8 @@ from functools import cached_property
 from gettext import gettext as _
 from pathlib import Path
 
+import requests
+
 from lutris.api import get_game_details
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
@@ -191,7 +193,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         for file in files:
             file.set_url(self.interpreter._substitute(file.url))
             if is_moddb_url(file.url):
-                file.set_url(ModDB().transform_url(file.url))
+                moddb_url = file.url
+                try:
+                    file.set_url(ModDB().transform_url(moddb_url))
+                except requests.RequestException as ex:
+                    logger.warning("Unable to resolve ModDB URL %s: %s", moddb_url, ex)
+                    file.set_url(
+                        "N/A:"
+                        + _("Download from {url} and select the file here").format(
+                            url=moddb_url,
+                        )
+                    )
 
         if installer_file_id and self.service:
             logger.info("Getting files for %s", installer_file_id)
