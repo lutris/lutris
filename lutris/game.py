@@ -1026,7 +1026,7 @@ class Game:
             self.runner.force_stop_game(game_pids)
             self.on_game_quit()
             return False
-        
+
         # Checkpoint playtime every 15 minutes to protect against system crash or power loss
         elapsed = self.timer.duration
         if elapsed - self._last_playtime_checkpoint >= 900:
@@ -1035,7 +1035,8 @@ class Game:
             self._last_playtime_checkpoint = elapsed
             self.lastplayed = int(time.time())
             self.save_lastplayed()
-            logger.debug("Playtime checkpoint: %s (elapsed: %d seconds since last save)", self.formatted_playtime, delta)
+            logger.debug("Playtime checkpoint: %s (elapsed: %d seconds since last save)",
+                         self.formatted_playtime, delta)
 
         return True
 
