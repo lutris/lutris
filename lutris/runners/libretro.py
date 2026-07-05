@@ -266,12 +266,30 @@ class libretro(Runner):
         logger.warning("'%s' not found in Libretro cores", game_core)
         return ""
 
-    def get_core_path(self, core):
-        """Return the path of a core from libretro's runner only"""
+    def get_cores_directory(self):
+        """Return the directory RetroArch loads cores from.
+
+        Honors the 'libretro_directory' setting in the effective RetroArch config file, so a
+        custom RetroArch executable/config that keeps its cores elsewhere (e.g.
+        ~/.config/retroarch/cores) works. Falls back to Lutris's own managed cores folder when the
+        config file is missing or doesn't specify a directory.
+        """
         lutris_cores_folder = get_default_config_path("cores")
+        config_file = self.get_config_file()
+        if system.path_exists(config_file):
+            libretro_directory = RetroConfig(config_file).get("libretro_directory")
+            if libretro_directory and libretro_directory != "default":
+                # RetroArch expands a leading ':' to the directory containing the config file.
+                if libretro_directory.startswith(":"):
+                    config_dir = os.path.dirname(config_file)
+                    libretro_directory = os.path.join(config_dir, libretro_directory[1:].lstrip("/\\"))
+                return os.path.expanduser(libretro_directory)
+        return lutris_cores_folder
+
+    def get_core_path(self, core):
+        """Return the path of a core within the configured cores directory."""
         core_filename = "{}_libretro.so".format(core)
-        lutris_core = os.path.join(lutris_cores_folder, core_filename)
-        return lutris_core
+        return os.path.join(self.get_cores_directory(), core_filename)
 
     def get_version(self, use_default=True):
         return self.game_config["core"]
