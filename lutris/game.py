@@ -142,6 +142,7 @@ class Game:
         self.timer = Timer()
         self.screen_saver_inhibitor_cookie = None
         self.skip_cloud_sync = False
+        self._last_playtime_checkpoint = 0.0
 
     @staticmethod
     def create_empty_service_game(db_game: dict[str, str | int], service: Any) -> Any:
@@ -865,6 +866,7 @@ class Game:
             self.game_thread.start()
 
         self.timer.start()
+        self._last_playtime_checkpoint = 0.0
         self.state = self.STATE_RUNNING
         GAME_STARTED.fire(self)
 
@@ -976,7 +978,10 @@ class Game:
             os.unlink(self.now_playing_path)
         if not self.timer.finished:
             self.timer.end()
-            self.playtime += self.timer.duration / 3600
+            # Add only the playtime not yet saved (since last checkpoint)
+            delta = self.timer.duration - self._last_playtime_checkpoint
+            if delta > 0:
+                self.playtime += delta / 3600
             logger.debug("Playtime: %s", self.formatted_playtime)
             self.save_lastplayed()
 
@@ -1021,6 +1026,17 @@ class Game:
             self.runner.force_stop_game(game_pids)
             self.on_game_quit()
             return False
+
+        # Checkpoint playtime every 15 minutes to protect against system crash or power loss
+        elapsed = self.timer.duration
+        if elapsed - self._last_playtime_checkpoint >= 900:
+            delta = elapsed - self._last_playtime_checkpoint
+            self.playtime += delta / 3600
+            self._last_playtime_checkpoint = elapsed
+            self.lastplayed = int(time.time())
+            self.save_lastplayed()
+            logger.debug("Playtime checkpoint: %s (elapsed: %d seconds since last save)",
+                         self.formatted_playtime, delta)
 
         return True
 
