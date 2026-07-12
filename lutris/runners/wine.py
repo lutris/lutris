@@ -35,7 +35,7 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
     winekill,
     winetricks,
 )
-from lutris.runners.runner import Runner
+from lutris.runners.runner import RunDataDict, Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, get_default_dpi, is_display_x11
 from lutris.util.graphics import drivers, vkquery
@@ -1368,7 +1368,7 @@ class wine(Runner):
 
         return env
 
-    def finish_env(self, env: dict[str, str], game) -> None:
+    def finish_env(self, env: dict[str, str], game: Game | None = None) -> None:
         super().finish_env(env, game)
 
         wine_exe = self.get_executable()
@@ -1376,6 +1376,14 @@ class wine(Runner):
         if proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe):
             game_id = proton.get_game_id(game, env)
             proton.update_proton_env(wine_exe, env, game_id=game_id)
+
+    def get_run_data(self) -> RunDataDict:
+        # The standalone run() path does not call finish_env() the way launching a
+        # game does, so finalize the environment here too. Without a game context,
+        # Proton/umu falls back to a default GAMEID.
+        data = super().get_run_data()
+        self.finish_env(data["env"])
+        return data
 
     def get_runtime_env(self):
         """Return runtime environment variables with path to wine for Lutris builds"""
