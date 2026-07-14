@@ -18,10 +18,6 @@ def main():
     comp_process = subprocess.run(
         ["git", "config", "--type=bool", "hooks.skip-static-analysis-checks"], capture_output=True
     )
-    # FIX: bool() on a non-empty string is always True in Python, so the
-    # original `bool(comp_process.stdout.decode("utf-8"))` treated the
-    # literal string "false\n" as truthy and skipped checks incorrectly.
-    # We now compare the decoded, stripped output against "true" explicitly.
     skip_static_analysis_checks: bool = comp_process.stdout.decode("utf-8").strip() == "true"
     if not skip_static_analysis_checks:
         diff_against_rev: str = "HEAD"
@@ -41,10 +37,6 @@ def main():
             for command in ["mypy", "ruff", "nose2"]:
                 command_path = shutil.which(command)
                 if not command_path:
-                    # FIX: the original message interpolated `command_path`,
-                    # which is None here (that's why we're in this branch),
-                    # so it always printed "None command is missing".
-                    # We now report the actual command name that's missing.
                     error_list.append(
                         f"{command} command is missing: Have you run `make dev` to install it or sourced your virtual env?"
                     )
