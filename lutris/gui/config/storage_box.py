@@ -25,6 +25,7 @@ class StorageBox(BaseConfigBox):
         path_widgets = self.get_path_widgets()
         self.pack_start(self._get_framed_options_list_box(path_widgets), False, False, 0)
         self.update_pga_cache_path_warning()
+        self.update_bios_path_warning()
 
     def get_path_widgets(self):
         widgets = []
@@ -97,9 +98,13 @@ class StorageBox(BaseConfigBox):
         return wrapper
 
     def is_bios_path_invalid(self, bios_path):
+        """Validates the BIOS folder. Returns (bios_path, warning), where warning is a
+        non-blocking message shown to the user (empty if the folder looks fine). The path
+        is always usable; the warnings just flag folders whose size, file count or depth
+        will make scanning slow."""
         if not bios_path:
             return bios_path, ""  # it's fine to not have a BIOS path
-        MAX_BIOS_FOLDER_SIZE = 5e9
+        MAX_BIOS_FOLDER_SIZE = 8e9
         MAX_BIOS_FILES_IN_FOLDER = 5000
         MAX_BIOS_FOLDER_DEPTH = 3
 
@@ -116,29 +121,41 @@ class StorageBox(BaseConfigBox):
                     bios_path_depth = path[len(bios_path) :].count(os.sep)
 
         if bios_path_size > MAX_BIOS_FOLDER_SIZE:
-            return bios_path, _("Folder is too large (%s)") % human_size(bios_path_size)
+            return bios_path, _("Folder is large (%s); scanning it may be slow") % human_size(bios_path_size)
         if bios_path_file_count > MAX_BIOS_FILES_IN_FOLDER:
-            return bios_path, _("Too many files in folder")
+            return bios_path, _("Folder contains many files (%s); scanning it may be slow") % bios_path_file_count
         if bios_path_depth > MAX_BIOS_FOLDER_DEPTH:
-            return bios_path, _("Folder is too deep")
+            return bios_path, _("Folder is deeply nested; scanning it may be slow")
         return bios_path, ""
 
-    def bios_path_validated_cb(self, result, error):
+    def update_bios_path_warning(self):
+        """Re-checks the currently saved BIOS folder and shows its warning, if any. Called
+        when the settings open so a warning persists across visits, not just on edit."""
+        bios_path = Runner().config.system_config.get("bios_path") or ""
+        if bios_path:
+            AsyncCall(self.is_bios_path_invalid, self.show_bios_path_warning, bios_path)
+
+    def show_bios_path_warning(self, result, error):
+        """Displays the BIOS folder warning box. Returns False if validation failed."""
         error_box = self.error_boxes["bios_path"]
 
         if error:
             error_box.show_markup(None)
+            return False
+
+        _bios_path, warning = result
+        error_box.show_markup(warning, icon_name="dialog-warning")
+        return True
+
+    def bios_path_validated_cb(self, result, error):
+        if not self.show_bios_path_warning(result, error):
             return
 
-        bios_path, error_message = result
-
-        error_box.show_markup(error_message)
-
-        if not error_message:
-            lutris_config = LutrisConfig()
-            lutris_config.raw_system_config["bios_path"] = bios_path
-            lutris_config.save()
-            AsyncCall(scan_firmware_directory, None, bios_path)
+        bios_path, _warning = result
+        lutris_config = LutrisConfig()
+        lutris_config.raw_system_config["bios_path"] = bios_path
+        lutris_config.save()
+        AsyncCall(scan_firmware_directory, None, bios_path)
 
     def on_file_chooser_changed(self, entry, setting):
         folder_path = entry.get_text()
