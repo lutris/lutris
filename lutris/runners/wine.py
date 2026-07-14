@@ -774,7 +774,7 @@ class wine(Runner):
     def read_version_from_config(self, default: str | None = None) -> str:
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version. If no version is configured,
-        we return the default supplied, or the4 global Wine default if none is."""
+        we return the default supplied, or the global Wine default if none is."""
 
         # We must use the config levels to avoid getting a default if the setting
         # is not set; we'll fall back to get_default_version()
@@ -1104,19 +1104,22 @@ class wine(Runner):
                         logger.warning("Your Wine version does not support winewayland graphics driver")
                         continue
 
-                    if proton.is_proton_path(self.get_executable()):
+                    graphics_exe = self.get_executable()
+                    if proton.is_proton_path(graphics_exe) or proton.is_umu_path(graphics_exe):
                         continue
 
                 if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
                         value = None
+                    wine_exe = self.get_executable()
                     if (
                         value
                         and key in ("Desktop", "WineDesktop")
                         and (
-                            "wine-ge" in self.get_executable().casefold()
-                            or proton.is_proton_path(self.get_executable())
+                            proton.is_umu_path(wine_exe)
+                            or proton.is_proton_path(wine_exe)
+                            or "wine-ge" in wine_exe.casefold()
                         )
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
@@ -1226,7 +1229,8 @@ class wine(Runner):
         ]
 
         managers = {}
-        is_proton = proton.is_proton_path(self.get_executable())
+        wine_exe = self.get_executable()
+        is_proton = proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe)
 
         for manager_class, enabled_option, version_option in manager_classes:
             enabled = bool(self.runner_config.get(enabled_option))
@@ -1275,7 +1279,7 @@ class wine(Runner):
                 env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
         wine_exe = self.get_executable()
-        is_proton = proton.is_proton_path(wine_exe)
+        is_proton = proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe)
 
         wine_config_version = self.read_version_from_config()
         if wine_config_version == GE_PROTON_LATEST:
@@ -1402,7 +1406,7 @@ class wine(Runner):
         """Return a list of pids of processes using the current wine exe."""
         try:
             exe = self.get_executable()
-            if proton.is_proton_path(exe):
+            if proton.is_proton_path(exe) or proton.is_umu_path(exe):
                 logger.debug("Tracking PIDs of Proton games is not possible at the moment")
                 return set()
             if not exe.startswith("/"):
@@ -1470,7 +1474,8 @@ class wine(Runner):
         """Checks the pids given and returns a set containing only those that are part of the running game,
         identified by its UUID and directory."""
 
-        if proton.is_proton_path(self.get_executable()):
+        wine_exe = self.get_executable()
+        if proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe):
             folder_pids = set()
             gamescope_pids = set()
             has_gamescope = self.system_config.get("gamescope")
