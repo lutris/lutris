@@ -180,10 +180,20 @@ def create_prefix(
             "WINEARCH": arch,
             "WINEPREFIX": prefix,
             "WINEDLLOVERRIDES": get_overrides_env(overrides),
-            "WINE_MONO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "mono"),
-            "WINE_GECKO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "gecko"),
         }
     )
+
+    # Lutris-managed Wine builds bundle the Mono and Gecko installers next to the
+    # 'bin' directory; point Wine at them so it installs from cache. System Wine
+    # has no such bundle (the path would resolve to e.g. /usr/mono), so we leave
+    # these unset and let Wine use its own default discovery (distro packages).
+    wine_root = os.path.dirname(os.path.dirname(wine_path))
+    mono_cache_dir = os.path.join(wine_root, "mono")
+    gecko_cache_dir = os.path.join(wine_root, "gecko")
+    if system.path_exists(mono_cache_dir):
+        wineenv["WINE_MONO_CACHE_DIR"] = mono_cache_dir
+    if system.path_exists(gecko_cache_dir):
+        wineenv["WINE_GECKO_CACHE_DIR"] = gecko_cache_dir
 
     if install_gecko == "False":
         wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"

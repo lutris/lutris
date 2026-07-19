@@ -360,9 +360,12 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         return env
 
-    def finish_env(self, env: dict[str, str], game: Game) -> None:
+    def finish_env(self, env: dict[str, str], game: Game | None = None) -> None:
         """This is called by the Game after setting up the environment to allow the runner
-        to make final adjustments, which may be based on the environment so far."""
+        to make final adjustments, which may be based on the environment so far.
+
+        'game' is None when the runner is launched standalone (get_run_data), in which
+        case there is no game context to derive settings from."""
         return None
 
     def get_runtime_env(self) -> dict[str, str]:

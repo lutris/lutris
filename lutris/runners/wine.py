@@ -35,7 +35,7 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
     winekill,
     winetricks,
 )
-from lutris.runners.runner import Runner
+from lutris.runners.runner import RunDataDict, Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, get_default_dpi, is_display_x11
 from lutris.util.graphics import drivers, vkquery
@@ -74,9 +74,15 @@ if TYPE_CHECKING:
     from lutris.monitored_command import MonitoredCommand
 
 
-def _is_proton_config(config: LutrisConfig) -> bool:
-    version = config.runner_config.get("version")
+def is_umu_managed_version(version: str | None) -> bool:
+    """True if this Wine 'version' is actually launched through umu: the 'ge-proton'
+    sentinel or any Proton build. umu fetches Proton on demand, so there is no Wine
+    runner build for Lutris to download or install for these versions."""
     return version == GE_PROTON_LATEST or proton.is_proton_version(version)
+
+
+def _is_proton_config(config: LutrisConfig) -> bool:
+    return is_umu_managed_version(config.runner_config.get("version"))
 
 
 def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
@@ -768,7 +774,7 @@ class wine(Runner):
     def read_version_from_config(self, default: str | None = None) -> str:
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version. If no version is configured,
-        we return the default supplied, or the4 global Wine default if none is."""
+        we return the default supplied, or the global Wine default if none is."""
 
         # We must use the config levels to avoid getting a default if the setting
         # is not set; we'll fall back to get_default_version()
@@ -884,9 +890,29 @@ class wine(Runner):
     def is_installed_for(self, interpreter):
         try:
             version = self.get_installer_runner_version(interpreter.installer, use_api=True)
+        except MisconfigurationError:
+            return False
+        # Proton versions (including the 'ge-proton' sentinel) are managed by umu and
+        # fetched on demand at launch; there is no Wine runner build to download, so the
+        # installer never needs to install one for them.
+        if is_umu_managed_version(version):
+            return True
+        try:
             return self.is_installed(version=version, fallback=False)
         except MisconfigurationError:
             return False
+
+    def install(self, install_ui_delegate, version=None, callback=None):
+        # umu manages Proton on demand; these versions have no downloadable Wine build,
+        # so "installing" one is a no-op. Skipping here keeps the installer flow, the
+        # "install runner?" dialog, and CLI installs from failing with a spurious
+        # "The 'ge-proton' version of the 'wine' runner can't be downloaded" error.
+        if is_umu_managed_version(version):
+            logger.info("Wine version '%s' is provided by umu; nothing to install.", version)
+            if callback:
+                callback()
+            return
+        super().install(install_ui_delegate, version=version, callback=callback)
 
     def get_installer_runner_version(
         self, installer, use_runner_config: bool = True, use_api: bool = False
@@ -1078,19 +1104,22 @@ class wine(Runner):
                         logger.warning("Your Wine version does not support winewayland graphics driver")
                         continue
 
-                    if proton.is_proton_path(self.get_executable()):
+                    graphics_exe = self.get_executable()
+                    if proton.is_proton_path(graphics_exe) or proton.is_umu_path(graphics_exe):
                         continue
 
                 if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
                         value = None
+                    wine_exe = self.get_executable()
                     if (
                         value
                         and key in ("Desktop", "WineDesktop")
                         and (
-                            "wine-ge" in self.get_executable().casefold()
-                            or proton.is_proton_path(self.get_executable())
+                            proton.is_umu_path(wine_exe)
+                            or proton.is_proton_path(wine_exe)
+                            or "wine-ge" in wine_exe.casefold()
                         )
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
@@ -1200,7 +1229,8 @@ class wine(Runner):
         ]
 
         managers = {}
-        is_proton = proton.is_proton_path(self.get_executable())
+        wine_exe = self.get_executable()
+        is_proton = proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe)
 
         for manager_class, enabled_option, version_option in manager_classes:
             enabled = bool(self.runner_config.get(enabled_option))
@@ -1249,7 +1279,7 @@ class wine(Runner):
                 env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
         wine_exe = self.get_executable()
-        is_proton = proton.is_proton_path(wine_exe)
+        is_proton = proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe)
 
         wine_config_version = self.read_version_from_config()
         if wine_config_version == GE_PROTON_LATEST:
@@ -1342,7 +1372,7 @@ class wine(Runner):
 
         return env
 
-    def finish_env(self, env: dict[str, str], game) -> None:
+    def finish_env(self, env: dict[str, str], game: Game | None = None) -> None:
         super().finish_env(env, game)
 
         wine_exe = self.get_executable()
@@ -1350,6 +1380,14 @@ class wine(Runner):
         if proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe):
             game_id = proton.get_game_id(game, env)
             proton.update_proton_env(wine_exe, env, game_id=game_id)
+
+    def get_run_data(self) -> RunDataDict:
+        # The standalone run() path does not call finish_env() the way launching a
+        # game does, so finalize the environment here too. Without a game context,
+        # Proton/umu falls back to a default GAMEID.
+        data = super().get_run_data()
+        self.finish_env(data["env"])
+        return data
 
     def get_runtime_env(self):
         """Return runtime environment variables with path to wine for Lutris builds"""
@@ -1368,7 +1406,7 @@ class wine(Runner):
         """Return a list of pids of processes using the current wine exe."""
         try:
             exe = self.get_executable()
-            if proton.is_proton_path(exe):
+            if proton.is_proton_path(exe) or proton.is_umu_path(exe):
                 logger.debug("Tracking PIDs of Proton games is not possible at the moment")
                 return set()
             if not exe.startswith("/"):
@@ -1436,7 +1474,8 @@ class wine(Runner):
         """Checks the pids given and returns a set containing only those that are part of the running game,
         identified by its UUID and directory."""
 
-        if proton.is_proton_path(self.get_executable()):
+        wine_exe = self.get_executable()
+        if proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe):
             folder_pids = set()
             gamescope_pids = set()
             has_gamescope = self.system_config.get("gamescope")
