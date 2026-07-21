@@ -3,16 +3,17 @@
 import os
 import threading
 import time
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest import TestCase
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from lutris.util.download_progress import DownloadProgress
 from lutris.util.downloader import DEFAULT_CHUNK_SIZE, BaseDownloader
 from lutris.util.gog_downloader import GOGDownloader
 
 
-class TestGOGDownloaderInit:
+class TestGOGDownloaderInit(TestCase):
     """Test GOGDownloader initialization."""
 
     def test_inherits_from_downloader(self):
@@ -66,7 +67,7 @@ class TestGOGDownloaderInit:
         assert dl.referer == "https://gog.com"
 
 
-class TestBuildRequestHeaders:
+class TestBuildRequestHeaders(TestCase):
     """Test HTTP header construction."""
 
     def test_basic_headers(self):
@@ -90,7 +91,7 @@ class TestBuildRequestHeaders:
         assert headers["X-Custom"] == "value"
 
 
-class TestCalculateRanges:
+class TestCalculateRanges(TestCase):
     """Test byte range calculation for parallel downloads."""
 
     def test_even_split(self):
@@ -133,7 +134,7 @@ class TestCalculateRanges:
             assert ranges[i][1] + 1 == ranges[i + 1][0], f"Gap between range {i} and {i + 1}"
 
 
-class TestProbeServer:
+class TestProbeServer(TestCase):
     """Test server probing for capabilities."""
 
     def test_probe_with_range_support(self):
@@ -197,11 +198,15 @@ class TestProbeServer:
         assert supports is False
 
 
-class TestFallbackToSingleStream:
+class TestFallbackToSingleStream(TestCase):
     """Test cases where parallel download falls back to single-stream."""
 
-    def test_fallback_when_no_range_support(self, tmp_path):
-        dest = str(tmp_path / "file.bin")
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_fallback_when_no_range_support(self):
+        dest = str(self.tmp_path / "file.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest)
 
         test_data = b"Hello, World!"
@@ -227,8 +232,8 @@ class TestFallbackToSingleStream:
         with open(dest, "rb") as f:
             assert f.read() == test_data
 
-    def test_fallback_when_file_too_small(self, tmp_path):
-        dest = str(tmp_path / "small.bin")
+    def test_fallback_when_file_too_small(self):
+        dest = str(self.tmp_path / "small.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest)
 
         # File smaller than MIN_CHUNK_SIZE * 2
@@ -257,12 +262,16 @@ class TestFallbackToSingleStream:
         assert dl.state == dl.COMPLETED
 
 
-class TestParallelDownload:
+class TestParallelDownload(TestCase):
     """Test multi-connection parallel download."""
 
-    def test_parallel_download_writes_correct_data(self, tmp_path):
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_parallel_download_writes_correct_data(self):
         """Verify parallel download correctly assembles a file from ranges."""
-        dest = str(tmp_path / "parallel.bin")
+        dest = str(self.tmp_path / "parallel.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest, num_workers=2)
 
         file_size = 2000  # 2000 bytes, split into 2x 1000-byte chunks
@@ -306,9 +315,9 @@ class TestParallelDownload:
         assert result == data
         assert dl.downloaded_size == file_size
 
-    def test_parallel_download_with_four_workers(self, tmp_path):
+    def test_parallel_download_with_four_workers(self):
         """Test 4 workers downloading a file."""
-        dest = str(tmp_path / "four_workers.bin")
+        dest = str(self.tmp_path / "four_workers.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest, num_workers=4)
 
         file_size = 4000
@@ -345,11 +354,15 @@ class TestParallelDownload:
         assert result == data
 
 
-class TestDownloadRange:
+class TestDownloadRange(TestCase):
     """Test individual range download worker."""
 
-    def test_download_range_writes_to_correct_offset(self, tmp_path):
-        dest = str(tmp_path / "range_test.bin")
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_download_range_writes_to_correct_offset(self):
+        dest = str(self.tmp_path / "range_test.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest)
         dl.stop_request = threading.Event()
 
@@ -375,8 +388,8 @@ class TestDownloadRange:
 
         assert dl.downloaded_size == 500
 
-    def test_download_range_retries_on_failure(self, tmp_path):
-        dest = str(tmp_path / "retry_test.bin")
+    def test_download_range_retries_on_failure(self):
+        dest = str(self.tmp_path / "retry_test.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest)
         dl.stop_request = threading.Event()
         dl.RETRY_DELAY = 0  # No delay in tests
@@ -404,8 +417,8 @@ class TestDownloadRange:
 
         assert dl.downloaded_size == 100
 
-    def test_download_range_cancellation(self, tmp_path):
-        dest = str(tmp_path / "cancel_test.bin")
+    def test_download_range_cancellation(self):
+        dest = str(self.tmp_path / "cancel_test.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest)
         dl.stop_request = threading.Event()
         dl.stop_request.set()  # Pre-cancelled
@@ -425,25 +438,29 @@ class TestDownloadRange:
         assert dl.downloaded_size == 0
 
 
-class TestCancelAndStates:
+class TestCancelAndStates(TestCase):
     """Test cancel and state management."""
 
-    def test_cancel_sets_state(self, tmp_path):
-        dest = str(tmp_path / "cancel.bin")
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_cancel_sets_state(self):
+        dest = str(self.tmp_path / "cancel.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest)
         dl.stop_request = threading.Event()
         dl.cancel()
         assert dl.state == dl.CANCELLED
 
-    def test_cancel_sets_stop_request(self, tmp_path):
-        dest = str(tmp_path / "cancel.bin")
+    def test_cancel_sets_stop_request(self):
+        dest = str(self.tmp_path / "cancel.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest)
         dl.stop_request = threading.Event()
         dl.cancel()
         assert dl.stop_request.is_set()
 
-    def test_cancel_removes_file(self, tmp_path):
-        dest = str(tmp_path / "cancel.bin")
+    def test_cancel_removes_file(self):
+        dest = str(self.tmp_path / "cancel.bin")
         with open(dest, "w") as f:
             f.write("test")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest)
@@ -472,19 +489,8 @@ class TestCancelAndStates:
         assert dl.error is error
 
 
-class TestInstallerFileIntegration:
+class TestInstallerFileIntegration(TestCase):
     """Test GOGDownloader integration with InstallerFile."""
-
-    @pytest.fixture(autouse=True)
-    def _setup_gi(self):
-        """Ensure GTK version is required before importing InstallerFile."""
-        try:
-            import gi
-
-            gi.require_version("Gtk", "3.0")
-            gi.require_version("Gdk", "3.0")
-        except (ValueError, ImportError):
-            pytest.skip("GTK 3.0 not available")
 
     def test_installer_file_downloader_class(self):
         """InstallerFile should expose downloader_class from file_meta."""
@@ -527,7 +533,7 @@ class TestInstallerFileIntegration:
         assert file.downloader_class is None
 
 
-class TestGOGServiceIntegration:
+class TestGOGServiceIntegration(TestCase):
     """Test that the GOG service injects GOGDownloader into InstallerFile."""
 
     def test_gog_format_links_includes_downloader_class(self):
@@ -555,12 +561,16 @@ class TestGOGServiceIntegration:
         assert files[0].downloader_class is GOGDownloader
 
 
-class TestProgressTracking:
+class TestProgressTracking(TestCase):
     """Test that progress tracking works with parallel downloads."""
 
-    def test_downloaded_size_thread_safe(self, tmp_path):
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_downloaded_size_thread_safe(self):
         """Verify downloaded_size is correctly accumulated from multiple threads."""
-        dest = str(tmp_path / "progress.bin")
+        dest = str(self.tmp_path / "progress.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest, num_workers=4)
         dl.stop_request = threading.Event()
         dl.progress_event = threading.Event()
@@ -596,12 +606,16 @@ class TestProgressTracking:
 # ==================================================================
 
 
-class TestResumeProgressCreation:
+class TestResumeProgressCreation(TestCase):
     """Test that parallel downloads create progress files."""
 
-    def test_fresh_download_creates_progress_file(self, tmp_path):
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_fresh_download_creates_progress_file(self):
         """A parallel download should create a .progress sidecar file."""
-        dest = str(tmp_path / "fresh.bin")
+        dest = str(self.tmp_path / "fresh.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest, num_workers=2)
 
         file_size = 2000
@@ -635,9 +649,9 @@ class TestResumeProgressCreation:
         # Progress file should be cleaned up on success
         assert not os.path.exists(dest + ".progress")
 
-    def test_progress_file_records_completed_ranges(self, tmp_path):
+    def test_progress_file_records_completed_ranges(self):
         """Ranges that finish should be persisted in the progress file."""
-        dest = str(tmp_path / "track.bin")
+        dest = str(self.tmp_path / "track.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest, num_workers=2)
 
         file_size = 2000
@@ -684,8 +698,12 @@ class TestResumeProgressCreation:
         assert len(progress.completed_ranges) >= 1
 
 
-class TestResumeFromProgress:
+class TestResumeFromProgress(TestCase):
     """Test resuming downloads from existing progress files."""
+
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
 
     def _make_head_resp(self, url, file_size):
         resp = MagicMock()
@@ -697,9 +715,9 @@ class TestResumeFromProgress:
         resp.raise_for_status = MagicMock()
         return resp
 
-    def test_resume_downloads_only_remaining_ranges(self, tmp_path):
+    def test_resume_downloads_only_remaining_ranges(self):
         """Resume should only download ranges not yet completed."""
-        dest = str(tmp_path / "resume.bin")
+        dest = str(self.tmp_path / "resume.bin")
         file_size = 4000
         data = b"A" * 1000 + b"B" * 1000 + b"C" * 1000 + b"D" * 1000
 
@@ -757,9 +775,9 @@ class TestResumeFromProgress:
         # Progress file should be cleaned up
         assert not os.path.exists(dest + ".progress")
 
-    def test_resume_credits_already_downloaded_bytes(self, tmp_path):
+    def test_resume_credits_already_downloaded_bytes(self):
         """Resume should credit bytes from completed ranges to downloaded_size."""
-        dest = str(tmp_path / "credit.bin")
+        dest = str(self.tmp_path / "credit.bin")
         file_size = 2000
 
         with open(dest, "wb") as f:
@@ -793,9 +811,9 @@ class TestResumeFromProgress:
         # Total downloaded = 1000 (already on disk) + 1000 (newly downloaded)
         assert dl.downloaded_size == 2000
 
-    def test_resume_with_incompatible_file_size_starts_fresh(self, tmp_path):
+    def test_resume_with_incompatible_file_size_starts_fresh(self):
         """If file size changed, progress is discarded and we start fresh."""
-        dest = str(tmp_path / "incompat.bin")
+        dest = str(self.tmp_path / "incompat.bin")
         old_size = 3000
 
         with open(dest, "wb") as f:
@@ -831,9 +849,9 @@ class TestResumeFromProgress:
         assert dl.state == dl.COMPLETED
         assert dl.downloaded_size == new_size
 
-    def test_resume_with_missing_dest_starts_fresh(self, tmp_path):
+    def test_resume_with_missing_dest_starts_fresh(self):
         """If dest file is gone but progress exists, start fresh."""
-        dest = str(tmp_path / "missing.bin")
+        dest = str(self.tmp_path / "missing.bin")
         file_size = 2000
 
         # Create progress without the actual file
@@ -865,9 +883,9 @@ class TestResumeFromProgress:
         # Fresh download, should have downloaded full size
         assert dl.downloaded_size == file_size
 
-    def test_resume_skips_when_all_ranges_already_done(self, tmp_path):
+    def test_resume_skips_when_all_ranges_already_done(self):
         """If all ranges complete and file exists, skip download entirely."""
-        dest = str(tmp_path / "skip.bin")
+        dest = str(self.tmp_path / "skip.bin")
         file_size = 2000
         data = b"D" * file_size
 
@@ -897,12 +915,16 @@ class TestResumeFromProgress:
         assert not os.path.exists(dest + ".progress")
 
 
-class TestResumeStartMethod:
+class TestResumeStartMethod(TestCase):
     """Test that start() preserves files when resume is possible."""
 
-    def test_start_preserves_file_when_progress_exists(self, tmp_path):
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_start_preserves_file_when_progress_exists(self):
         """start() should not delete dest if resumable progress is found."""
-        dest = str(tmp_path / "preserve.bin")
+        dest = str(self.tmp_path / "preserve.bin")
         data = b"P" * 1000
 
         with open(dest, "wb") as f:
@@ -926,9 +948,9 @@ class TestResumeStartMethod:
         with open(dest, "rb") as f:
             assert f.read() == data
 
-    def test_start_deletes_file_when_no_progress(self, tmp_path):
+    def test_start_deletes_file_when_no_progress(self):
         """start() should delete dest if no resumable progress exists."""
-        dest = str(tmp_path / "delete.bin")
+        dest = str(self.tmp_path / "delete.bin")
         with open(dest, "wb") as f:
             f.write(b"old data")
 
@@ -943,11 +965,15 @@ class TestResumeStartMethod:
         assert not os.path.isfile(dest)
 
 
-class TestCancelCleansProgress:
+class TestCancelCleansProgress(TestCase):
     """Test that cancel() removes progress files."""
 
-    def test_cancel_removes_progress_file(self, tmp_path):
-        dest = str(tmp_path / "cancel.bin")
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_cancel_removes_progress_file(self):
+        dest = str(self.tmp_path / "cancel.bin")
         with open(dest, "wb") as f:
             f.write(b"data")
 
@@ -964,9 +990,9 @@ class TestCancelCleansProgress:
         assert not os.path.exists(dest + ".progress")
         assert dl._progress is None
 
-    def test_cancel_without_progress(self, tmp_path):
+    def test_cancel_without_progress(self):
         """Cancel should work even if no progress was created."""
-        dest = str(tmp_path / "nocancel.bin")
+        dest = str(self.tmp_path / "nocancel.bin")
         with open(dest, "wb") as f:
             f.write(b"data")
 
@@ -977,11 +1003,15 @@ class TestCancelCleansProgress:
         assert not os.path.isfile(dest)
 
 
-class TestCompletionCleansProgress:
+class TestCompletionCleansProgress(TestCase):
     """Test that on_download_completed() removes progress files."""
 
-    def test_completed_removes_progress(self, tmp_path):
-        dest = str(tmp_path / "done.bin")
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_completed_removes_progress(self):
+        dest = str(self.tmp_path / "done.bin")
         dl = GOGDownloader("https://cdn.gog.com/file.bin", dest)
         dl.downloaded_size = 1000
         dl.full_size = 1000
