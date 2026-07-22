@@ -174,19 +174,6 @@ def add_game(**game_data: Any) -> str:
     return str(sql.db_insert(settings.DB_PATH, "games", game_data))
 
 
-def add_games_bulk(games: list[DbGameDict]) -> list[str]:
-    """
-    Add a list of games to the database.
-    The dicts must have an identical set of keys.
-
-    Args:
-        games (list): list of games in dict format
-    Returns:
-        list: List of inserted game ids
-    """
-    return [str(sql.db_insert(settings.DB_PATH, "games", game)) for game in games]
-
-
 def add_or_update(**params: Any) -> str:
     """Add a game to the database or update an existing one
 
@@ -238,15 +225,6 @@ def get_matching_game(params: dict[str, Any]) -> str | None:
 def delete_game(game_id: str) -> None:
     """Delete a game from the PGA."""
     sql.db_delete(settings.DB_PATH, "games", "id", game_id)
-
-
-def get_used_runners() -> list[str]:
-    """Return a list of the runners in use by installed games."""
-    with sql.db_cursor(settings.DB_PATH) as cursor:
-        query = "select distinct runner from games where runner is not null order by runner"
-        rows = cursor.execute(query)
-        results = rows.fetchall()
-    return [result[0] for result in results if result[0]]
 
 
 def get_used_platforms() -> list[str]:
