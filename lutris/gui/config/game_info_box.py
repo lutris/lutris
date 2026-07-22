@@ -188,9 +188,9 @@ class GameInfoBox(AdvancedSettingsBox):
             self.directory_entry.set_text(self.game.directory)
         self.directory_entry.set_sensitive(False)
         box.pack_start(self.directory_entry, True, True, 0)
-        move_button = Gtk.Button(_("Move"), visible=True)
-        move_button.connect("clicked", self.parent_widget.on_move_clicked)
-        box.pack_start(move_button, False, False, 0)
+        set_location_button = Gtk.Button(_("Set Location"), visible=True)
+        set_location_button.connect("clicked", self.parent_widget.on_set_location_clicked)
+        box.pack_start(set_location_button, False, False, 0)
         return box
 
     def _get_launch_config_box(self):
