@@ -162,7 +162,7 @@ class TestCreateDownloader(TestCase):
     @patch("lutris.gui.widgets.download_collection_progress_box.os.path.exists", return_value=False)
     def test_returns_none_on_runtime_error(self, mock_exists, mock_display):
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
-        box.get_toplevel = MagicMock(return_value=None)
+        box.get_root = MagicMock(return_value=None)
         f = _make_file(dest="/tmp/dl/f.bin")
         # Simulate no downloader_class → use default Downloader which will fail
         with patch(
