@@ -7,8 +7,6 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from lutris.util.download_progress import DownloadProgress
 from lutris.util.downloader import DEFAULT_CHUNK_SIZE, BaseDownloader
 from lutris.util.gog_downloader import GOGDownloader
@@ -504,8 +502,7 @@ class TestCancelAndStates(TestCase):
 class TestInstallerFileIntegration(TestCase):
     """Test GOGDownloader integration with InstallerFile."""
 
-    @pytest.fixture(autouse=True)
-    def _setup_gi(self):
+    def setUp(self):
         """Ensure GTK version is required before importing InstallerFile."""
         try:
             import gi
@@ -513,7 +510,7 @@ class TestInstallerFileIntegration(TestCase):
             gi.require_version("Gtk", "4.0")
             gi.require_version("Gdk", "4.0")
         except (ValueError, ImportError):
-            pytest.skip("GTK 4.0 not available")
+            self.skipTest("GTK 4.0 not available")
 
     def test_installer_file_downloader_class(self):
         """InstallerFile should expose downloader_class from file_meta."""
@@ -559,8 +556,7 @@ class TestInstallerFileIntegration(TestCase):
 class TestGOGServiceIntegration(TestCase):
     """Test that the GOG service injects GOGDownloader into InstallerFile."""
 
-    @pytest.fixture(autouse=True)
-    def _setup_gi(self):
+    def setUp(self):
         """Ensure GTK version is required before importing GOG service."""
         try:
             import gi
@@ -568,7 +564,7 @@ class TestGOGServiceIntegration(TestCase):
             gi.require_version("Gtk", "4.0")
             gi.require_version("Gdk", "4.0")
         except (ValueError, ImportError):
-            pytest.skip("GTK 4.0 not available")
+            self.skipTest("GTK 4.0 not available")
 
     def test_gog_format_links_includes_downloader_class(self):
         """_format_links should inject GOGDownloader as downloader_class."""
