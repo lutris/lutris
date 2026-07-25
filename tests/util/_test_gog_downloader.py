@@ -8,6 +8,8 @@ from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from lutris.util.download_progress import DownloadProgress
 from lutris.util.downloader import DEFAULT_CHUNK_SIZE, BaseDownloader
 from lutris.util.gog_downloader import GOGDownloader
@@ -502,7 +504,6 @@ class TestInstallerFileIntegration(TestCase):
             gi.require_version("Gdk", "4.0")
         except (ValueError, ImportError):
             pytest.skip("GTK 4.0 not available")
-
 
     def test_installer_file_downloader_class(self):
         """InstallerFile should expose downloader_class from file_meta."""
