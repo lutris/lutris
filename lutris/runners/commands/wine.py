@@ -180,10 +180,20 @@ def create_prefix(
             "WINEARCH": arch,
             "WINEPREFIX": prefix,
             "WINEDLLOVERRIDES": get_overrides_env(overrides),
-            "WINE_MONO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "mono"),
-            "WINE_GECKO_CACHE_DIR": os.path.join(os.path.dirname(os.path.dirname(wine_path)), "gecko"),
         }
     )
+
+    # Lutris-managed Wine builds bundle the Mono and Gecko installers next to the
+    # 'bin' directory; point Wine at them so it installs from cache. System Wine
+    # has no such bundle (the path would resolve to e.g. /usr/mono), so we leave
+    # these unset and let Wine use its own default discovery (distro packages).
+    wine_root = os.path.dirname(os.path.dirname(wine_path))
+    mono_cache_dir = os.path.join(wine_root, "mono")
+    gecko_cache_dir = os.path.join(wine_root, "gecko")
+    if system.path_exists(mono_cache_dir):
+        wineenv["WINE_MONO_CACHE_DIR"] = mono_cache_dir
+    if system.path_exists(gecko_cache_dir):
+        wineenv["WINE_GECKO_CACHE_DIR"] = gecko_cache_dir
 
     if install_gecko == "False":
         wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"
@@ -409,6 +419,12 @@ def wineexec(
         wineenv["PROTON_VERB"] = proton_verb
 
     baseenv = runner.get_env(disable_runtime=disable_runtime)
+    if proton.is_proton_path(wine_path):
+        # The runner's environment describes the runner's *own* Wine version, which may be a
+        # different Proton than the one we were asked to run (an installer script can pin one
+        # while the runner config says 'ge-proton'). Drop it so update_proton_env() can derive
+        # PROTONPATH from wine_path; an explicit PROTONPATH in 'env' still wins, below.
+        baseenv.pop("PROTONPATH", None)
     baseenv.update(wineenv)
     baseenv.update(env)
 
@@ -498,7 +514,10 @@ def winetricks(
         winetricks_path = wine_path
     elif not wine_path or proton.is_umu_path(wine_path):
         winetricks_wine = proton.get_umu_path()
-        winetricks_path = None
+        # Run Umu itself and let it find winetricks via the 'winetricks' verb. Name it
+        # explicitly instead of leaving wineexec() to fall back on the default runner's
+        # executable, which is only Umu by coincidence.
+        winetricks_path = winetricks_wine
         args = "winetricks " + args
         proton_verb = "waitforexitandrun"
         working_dir = None
@@ -508,9 +527,9 @@ def winetricks(
                 "winetricks: attempting to run on a Valve official Proton build; this may not work as expected."
             )
         winetricks_path, working_dir, env = find_winetricks(env, system_winetricks)
-        if not runner:
-            runner = import_runner("wine")()
-        winetricks_wine = runner.get_executable()
+        # Run winetricks against the Wine version we were given (the one the installer
+        # script selected, or the game's own runner), not the default Wine runner's.
+        winetricks_wine = wine_path
         if arch not in ("win32", "win64"):
             arch = detect_arch(prefix, winetricks_wine)
         if str(silent).lower() in ("yes", "on", "true"):

@@ -852,20 +852,23 @@ class WidgetWarningMessageBox(Gtk.Box):
             no_show_all=True,
         )
 
-        image = Gtk.Image(visible=True)
-        image.set_from_icon_name(icon_name, Gtk.IconSize.DND)
-        self.pack_start(image, False, False, 0)
+        self.image = Gtk.Image(visible=True)
+        self.image.set_from_icon_name(icon_name, Gtk.IconSize.DND)
+        self.pack_start(self.image, False, False, 0)
         self.label = Gtk.Label(visible=True, xalign=0)
         self.label.set_line_wrap(True)
         self.pack_start(self.label, False, False, 0)
 
-    def show_markup(self, markup) -> bool:
+    def show_markup(self, markup, icon_name=None) -> bool:
         """Displays the markup given, and shows this box. If markup is empty or None,
-        this hides the box instead. Returns the new visibility."""
+        this hides the box instead. If icon_name is given, the box's icon is switched
+        to it. Returns the new visibility."""
         visible = bool(markup)
 
         if markup:
             self.label.set_markup(str(markup))
+            if icon_name:
+                self.image.set_from_icon_name(icon_name, Gtk.IconSize.DND)
 
         self.set_visible(visible)
         return visible

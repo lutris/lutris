@@ -224,8 +224,10 @@ def format_version_architecture(base_version: str, arch: str | None = None) -> s
 
     # A gross hack, since runner versions could be used with non-Wine runners,
     # but it so happens we don't. 'GE-Proton' versions arbitrarily do not have
-    # an architecture on them - they are always 64-bit.
-    if base_version.startswith("GE-Proton"):
+    # an architecture on them - they are always 64-bit. This also covers the
+    # lower-case 'ge-proton' sentinel meaning "whatever GE-Proton Umu provides";
+    # suffixing that yields a version that resolves to no Wine at all.
+    if base_version.casefold().startswith("ge-proton"):
         return base_version
 
     if arch:
