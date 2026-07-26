@@ -1,4 +1,7 @@
 from unittest import TestCase
+from unittest.mock import patch
+
+import requests
 
 from lutris.installer.errors import ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
@@ -23,6 +26,16 @@ class MockInterpreter(ScriptInterpreter):
 
 
 class TestScriptInterpreter(TestCase):
+    def get_moddb_interpreter(self, moddb_url):
+        installer = {
+            **TEST_INSTALLER,
+            "script": {
+                "files": [{"moddb_file": {"url": moddb_url, "filename": "test-file.zip"}}],
+                "game": {"exe": "test"},
+            },
+        }
+        return MockInterpreter(installer, None)
+
     def test_script_with_correct_values_is_valid(self):
         installer = {
             "runner": "linux",
@@ -61,3 +74,42 @@ class TestScriptInterpreter(TestCase):
         with self.assertRaises(ScriptingError) as ex:
             interpreter._map_command({"_substitute": "foo"})
         self.assertEqual(ex.exception.message, 'The command "substitute" does not exist.')
+
+    def test_prepare_game_files_resolves_moddb_url(self):
+        moddb_url = "https://www.moddb.com/downloads/test-file"
+        mirror_url = "https://www.moddb.com/downloads/mirror/test-file"
+        interpreter = self.get_moddb_interpreter(moddb_url)
+
+        with patch("lutris.installer.installer.ModDB.transform_url", return_value=mirror_url):
+            interpreter.installer.prepare_game_files([])
+
+        installer_file = interpreter.installer.files[0]
+        self.assertEqual(installer_file.url, mirror_url)
+        self.assertEqual(installer_file.default_provider, "download")
+
+    def test_prepare_game_files_keeps_moddb_file_selectable_on_resolution_error(self):
+        moddb_url = "https://www.moddb.com/downloads/test-file"
+        interpreter = self.get_moddb_interpreter(moddb_url)
+
+        with patch(
+            "lutris.installer.installer.ModDB.transform_url",
+            side_effect=requests.HTTPError("403 Client Error"),
+        ):
+            interpreter.installer.prepare_game_files([])
+
+        installer_file = interpreter.installer.files[0]
+        self.assertEqual(
+            installer_file.url,
+            "N/A:Download from https://www.moddb.com/downloads/test-file and select the file here",
+        )
+        self.assertEqual(installer_file.default_provider, "user")
+        self.assertEqual(installer_file.providers, {"user"})
+        self.assertEqual(installer_file.filename, "test-file.zip")
+
+    def test_prepare_game_files_keeps_moddb_configuration_errors_visible(self):
+        moddb_url = "https://www.moddb.com/downloads/test-file"
+        interpreter = self.get_moddb_interpreter(moddb_url)
+
+        with patch("lutris.installer.installer.ModDB.transform_url", side_effect=RuntimeError("Invalid ModDB URL")):
+            with self.assertRaises(RuntimeError):
+                interpreter.installer.prepare_game_files([])

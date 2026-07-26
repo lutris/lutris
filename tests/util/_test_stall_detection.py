@@ -2,15 +2,17 @@
 
 import threading
 import time
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-import pytest
 import requests
 
 from lutris.util.downloader import BaseDownloader, DownloadStallError, SimpleDownloader, StallMonitor, get_time
 
 
-class TestDownloadStallError:
+class TestDownloadStallError(TestCase):
     """Test the DownloadStallError exception class."""
 
     def test_carries_throughput(self):
@@ -34,7 +36,7 @@ class TestDownloadStallError:
         assert isinstance(err, Exception)
 
 
-class TestCheckStall:
+class TestCheckStall(TestCase):
     """Test the throughput-window logic in StallMonitor."""
 
     def _make_monitor(self):
@@ -73,17 +75,17 @@ class TestCheckStall:
         monitor.window_start = get_time() - 31.0  # 31 seconds ago
         monitor.bytes_at_window_start = 0
         # 100 bytes in 31 seconds = ~3.2 B/s — below 200 B/s for > 30s
-        with pytest.raises(DownloadStallError) as exc_info:
+        with self.assertRaises(DownloadStallError) as exc_info:
             monitor.check(100)
-        assert exc_info.value.duration >= 30.0
-        assert exc_info.value.throughput < 200.0
+        assert exc_info.exception.duration >= 30.0
+        assert exc_info.exception.throughput < 200.0
 
     def test_zero_bytes_triggers_stall(self):
         """Zero bytes received should eventually trigger stall."""
         monitor = self._make_monitor()
         monitor.window_start = get_time() - 35.0
         monitor.bytes_at_window_start = 0
-        with pytest.raises(DownloadStallError):
+        with self.assertRaises(DownloadStallError):
             monitor.check(0)
 
     def test_recovery_resets_timer(self):
@@ -98,7 +100,7 @@ class TestCheckStall:
         assert monitor.bytes_at_window_start == 5100
 
 
-class TestStallMonitorIsolation:
+class TestStallMonitorIsolation(TestCase):
     """Each download stream must own its StallMonitor.
 
     Regression tests for the parallel-download stall race: GOGDownloader runs
@@ -139,24 +141,28 @@ class TestStallMonitorIsolation:
         monitor = StallMonitor(BaseDownloader.LOW_SPEED_LIMIT, BaseDownloader.LOW_SPEED_TIME)
         monitor.check(0)  # open window
         monitor.window_start = get_time() - 31.0  # 31s elapsed, no progress
-        with pytest.raises(DownloadStallError):
+        with self.assertRaises(DownloadStallError):
             monitor.check(100)  # ~3 B/s for >30s
 
 
-class TestDownloaderRetry:
+class TestDownloaderRetry(TestCase):
     """Test retry logic in SimpleDownloader."""
 
-    def _make_downloader(self, tmp_path):
-        dest = str(tmp_path / "test.bin")
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def _make_downloader(self):
+        dest = str(self.tmp_path / "test.bin")
         dl = SimpleDownloader("https://example.com/file.bin", dest)
         dl.stop_request = threading.Event()
         return dl
 
     @patch.object(SimpleDownloader, "on_download_completed")
     @patch.object(SimpleDownloader, "_do_download")
-    def test_success_on_first_try(self, mock_do, mock_complete, tmp_path):
+    def test_success_on_first_try(self, mock_do, mock_complete):
         """Successful download should not retry."""
-        dl = self._make_downloader(tmp_path)
+        dl = self._make_downloader()
         mock_do.return_value = None  # Success
 
         dl.async_download()
@@ -166,9 +172,9 @@ class TestDownloaderRetry:
 
     @patch.object(SimpleDownloader, "on_download_completed")
     @patch.object(SimpleDownloader, "_do_download")
-    def test_retries_on_stall_error(self, mock_do, mock_complete, tmp_path):
+    def test_retries_on_stall_error(self, mock_do, mock_complete):
         """DownloadStallError should trigger retry."""
-        dl = self._make_downloader(tmp_path)
+        dl = self._make_downloader()
         # Fail twice with stall, succeed on third
         mock_do.side_effect = [
             DownloadStallError(throughput=50.0, duration=31.0),
@@ -186,9 +192,9 @@ class TestDownloaderRetry:
         mock_complete.assert_called_once()
 
     @patch.object(SimpleDownloader, "_do_download")
-    def test_fails_after_max_retries(self, mock_do, tmp_path):
+    def test_fails_after_max_retries(self, mock_do):
         """Should fail after RETRY_ATTEMPTS exhausted."""
-        dl = self._make_downloader(tmp_path)
+        dl = self._make_downloader()
         stall_err = DownloadStallError(throughput=10.0, duration=30.0)
         mock_do.side_effect = stall_err
 
@@ -203,9 +209,9 @@ class TestDownloaderRetry:
         assert dl.error is stall_err
 
     @patch.object(SimpleDownloader, "_do_download")
-    def test_no_retry_on_404(self, mock_do, tmp_path):
+    def test_no_retry_on_404(self, mock_do):
         """HTTP 404 should not retry."""
-        dl = self._make_downloader(tmp_path)
+        dl = self._make_downloader()
         response = MagicMock()
         response.status_code = 404
         http_err = requests.HTTPError(response=response)
@@ -218,9 +224,9 @@ class TestDownloaderRetry:
 
     @patch.object(SimpleDownloader, "on_download_completed")
     @patch.object(SimpleDownloader, "_do_download")
-    def test_retry_on_500(self, mock_do, mock_complete, tmp_path):
+    def test_retry_on_500(self, mock_do, mock_complete):
         """HTTP 500 should trigger retry."""
-        dl = self._make_downloader(tmp_path)
+        dl = self._make_downloader()
         response = MagicMock()
         response.status_code = 500
         http_err = requests.HTTPError(response=response)
@@ -237,9 +243,9 @@ class TestDownloaderRetry:
 
     @patch.object(SimpleDownloader, "on_download_completed")
     @patch.object(SimpleDownloader, "_do_download")
-    def test_retry_on_429(self, mock_do, mock_complete, tmp_path):
+    def test_retry_on_429(self, mock_do, mock_complete):
         """HTTP 429 (rate limit) should trigger retry."""
-        dl = self._make_downloader(tmp_path)
+        dl = self._make_downloader()
         response = MagicMock()
         response.status_code = 429
         http_err = requests.HTTPError(response=response)

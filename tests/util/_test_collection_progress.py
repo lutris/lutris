@@ -8,103 +8,14 @@ The module is loaded via importlib to avoid the normal lutris.gui package
 chain that requires a real GTK installation / display.
 """
 
-import importlib
-import importlib.util
-import os
-import sys
-import types
+from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-# ── Load the target module in isolation ──────────────────────────────
-#
-# We can't ``import lutris.gui.widgets.download_collection_progress_box``
-# normally because the package __init__.py files pull in real GTK /
-# GObject, which requires a display.  Instead we:
-#
-#  1. Temporarily inject ``gi`` / ``gi.repository`` stubs into
-#     sys.modules (only if they are NOT already loaded — if real gi is
-#     present we leave it).
-#  2. Load the single .py file via importlib.util.spec_from_file_location
-#     under its fully qualified name so that ``patch()`` calls work.
-#  3. After loading, remove temporary stubs (but keep the target module
-#     and its own ``gi.repository`` references alive — they are already
-#     bound in the module's global namespace).
-
-_SRC_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
-_MOD_NAME = "lutris.gui.widgets.download_collection_progress_box"
-_MOD_PATH = os.path.join(_SRC_ROOT, "lutris", "gui", "widgets", "download_collection_progress_box.py")
-
-
-def _load_module() -> types.ModuleType:
-    """Load the target module, stubbing GTK if necessary."""
-    # If the module was already loaded (e.g. in a previous test-collection
-    # pass), just reuse it.
-    if _MOD_NAME in sys.modules:
-        return sys.modules[_MOD_NAME]
-
-    # Track what we add so we can clean up only our additions.
-    # We use setdefault so we NEVER overwrite a real module — this avoids
-    # poisoning sys.modules["gi"] when real GTK is installed.
-    added: list[str] = []
-
-    def _ensure(name: str, mod: types.ModuleType) -> None:
-        if name not in sys.modules:
-            sys.modules[name] = mod
-            added.append(name)
-
-    # gi / gi.repository stubs — only if not already present
-    _gi = types.ModuleType("gi")
-    _gi.require_version = lambda *a, **kw: None  # type: ignore[attr-defined]
-    _ensure("gi", _gi)
-
-    _mock_gtk = MagicMock()
-    _mock_gtk.Box = type("Box", (), {"__init__": lambda self, **kw: None})
-    _mock_gtk.Orientation.VERTICAL = 0
-
-    _mock_gobject = MagicMock()
-    _mock_gobject.SignalFlags.RUN_LAST = 1
-    _mock_gobject.TYPE_PYOBJECT = object
-
-    _gi_repo = types.ModuleType("gi.repository")
-    _gi_repo.Gtk = _mock_gtk  # type: ignore[attr-defined]
-    _gi_repo.GLib = MagicMock()  # type: ignore[attr-defined]
-    _gi_repo.GObject = _mock_gobject  # type: ignore[attr-defined]
-    _gi_repo.Pango = MagicMock()  # type: ignore[attr-defined]
-    _ensure("gi.repository", _gi_repo)
-
-    # Ensure parent package stubs so importlib can place our module
-    for pkg in ("lutris.gui", "lutris.gui.widgets", "lutris.gui.dialogs"):
-        stub = types.ModuleType(pkg)
-        stub.__path__ = []  # type: ignore[attr-defined]
-        _ensure(pkg, stub)
-
-    # The module imports display_error from lutris.gui.dialogs
-    sys.modules["lutris.gui.dialogs"].display_error = MagicMock()  # type: ignore[attr-defined]
-
-    # Load the module
-    spec = importlib.util.spec_from_file_location(_MOD_NAME, _MOD_PATH)
-    assert spec is not None and spec.loader is not None
-    mod = importlib.util.module_from_spec(spec)
-    sys.modules[_MOD_NAME] = mod
-    spec.loader.exec_module(mod)
-
-    # Clean up ALL stubs we added — the loaded module's globals already
-    # captured their references to Gtk, GObject, etc., so removing the
-    # sys.modules entries doesn't break the module.
-    for key in added:
-        sys.modules.pop(key, None)
-
-    return mod
-
-
-_mod = _load_module()
-
-MAX_CONCURRENT_FILES = _mod.MAX_CONCURRENT_FILES
-DownloadCollectionProgressBox = _mod.DownloadCollectionProgressBox
-_ActiveDownload = _mod._ActiveDownload
-
+from lutris.gui.widgets.download_collection_progress_box import (
+    MAX_CONCURRENT_FILES,
+    DownloadCollectionProgressBox,
+    _ActiveDownload,
+)
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
@@ -159,16 +70,6 @@ def _make_downloader(state="DOWNLOADING", downloaded_size=0):
 # ── Fixture ──────────────────────────────────────────────────────────
 
 
-@pytest.fixture
-def two_files():
-    """Two files for typical multi-file test."""
-    return [
-        _make_file("part1.bin", dest="/tmp/dl/part1.bin"),
-        _make_file("part2.bin", dest="/tmp/dl/part2.bin"),
-    ]
-
-
-@pytest.fixture
 def three_files():
     """Three files for prefetch boundary test."""
     return [
@@ -181,7 +82,7 @@ def three_files():
 # ── Tests: _ActiveDownload ───────────────────────────────────────────
 
 
-class TestActiveDownload:
+class TestActiveDownload(TestCase):
     def test_init_sets_fields(self):
         f = _make_file()
         dl = _make_downloader()
@@ -199,7 +100,7 @@ class TestActiveDownload:
 # ── Tests: Initialisation ───────────────────────────────────────────
 
 
-class TestInit:
+class TestInit(TestCase):
     def test_active_downloads_initially_empty(self):
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
         box._active_downloads = []
@@ -217,7 +118,7 @@ class TestInit:
 # ── Tests: _create_downloader ───────────────────────────────────────
 
 
-class TestCreateDownloader:
+class TestCreateDownloader(TestCase):
     @patch("lutris.gui.widgets.download_collection_progress_box.create_cache_lock")
     @patch("lutris.gui.widgets.download_collection_progress_box.SimpleDownloader")
     @patch("lutris.gui.widgets.download_collection_progress_box.os.path.exists", return_value=False)
@@ -276,7 +177,7 @@ class TestCreateDownloader:
 # ── Tests: _pop_next_downloadable_file ───────────────────────────────
 
 
-class TestPopNextDownloadableFile:
+class TestPopNextDownloadableFile(TestCase):
     def test_returns_file_when_not_cached(self):
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
         f = _make_file(dest="/tmp/dl/notexist.bin")
@@ -318,7 +219,7 @@ class TestPopNextDownloadableFile:
 # ── Tests: Aggregate progress ────────────────────────────────────────
 
 
-class TestAggregateDownloadedSize:
+class TestAggregateDownloadedSize(TestCase):
     def test_sums_completed_and_active(self):
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
         box._completed_sizes = {"/a": 100, "/b": 200}
@@ -341,7 +242,7 @@ class TestAggregateDownloadedSize:
 # ── Tests: File labels ───────────────────────────────────────────────
 
 
-class TestUpdateActiveFileLabels:
+class TestUpdateActiveFileLabels(TestCase):
     def test_comma_separated_names(self):
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
         box.file_name_label = MagicMock()
@@ -378,11 +279,14 @@ class TestUpdateActiveFileLabels:
 # ── Tests: Start / prefetch ──────────────────────────────────────────
 
 
-class TestStartPrefetch:
-    def test_start_launches_two_downloads(self, three_files):
+class TestStartPrefetch(TestCase):
+    def setUp(self):
+        self.three_files = three_files()
+
+    def test_start_launches_two_downloads(self):
         """start() should launch primary + prefetch = 2 concurrent downloads."""
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
-        box._file_queue = three_files.copy()
+        box._file_queue = self.three_files.copy()
         box.downloader = None
         box.is_complete = False
         box.num_files_downloaded = 0
@@ -456,7 +360,7 @@ class TestStartPrefetch:
 # ── Tests: Progress callback ─────────────────────────────────────────
 
 
-class TestProgress:
+class TestProgress(TestCase):
     def _setup_box(self):
         """Create a box ready for _progress() calls."""
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
@@ -591,7 +495,7 @@ class TestProgress:
 # ── Tests: Cancel ────────────────────────────────────────────────────
 
 
-class TestCancel:
+class TestCancel(TestCase):
     def test_cancel_stops_all_active(self):
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
         dl1 = _make_downloader()
@@ -629,7 +533,7 @@ class TestCancel:
 # ── Tests: Edge cases ────────────────────────────────────────────────
 
 
-class TestEdgeCases:
+class TestEdgeCases(TestCase):
     def test_single_file_collection(self):
         """A single-file collection should work normally without prefetch."""
         box = DownloadCollectionProgressBox.__new__(DownloadCollectionProgressBox)
