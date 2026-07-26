@@ -514,7 +514,7 @@ class EAAppService(OnlineService):
         game_config = LutrisConfig(game_config_id=ea_game["configpath"]).game_level
         game_config["game"]["args"] = get_launch_arguments(",".join(content_ids))
         configpath = write_game_config(lutris_game_id, game_config)
-        slug = self.get_installed_slug(ea_game)
+        slug = service_game["slug"] or slugify(service_game["name"])
         add_game(
             name=service_game["name"],
             runner=ea_game["runner"],
@@ -527,6 +527,9 @@ class EAAppService(OnlineService):
             service_id=offer_id,
         )
         return slug
+
+    def get_installed_slug(self, db_game):
+        return db_game["slug"]
 
     def generate_installer(self, db_game, ea_db_game):
         ea_game = Game(ea_db_game["id"])
