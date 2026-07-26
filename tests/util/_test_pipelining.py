@@ -3,15 +3,16 @@
 import os
 import queue
 import threading
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest import TestCase
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from lutris.util.download_progress import DownloadProgress
 from lutris.util.gog_downloader import GOGDownloader
 
 
-class TestWriteQueue:
+class TestWriteQueue(TestCase):
     """Test the pipelining write queue setup."""
 
     def test_has_write_queue(self):
@@ -31,12 +32,16 @@ class TestWriteQueue:
         assert dl._writer_error is None
 
 
-class TestWriterLoop:
+class TestWriterLoop(TestCase):
     """Test the _writer_loop() writer thread."""
 
-    def test_writes_data_correctly(self, tmp_path):
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_writes_data_correctly(self):
         """Writer thread should write data at the correct offset."""
-        dest = str(tmp_path / "output.bin")
+        dest = str(self.tmp_path / "output.bin")
         dl = GOGDownloader("https://example.com/file.bin", dest)
         dl.stop_request = threading.Event()
 
@@ -56,9 +61,9 @@ class TestWriterLoop:
         assert content[:4] == b"AAAA"
         assert content[50:54] == b"BBBB"
 
-    def test_updates_downloaded_size(self, tmp_path):
+    def test_updates_downloaded_size(self):
         """Writer should increment downloaded_size after writing."""
-        dest = str(tmp_path / "output.bin")
+        dest = str(self.tmp_path / "output.bin")
         dl = GOGDownloader("https://example.com/file.bin", dest)
         dl.stop_request = threading.Event()
 
@@ -73,9 +78,9 @@ class TestWriterLoop:
 
         assert dl.downloaded_size == 100
 
-    def test_marks_range_complete(self, tmp_path):
+    def test_marks_range_complete(self):
         """Writer marks range complete when range_end is set."""
-        dest = str(tmp_path / "output.bin")
+        dest = str(self.tmp_path / "output.bin")
         dl = GOGDownloader("https://example.com/file.bin", dest)
         dl.stop_request = threading.Event()
 
@@ -96,9 +101,9 @@ class TestWriterLoop:
         remaining = dl._progress.get_remaining_ranges()
         assert len(remaining) == 0
 
-    def test_handles_stop_request(self, tmp_path):
+    def test_handles_stop_request(self):
         """Writer should exit when stop_request is set."""
-        dest = str(tmp_path / "output.bin")
+        dest = str(self.tmp_path / "output.bin")
         dl = GOGDownloader("https://example.com/file.bin", dest)
         dl.stop_request = threading.Event()
         dl.stop_request.set()  # Pre-cancel
@@ -112,9 +117,9 @@ class TestWriterLoop:
 
         dl._writer_loop()  # Should not hang
 
-    def test_sets_error_on_write_failure(self, tmp_path):
+    def test_sets_error_on_write_failure(self):
         """Writer should set error event on disk failure."""
-        dest = str(tmp_path / "readonly_dir" / "output.bin")
+        dest = str(self.tmp_path / "readonly_dir" / "output.bin")
         dl = GOGDownloader("https://example.com/file.bin", dest)
         dl.stop_request = threading.Event()
 
@@ -128,12 +133,16 @@ class TestWriterLoop:
         assert dl._writer_error_event.is_set()
 
 
-class TestPipelineBackpressure:
+class TestPipelineBackpressure(TestCase):
     """Test that backpressure works correctly with bounded queue."""
 
-    def test_queue_blocks_when_full(self, tmp_path):
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_queue_blocks_when_full(self):
         """Workers should block when queue is at maxsize."""
-        dest = str(tmp_path / "output.bin")
+        dest = str(self.tmp_path / "output.bin")
         dl = GOGDownloader("https://example.com/file.bin", dest)
 
         # Fill the queue to capacity
@@ -143,16 +152,20 @@ class TestPipelineBackpressure:
         assert dl._write_queue.full()
 
         # Verify put would block (use put_nowait to test)
-        with pytest.raises(queue.Full):
+        with self.assertRaises(queue.Full):
             dl._write_queue.put_nowait((99, b"overflow", 0, None))
 
 
-class TestGOGDownloaderStallDetection:
+class TestGOGDownloaderStallDetection(TestCase):
     """Test stall detection in GOGDownloader._download_range()."""
 
-    def test_stall_triggers_retry(self, tmp_path):
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
+    def test_stall_triggers_retry(self):
         """A stalled range should trigger retry via the existing retry mechanism."""
-        dest = str(tmp_path / "output.bin")
+        dest = str(self.tmp_path / "output.bin")
         dl = GOGDownloader("https://example.com/file.bin", dest, num_workers=1)
         dl.stop_request = threading.Event()
         dl._writer_error_event = threading.Event()
@@ -211,13 +224,17 @@ class TestGOGDownloaderStallDetection:
         assert call_count[0] >= 2
 
 
-class TestPipelinedDownloadEndToEnd:
+class TestPipelinedDownloadEndToEnd(TestCase):
     """Integration test: full pipelined download with mock HTTP."""
 
+    def setUp(self):
+        self.tmp_dir = TemporaryDirectory()
+        self.tmp_path = Path(self.tmp_dir.name)
+
     @patch.object(GOGDownloader, "_probe_server")
-    def test_pipelined_download_completes(self, mock_probe, tmp_path):
+    def test_pipelined_download_completes(self, mock_probe):
         """Full download should complete with pipelining."""
-        dest = str(tmp_path / "game.bin")
+        dest = str(self.tmp_path / "game.bin")
         file_size = 20 * 1024 * 1024  # 20 MB — above MIN_CHUNK_SIZE * 2
 
         dl = GOGDownloader("https://cdn.gog.com/game.bin", dest, num_workers=2)
@@ -265,9 +282,9 @@ class TestPipelinedDownloadEndToEnd:
         assert os.path.getsize(dest) == file_size
 
     @patch.object(GOGDownloader, "_probe_server")
-    def test_small_file_skips_pipelining(self, mock_probe, tmp_path):
+    def test_small_file_skips_pipelining(self, mock_probe):
         """Files below MIN_CHUNK_SIZE * 2 should use single-stream."""
-        dest = str(tmp_path / "small.bin")
+        dest = str(self.tmp_path / "small.bin")
         file_size = 1000  # Very small
 
         dl = GOGDownloader("https://cdn.gog.com/small.bin", dest, num_workers=4)

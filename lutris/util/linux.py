@@ -533,6 +533,18 @@ class SharedLibrary:
 LINUX_SYSTEM = LinuxSystem()
 
 
+def get_default_runner_wine_version() -> str:
+    """Return the Wine version configured in the Wine runner configuration,
+    falling back to the global default if none is set."""
+    try:
+        from lutris.runners.wine import wine
+
+        return wine().read_version_from_config()
+    except Exception as ex:
+        logger.exception("Unable to determine the default Wine version: %s", ex)
+        return "Unknown"
+
+
 def gather_system_info() -> dict[str, Any]:
     """Get all system information in a single data structure"""
     system_info = {}
@@ -561,11 +573,15 @@ def gather_system_info_dict() -> dict[str, Any]:
     system_dict["OS"] = " ".join(x for x in system_info["dist"] if x)
     system_dict["Arch"] = system_info["arch"]
     system_dict["Kernel"] = system_info["kernel"]
-    system_dict["Lutris Version"] = settings.VERSION
-    system_dict["Python Version"] = sys.version
     system_dict["Desktop"] = system_info["env"].get("XDG_CURRENT_DESKTOP", "Not found")
     system_dict["Display Server"] = system_info["env"].get("XDG_SESSION_TYPE", "Not found")
     system_info_readable["System"] = system_dict
+    # Add Lutris information
+    lutris_dict = {}
+    lutris_dict["Lutris Version"] = settings.VERSION
+    lutris_dict["Python Version"] = sys.version
+    lutris_dict["Default Wine version"] = get_default_runner_wine_version()
+    system_info_readable["Lutris"] = lutris_dict
     # Add CPU information
     cpu_dict = {}
     cpu_dict["Vendor"] = system_info["cpus"][0].get("vendor_id", "Vendor unavailable")
