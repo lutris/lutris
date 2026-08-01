@@ -444,28 +444,20 @@ class GOGService(OnlineService):
                     all_extras[product.get("title", "").strip()] = extras
         return all_extras
 
-    def get_installers(
-        self, downloads: dict[str, list[dict]], runner_name: str | None, language: str = "en"
-    ) -> list[dict]:
+    def get_installers(self, downloads: dict[str, list[dict]], runner: str, language: str = "en") -> list[dict]:
         """Return available installers for a GOG game"""
-        if runner_name:
-            allowed_os = {self.runner_to_os_dict[self._normalize_runner_name(runner_name)]}
-        else:
-            allowed_os = {"linux", "windows"}
-        all_installers = downloads.get("installers", [])
-        # Prefer native Linux installers if available, otherwise fall back to Windows
-        # (scripts may need Windows installers for data extraction, engine reimplementations, etc.)
-        selected_installers = sorted(
-            [installer for installer in all_installers if installer["os"] in allowed_os],
-            key=lambda i: i["os"] != "linux",
-        )
-        selected_language = self.determine_language_installer(selected_installers, language)
-        return [installer for installer in selected_installers if installer["language"] == selected_language]
-
-    def _normalize_runner_name(self, runner: str) -> str:
-        """Normalize a runner name to either 'linux' or 'wine'."""
-        return "linux" if runner == "linux" else "wine"
-
+        # Filter out Mac installers
+        gog_installers = [installer for installer in downloads.get("installers", []) if installer["os"] != "mac"]
+        filter_os = self.runner_to_os_dict.get(runner)
+        # Chechs if there are installers that pass the OS filters and selects those to install
+        filtered_installers = [installer for installer in gog_installers if installer["os"] == filter_os]
+        if filtered_installers:
+            gog_installers = filtered_installers
+        return [
+            installer
+            for installer in gog_installers
+            if installer["language"] == self.determine_language_installer(gog_installers, language)
+        ]
     def get_update_versions(self, gog_id: str, runner_name: str | None) -> dict[str, list]:
         """Return updates available for a game, keyed by patch version"""
 
