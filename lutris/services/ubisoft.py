@@ -240,8 +240,8 @@ class UbisoftConnectService(OnlineService):
         details = json.loads(game["details"])
         launch_id = details.get("launchId") or details.get("installId") or details.get("spaceId")
         game_config["game"]["args"] = f"uplay://launch/{launch_id}"
-        configpath = write_game_config(lutris_game_id, game_config)
         slug = self.get_installed_slug(game)
+        configpath = write_game_config(slug, game_config)
         if existing_game:
             update_existing(
                 id=existing_game["id"],

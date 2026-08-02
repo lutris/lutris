@@ -362,8 +362,8 @@ class EpicGamesStoreService(OnlineService):
         game_config["game"]["args"] = get_launch_arguments(
             app_name, namespace=namespace, catalog_item_id=catalog_item_id
         )
-        configpath = write_game_config(lutris_game_id, game_config)
         slug = self.get_installed_slug(service_game)
+        configpath = write_game_config(slug, game_config)
         add_game(
             name=service_game["name"],
             runner=egs_game["runner"],

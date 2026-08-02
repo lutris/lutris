@@ -169,8 +169,8 @@ class BattleNetService(BaseService):
             if not os.path.isabs(bnet_exe):
                 bnet_exe = os.path.join(game_config["game"].get("prefix", ""), bnet_exe)
             game_config["game"]["client_exe"] = bnet_exe
-        configpath = write_game_config(lutris_game_id, game_config)
         slug = service_game["slug"]
+        configpath = write_game_config(slug, game_config)
         add_game(
             name=service_game["name"],
             runner=bnet_game["runner"],

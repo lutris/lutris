@@ -137,8 +137,8 @@ class SteamService(BaseService):
                 return
             game_config = LutrisConfig().game_level
             game_config["game"]["appid"] = appid
-            configpath = write_game_config(lutris_game_id, game_config)
             slug = self.get_installed_slug(service_game)
+            configpath = write_game_config(slug, game_config)
             add_game(
                 name=service_game["name"],
                 runner="steam",
