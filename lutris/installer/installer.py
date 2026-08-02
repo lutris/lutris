@@ -350,7 +350,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             hook(self)
 
         game_config = self.get_game_config()
-        configpath = write_game_config(self.slug, game_config)
+        configpath = write_game_config(self.game_slug, game_config)
         discord_id = self.discord_id
         if not discord_id:
             discord_id = self._get_discord_id_from_api()
