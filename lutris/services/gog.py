@@ -448,17 +448,20 @@ class GOGService(OnlineService):
         self, downloads: dict[str, list[dict]], runner_name: str | None, language: str = "en"
     ) -> list[dict]:
         """Return available installers for a GOG game"""
-        if runner_name:
-            allowed_os = {self.runner_to_os_dict[self._normalize_runner_name(runner_name)]}
-        else:
-            allowed_os = {"linux", "windows"}
-        all_installers = downloads.get("installers", [])
-        # Prefer native Linux installers if available, otherwise fall back to Windows
-        # (scripts may need Windows installers for data extraction, engine reimplementations, etc.)
-        selected_installers = sorted(
-            [installer for installer in all_installers if installer["os"] in allowed_os],
+        # Mac installers are never usable; Linux ones are preferred over Windows ones.
+        all_installers = sorted(
+            [installer for installer in downloads.get("installers", []) if installer["os"] in ("linux", "windows")],
             key=lambda i: i["os"] != "linux",
         )
+        selected_installers = []
+        if runner_name:
+            preferred_os = self.runner_to_os_dict[self._normalize_runner_name(runner_name)]
+            selected_installers = [installer for installer in all_installers if installer["os"] == preferred_os]
+        if not selected_installers:
+            # Fall back to the installers for the other OS; scripts may deliberately want
+            # those (data extraction, engine reimplementations), and plenty of games have
+            # no native Linux build to offer a Linux runner.
+            selected_installers = all_installers
         selected_language = self.determine_language_installer(selected_installers, language)
         return [installer for installer in selected_installers if installer["language"] == selected_language]
 
