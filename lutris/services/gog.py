@@ -446,10 +446,15 @@ class GOGService(OnlineService):
 
     def get_installers(self, downloads: dict[str, list[dict]], runner: str, language: str = "en") -> list[dict]:
         """Return available installers for a GOG game"""
+        installers = downloads.get("installers", [])
         # Filter out Mac installers
-        gog_installers = [installer for installer in downloads.get("installers", []) if installer["os"] != "mac"]
-        filter_os = self.runner_to_os_dict.get(runner)
-        # Chechs if there are installers that pass the OS filters and selects those to install
+        gog_installers = [installer for installer in installers if installer["os"] != "mac"]
+        # Readd back the mac installers if there are only mac installers available
+        if not gog_installers:
+            gog_installers = [installer for installer in installers]
+        # Select the preferred OS to windows if wine and linux if else
+        filter_os = self.runner_to_os_dict.get(runner, "linux")
+        # Chechs if there are installers that pass the OS filters and only if there are, selects those to install
         filtered_installers = [installer for installer in gog_installers if installer["os"] == filter_os]
         if filtered_installers:
             gog_installers = filtered_installers
