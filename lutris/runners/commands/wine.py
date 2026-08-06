@@ -518,7 +518,10 @@ def winetricks(
         # explicitly instead of leaving wineexec() to fall back on the default runner's
         # executable, which is only Umu by coincidence.
         winetricks_path = winetricks_wine
-        args = "winetricks " + args
+        if args == "--gui":
+            args = "winetricks"
+        else:
+            args = "winetricks " + args
         proton_verb = "waitforexitandrun"
         working_dir = None
     else:

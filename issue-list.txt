@@ -17,8 +17,9 @@ Fixed this session:
 - #6109 (Battle.net missing titles)
 - #6280 (Gamescope not killed)
 - #6267 (XFCE screensaver)
+- #6229 (Steam source hiding - filter logic fixed)
+- #6000 (Winetricks with UMU - --gui arg handled correctly)
+- #6231 (Ubisoft pictures - banner/background fallback implemented)
 
 Client-fixable issues remaining:
-- #6229 - Steam source hiding (needs filter logic fix)
-- #6000 - Winetricks with UMU (needs to handle --gui differently)
-- #6231 - Ubisoft pictures (may need fallback for missing thumbImage)
+- None! All client-fixable issues have been successfully resolved and tested.
