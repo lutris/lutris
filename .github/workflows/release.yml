@@ -20,6 +20,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-gi python3-setuptools libgirepository1.0-dev gettext
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
