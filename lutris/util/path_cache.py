@@ -29,16 +29,24 @@ def get_game_paths():
     return game_paths
 
 
+def write_path_cache(path_cache):
+    """Persist the path cache, recreating its directory when necessary."""
+    cache_dir = os.path.dirname(GAME_PATH_CACHE_PATH)
+    if cache_dir:
+        os.makedirs(cache_dir, exist_ok=True)
+
+    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
+        json.dump(path_cache, cache_file, indent=2)
+    get_path_cache.cache_clear()
+
+
 def build_path_cache(recreate=False):
     """Generate a new cache path"""
     if os.path.exists(GAME_PATH_CACHE_PATH) and not recreate:
         return
     start_time = time.time()
-    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
-        game_paths = get_game_paths()
-        json.dump(game_paths, cache_file, indent=2)
+    write_path_cache(get_game_paths())
     end_time = time.time()
-    get_path_cache.cache_clear()
     logger.debug("Game path cache built in %0.2f seconds", end_time - start_time)
 
 
@@ -51,9 +59,7 @@ def add_to_path_cache(game):
         return
     current_cache = read_path_cache()
     current_cache[game.id] = path
-    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
-        json.dump(current_cache, cache_file, indent=2)
-    get_path_cache.cache_clear()
+    write_path_cache(current_cache)
 
 
 @cache_single
@@ -65,11 +71,11 @@ def get_path_cache():
 
 def read_path_cache():
     """Read the contents of the path cache file, and does not cache it."""
-    with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
-        try:
+    try:
+        with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
             return json.load(cache_file)
-        except json.JSONDecodeError:
-            return {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
 
 def remove_from_path_cache(game):
@@ -79,9 +85,7 @@ def remove_from_path_cache(game):
         logger.warning("Game %s (id=%s) not in cache path", game, game.id)
         return
     del current_cache[game.id]
-    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
-        json.dump(current_cache, cache_file, indent=2)
-    get_path_cache.cache_clear()
+    write_path_cache(current_cache)
 
 
 class MissingGames:
