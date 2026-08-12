@@ -14,9 +14,11 @@ import gi
 try:
     gi.require_version("GnomeDesktop", "3.0")
     from gi.repository import GnomeDesktop  # type: ignore
+    # check for AttributeError on newer systems on which the deprecated attributes have been removed
+    GnomeDesktop.RRScreen  # type: ignore
 
     LIB_GNOME_DESKTOP_AVAILABLE = True
-except ValueError:
+except (ValueError, AttributeError):
     LIB_GNOME_DESKTOP_AVAILABLE = False
     GnomeDesktop = None
 
