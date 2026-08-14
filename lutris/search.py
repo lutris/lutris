@@ -364,69 +364,50 @@ class GameSearch(BaseSearch):
         return FlagPredicate(categorized, is_categorized, tag="categorized")
 
     def get_category_predicate(self, category: str) -> SearchPredicate:
-        names = normalized_category_names(category, subname_allowed=True)
-        category_game_ids = set(get_game_ids_for_categories(names))
-
-        category_service_appids: set[str] | None = None
-        if self.service:
-            # Category membership is stored on local games IDs, but source views iterate
-            # service_games rows. Build the comparable service appid set once.
-            category_games = games.get_games_by_ids(category_game_ids)
-            if self.service.id == "lutris":
-                category_service_appids = {str(game["slug"]) for game in category_games if game.get("slug")}
-            else:
-                category_service_appids = {
-                    str(game["service_id"])
-                    for game in category_games
-                    if game.get("service") == self.service.id and game.get("service_id")
-                }
-
-        def match_category(db_game):
-            if self.service:
-                # In source views we match using the service game's appid.
-                appid = db_game.get("appid")
-                result = bool(appid and category_service_appids and str(appid) in category_service_appids)
-            else:
-                # In local views we continue matching directly on local game IDs.
-                game_id = db_game["id"]
-                result = str(game_id) in category_game_ids
-
-            return result
-
+        match_category = self._get_category_matcher(category)
         text = f"category:{self.quote_token(category)}"
         return MatchPredicate(match_category, text=text, tag="category", value=category)
 
     def get_category_flag_predicate(self, category: str, tag: str, in_category: bool | None = True) -> FlagPredicate:
+        # Same matcher as get_category_predicate(), reused for flag predicates
+        # like hidden/favorite/categorized handling within source views.
+        match_category = self._get_category_matcher(category)
+        return FlagPredicate(in_category, match_category, tag=tag)
+
+    def _get_category_matcher(self, category: str) -> Callable[[Any], bool]:
+        """Returns a function that tests a candidate row for membership in 'category'.
+
+        Category membership is stored against local game IDs, but source views iterate
+        service_games rows, so those are matched on the service appid instead.
+        """
         names = normalized_category_names(category, subname_allowed=True)
         category_game_ids = set(get_game_ids_for_categories(names))
 
-        category_service_appids: set[str] | None = None
-        if self.service:
-            # Same mapping as get_category_predicate(), reused for flag predicates
-            # like hidden/favorite/categorized handling within source views.
-            category_games = games.get_games_by_ids(category_game_ids)
-            if self.service.id == "lutris":
-                category_service_appids = {str(game["slug"]) for game in category_games if game.get("slug")}
-            else:
-                category_service_appids = {
-                    str(game["service_id"])
-                    for game in category_games
-                    if game.get("service") == self.service.id and game.get("service_id")
-                }
+        if not self.service:
 
-        def is_in_category(db_game):
-            if self.service:
-                # Source view candidates are service entries, so compare appid.
-                appid = db_game.get("appid")
-                result = bool(appid and category_service_appids and str(appid) in category_service_appids)
-            else:
+            def match_local_category(db_game):
                 # Local view candidates are local DB games, so compare game ID.
-                game_id = db_game["id"]
-                result = str(game_id) in category_game_ids
+                return str(db_game["id"]) in category_game_ids
 
-            return result
+            return match_local_category
 
-        return FlagPredicate(in_category, is_in_category, tag=tag)
+        # Build the comparable service appid set once.
+        category_games = games.get_games_by_ids(category_game_ids)
+        if self.service.id == "lutris":
+            category_service_appids = {str(game["slug"]) for game in category_games if game.get("slug")}
+        else:
+            category_service_appids = {
+                str(game["service_id"])
+                for game in category_games
+                if game.get("service") == self.service.id and game.get("service_id")
+            }
+
+        def match_service_category(db_game):
+            # Source view candidates are service entries, so compare appid.
+            appid = db_game.get("appid")
+            return bool(appid and category_service_appids and str(appid) in category_service_appids)
+
+        return match_service_category
 
     def get_service_predicate(self, service_name: str) -> SearchPredicate:
         service_name = service_name.casefold()
