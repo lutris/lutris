@@ -137,12 +137,18 @@ class linux(Runner):
 
         if "exe" in launch_config:
             config_exe = os.path.expanduser(launch_config["exe"] or "")
-            command.append(self.get_relative_exe(config_exe, working_dir))
+
+            if exe := self.get_relative_exe(config_exe, working_dir):
+                command.append(exe)
         elif len(command) == 0:
             raise GameConfigError(_("The runner could not find a command or exe to use for this configuration."))
 
-        if launch_config.get("args"):
-            command += split_arguments(launch_config["args"])
+        if prepend_args := gameplay_info.get("prepend_args"):
+            command += prepend_args
+        if args := launch_config.get("args"):
+            command += split_arguments(args)
+        if append_args := gameplay_info.get("append_args"):
+            command += append_args
 
         return command
 
