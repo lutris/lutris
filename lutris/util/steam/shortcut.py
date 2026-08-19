@@ -152,7 +152,7 @@ def generate_shortcut(game: "Game", launch_config_name: str) -> SteamShortcut:
 
     if is_flatpak_lutris():
         lutris_binary = "/usr/bin/flatpak"
-        launch_options = "run net.lutris.Lutris " + launch_options
+        launch_options = "LC_ALL=C.UTF-8 %command% run net.lutris.Lutris " + launch_options
     return {
         "appid": generate_shortcut_id(game),
         "AppName": game.name,
