@@ -139,6 +139,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self._game_store_generation = 0
         self.current_view = Gtk.Box()
         self.views = {}
+        self._is_busy = False
 
         self.dynamic_categories_game_factories: dict[str, Callable[[], list]] = {
             "recent": self.get_recent_games,
@@ -232,11 +233,26 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         schedule_at_idle(self.sync_library, delay_seconds=1.0)
 
     def on_busy_started(self):
-        display = Gdk.Display.get_default()
-        self.get_window().set_cursor(Gdk.Cursor.new_from_name(display, "progress"))
+        self._is_busy = True
+        self.update_busy_cursor()
 
     def on_busy_stopped(self):
-        self.get_window().set_cursor(None)
+        self._is_busy = False
+        self.update_busy_cursor()
+
+    def update_busy_cursor(self):
+        """Applies the 'progress' cursor to this window if Lutris is busy. This does nothing
+        if the window has not been realized; it can be created but never shown when Lutris is
+        started to install or run a game, and it has no GdkWindow to set a cursor on then."""
+        gdk_window = self.get_window()
+        if not gdk_window:
+            return
+
+        if self._is_busy:
+            display = Gdk.Display.get_default()
+            gdk_window.set_cursor(Gdk.Cursor.new_from_name(display, "progress"))
+        else:
+            gdk_window.set_cursor(None)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -352,6 +368,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
         self.current_view.grab_focus()
+        # We could have become busy before we had a GdkWindow to set a cursor on
+        self.update_busy_cursor()
 
     def on_sidebar_realize(self, widget, data=None):
         """Grab the initial focus after the sidebar is initialized - so the view is ready."""
