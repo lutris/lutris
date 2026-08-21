@@ -15,6 +15,34 @@ from lutris.util.strings import get_formatted_playtime, gtk_safe
 # A day absorbs ordinary clock skew and time zone confusion.
 TIMESTAMP_FUTURE_TOLERANCE = 86400
 
+# Bad timestamps already reported, as (game, field) pairs. The store is rebuilt on every
+# search keystroke and each rebuild reads these fields twice (once for the value, once for
+# the text), so without this the log fills with repeats of the same problem.
+_reported_bad_timestamps = set()
+
+
+def _describe_timestamp(value):
+    """Render a timestamp for a log message, decoding it to a date where possible."""
+    try:
+        return "%s (%s)" % (value, time.strftime("%x", time.localtime(int(value))))
+    except (TypeError, ValueError, OSError, OverflowError):
+        return repr(value)
+
+
+def _report_bad_timestamp(game_name, field, value):
+    """Warn that a timestamp was discarded, once per game and field."""
+    key = (game_name, field)
+    if key in _reported_bad_timestamps:
+        return
+    _reported_bad_timestamps.add(key)
+    logger.warning(
+        "Ignoring implausible %s for '%s': %s. This usually means the system clock was wrong "
+        "when it was recorded; the date stays blank until the game is installed or played again.",
+        field,
+        game_name,
+        _describe_timestamp(value),
+    )
+
 
 def sanitize_timestamp(value):
     """Return value as a plausible timestamp for a past event, or None if it isn't one.
@@ -197,10 +225,22 @@ class StoreItem:
         fallback_path = self.service_media.get_fallback_media_path(services)
         return possible_paths + [fallback_path] if fallback_path else possible_paths
 
+    def _get_timestamp_attribute(self, key):
+        """Read a timestamp field, discarding and reporting an implausible value. A missing
+        value is normal - a game may never have been played or installed - so only a value
+        that is present but unusable is worth reporting."""
+        value = self._get_game_attribute(key)
+        if not value:
+            return None
+        timestamp = sanitize_timestamp(value)
+        if timestamp is None:
+            _report_bad_timestamp(self.name, key, value)
+        return timestamp
+
     @property
     def installed_at(self):
         """Date of install"""
-        return sanitize_timestamp(self._get_game_attribute("installed_at"))
+        return self._get_timestamp_attribute("installed_at")
 
     @property
     def installed_at_text(self):
@@ -210,7 +250,7 @@ class StoreItem:
     @property
     def lastplayed(self):
         """Date of last play"""
-        return sanitize_timestamp(self._get_game_attribute("lastplayed"))
+        return self._get_timestamp_attribute("lastplayed")
 
     @property
     def lastplayed_text(self):
