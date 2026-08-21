@@ -11,6 +11,29 @@ from lutris.services.service_media import MediaPath
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
 
+# How far ahead of the current clock a timestamp may be before we stop believing it.
+# A day absorbs ordinary clock skew and time zone confusion.
+TIMESTAMP_FUTURE_TOLERANCE = 86400
+
+
+def sanitize_timestamp(value):
+    """Return value as a plausible timestamp for a past event, or None if it isn't one.
+
+    Install and last-played times can only describe something that already happened, so a
+    value in the future means the clock was wrong when it was recorded rather than that the
+    game will be installed later. Devices without a battery-backed RTC come up with a wildly
+    wrong time, and anything installed or launched before NTP catches up gets stamped with it.
+
+    This compares against the current time; it is not a check on how wide a timestamp may be.
+    """
+    try:
+        timestamp = int(value)
+    except (TypeError, ValueError):
+        return None
+    if timestamp <= 0 or timestamp > time.time() + TIMESTAMP_FUTURE_TOLERANCE:
+        return None
+    return timestamp
+
 
 class StoreItem:
     """Representation of a game for views
@@ -177,7 +200,7 @@ class StoreItem:
     @property
     def installed_at(self):
         """Date of install"""
-        return self._get_game_attribute("installed_at")
+        return sanitize_timestamp(self._get_game_attribute("installed_at"))
 
     @property
     def installed_at_text(self):
@@ -187,7 +210,7 @@ class StoreItem:
     @property
     def lastplayed(self):
         """Date of last play"""
-        return self._get_game_attribute("lastplayed")
+        return sanitize_timestamp(self._get_game_attribute("lastplayed"))
 
     @property
     def lastplayed_text(self):
