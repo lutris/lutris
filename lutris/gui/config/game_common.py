@@ -11,7 +11,8 @@ from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id, rename_config
 from lutris.game import Game
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
-from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox
+from lutris.gui.config.boxes import RunnerBox, SystemConfigBox
+from lutris.gui.config.game_config_box import GameBox
 from lutris.gui.config.game_info_box import GameInfoBox
 from lutris.gui.config.widget_generator import WidgetWarningMessageBox
 from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
@@ -180,7 +181,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.game_box = self._build_options_tab(
                 _("Game options"),
                 lambda: GameBox(self.config_level, self.lutris_config, self.game),
-                advanced=has_advanced(self.game),
+                # Override advanced visibility to True, since the Launch Configs will be editable by this tab
+                advanced=True,
                 searchable=is_searchable(self.game),
             )
         elif self.runner_name:
