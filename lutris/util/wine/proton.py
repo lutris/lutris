@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import shutil
 from collections.abc import Generator
 from gettext import gettext as _
 from typing import TYPE_CHECKING
@@ -11,6 +12,7 @@ from lutris import settings
 from lutris.exceptions import MissingExecutableError
 from lutris.monitored_command import RUNNING_COMMANDS
 from lutris.util import cache_single, system
+from lutris.util.log import logger
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
 
@@ -89,6 +91,34 @@ def is_proton_path(wine_path: str | None) -> bool:
         if system.path_contains(candidate_wine_path, wine_path):
             return True
     return False
+
+
+def ensure_vkd3d_dlls(prefix: str, wine_path: str) -> None:
+    """Ensure the Wine prefix has the libvkd3d DLLs the runner's built-in
+    wined3d depends on.
+
+    Proton-based runners (GE-Proton and friends) bundle these under
+    ``lib/vkd3d/{x86_64,i386}-windows/`` and expect them to be present in the
+    prefix. When a prefix was created with a different Wine build the DLLs can
+    be missing and DirectX games fail to launch with ``libvkd3d-1.dll not found``.
+    """
+    vkd3d_dir = os.path.join(os.path.dirname(os.path.dirname(wine_path)), "lib", "vkd3d")
+    if not os.path.isdir(vkd3d_dir):
+        return
+
+    for arch_subdir, windows_subdir in (("x86_64-windows", "system32"), ("i386-windows", "syswow64")):
+        source_dir = os.path.join(vkd3d_dir, arch_subdir)
+        if not os.path.isdir(source_dir):
+            continue
+        destination_dir = os.path.join(prefix, "drive_c", "windows", windows_subdir)
+        os.makedirs(destination_dir, exist_ok=True)
+        for filename in os.listdir(source_dir):
+            if not filename.endswith(".dll"):
+                continue
+            destination = os.path.join(destination_dir, filename)
+            if not os.path.exists(destination):
+                shutil.copy2(os.path.join(source_dir, filename), destination)
+                logger.info("Copied %s to the Wine prefix", filename)
 
 
 @cache_single
