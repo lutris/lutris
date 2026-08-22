@@ -96,10 +96,6 @@ class TokenReader:
         self.tokens = tokens
         self.index = 0
 
-    def is_end_of_tokens(self):
-        """True if get_token() and peek_token() will return None."""
-        return self.index >= len(self.tokens)
-
     def get_token(self, skip_space: bool = True) -> str | None:
         """Returns the next token, and advances one token in the list. Returns None if
         the end of tokens has been reached. If 'skip_space' is true, this skips over
