@@ -8,7 +8,7 @@ description = """
 Lutris is a video game preservation platform that helps you install and play video games from all eras and from most gaming systems.
 By leveraging and combining existing emulators, engine re-implementations and compatibility layers, it gives you a central interface to launch all your games.
 """
-readme = "README.md"
+readme = "README.rst"
 requires-python = ">=3.10"
 
 license = "GPL-3.0-or-later"
