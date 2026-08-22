@@ -339,6 +339,8 @@ class WidgetGenerator(ABC):
 
         entry = Gtk.Entry()
         entry.set_text(value or default or "")
+        if "placeholder" in option:
+            entry.set_placeholder_text(option["placeholder"])
         entry.connect("changed", on_changed)
         return self.build_option_widget(option, entry)
 

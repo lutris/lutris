@@ -11,7 +11,7 @@ from lutris.config import LutrisConfig
 from lutris.gui.config.accounts_box import AccountsBox
 from lutris.gui.config.boxes import SystemConfigBox
 from lutris.gui.config.game_common import GameDialogCommon
-from lutris.gui.config.preferences_box import InterfacePreferencesBox
+from lutris.gui.config.preferences_box import InterfacePreferencesBox, NetworkPreferencesBox
 from lutris.gui.config.runners_box import RunnersBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.config.storage_box import StorageBox
@@ -40,6 +40,7 @@ class PreferencesDialog(GameDialogCommon):
         sidebar.add(self.get_sidebar_button("updates-stack", _("Updates"), "system-software-install-symbolic"))
         sidebar.add(self.get_sidebar_button("sysinfo-stack", C_("preferences", "System"), "computer-symbolic"))
         sidebar.add(self.get_sidebar_button("storage-stack", _("Storage"), "drive-harddisk-symbolic"))
+        sidebar.add(self.get_sidebar_button("network-stack", _("Network"), "network-transmit-receive-symbolic"))
         sidebar.add(self.get_sidebar_button("system-stack", _("Global options"), "emblem-system-symbolic"))
         hbox.pack_start(sidebar, False, False, 0)
         self.stack = Gtk.Stack(visible=True)
@@ -73,6 +74,8 @@ class PreferencesDialog(GameDialogCommon):
         storage_box = StorageBox()
         self.page_generators["storage-stack"] = storage_box.populate
         self.stack.add_named(self.build_scrolled_window(storage_box), "storage-stack")
+
+        self.stack.add_named(self.build_scrolled_window(NetworkPreferencesBox()), "network-stack")
 
         self.system_box = SystemConfigBox(self.config_level, self.lutris_config, visible=True)
         self.page_generators["system-stack"] = self.system_box.generate_widgets

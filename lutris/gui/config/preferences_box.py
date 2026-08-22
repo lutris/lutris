@@ -8,6 +8,7 @@ from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.widget_generator import WidgetGenerator
 from lutris.gui.widgets.status_icon import supports_status_icon
 from lutris.settings import read_setting
+from lutris.util import proxy
 
 
 def _is_system_dark_by_default():
@@ -15,7 +16,48 @@ def _is_system_dark_by_default():
     return app.style_manager.is_dark_by_default
 
 
-class InterfacePreferencesBox(BaseConfigBox):
+class SettingsPreferencesBox(BaseConfigBox):
+    """A preferences page built from a list of option dicts, each of which is stored
+    as a Lutris setting as soon as it is changed."""
+
+    section_label = ""
+    section_description = ""
+    settings_options: list[dict[str, Any]] = []
+
+    def build_settings_options(self):
+        """Fills the page in; call this once the subclass is ready to have its widgets
+        generated, since generating them reads the settings."""
+        self.add(self.get_section_label(self.section_label))
+        if self.section_description:
+            self.add(self.get_description_label(self.section_description))
+
+        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        listbox = Gtk.ListBox(visible=True)
+        frame.add(listbox)
+        self.pack_start(frame, False, False, 0)
+
+        gen = PreferencesWidgetGenerator(listbox)
+        gen.changed.register(self.on_setting_changed)
+        self.widget_generator = gen
+
+        for option in self.settings_options:
+            gen.generate_container(option)
+
+            if gen.option_container:
+                list_box_row = Gtk.ListBoxRow(visible=True)
+                list_box_row.set_selectable(False)
+                list_box_row.set_activatable(False)
+                list_box_row.add(gen.option_container)
+                listbox.add(list_box_row)
+
+        gen.update_widgets()
+
+    def on_setting_changed(self, option_key, new_value):
+        settings.write_setting(option_key, new_value)
+
+
+class InterfacePreferencesBox(SettingsPreferencesBox):
+    section_label = _("Interface options")
     settings_options = [
         {
             "option": "hide_client_on_game_start",
@@ -68,31 +110,45 @@ class InterfacePreferencesBox(BaseConfigBox):
     def __init__(self, accelerators):
         super().__init__()
         self.accelerators = accelerators
+        self.build_settings_options()
 
-        self.add(self.get_section_label(_("Interface options")))
-        frame = Gtk.Frame(visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
-        listbox = Gtk.ListBox(visible=True)
-        frame.add(listbox)
-        self.pack_start(frame, False, False, 0)
 
-        gen = PreferencesWidgetGenerator(listbox)
-        gen.changed.register(self.on_setting_changed)
-        self.widget_generator = gen
+class NetworkPreferencesBox(SettingsPreferencesBox):
+    section_label = _("Proxy")
+    section_description = _(
+        "Lutris follows the <b>http_proxy</b>, <b>https_proxy</b> and <b>no_proxy</b> environment variables. "
+        "Desktops that keep their proxy settings to themselves, such as KDE Plasma, do not set those, so the "
+        "proxy has to be entered here instead. A proxy entered here overrides the environment, and is also "
+        "passed on to the games Lutris launches."
+    )
+    settings_options = [
+        {
+            "option": "proxy_url",
+            "type": "string",
+            "label": _("Proxy server"),
+            "placeholder": "http://proxy.example.com:8080",
+            "help": _(
+                "The proxy to send network requests through, as 'host:port' or a full URL such as "
+                "'http://user:password@host:port'. Leave this empty to use the proxy from the environment."
+            ),
+        },
+        {
+            "option": "proxy_ignore_hosts",
+            "type": "string",
+            "label": _("Connect directly to"),
+            "placeholder": "localhost, 127.0.0.1, .example.com",
+            "conditional_on": "proxy_url",
+            "help": _("Comma separated hosts and domains that should be reached directly, bypassing the proxy."),
+        },
+    ]
 
-        for option in self.settings_options:
-            gen.generate_container(option)
-
-            if gen.option_container:
-                list_box_row = Gtk.ListBoxRow(visible=True)
-                list_box_row.set_selectable(False)
-                list_box_row.set_activatable(False)
-                list_box_row.add(gen.option_container)
-                listbox.add(list_box_row)
-
-        gen.update_widgets()
+    def __init__(self):
+        super().__init__()
+        self.build_settings_options()
 
     def on_setting_changed(self, option_key, new_value):
-        settings.write_setting(option_key, new_value)
+        super().on_setting_changed(option_key, new_value)
+        proxy.apply_to_environment()
 
 
 class PreferencesWidgetGenerator(WidgetGenerator):
@@ -110,6 +166,14 @@ class PreferencesWidgetGenerator(WidgetGenerator):
             box.set_margin_right(12)
             box.set_margin_left(12)
         return box
+
+    def _generate_string(self, option, value, default):
+        entry = super()._generate_string(option, value, default)
+        if entry:
+            # These are packed against the right edge rather than filling the row, so they
+            # need a width of their own to be usable.
+            entry.set_width_chars(36)
+        return entry
 
     def build_option_widget(
         self, option: dict[str, Any], widget: Gtk.Widget | None, no_label: bool = False, expand: bool = False

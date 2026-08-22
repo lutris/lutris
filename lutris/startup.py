@@ -18,6 +18,7 @@ from lutris.database.schema import syncdb
 from lutris.game import Game
 from lutris.runners.json import load_json_runners
 from lutris.services import DEFAULT_SERVICES
+from lutris.util import proxy
 from lutris.util.graphics import vkquery
 from lutris.util.graphics.gpu import preload_gpus
 from lutris.util.linux import LINUX_SYSTEM
@@ -160,6 +161,7 @@ def run_all_checks(async_ops: bool = True) -> None:
 
 def init_lutris():
     """Run full initialization of Lutris"""
+    proxy.apply_to_environment()
     runners.inject_runners(load_json_runners())
     init_dirs()
     try:

@@ -55,8 +55,12 @@ class WebConnectDialog(ModalDialog):
         self.context.set_preferred_languages(webview_locales)
 
         if "http_proxy" in os.environ:
-            proxy = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"])
-            self.context.set_network_proxy_settings(WebKit2.NetworkProxyMode.CUSTOM, proxy)
+            # WebKit reads GProxyResolver, which knows about GNOME's proxy settings but not
+            # about the environment; hand it the environment ourselves. lutris.util.proxy has
+            # already put the proxy from the preferences there, if there is one.
+            ignore_hosts = [host.strip() for host in os.environ.get("no_proxy", "").split(",") if host.strip()]
+            proxy_settings = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"], ignore_hosts or None)
+            self.context.set_network_proxy_settings(WebKit2.NetworkProxyMode.CUSTOM, proxy_settings)
         WebKit2.CookieManager.set_persistent_storage(
             self.context.get_cookie_manager(),
             service.cookies_path,
