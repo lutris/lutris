@@ -125,7 +125,27 @@ class TrashPortal(GObject.Object):
         try:
             obj.trash_finish(result)
         except GLib.Error as ex:
-            logger.error("Failed to trash '%s': %s", obj.get_path(), ex.message)
+            logger.warning(
+                "Failed to trash '%s' (%s); falling back to direct deletion.",
+                obj.get_path(),
+                ex.message,
+            )
+            self._delete_file(obj)
+            return
+        self._trash_next_file()
+
+    def _delete_file(self, gfile: Gio.File) -> None:
+        try:
+            gfile.delete_async(GLib.PRIORITY_DEFAULT, None, self._delete_cb)
+        except Exception as ex:
+            logger.error("Fallback deletion of '%s' failed to start: %s", gfile.get_path(), ex)
+            self._trash_next_file()
+
+    def _delete_cb(self, obj, result):
+        try:
+            obj.delete_finish(result)
+        except GLib.Error as ex:
+            logger.error("Failed to delete '%s': %s", obj.get_path(), ex.message)
         self._trash_next_file()
 
     def report_error(self, error: Exception) -> None:
