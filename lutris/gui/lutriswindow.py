@@ -738,7 +738,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             excluded_services = set(
                 s.casefold()
                 for s in services.SERVICES.keys()
-                if not settings.read_bool_setting(s + "_in_games_view", default=True, section="services")
+                if not settings.read_bool_setting(s, section="services")
+                or not settings.read_bool_setting(s + "_in_games_view", default=True, section="services")
             )
             if excluded_services:
                 excludes["service"] = excluded_services
