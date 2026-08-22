@@ -2,7 +2,6 @@ from gettext import gettext as _
 
 from gi.repository import GObject, Gtk
 
-from lutris import runners
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
@@ -16,7 +15,7 @@ class RunnerBox(Gtk.Box):
         "runner-removed": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, runner_name):
+    def __init__(self, runner):
         super().__init__(visible=True)
 
         self.connect("runner-installed", self.on_runner_installed)
@@ -26,7 +25,7 @@ class RunnerBox(Gtk.Box):
         self.set_margin_top(12)
         self.set_margin_left(12)
         self.set_margin_right(12)
-        self.runner = runners.import_runner(runner_name)()
+        self.runner = runner
 
         runner_icon = ScaledImage.get_runtime_icon_image(
             self.runner.name, scale_factor=self.get_scale_factor(), visible=True
