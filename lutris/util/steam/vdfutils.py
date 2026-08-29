@@ -59,10 +59,3 @@ def to_vdf(dict_data: dict[str, Any], level: int = 0) -> str:
         else:
             vdf_data += '%s"%s"\t\t"%s"\n' % ("\t" * level, key, value)
     return vdf_data
-
-
-def vdf_write(vdf_path: str, config: dict[str, Any]) -> None:
-    """Write a Steam configuration to a vdf file"""
-    vdf_data = to_vdf(config)
-    with open(vdf_path, "w", encoding="utf-8") as vdf_file:
-        vdf_file.write(vdf_data)
