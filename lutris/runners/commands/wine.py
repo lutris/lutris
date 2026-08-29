@@ -260,16 +260,22 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path="", env=None, initial_pid
             "GAMEID": proton.DEFAULT_GAMEID,
         }
     env["PROTON_VERB"] = "runinprefix"  # must not block until the game exits, that would be sily!
-    if proton.is_umu_path(wine_path):
-        command = [wine_path, "wineboot", "-k"]
-    elif proton.is_proton_path(wine_path):
+
+    # An empty wine_path counts as a Proton path, so resolve it before we decide
+    # what to run; otherwise we'd derive an empty PROTONPATH from it below.
+    if not wine_path:
+        if not runner:
+            runner = import_runner("wine")()
+        wine_path = runner.get_executable()
+
+    if proton.is_umu_path(wine_path) or proton.is_proton_path(wine_path):
         command = [proton.get_umu_path(), "wineboot", "-k"]
-        env["PROTONPATH"] = proton.get_proton_path_by_path(wine_path)
+        # Umu downloads its own default Proton when PROTONPATH is unset, so we must
+        # always name the Proton we mean - even just to kill a prefix. Callers that
+        # pass the game's env already have this set; those that don't (the installer's
+        # revert path) would otherwise trigger a UMU-Proton download.
+        proton.update_proton_env(wine_path, env)
     else:
-        if not wine_path:
-            if not runner:
-                runner = import_runner("wine")()
-            wine_path = runner.get_executable()
         wine_root = os.path.dirname(wine_path)
 
         command = [os.path.join(wine_root, "wineserver"), "-k"]
