@@ -256,11 +256,19 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path="", env=None, initial_pid
 
     initial_pids = initial_pids or []
     if not env:
-        env = {
-            "WINEARCH": arch,
-            "WINEPREFIX": prefix,
-            "GAMEID": proton.DEFAULT_GAMEID,
-        }
+        # Callers that pass an env have the user's variables merged into it already;
+        # when we build our own (the installer calls us with no env at all) we must
+        # do the same, or settings like UMU_RUNTIME_UPDATE won't apply here.
+        if not runner:
+            runner = import_runner("wine")()
+        env = dict(runner.system_config.get("env") or {})
+        env.update(
+            {
+                "WINEARCH": arch,
+                "WINEPREFIX": prefix,
+                "GAMEID": proton.DEFAULT_GAMEID,
+            }
+        )
     env["PROTON_VERB"] = "runinprefix"  # must not block until the game exits, that would be sily!
 
     # An empty wine_path counts as a Proton path, so resolve it before we decide
