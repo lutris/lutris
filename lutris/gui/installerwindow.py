@@ -31,6 +31,7 @@ from lutris.installer import InstallationKind, interpreter
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
+from lutris.util.files import get_display_path
 from lutris.util.jobs import AsyncCall
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import get_log_contents, logger
@@ -380,6 +381,39 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def begin_input_menu(self, alias, options, preselect, callback):
         GLib.idle_add(self.load_input_menu_page, alias, options, preselect, callback)
+
+    def prompt_for_external_path(self, command_name, path, target_path):
+        """Show a dialog asking the user to allow writing outside the game directory.
+        Called from a background thread; blocks until the user responds."""
+        import threading
+
+        event = threading.Event()
+        result = [False]
+
+        def _show_dialog():
+            dialog = QuestionDialog(
+                {
+                    "title": _("Write outside game directory"),
+                    "question": _(
+                        "The installer command <b>{command}</b> wants to write to:\n"
+                        "<b>{path}</b>\n\n"
+                        "This is outside the game directory:\n"
+                        "<b>{gamedir}</b>\n\n"
+                        "Do you want to allow this?"
+                    ).format(
+                        command=gtk_safe(command_name),
+                        path=gtk_safe(get_display_path(path)),
+                        gamedir=gtk_safe(get_display_path(target_path)),
+                    ),
+                    "parent": self,
+                }
+            )
+            result[0] = dialog.result == QuestionDialog.YES
+            event.set()
+
+        GLib.idle_add(_show_dialog)
+        event.wait()
+        return result[0]
 
     def report_finished(self, game_id, status):
         GLib.idle_add(self.load_finish_install_page, game_id, gtk_safe(status))
