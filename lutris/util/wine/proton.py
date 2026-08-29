@@ -215,6 +215,13 @@ def update_proton_env(wine_path: str, env: dict[str, str], game_id: str = DEFAUL
 
     This also propagates LC_ALL to HOST_LC_ALL, if LC_ALL is set."""
 
+    # umu-launcher stores the Proton/Steam runtime under $XDG_DATA_HOME/umu and
+    # caches under $XDG_CACHE_HOME. Reset those to Lutris's own directories so the
+    # game's overridden XDG dirs (from Game execution -> Environment variables)
+    # cannot leak into the runtime download.
+    env["XDG_DATA_HOME"] = os.path.dirname(settings.DATA_DIR)
+    env["XDG_CACHE_HOME"] = os.path.dirname(settings.CACHE_DIR)
+
     if "PROTONPATH" not in env:
         if is_umu_path(wine_path):
             env["PROTONPATH"] = "GE-Proton"
