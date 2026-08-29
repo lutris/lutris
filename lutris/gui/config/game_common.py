@@ -9,14 +9,15 @@ from gi.repository import Gtk
 
 from lutris import settings
 from lutris.config import LutrisConfig, make_game_config_id, rename_config
-from lutris.game import Game
+from lutris.game import GAME_UPDATED, Game
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox
 from lutris.gui.config.game_info_box import GameInfoBox
 from lutris.gui.config.widget_generator import WidgetWarningMessageBox
-from lutris.gui.dialogs import DirectoryDialog, ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
+from lutris.gui.dialogs import ErrorDialog, QuestionDialog, SavableModelessDialog, display_error
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.dialogs.move_game import MoveDialog
+from lutris.gui.dialogs.set_game_location import KEEP_ACTION, MOVE_ACTION, SetLocationDialog
 from lutris.gui.widgets.notifications import send_notification
 from lutris.runners import import_runner
 from lutris.services.lutris import download_lutris_media
@@ -142,14 +143,27 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         page_index = self._add_notebook_tab(info_sw, _("Game info"))
         self.option_page_indices.add(page_index)
 
-    def on_move_clicked(self, _button: Gtk.Button) -> None:
-        game_directory = self.game.directory if self.game else ""
-        new_location = DirectoryDialog("Select new location for the game", default_path=game_directory, parent=self)
-        if not new_location.folder or new_location.folder == game_directory:
+    def on_set_location_clicked(self, _button: Gtk.Button):
+        game_directory = ""
+        if self.game:
+            game_directory = self.game.directory
+        if not game_directory and self.lutris_config:
+            game_directory = self.lutris_config.system_config.get("game_path")
+        set_location_dialog = SetLocationDialog(parent=self, default_path=game_directory)
+        new_location = set_location_dialog.new_location
+        if not new_location or new_location == game_directory:
             return
-        move_dialog = MoveDialog(self.game, new_location.folder, parent=self)
-        move_dialog.connect("game-moved", self.on_game_moved)
-        move_dialog.move()
+
+        if set_location_dialog.action == KEEP_ACTION:
+            if self.game:
+                self.game.set_location(new_location)
+                GAME_UPDATED.fire(self.game)
+                if self.info_box and self.info_box.directory_entry:
+                    self.info_box.directory_entry.set_text(new_location)
+        elif set_location_dialog.action == MOVE_ACTION:
+            move_dialog = MoveDialog(self.game, new_location, parent=self)
+            move_dialog.connect("game-moved", self.on_game_moved)
+            move_dialog.move()
 
     def on_game_moved(self, dialog: MoveDialog) -> None:
         """Show a notification when the game is moved"""
