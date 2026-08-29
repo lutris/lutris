@@ -174,7 +174,9 @@ def create_prefix(
         logger.warning("Proton is not compatible with 32-bit prefixes, forcing win64")
         arch = "win64"
 
-    wineenv = runner.system_config.get("env") or {}
+    # Copy this; everything below mutates 'wineenv', and system_config['env'] is the
+    # runner's live configuration, not a snapshot of it.
+    wineenv = dict(runner.system_config.get("env") or {})
     wineenv.update(
         {
             "WINEARCH": arch,
