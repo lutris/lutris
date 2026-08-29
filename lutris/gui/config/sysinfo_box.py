@@ -9,7 +9,7 @@ from lutris.util import linux, system
 from lutris.util.linux import gather_system_info_dict
 from lutris.util.log import get_log_contents
 from lutris.util.strings import gtk_safe
-from lutris.util.wine.wine import is_esync_limit_set, is_fsync_supported, is_installed_systemwide
+from lutris.util.wine.wine import is_esync_limit_set, is_fsync_supported, is_installed_systemwide, is_ntsync_supported
 
 
 class SystemBox(BaseConfigBox):
@@ -25,6 +25,10 @@ class SystemBox(BaseConfigBox):
         {
             "name": _("Fsync support"),
             "callable": is_fsync_supported,
+        },
+        {
+            "name": _("NTsync support"),
+            "callable": is_ntsync_supported,
         },
         {
             "name": _("Wine installed"),
