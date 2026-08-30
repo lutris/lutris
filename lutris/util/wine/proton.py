@@ -131,17 +131,25 @@ def get_umu_path() -> str:
     raise MissingExecutableError("Install umu to use Proton")
 
 
+def get_proton_wine_files_dir(version: str) -> str | None:
+    """Get the directory holding the Wine files of the specified Proton version; this is
+    the directory containing 'bin', which older builds call 'dist' and newer ones 'files'.
+    Returns None if the version isn't installed or ships no wine executable."""
+    proton_path = get_proton_versions().get(version)
+    if proton_path:
+        for files_dir in ("dist", "files"):
+            files_path = os.path.join(proton_path, files_dir)
+            if os.path.exists(os.path.join(files_path, "bin/wine")):
+                return files_path
+
+    return None
+
+
 def get_proton_wine_path(version: str) -> str:
     """Get the wine path for the specified proton version"""
-    wine_path = get_proton_versions().get(version)
-    if wine_path:
-        wine_path_dist = os.path.join(wine_path, "dist/bin/wine")
-        if os.path.exists(wine_path_dist):
-            return wine_path_dist
-
-        wine_path_files = os.path.join(wine_path, "files/bin/wine")
-        if os.path.exists(wine_path_files):
-            return wine_path_files
+    files_path = get_proton_wine_files_dir(version)
+    if files_path:
+        return os.path.join(files_path, "bin/wine")
 
     raise MissingExecutableError(_("Proton version '%s' is missing its wine executable and can't be used.") % version)
 
