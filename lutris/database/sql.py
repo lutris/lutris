@@ -4,8 +4,17 @@ from collections.abc import Sequence
 from types import TracebackType
 from typing import Any, TypeAlias, cast
 
-# Prevent multiple access to the database (SQLite limitation)
+# Prevent multiple access to the database (SQLite limitation). This must cover the entire
+# connection lifetime, not just individual statements: SQLite holds a transaction's locks
+# from its first statement all the way through the commit, so guarding only execute() would
+# leave the commit in db_cursor.__exit__ free to race with another connection and fail with
+# "database is locked".
 DB_LOCK = threading.RLock()
+
+# How long to wait for DB_LOCK before concluding something is deadlocked. The lock is held
+# for a whole transaction, and a thread holding it can be delayed by an unrelated CPU-bound
+# thread hogging the GIL, so this is deliberately generous.
+DB_LOCK_TIMEOUT_SECONDS = 30
 
 DBResult: TypeAlias = dict[str, Any]
 DBResults: TypeAlias = list[DBResult]
@@ -16,14 +25,36 @@ DBParams: TypeAlias = Sequence[Any]
 
 
 class db_cursor(object):
+    """Context manager providing a cursor for a single database transaction.
+
+    DB_LOCK is held for the whole block, from connecting through the commit, so that one
+    transaction's SQLite locks can never overlap another connection's.
+
+    Since that lock is global and guards every database access in the process, code inside the
+    block must not suspend. In particular, never yield from inside one of these blocks: the lock
+    would stay held until the generator is resumed or garbage collected, and if the caller
+    abandons the generator part way through, every other database access blocks until then.
+
+    For the same reason, keep the block short and do not let the cursor outlive it; the
+    connection is closed on exit.
+    """
+
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.db_conn: sqlite3.Connection = None
 
     def __enter__(self) -> sqlite3.Cursor:
-        self.db_conn = sqlite3.connect(self.db_path)
-        cursor = self.db_conn.cursor()
-        return cursor
+        if not DB_LOCK.acquire(timeout=DB_LOCK_TIMEOUT_SECONDS):  # pylint: disable=consider-using-with
+            raise RuntimeError(f"Database is busy. Not opening {self.db_path}")
+
+        try:
+            self.db_conn = sqlite3.connect(self.db_path)
+            return self.db_conn.cursor()
+        except BaseException:
+            # __exit__ is not called when __enter__ raises, so the lock must be released here
+            # or it would be held forever.
+            DB_LOCK.release()
+            raise
 
     def __exit__(
         self,
@@ -32,25 +63,21 @@ class db_cursor(object):
         traceback: TracebackType | None,
     ) -> None:
         try:
-            if exc_type is None:
-                self.db_conn.commit()
-            else:
-                self.db_conn.rollback()
+            try:
+                if exc_type is None:
+                    self.db_conn.commit()
+                else:
+                    self.db_conn.rollback()
+            finally:
+                self.db_conn.close()
         finally:
-            self.db_conn.close()
+            DB_LOCK.release()
 
 
 def cursor_execute(cursor: sqlite3.Cursor, query: str, params: DBParams | None = None) -> sqlite3.Cursor:
-    """Execute a SQL query, run it in a lock block"""
-    params = params or ()
-    lock = DB_LOCK.acquire(timeout=5)  # pylint: disable=consider-using-with
-    if not lock:
-        raise RuntimeError(f"Database is busy. Not executing {query}")
-
-    try:
-        return cursor.execute(query, params)
-    finally:
-        DB_LOCK.release()
+    """Execute a SQL query. The cursor must come from db_cursor, which holds DB_LOCK for the
+    whole transaction and so serializes all database access."""
+    return cursor.execute(query, params or ())
 
 
 def db_insert(db_path: str, table: str, fields: DBUpdateDict) -> int:
