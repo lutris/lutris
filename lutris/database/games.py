@@ -166,11 +166,22 @@ def get_games_by_slug(slug: str) -> list[DbGameDict]:
     return _stringify_game_ids(sql.db_select(settings.DB_PATH, "games", condition=("slug", slug)))
 
 
+def get_unique_slug(base_slug: str) -> str:
+    """Return the first unused slug for a base: base, base-2, base-3, ..."""
+    slug = base_slug
+    counter = 2
+    while get_games_by_slug(slug):
+        slug = f"{base_slug}-{counter}"
+        counter += 1
+    return slug
+
+
 def add_game(**game_data: Any) -> str:
-    """Add a game to the database."""
+    """Add a game to the database, ensuring the slug is unique to avoid
+    coverart/config collisions (coverart/<slug>.png)."""
     game_data["installed_at"] = int(time.time())
-    if "slug" not in game_data:
-        game_data["slug"] = slugify(game_data["name"])
+    base_slug = game_data.get("slug") or slugify(game_data["name"])
+    game_data["slug"] = get_unique_slug(base_slug)
     return str(sql.db_insert(settings.DB_PATH, "games", game_data))
 
 
