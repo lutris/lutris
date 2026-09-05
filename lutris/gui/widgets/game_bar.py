@@ -81,7 +81,7 @@ class GameBar(Gtk.Box):
         game_label.set_halign(Gtk.Align.START)
         self.pack_start(game_label, False, False, 0)
 
-        hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
+        hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=12)
         self.pack_start(hbox, False, False, 0)
 
         self.play_button = self.get_play_button(game_actions)
@@ -166,8 +166,8 @@ class GameBar(Gtk.Box):
             runner_button = Gtk.Button(image=runner_icon, visible=True)
             return GameBar.get_popover_box(runner_button, runner_popover_buttons, primary_opens_popover=True)
 
-        runner_icon.set_margin_left(49)
-        runner_icon.set_margin_right(6)
+        runner_icon.set_margin_left(0)
+        runner_icon.set_margin_right(0)
         return runner_icon
 
     def get_platform_label(self):
@@ -208,7 +208,7 @@ class GameBar(Gtk.Box):
     def get_play_button(self, game_actions):
         """Return the widget for install/play/stop and game config"""
         button = Gtk.Button(visible=True)
-        button.set_size_request(120, 32)
+        button.set_size_request(148, 40)
         game_buttons = None
 
         if self.game.is_installed:
@@ -217,6 +217,7 @@ class GameBar(Gtk.Box):
                 button.set_label(_("Play"))
                 button.connect("clicked", game_actions.on_game_launch)
                 button.set_sensitive(game_actions.is_game_launchable)
+                button.get_style_context().add_class("suggested-action")
             elif self.game.state == self.game.STATE_LAUNCHING:
                 button.set_label(_("Launching"))
                 button.set_sensitive(False)
@@ -228,6 +229,7 @@ class GameBar(Gtk.Box):
             button.set_label(_("Install"))
             button.connect("clicked", game_actions.on_install_clicked)
             button.set_sensitive(game_actions.is_installable)
+            button.get_style_context().add_class("suggested-action")
             if self.service:
                 if self.service.local:
                     # Local services don't show an install dialog, they can be launched directly
@@ -236,7 +238,7 @@ class GameBar(Gtk.Box):
                     game_buttons = [self.get_locate_installed_game_button(game_actions)]
 
         if game_buttons:
-            button.set_size_request(84, 32)
+            button.set_size_request(100, 40)
             box = GameBar.get_popover_box(button, game_buttons)
             return box
         return button
