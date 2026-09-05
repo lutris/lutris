@@ -375,6 +375,9 @@
                     <property name="icon-name">list-add-symbolic</property>
                   </object>
                 </child>
+                <style>
+                  <class name="suggested-action"/>
+                </style>
               </object>
               <packing>
                 <property name="expand">False</property>

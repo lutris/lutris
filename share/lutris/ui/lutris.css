@@ -50,11 +50,14 @@
 .info-frame {
   color: @theme_text_color;
   background-color: @theme_base_color;
+  border-radius: 12px;
+  padding: 12px;
 }
 
 .in-app-notification {
-    padding: 5px;
-    border-radius: 0
+  border-radius: 10px;
+  margin: 12px 12px 0;
+  padding: 9px 12px;
 }
 
 .in-app-notification label link {
@@ -92,4 +95,56 @@
 
 .cuddledcheckbox label {
   margin-right: 0px
+}
+
+/* ================= Refresh theme: rhythm, rounding, breathing room ============ */
+/* Theme-aware: only @theme_* variables with alpha()/shade()/mix(), so light and
+   dark system themes keep working. No hardcoded surfaces. */
+
+/* Header search as a pill */
+headerbar entry.search {
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+/* Sidebar rows: rounded hover + breathing room */
+.lutris-sidebar row {
+  border-radius: 8px;
+  margin: 1px 8px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.lutris-sidebar row:hover {
+  background-color: alpha(currentColor, .06);
+}
+
+/* Bottom game bar as a floating card */
+.game-bar {
+  border-radius: 14px;
+  margin: 6px 12px 12px;
+  padding: 12px 16px;
+  background-color: alpha(currentColor, .04);
+  box-shadow: 0 2px 12px alpha(black, .25);
+}
+
+/* Config frames as cards */
+.section-frame {
+  border-radius: 12px;
+}
+
+/* Notebook tabs with air */
+notebook tab {
+  padding: 8px 14px;
+}
+
+/* Popover menus with air */
+popover {
+  border-radius: 12px;
+  padding: 6px;
+}
+
+popover modelbutton {
+  padding: 8px 12px;
+  border-radius: 6px;
 }

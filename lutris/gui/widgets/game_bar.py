@@ -32,6 +32,7 @@ class GameBar(Gtk.Box):
 
         self.application = application
         self.window = window
+        self.get_style_context().add_class("game-bar")
 
         self.game_start_registration = GAME_START.register(self.on_game_state_changed)
         self.game_started_registration = GAME_STARTED.register(self.on_game_state_changed)
