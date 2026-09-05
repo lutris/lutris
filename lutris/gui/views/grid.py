@@ -79,7 +79,7 @@ class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
             self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
 
     @staticmethod
-    def format_tile_caption(_layout, cell, model, tree_iter, _data):
+    def format_tile_caption(_layout, cell, model, tree_iter):
         """Two-line tile caption: game name plus a dimmed runner • platform
         subline. Values are already markup-escaped by the store."""
         name = model.get_value(tree_iter, COL_NAME) or ""
