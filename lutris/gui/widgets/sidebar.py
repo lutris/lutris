@@ -19,7 +19,7 @@ from lutris.gui.config.edit_saved_search import EditSavedSearchDialog
 from lutris.gui.config.runner import RunnerConfigDialog
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
-from lutris.gui.dialogs import display_error
+from lutris.gui.dialogs import ErrorDialog, display_error
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.stock_icon_image import StockIconImage
 from lutris.gui.widgets.utils import get_widget_children
@@ -34,6 +34,7 @@ from lutris.services.base import (
     AuthTokenExpiredError,
 )
 from lutris.util.jobs import schedule_at_idle
+from lutris.util.http import is_connection_error
 from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING
 from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key
@@ -176,6 +177,8 @@ class ServiceSidebarRow(SidebarRow):
             if isinstance(error, AuthTokenExpiredError):
                 self.service.logout()
                 self.service.login(parent=self.get_toplevel())  # login will trigger reload if successful
+            elif is_connection_error(error):
+                ErrorDialog(_("You are offline"), parent=self.get_toplevel())
             else:
                 display_error(error, parent=self.get_toplevel())
         schedule_at_idle(self.enable_refresh_button, delay_seconds=2.0)

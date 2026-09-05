@@ -71,6 +71,7 @@ from lutris.services.lutris import LutrisService, sync_media
 from lutris.style_manager import THEME_CHANGED
 from lutris.util import datapath
 from lutris.util.busy import BUSY_STARTED, BUSY_STOPPED
+from lutris.util.http import is_connection_error
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.linux import LINUX_SYSTEM
@@ -1207,7 +1208,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def _service_reloaded_cb(self, error):
         if error:
-            dialogs.display_error(error, parent=self)
+            if is_connection_error(error):
+                ErrorDialog(_("You are offline"), parent=self)
+            else:
+                dialogs.display_error(error, parent=self)
 
     def on_service_logout(self, service):
         self.update_notification()
