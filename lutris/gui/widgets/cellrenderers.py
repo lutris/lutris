@@ -2,7 +2,7 @@
 # pylint:disable=using-constant-test
 # pylint:disable=comparison-with-callable
 from gettext import gettext as _
-from math import floor
+from math import floor, pi
 
 import gi
 
@@ -25,6 +25,23 @@ from lutris.services.service_media import resolve_media_path
 from lutris.util.path_cache import MISSING_GAMES
 
 _MEDIA_CACHE_GENERATION_NUMBER = 0
+
+# Library tile cards: breathing room and rounding around each game's artwork.
+CARD_PADDING = 10
+CARD_RADIUS = 12
+CARD_BOTTOM_MARGIN = 6
+MEDIA_RADIUS = 8
+
+
+def rounded_rectangle_path(cr, x, y, width, height, radius):
+    """Adds a rounded-rectangle sub-path for the given rect to the context."""
+    radius = max(0, min(radius, width / 2, height / 2))
+    cr.new_sub_path()
+    cr.arc(x + width - radius, y + radius, radius, -pi / 2, 0)
+    cr.arc(x + width - radius, y + height - radius, radius, 0, pi / 2)
+    cr.arc(x + radius, y + height - radius, radius, pi / 2, pi)
+    cr.arc(x + radius, y + radius, radius, pi, 3 * pi / 2)
+    cr.close_path()
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -250,6 +267,14 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             if surface:
                 media_area = self.get_media_area(surface, cell_area)
                 self.select_badge_metrics(surface, media_width, media_height)
+                if self.is_library_view():
+                    self.render_card(
+                        cr,
+                        widget,
+                        media_area,
+                        background_area,
+                        bool(flags & Gtk.CellRendererState.SELECTED),
+                    )
 
                 cr.save()
 
@@ -267,12 +292,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 media_area.y = 0
 
                 if alpha >= 1:
-                    self.render_media(cr, widget, surface, 0, 0)
+                    self.render_tile_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
                         self._render_badges(cr, widget, surface, media_area)
                 else:
                     cr.push_group()
-                    self.render_media(cr, widget, surface, 0, 0)
+                    self.render_tile_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
                         self._render_badges(cr, widget, surface, media_area)
                     cr.pop_group_to_source()
@@ -386,6 +411,63 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cr.get_source().set_extend(cairo.Extend.PAD)  # pylint: disable=no-member
         cr.rectangle(x, y, width, height)
         cr.fill()
+
+    def render_tile_media(self, cr, widget, surface, x, y):
+        """Renders tile artwork; library tiles get rounded corners so they sit
+        cleanly inside their card. Service views keep square artwork."""
+        if not self.is_library_view():
+            self.render_media(cr, widget, surface, x, y)
+            return
+        width, height = get_surface_size(surface)
+        cr.save()
+        rounded_rectangle_path(cr, x, y, width, height, MEDIA_RADIUS)
+        cr.clip()
+        self.render_media(cr, widget, surface, x, y)
+        cr.restore()
+
+    def render_card(self, cr, widget, media_area, background_area, selected):
+        """Draws the floating card behind a library tile: soft shadow plus a
+        theme-aware surface that frames the artwork and its caption. Selected
+        tiles use the theme selection color instead."""
+        pad = CARD_PADDING
+        x = media_area.x - pad
+        y = media_area.y - pad
+        bottom = background_area.y + background_area.height - CARD_BOTTOM_MARGIN
+        width = media_area.width + pad * 2
+        height = bottom - y
+        if width <= 0 or height <= 0:
+            return
+        cr.save()
+        rounded_rectangle_path(cr, x, y + 2, width, height, CARD_RADIUS)
+        cr.set_source_rgba(0, 0, 0, 0.22)
+        cr.fill()
+        style = widget.get_style_context()
+        if selected:
+            color = style.get_background_color(Gtk.StateFlags.SELECTED)
+            rgba = (color.red, color.green, color.blue, color.alpha)
+        else:
+            rgba = self._card_color(style)
+        rounded_rectangle_path(cr, x, y, width, height, CARD_RADIUS)
+        cr.set_source_rgba(*rgba)
+        cr.fill()
+        cr.restore()
+
+    @staticmethod
+    def _card_color(style):
+        """Derives a card surface from the theme background: a step lighter on
+        dark themes, a step darker on light themes. Never crashes theming."""
+        try:
+            background = style.get_background_color(Gtk.StateFlags.NORMAL)
+            luminance = 0.299 * background.red + 0.587 * background.green + 0.114 * background.blue
+            step = -0.055 if luminance > 0.5 else 0.05
+
+            def shift(value):
+                return min(1.0, max(0.0, value + step))
+
+            return (shift(background.red), shift(background.green), shift(background.blue), 1.0)
+        except Exception:  # noqa: BLE001 - cards must render even if theming fails
+            logger.debug("Could not derive card color, using fallback", exc_info=True)
+            return (1.0, 1.0, 1.0, 0.05)
 
     def _render_badges(self, cr, widget, surface, media_area):
         self.render_platforms(cr, widget, surface, 0, media_area)

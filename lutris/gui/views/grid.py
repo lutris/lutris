@@ -21,7 +21,8 @@ class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
 
         Gtk.IconView.set_selection_mode(self, Gtk.SelectionMode.MULTIPLE)
 
-        self.set_column_spacing(6)
+        self.set_column_spacing(14)
+        self.set_row_spacing(14)
         self._show_badges = True
 
         if settings.SHOW_MEDIA:
