@@ -148,3 +148,12 @@ popover modelbutton {
   padding: 8px 12px;
   border-radius: 6px;
 }
+
+/* Installer picker rows as separated cards */
+.installer-picker row {
+  border-radius: 10px;
+  margin: 6px;
+  padding: 6px;
+  background-color: alpha(currentColor, .04);
+  box-shadow: 0 1px 6px alpha(black, .2);
+}
