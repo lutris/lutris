@@ -177,7 +177,30 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         self._rebuild()
 
     def _rebuild(self):
-        """Recreates every tile from the model, preserving selection by ID."""
+        """Recreates every tile from the model, preserving selection by ID.
+
+        Selection signals stay blocked throughout: children are transiently
+        out of sync with the model mid-rebuild, so any interim emission
+        would hand out stale paths. One coherent event goes out at the end.
+        """
+        try:
+            self.handler_block_by_func(self.on_selection_changed)
+            blocked = True
+        except TypeError:
+            blocked = False
+        try:
+            self._rebuild_locked()
+        finally:
+            if blocked:
+                try:
+                    self.handler_unblock_by_func(self.on_selection_changed)
+                except TypeError:
+                    pass
+        self._sync_selected_styles()
+        self.on_selection_changed(self)
+
+    def _rebuild_locked(self):
+        """Rebuild body; runs with selection signals blocked."""
         selected_ids = set(self._selected_ids())
         for child in self.get_children():
             self.remove(child)
@@ -200,23 +223,11 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
             self.add(card)
             tree_iter = self._model.iter_next(tree_iter)
         self.show_all()
-        if selected_ids:
-            try:
-                self.handler_block_by_func(self.on_selection_changed)
-            except TypeError:
-                pass
-            try:
-                for game_id in selected_ids:
-                    if game_id in self._cards_by_id:
-                        child = self._cards_by_id[game_id]["card"].get_parent()
-                        if child is not None:
-                            self.select_child(child)
-            finally:
-                try:
-                    self.handler_unblock_by_func(self.on_selection_changed)
-                except TypeError:
-                    pass
-        self._sync_selected_styles()
+        for game_id in selected_ids:
+            if game_id in self._cards_by_id:
+                child = self._cards_by_id[game_id]["card"].get_parent()
+                if child is not None:
+                    self.select_child(child)
 
     def _load_favorite_ids(self):
         """Batch-loads which visible games are favorites (one query)."""
@@ -615,8 +626,13 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         self.select_path(path)
 
     def get_game_id_for_path(self, path):
-        iterator = self.model.get_iter(path)
-        return self.model.get_value(iterator, COL_ID)
+        # Resolved through the child-parallel ID list (never the live
+        # model): selections can outlive model rows during removals, and
+        # this must return None then instead of raising on a stale path.
+        indices = path.get_indices()
+        if not indices or indices[0] >= len(self._ordered_ids):
+            return None
+        return self._ordered_ids[indices[0]]
 
     def get_path_for_game_id(self, game_id):
         if self.game_store:

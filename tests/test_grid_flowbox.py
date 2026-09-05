@@ -170,6 +170,32 @@ class TestFlowBoxGrid(unittest.TestCase):
         finally:
             del view.get_child_at_pos
 
+    def test_stale_path_after_removal_returns_none(self):
+        """Removing games must never crash selection mapping: paths that
+        outlive their model rows resolve harmlessly instead of raising."""
+        store = make_store([make_row("1", "Undertail"), make_row("2", "Doom")])
+        game_store = SimpleNamespace(store=store, service=None, service_media=SimpleNamespace(size=(184, 69)))
+        view = GameGridView(game_store)
+        view.set_selected([Gtk.TreePath(0), Gtk.TreePath(1)])
+        store.clear()
+        # Stale but harmless pre-rebuild (callers already skip missing games);
+        # the crash used to happen right here in model.get_iter().
+        self.assertEqual(view.get_game_id_for_path(Gtk.TreePath(0)), "1")
+        view._rebuild()
+        self.assertIsNone(view.get_game_id_for_path(Gtk.TreePath(0)))
+        self.assertIsNone(view.get_game_id_for_path(Gtk.TreePath(9)))
+        self.assertEqual(view.get_selected(), [])
+
+    def test_rebuild_emits_single_selection_event(self):
+        store = make_store([make_row("1", "Undertail"), make_row("2", "Doom")])
+        game_store = SimpleNamespace(store=store, service=None, service_media=SimpleNamespace(size=(184, 69)))
+        view = GameGridView(game_store)
+        view.set_selected([Gtk.TreePath(0)])
+        emissions = []
+        view.connect("game-selected", lambda _view, selection: emissions.append(list(selection)))
+        view._rebuild()
+        self.assertEqual(len(emissions), 1)
+
     def test_badges_anchor_to_art_overlay(self):
         view = make_view([make_row("1", "Undertail")])
         card = view._cards_by_id["1"]["card"]
