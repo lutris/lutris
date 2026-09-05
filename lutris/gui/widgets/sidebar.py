@@ -33,8 +33,8 @@ from lutris.services.base import (
     SERVICE_LOGOUT,
     AuthTokenExpiredError,
 )
-from lutris.util.jobs import schedule_at_idle
 from lutris.util.http import is_connection_error
+from lutris.util.jobs import schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING
 from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key
