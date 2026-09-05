@@ -59,7 +59,7 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         # Text columns
         default_text_cell = self.set_text_cell()
         name_cell = self.set_text_cell()
-        name_cell.set_padding(5, 0)
+        name_cell.set_padding(5, 6)
 
         self.set_column(name_cell, _("Name"), COL_NAME, 200, always_visible=True, sort_id=COL_SORTNAME)
         self.set_column(default_text_cell, _("Year"), COL_YEAR, 60)
@@ -89,7 +89,7 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
     @staticmethod
     def set_text_cell():
         text_cell = Gtk.CellRendererText()
-        text_cell.set_padding(10, 0)
+        text_cell.set_padding(10, 6)
         text_cell.set_property("ellipsize", Pango.EllipsizeMode.END)
         return text_cell
 
