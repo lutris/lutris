@@ -71,6 +71,7 @@ from lutris.services.lutris import LutrisService, sync_media
 from lutris.style_manager import THEME_CHANGED
 from lutris.util import datapath
 from lutris.util.busy import BUSY_STARTED, BUSY_STOPPED
+from lutris.util.http import is_connection_error
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.linux import LINUX_SYSTEM
@@ -106,6 +107,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     lutris_log_in_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Label = GtkTemplate.Child()
+    offline_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
 
     def __init__(self, application=None, **kwargs) -> None:
@@ -206,6 +208,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         self.update_action_state()
         self.update_notification()
+        self.update_offline_banner()
+        try:
+            Gio.NetworkMonitor.get_default().connect("network-changed", self._on_network_changed)
+        except Exception:  # noqa: BLE001 - banner is best-effort, never break startup
+            logger.debug("Could not monitor network changes", exc_info=True)
 
         BUSY_STARTED.register(self.on_busy_started)
         BUSY_STOPPED.register(self.on_busy_stopped)
@@ -341,6 +348,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def sync_library(self, force: bool = False) -> None:
         """Tasks that can be run after the UI has been initialized."""
+        if not force and self._is_offline():
+            return
 
         def on_library_synced(_result, error):
             """Sync media after the library is loaded"""
@@ -1121,6 +1130,20 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.lutris_log_in_label.show()
         self.login_notification_revealer.set_reveal_child(show_notification)
 
+    def _is_offline(self) -> bool:
+        """Return True when the system reports no network connection."""
+        try:
+            return not Gio.NetworkMonitor.get_default().get_network_available()
+        except Exception:  # noqa: BLE001 - connectivity check must never break the UI
+            return False
+
+    def update_offline_banner(self) -> None:
+        """Show or hide the passive 'You are offline' banner."""
+        self.offline_notification_revealer.set_reveal_child(self._is_offline())
+
+    def _on_network_changed(self, _monitor, _available) -> None:
+        self.update_offline_banner()
+
     @GtkTemplate.Callback
     def on_lutris_log_in_label_activate_link(self, _label, _url):
         def on_connect_success(widget, _username):
@@ -1185,7 +1208,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def _service_reloaded_cb(self, error):
         if error:
-            dialogs.display_error(error, parent=self)
+            if is_connection_error(error):
+                ErrorDialog(_("You are offline"), parent=self)
+            else:
+                dialogs.display_error(error, parent=self)
 
     def on_service_logout(self, service):
         self.update_notification()
@@ -1540,6 +1566,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def start_runtime_updates(self, force_updates: bool) -> None:
         """Starts the process of applying runtime updates, asynchronously. No UI appears until
         we can determine that there are updates to perform."""
+        if self._is_offline():
+            logger.debug("Skipping runtime updates while offline")
+            return
 
         def create_runtime_updater():
             """This function runs on a worker thread and decides what component updates are
