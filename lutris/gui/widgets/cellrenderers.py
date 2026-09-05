@@ -17,6 +17,7 @@ from gi.repository import Gdk, GObject, Gtk, Pango, PangoCairo
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED,
     get_default_icon_path,
+    get_generated_game_art,
     get_runtime_icon_path,
     get_scaled_surface_by_path,
     get_surface_size,
@@ -54,6 +55,7 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         self.props.wrap_mode = Pango.WrapMode.WORD
         self.props.xalign = 0.5
         self.props.yalign = 0
+        self.props.ypad = 4
         self.fixed_width = None
         self.cached_height = {}
         self.cached_width = {}
@@ -124,6 +126,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._game_id = None
+        self._name = None
         self._service = None
         self._media_paths = []
         self._show_badges = True
@@ -180,6 +183,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     @game_id.setter
     def game_id(self, value):
         self._game_id = value
+
+    @GObject.Property(type=str)
+    def name(self):
+        """The game name, used for generated fallback artwork."""
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     @GObject.Property(type=GObject.TYPE_PYOBJECT)
     def service(self):
@@ -258,6 +270,9 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
         if media_width > 0 and media_height > 0 and path:
             surface = self._get_cached_surface_by_path(widget, path, size=(media_width, media_height))
+            if not surface:
+                # No art: generated gradient tile first, plain default icon last.
+                surface = get_generated_game_art(self.game_id, self.name, (media_width, media_height))
             if not surface:
                 # The default icon needs to be scaled to fill the cell space.
                 path = get_default_icon_path((media_width, media_height))
@@ -436,10 +451,11 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         width = media_area.width + pad * 2
         height = bottom - y
         if width <= 0 or height <= 0:
+            logger.debug("Skipping card for game %s: degenerate rect", self._game_id)
             return
         cr.save()
-        rounded_rectangle_path(cr, x, y + 2, width, height, CARD_RADIUS)
-        cr.set_source_rgba(0, 0, 0, 0.22)
+        rounded_rectangle_path(cr, x, y + 3, width, height, CARD_RADIUS)
+        cr.set_source_rgba(0, 0, 0, 0.3)
         cr.fill()
         style = widget.get_style_context()
         if selected:
@@ -449,25 +465,38 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             rgba = self._card_color(style)
         rounded_rectangle_path(cr, x, y, width, height, CARD_RADIUS)
         cr.set_source_rgba(*rgba)
-        cr.fill()
+        cr.fill_preserve()
+        cr.set_source_rgba(1, 1, 1, 0.08)
+        cr.set_line_width(1)
+        cr.stroke()
         cr.restore()
 
     @staticmethod
     def _card_color(style):
-        """Derives a card surface from the theme background: a step lighter on
-        dark themes, a step darker on light themes. Never crashes theming."""
+        """Card surface: pulled firmly toward a fixed pole so cards read on
+        any background, while keeping a hint of the theme. Dark themes get a
+        lifted charcoal, light themes a clean near-white."""
         try:
             background = style.get_background_color(Gtk.StateFlags.NORMAL)
             luminance = 0.299 * background.red + 0.587 * background.green + 0.114 * background.blue
-            step = -0.055 if luminance > 0.5 else 0.05
+            if luminance > 0.5:
+                pole = (0.96, 0.96, 0.96)
+            else:
+                pole = (0.184, 0.184, 0.192)
+            mix = 0.75
 
-            def shift(value):
-                return min(1.0, max(0.0, value + step))
+            def blend(base, target):
+                return base * (1 - mix) + target * mix
 
-            return (shift(background.red), shift(background.green), shift(background.blue), 1.0)
+            return (
+                blend(background.red, pole[0]),
+                blend(background.green, pole[1]),
+                blend(background.blue, pole[2]),
+                1.0,
+            )
         except Exception:  # noqa: BLE001 - cards must render even if theming fails
             logger.debug("Could not derive card color, using fallback", exc_info=True)
-            return (1.0, 1.0, 1.0, 0.05)
+            return (0.184, 0.184, 0.192, 1.0)
 
     def _render_badges(self, cr, widget, surface, media_area):
         self.render_platforms(cr, widget, surface, 0, media_area)
