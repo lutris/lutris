@@ -4,7 +4,7 @@
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.gui.views import COL_ID, COL_INSTALLED, COL_MEDIA_PATHS, COL_NAME, COL_PLATFORM
+from lutris.gui.views import COL_ID, COL_INSTALLED, COL_MEDIA_PATHS, COL_NAME, COL_PLATFORM, COL_RUNNER_HUMAN_NAME
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage, GridViewCellRendererText
 from lutris.util.log import logger
@@ -37,7 +37,7 @@ class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
         else:
             self.text_renderer = GridViewCellRendererText()
             self.pack_end(self.text_renderer, False)
-            self.add_attribute(self.text_renderer, "markup", COL_NAME)
+            self.set_cell_data_func(self.text_renderer, self.format_tile_caption)
 
         self.set_game_store(store)
 
@@ -77,6 +77,24 @@ class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
             self.add_attribute(self.image_renderer, "media_paths", COL_MEDIA_PATHS)
             self.add_attribute(self.image_renderer, "platform", COL_PLATFORM)
             self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
+
+    @staticmethod
+    def format_tile_caption(_layout, cell, model, tree_iter, _data):
+        """Two-line tile caption: game name plus a dimmed runner • platform
+        subline. Values are already markup-escaped by the store."""
+        name = model.get_value(tree_iter, COL_NAME) or ""
+        details = " • ".join(
+            part
+            for part in (
+                model.get_value(tree_iter, COL_RUNNER_HUMAN_NAME),
+                model.get_value(tree_iter, COL_PLATFORM),
+            )
+            if part
+        )
+        if details:
+            cell.props.markup = '%s\n<span size="smaller" alpha="60%%">%s</span>' % (name, details)
+        else:
+            cell.props.markup = name
 
     def get_path_at(self, x, y):
         return self.get_path_at_pos(x, y)
