@@ -279,6 +279,23 @@ Net: the 1ms deferral is committed as a cheap improvement that is
 heuristics outside our reach without dropping below GTK to raw
 `xdg-activation` protocol.
 
+## Cursors
+
+`Gdk.Cursor` is set on the widget in GTK 4 (`Gtk.Widget.set_cursor()`), not on a
+`GdkWindow`, so there is no realization requirement — setting a cursor on an
+unrealized widget sticks and applies once it is shown. Code ported from GTK 3
+that guarded on `get_window()` returning None can drop the guard.
+
+`Gdk.Cursor.new_from_name()` also lost its second argument (the `Gdk.Display`);
+it now takes just the name and an optional fallback cursor.
+
+Its documented NULL-on-unknown-name return — the GTK 3 crash behind #6868, where
+a missing "pointer" cursor raised `TypeError: constructor returned NULL` on every
+sidebar hover — does not reproduce on GTK 4: the name is resolved lazily at render
+time and the constructor returns a cursor object for any name. `set_cursor_by_name()`
+in `lutris/gui/widgets/utils.py` still checks, so the tolerance lives in one shared
+helper rather than at each call site.
+
 ## Window Urgency Hint Removed
 
 `Gtk.Window.set_urgency_hint()` was removed in GTK 4 with no direct replacement —
