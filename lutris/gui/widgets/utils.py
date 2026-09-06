@@ -216,7 +216,7 @@ def get_generated_game_art(game_id: str, name: str, size: tuple[int, int]) -> "c
         letter = next((char.upper() for char in str(name or "") if char.isalnum()), "?")
         layout = PangoCairo.create_layout(context)
         layout.set_text(letter, -1)
-        layout.set_font_description(Pango.FontDescription("bold %d" % int(height * 0.42)))
+        layout.set_font_description(Pango.FontDescription.from_string("bold %d" % int(height * 0.42)))
         _ink, logical = layout.get_pixel_extents()
         context.move_to((width - logical.width) / 2, (height - logical.height) / 2)
         context.set_source_rgba(1, 1, 1, 0.92)
