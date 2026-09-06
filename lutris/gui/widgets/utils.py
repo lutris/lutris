@@ -67,9 +67,14 @@ def get_widget_window(widget: Gtk.Widget | None) -> Gtk.Window | None:
 
 def set_cursor_by_name(widget: Gtk.Widget, name: str | None) -> None:
     """Applies the named cursor to a widget; if 'name' is None the widget reverts to
-    its default cursor. Does nothing if the cursor theme in use has no cursor of that name;
-    Gdk.Cursor.new_from_name() returns NULL then, which PyGObject reports either as None or
-    as a TypeError depending on how the constructor is bound."""
+    its default cursor.
+
+    Gdk.Cursor.new_from_name() is documented to return NULL when the cursor theme has no
+    cursor of that name, which PyGObject reports as None or as a TypeError depending on how
+    the constructor is bound; that is what crashed GTK 3 on hover (#6868). GTK 4 resolves the
+    name lazily at render time and hands back a cursor object for any name, so the guard
+    below rarely fires now - but it stays, so the policy lives in one place rather than at
+    each call site, as it did before it was lost once already."""
     cursor = None
     if name:
         try:

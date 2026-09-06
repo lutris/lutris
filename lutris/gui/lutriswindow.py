@@ -346,7 +346,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         """Finish initializing the view"""
         self._bind_zoom_adjustment()
         self.current_view.grab_focus()
-        # We could have become busy before we had a GdkWindow to set a cursor on
+        # We could have become busy before the window was loaded. GTK 4 keeps the cursor
+        # as widget state rather than on a GdkWindow, so this is only a belt-and-braces
+        # re-apply; setting it while unrealized already sticks.
         self.update_busy_cursor()
 
     def on_sidebar_realize(self, widget, data=None):
