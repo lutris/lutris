@@ -940,7 +940,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         is_expected = hasattr(error, "is_expected") and error.is_expected
 
-        if is_expected:
+        if not is_expected:
             formatted = traceback.format_exception(type(error), error, error.__traceback__)
             formatted = "\n".join(formatted).strip()
 
@@ -967,7 +967,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         error_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 
-        label = Gtk.Label(xalign=0.0, wrap=True)
+        # The details box is no_show_all so that show_all() on the page can't reveal it,
+        # but that also skips everything inside it, so its contents are created visible.
+        # They stay hidden along with the box until it is made visible.
+        label = Gtk.Label(xalign=0.0, wrap=True, visible=True)
         label.set_markup(
             _(
                 "An unexpected error has occurred while installing this game. "
@@ -978,11 +981,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         )
         self.error_details_box.pack_start(label, False, False, 0)
 
-        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
+        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN, visible=True)
 
-        details_textview = Gtk.TextView(editable=False, buffer=self.error_details_buffer)
+        details_textview = Gtk.TextView(editable=False, buffer=self.error_details_buffer, visible=True)
 
-        scrolledwindow = Gtk.ScrolledWindow()
+        scrolledwindow = Gtk.ScrolledWindow(visible=True)
         scrolledwindow.add(details_textview)
         frame.add(scrolledwindow)
         self.error_details_box.pack_start(frame, True, True, 0)

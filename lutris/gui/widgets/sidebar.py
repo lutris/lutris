@@ -22,7 +22,7 @@ from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import display_error
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.stock_icon_image import StockIconImage
-from lutris.gui.widgets.utils import get_widget_children
+from lutris.gui.widgets.utils import get_widget_children, set_cursor_by_name
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
@@ -408,14 +408,10 @@ class SidebarHeader(Gtk.ListBoxRow):
         return True
 
     def _on_enter(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
-        window = widget.get_window()
-        if window:
-            window.set_cursor(Gdk.Cursor.new_from_name(widget.get_display(), "pointer"))
+        set_cursor_by_name(widget, "pointer")
 
     def _on_leave(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
-        window = widget.get_window()
-        if window:
-            window.set_cursor(None)
+        set_cursor_by_name(widget, None)
 
     @property
     def sort_key(self) -> int | str:
