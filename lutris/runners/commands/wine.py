@@ -174,7 +174,9 @@ def create_prefix(
         logger.warning("Proton is not compatible with 32-bit prefixes, forcing win64")
         arch = "win64"
 
-    wineenv = runner.system_config.get("env") or {}
+    # Copy this; everything below mutates 'wineenv', and system_config['env'] is the
+    # runner's live configuration, not a snapshot of it.
+    wineenv = dict(runner.system_config.get("env") or {})
     wineenv.update(
         {
             "WINEARCH": arch,
@@ -254,22 +256,36 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path="", env=None, initial_pid
 
     initial_pids = initial_pids or []
     if not env:
-        env = {
-            "WINEARCH": arch,
-            "WINEPREFIX": prefix,
-            "GAMEID": proton.DEFAULT_GAMEID,
-        }
+        # Callers that pass an env have the user's variables merged into it already;
+        # when we build our own (the installer calls us with no env at all) we must
+        # do the same, or settings like UMU_RUNTIME_UPDATE won't apply here.
+        if not runner:
+            runner = import_runner("wine")()
+        env = dict(runner.system_config.get("env") or {})
+        env.update(
+            {
+                "WINEARCH": arch,
+                "WINEPREFIX": prefix,
+                "GAMEID": proton.DEFAULT_GAMEID,
+            }
+        )
     env["PROTON_VERB"] = "runinprefix"  # must not block until the game exits, that would be sily!
-    if proton.is_umu_path(wine_path):
-        command = [wine_path, "wineboot", "-k"]
-    elif proton.is_proton_path(wine_path):
+
+    # An empty wine_path counts as a Proton path, so resolve it before we decide
+    # what to run; otherwise we'd derive an empty PROTONPATH from it below.
+    if not wine_path:
+        if not runner:
+            runner = import_runner("wine")()
+        wine_path = runner.get_executable()
+
+    if proton.is_umu_path(wine_path) or proton.is_proton_path(wine_path):
         command = [proton.get_umu_path(), "wineboot", "-k"]
-        env["PROTONPATH"] = proton.get_proton_path_by_path(wine_path)
+        # Umu downloads its own default Proton when PROTONPATH is unset, so we must
+        # always name the Proton we mean - even just to kill a prefix. Callers that
+        # pass the game's env already have this set; those that don't (the installer's
+        # revert path) would otherwise trigger a UMU-Proton download.
+        proton.update_proton_env(wine_path, env)
     else:
-        if not wine_path:
-            if not runner:
-                runner = import_runner("wine")()
-            wine_path = runner.get_executable()
         wine_root = os.path.dirname(wine_path)
 
         command = [os.path.join(wine_root, "wineserver"), "-k"]

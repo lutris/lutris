@@ -78,6 +78,9 @@ class GameStore(GObject.Object):
         self.service_media = service_media
         self._rows_by_id: dict[str, Gtk.TreeRowReference] = {}
 
+        # The timestamp columns must be INT64; a bare 'int' is a 32-bit gint, which
+        # overflows for any date past 2038 (or sooner, if a game was recorded while the
+        # system clock was wrong).
         self.store = Gtk.ListStore(
             str,
             str,
@@ -88,10 +91,10 @@ class GameStore(GObject.Object):
             str,
             str,
             str,
-            int,
+            GObject.TYPE_INT64,  # COL_LASTPLAYED
             str,
             bool,
-            int,
+            GObject.TYPE_INT64,  # COL_INSTALLED_AT
             str,
             float,
             str,

@@ -15,6 +15,27 @@ from lutris.util.log import logger
 GAME_PATH_CACHE_PATH = os.path.join(settings.CACHE_DIR, "game-paths.json")
 
 
+def _ensure_cache_dir():
+    cache_dir = os.path.dirname(GAME_PATH_CACHE_PATH)
+    if cache_dir and not os.path.isdir(cache_dir):
+        os.makedirs(cache_dir, exist_ok=True)
+
+
+def _write_path_cache(cache):
+    _ensure_cache_dir()
+    temp_path = GAME_PATH_CACHE_PATH + ".tmp"
+    try:
+        with open(temp_path, "w", encoding="utf-8") as cache_file:
+            json.dump(cache, cache_file, indent=2)
+        os.replace(temp_path, GAME_PATH_CACHE_PATH)
+    finally:
+        if os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                pass
+
+
 def get_game_paths():
     game_paths = {}
     all_games = get_games(filters={"installed": 1})
@@ -34,9 +55,7 @@ def build_path_cache(recreate=False):
     if os.path.exists(GAME_PATH_CACHE_PATH) and not recreate:
         return
     start_time = time.time()
-    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
-        game_paths = get_game_paths()
-        json.dump(game_paths, cache_file, indent=2)
+    _write_path_cache(get_game_paths())
     end_time = time.time()
     get_path_cache.cache_clear()
     logger.debug("Game path cache built in %0.2f seconds", end_time - start_time)
@@ -51,8 +70,7 @@ def add_to_path_cache(game):
         return
     current_cache = read_path_cache()
     current_cache[game.id] = path
-    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
-        json.dump(current_cache, cache_file, indent=2)
+    _write_path_cache(current_cache)
     get_path_cache.cache_clear()
 
 
@@ -65,11 +83,14 @@ def get_path_cache():
 
 def read_path_cache():
     """Read the contents of the path cache file, and does not cache it."""
-    with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
-        try:
-            return json.load(cache_file)
-        except json.JSONDecodeError:
-            return {}
+    try:
+        with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
+            try:
+                return json.load(cache_file)
+            except json.JSONDecodeError:
+                return {}
+    except FileNotFoundError:
+        return {}
 
 
 def remove_from_path_cache(game):
@@ -79,8 +100,7 @@ def remove_from_path_cache(game):
         logger.warning("Game %s (id=%s) not in cache path", game, game.id)
         return
     del current_cache[game.id]
-    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
-        json.dump(current_cache, cache_file, indent=2)
+    _write_path_cache(current_cache)
     get_path_cache.cache_clear()
 
 
