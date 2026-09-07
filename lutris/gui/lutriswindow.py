@@ -62,7 +62,7 @@ from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.progress_box import ProgressBox, ProgressInfo
 from lutris.gui.widgets.sidebar import LutrisSidebar, SidebarRow
 from lutris.gui.widgets.stock_icon_image import StockIconImage
-from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.gui.widgets.utils import load_icon_theme, open_uri, set_cursor_by_name
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
@@ -244,15 +244,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         """Applies the 'progress' cursor to this window if Lutris is busy. This does nothing
         if the window has not been realized; it can be created but never shown when Lutris is
         started to install or run a game, and it has no GdkWindow to set a cursor on then."""
-        gdk_window = self.get_window()
-        if not gdk_window:
-            return
-
-        if self._is_busy:
-            display = Gdk.Display.get_default()
-            gdk_window.set_cursor(Gdk.Cursor.new_from_name(display, "progress"))
-        else:
-            gdk_window.set_cursor(None)
+        set_cursor_by_name(self, "progress" if self._is_busy else None)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
