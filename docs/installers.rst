@@ -431,7 +431,7 @@ Displaying an 'Insert disc' dialog
 ----------------------------------
 
 The ``insert-disc`` command will display a message box to the user requesting
-him to insert the game's disc into the optical drive.
+them to insert the game's disc into the optical drive.
 
 Ensure a correct disc detection by specifying a file or folder present on the
 disc with the ``requires`` parameter.
