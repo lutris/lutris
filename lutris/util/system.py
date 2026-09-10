@@ -70,6 +70,7 @@ def execute_with_error(
     quiet: bool = False,
     shell: bool = False,
     timeout: float | None = None,
+    stderr_file: IO[bytes] | None = None,
 ) -> tuple[str, str]:
     """
     Execute a system command and return its standard output and; standard error in a tuple.
@@ -80,18 +81,29 @@ def execute_with_error(
         cwd (str): Working directory
         quiet (bool): Do not display log messages
         timeout (int): Number of seconds the program is allowed to run, disabled by default
+        stderr_file (IO): Binary file to collect stderr in, instead of a pipe; its content is
+            still returned. Only required for commands that leave a process behind holding the
+            stderr they inherited, since a pipe would not reach EOF until that process exits.
 
     Returns:
         str, str: stdout output and stderr output
     """
-    return _execute(command, env=env, cwd=cwd, capture_stderr=True, quiet=quiet, shell=shell, timeout=timeout)
+    return _execute(
+        command,
+        env=env,
+        cwd=cwd,
+        capture_stderr=stderr_file if stderr_file is not None else True,
+        quiet=quiet,
+        shell=shell,
+        timeout=timeout,
+    )
 
 
 def _execute(
     command: list[str],
     env: dict[str, str] | None = None,
     cwd: str | None = None,
-    capture_stderr: bool = False,
+    capture_stderr: bool | IO[bytes] = False,
     quiet: bool = False,
     shell: bool = False,
     timeout: float | None = None,
@@ -115,14 +127,20 @@ def _execute(
         env = {k: v for k, v in env.items() if v is not None}
         existing_env.update(env)
 
-    # Piping stderr can cause slowness in the programs, use carefully
-    # (especially when using regedit with wine)
+    # A caller can hand us a file to collect stderr in; we read it back below. Otherwise
+    # we pipe it, which is cheaper but not always safe - see execute_with_error().
+    stderr_file = None if isinstance(capture_stderr, bool) else capture_stderr
+    if stderr_file is not None:
+        stderr_dest: IO[bytes] | int = stderr_file
+    else:
+        stderr_dest = subprocess.PIPE if capture_stderr else subprocess.DEVNULL
+
     try:
         with subprocess.Popen(
             command,
             shell=shell,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE if capture_stderr else subprocess.DEVNULL,
+            stderr=stderr_dest,
             env=existing_env,
             cwd=cwd,
             errors="replace",
@@ -134,6 +152,10 @@ def _execute(
     except subprocess.TimeoutExpired:
         logger.error("Command %s after %s seconds", command, timeout)
         return "", ""
+
+    if stderr_file is not None:
+        stderr_file.seek(0)
+        stderr = stderr_file.read().decode("utf-8", errors="replace")
 
     return stdout.strip(), (stderr or "").strip()
 
