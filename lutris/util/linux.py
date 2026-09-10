@@ -471,16 +471,6 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                 missing_arch.append(arch)
         return missing_arch
 
-    def is_feature_supported(self, feature: str) -> bool:
-        """Return whether the system has the necessary libs to support a feature"""
-        if feature == "ACO":
-            try:
-                mesa_version = cast(str, LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version)  # type: ignore
-                return mesa_version >= "19.3"
-            except AttributeError:
-                return False
-        return not self.get_missing_requirement_libs(feature)[0]
-
     def is_vulkan_supported(self) -> bool:
         return not LINUX_SYSTEM.get_missing_lib_arch("VULKAN") and vkquery.is_vulkan_supported()
 

@@ -58,15 +58,6 @@ def get_gpus_info() -> dict[str, drivers.DriverGpuInfoDict]:
     return {card: drivers.get_gpu_info(card) for card in drivers.get_gpu_cards()}
 
 
-def display_gpu_info(gpu_id: str, gpu_info: drivers.DriverGpuInfoDict) -> None:
-    """Log GPU information"""
-    try:
-        gpu_string = f"GPU: {gpu_info['PCI_ID']} {gpu_info['PCI_SUBSYS_ID']} ({gpu_info['DRIVER']} drivers)"
-        logger.info(gpu_string)
-    except KeyError:
-        logger.error("Unable to get GPU information from '%s'", gpu_id)
-
-
 def add_icd_search_path(paths: str) -> list[str]:
     icd_paths = []
     if paths:
