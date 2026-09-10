@@ -10,6 +10,7 @@ class InstallerPicker(Gtk.ListBox):
 
     def __init__(self, scripts):
         super().__init__()
+        self.get_style_context().add_class("installer-picker")
         revealed = True
         for script in scripts:
             self.add(InstallerScriptBox(script, parent=self, revealed=revealed))

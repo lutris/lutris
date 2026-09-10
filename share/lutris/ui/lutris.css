@@ -50,11 +50,14 @@
 .info-frame {
   color: @theme_text_color;
   background-color: @theme_base_color;
+  border-radius: 12px;
+  padding: 12px;
 }
 
 .in-app-notification {
-    padding: 5px;
-    border-radius: 0
+  border-radius: 10px;
+  margin: 12px 12px 0;
+  padding: 9px 12px;
 }
 
 .in-app-notification label link {
@@ -92,4 +95,151 @@
 
 .cuddledcheckbox label {
   margin-right: 0px
+}
+
+/* ================= Refresh theme: rhythm, rounding, breathing room ============ */
+/* Theme-aware: only @theme_* variables with alpha()/shade()/mix(), so light and
+   dark system themes keep working. No hardcoded surfaces. */
+
+/* Header search as a pill */
+headerbar entry.search {
+  border-radius: 999px;
+  padding: 4px 14px;
+}
+
+/* Primary Add action: filled theme-accent pill, impossible to miss */
+.add-button {
+  background-color: @theme_selected_bg_color;
+  color: @theme_selected_fg_color;
+  border-radius: 9px;
+  padding: 2px 12px;
+  font-weight: bold;
+}
+
+/* Sidebar rows: rounded hover + breathing room */
+.lutris-sidebar row {
+  border-radius: 8px;
+  margin: 1px 8px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.lutris-sidebar row:hover {
+  background-color: alpha(currentColor, .06);
+}
+
+.lutris-sidebar row:selected {
+  background-color: @theme_selected_bg_color;
+  color: @theme_selected_fg_color;
+  border-radius: 8px;
+}
+
+/* Bottom game bar as a floating card */
+.game-bar {
+  border-radius: 14px;
+  margin: 6px 12px 12px;
+  padding: 12px 16px;
+  background-color: alpha(currentColor, .04);
+  box-shadow: 0 2px 12px alpha(black, .25);
+}
+
+.game-bar-subtitle {
+  color: alpha(@theme_fg_color, .65);
+}
+
+/* Config frames as cards */
+.section-frame {
+  border-radius: 12px;
+}
+
+/* Notebook tabs with air */
+notebook tab {
+  padding: 8px 14px;
+}
+
+/* Popover menus with air */
+popover {
+  border-radius: 12px;
+  padding: 6px;
+}
+
+popover modelbutton {
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+/* Installer picker rows as separated cards */
+.installer-picker row {
+  border-radius: 10px;
+  margin: 6px;
+  padding: 6px;
+  background-color: alpha(currentColor, .04);
+  box-shadow: 0 1px 6px alpha(black, .2);
+}
+
+/* Game grid tiles as real widget cards; selection is painted on the card
+   itself so the FlowBox child's own highlight stays transparent. */
+flowbox {
+  padding: 8px;
+}
+
+flowboxchild {
+  padding: 0;
+}
+
+flowboxchild:selected {
+  background-color: transparent;
+}
+
+.game-card {
+  background-color: mix(@theme_base_color, white, 0.08);
+  border: 1px solid alpha(currentColor, .12);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 10px alpha(black, .3);
+}
+
+.game-card:selected {
+  background-color: @theme_selected_bg_color;
+  color: @theme_selected_fg_color;
+  border-color: transparent;
+}
+
+.game-card:selected label {
+  color: @theme_selected_fg_color;
+}
+
+/* Deterministic selection painting (pseudo-classes can be swallowed by
+   container nesting, style classes never are). Synced from the view. */
+.game-card.selected {
+  background-color: @theme_selected_bg_color;
+  color: @theme_selected_fg_color;
+  border-color: transparent;
+}
+
+.game-card.selected label {
+  color: @theme_selected_fg_color;
+}
+
+/* Favorite star toggle on the tile's top-right corner */
+.game-card-favorite {
+  padding: 4px;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, .35);
+}
+
+.game-card-favorite image {
+  color: alpha(white, .75);
+}
+
+.game-card-favorite.favorite-active image {
+  color: #ffd75e;
+}
+
+.game-card-missing {
+  background-color: rgba(0, 0, 0, .65);
+  color: white;
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-weight: bold;
 }

@@ -32,6 +32,7 @@ class GameBar(Gtk.Box):
 
         self.application = application
         self.window = window
+        self.get_style_context().add_class("game-bar")
 
         self.game_start_registration = GAME_START.register(self.on_game_state_changed)
         self.game_started_registration = GAME_STARTED.register(self.on_game_state_changed)
@@ -76,23 +77,52 @@ class GameBar(Gtk.Box):
         """Populate the view with widgets"""
         game_actions = get_game_actions([self.game], window=self.window, application=self.application)
 
+        title_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2, visible=True)
         game_label = self.get_game_name_label()
         game_label.set_halign(Gtk.Align.START)
-        self.pack_start(game_label, False, False, 0)
+        title_box.pack_start(game_label, False, False, 0)
+        subtitle_label = self.get_subtitle_label()
+        if subtitle_label is not None:
+            title_box.pack_start(subtitle_label, False, False, 0)
 
-        hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=6)
-        self.pack_start(hbox, False, False, 0)
+        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, visible=True)
+        self.pack_start(row, False, False, 0)
+        row.pack_start(title_box, False, False, 0)
+
+        hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=12, visible=True)
+        hbox.set_hexpand(True)
+        row.pack_start(hbox, True, True, 0)
 
         self.play_button = self.get_play_button(game_actions)
-        hbox.pack_start(self.play_button, False, False, 0)
+        hbox.pack_end(self.play_button, False, False, 0)
 
-        hbox.pack_start(self.get_runner_button(), False, False, 0)
-        hbox.pack_start(self.get_platform_label(), False, False, 0)
-        if self.game.lastplayed:
-            hbox.pack_start(self.get_last_played_label(), False, False, 0)
+        hbox.pack_end(self.get_runner_button(), False, False, 0)
         if self.game.playtime:
-            hbox.pack_start(self.get_playtime_label(), False, False, 0)
+            hbox.pack_end(self.get_playtime_label(), False, False, 0)
+        if self.game.lastplayed:
+            hbox.pack_end(self.get_last_played_label(), False, False, 0)
+        if self.game.platform:
+            hbox.pack_end(self.get_platform_label(), False, False, 0)
         hbox.show_all()
+
+    def get_subtitle_label(self):
+        """Return a small dimmed runner • platform line, or None when empty."""
+        details = " • ".join(
+            part
+            for part in (
+                runners.get_runner_human_name(self.game.runner.name) if self.game.has_runner else "",
+                gtk_safe(self.game.platform or ""),
+            )
+            if part
+        )
+        if not details:
+            return None
+        subtitle_label = Gtk.Label(visible=True)
+        subtitle_label.set_halign(Gtk.Align.START)
+        subtitle_label.set_ellipsize(Pango.EllipsizeMode.END)
+        subtitle_label.set_markup('<span size="smaller">%s</span>' % details)
+        subtitle_label.get_style_context().add_class("game-bar-subtitle")
+        return subtitle_label
 
     @staticmethod
     def get_popover_box(primary_button, popover_buttons, primary_opens_popover=False):
@@ -165,8 +195,8 @@ class GameBar(Gtk.Box):
             runner_button = Gtk.Button(image=runner_icon, visible=True)
             return GameBar.get_popover_box(runner_button, runner_popover_buttons, primary_opens_popover=True)
 
-        runner_icon.set_margin_left(49)
-        runner_icon.set_margin_right(6)
+        runner_icon.set_margin_left(0)
+        runner_icon.set_margin_right(0)
         return runner_icon
 
     def get_platform_label(self):
@@ -207,7 +237,7 @@ class GameBar(Gtk.Box):
     def get_play_button(self, game_actions):
         """Return the widget for install/play/stop and game config"""
         button = Gtk.Button(visible=True)
-        button.set_size_request(120, 32)
+        button.set_size_request(148, 40)
         game_buttons = None
 
         if self.game.is_installed:
@@ -216,6 +246,7 @@ class GameBar(Gtk.Box):
                 button.set_label(_("Play"))
                 button.connect("clicked", game_actions.on_game_launch)
                 button.set_sensitive(game_actions.is_game_launchable)
+                button.get_style_context().add_class("suggested-action")
             elif self.game.state == self.game.STATE_LAUNCHING:
                 button.set_label(_("Launching"))
                 button.set_sensitive(False)
@@ -227,6 +258,7 @@ class GameBar(Gtk.Box):
             button.set_label(_("Install"))
             button.connect("clicked", game_actions.on_install_clicked)
             button.set_sensitive(game_actions.is_installable)
+            button.get_style_context().add_class("suggested-action")
             if self.service:
                 if self.service.local:
                     # Local services don't show an install dialog, they can be launched directly
@@ -235,7 +267,7 @@ class GameBar(Gtk.Box):
                     game_buttons = [self.get_locate_installed_game_button(game_actions)]
 
         if game_buttons:
-            button.set_size_request(84, 32)
+            button.set_size_request(100, 40)
             box = GameBar.get_popover_box(button, game_buttons)
             return box
         return button

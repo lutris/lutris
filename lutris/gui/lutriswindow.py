@@ -932,19 +932,36 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def show_splash(self):
         theme = "dark" if self.application.style_manager.is_dark else "light"
-        side_splash = Gtk.Image(visible=True)
-        side_splash.set_from_file(os.path.join(datapath.get(), "media/side-%s.svg" % theme))
-        side_splash.set_alignment(0, 0)
-
         center_splash = Gtk.Image(visible=True)
         center_splash.set_alignment(0.5, 0.5)
         center_splash.set_from_file(os.path.join(datapath.get(), "media/splash-%s.svg" % theme))
 
-        splash_box = Gtk.HBox(visible=True, margin_top=24)
-        splash_box.pack_start(side_splash, False, False, 12)
-        splash_box.set_center_widget(center_splash)
-        splash_box.is_splash = True
-        self.show_overlay(splash_box, Gtk.Align.FILL, Gtk.Align.FILL)
+        title_label = Gtk.Label(visible=True)
+        title_label.set_markup("<span font_desc='20' weight='bold'>%s</span>" % _("No games yet"))
+        title_label.set_halign(Gtk.Align.CENTER)
+
+        instructions_label = Gtk.Label(visible=True)
+        instructions_label.set_markup(
+            _("Use the <b>Add</b> button to install a game from Lutris.net,\nimport a ROM, or add a game manually.")
+        )
+        instructions_label.set_justify(Gtk.Justification.CENTER)
+        instructions_label.set_halign(Gtk.Align.CENTER)
+
+        add_button = Gtk.Button(label=_("Add game"), visible=True, halign=Gtk.Align.CENTER)
+        add_button.get_style_context().add_class("suggested-action")
+        add_button.set_action_name("win.add-game")
+
+        register_link = Gtk.LinkButton(uri=settings.SITE_URL + "/user/register", visible=True, halign=Gtk.Align.CENTER)
+        register_link.set_label(_("No Lutris account yet? Create one"))
+
+        empty_box = Gtk.VBox(spacing=12, visible=True, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
+        empty_box.pack_start(center_splash, False, False, 0)
+        empty_box.pack_start(title_label, False, False, 0)
+        empty_box.pack_start(instructions_label, False, False, 0)
+        empty_box.pack_start(add_button, False, False, 12)
+        empty_box.pack_start(register_link, False, False, 0)
+        empty_box.is_splash = True
+        self.show_overlay(empty_box, Gtk.Align.FILL, Gtk.Align.FILL)
 
     def is_showing_splash(self):
         if self.blank_overlay.get_visible():
