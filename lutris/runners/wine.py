@@ -1171,6 +1171,8 @@ class wine(Runner):
                 logger.warning("No valid prefix detected in %s, creating one...", prefix_path)
                 create_prefix(prefix_path, wine_path=self.get_executable(), arch=self.wine_arch, runner=self)
 
+            proton.ensure_vkd3d_dlls(prefix_path, self.get_executable())
+
             prefix_manager = WinePrefixManager(prefix_path)
             prefix_manager.cleanup_broken_symlinks()
             if self.runner_config.get("autoconf_joypad", False):
