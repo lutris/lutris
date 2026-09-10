@@ -76,7 +76,7 @@ def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_AR
 
     wineexec(
         "regedit",
-        args="/S '%s'" % filename,
+        args="'%s'" % filename,
         wine_path=wine_path,
         prefix=prefix,
         arch=arch,
@@ -93,7 +93,7 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
 
     wineexec(
         "regedit",
-        args='/S /D "%s"' % key,
+        args='/D "%s"' % key,
         wine_path=wine_path,
         prefix=prefix,
         arch=arch,
