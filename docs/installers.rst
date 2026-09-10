@@ -737,11 +737,8 @@ Currently, the following tasks are implemented:
     Example::
 
         - task:
-            name: set_regedit
-            path: HKEY_CURRENT_USER\Software\Valve\Steam
-            key: SuppressAutoRun
-            value: '00000000'
-            type: REG_DWORD
+            name: delete_registry_key
+            key: HKEY_CURRENT_USER\Software\Valve\Steam
 
 * wine: ``set_regedit_file`` Apply a regedit file to the
   registry, Parameters are ``filename`` (regfile name),
