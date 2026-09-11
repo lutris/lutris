@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 import os
+import re
 import sys
 
 from setuptools import setup
 
-from lutris import __version__ as VERSION
+# Read the version without importing the lutris package, which would
+# require PyGObject/Gtk to be installed just to build an sdist.
+with open(os.path.join("lutris", "__init__.py"), encoding="utf-8") as version_file:
+    version_match = re.search(r'__version__\s*=\s*"([^"]+)"', version_file.read())
+    VERSION = version_match.group(1) if version_match else "0.0.0"
 
 if sys.version_info < (3, 10):
     sys.exit("Python >= 3.10 is required to run Lutris")
