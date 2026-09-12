@@ -165,7 +165,7 @@ class CabInstaller:
                 self.install_dll(file_path)
         return reg_files
 
-    def apply_to_registry(self, file_path, arch, proton_verb=None):
+    def apply_to_registry(self, file_path, arch, proton_verb=None, env=None):
         """Apply a registry file made from a manifest for the given arch."""
         logger.info("Applying %s to registry", file_path)
         # WINEARCH must be the prefix's own, or Wine won't run at all; a 32-bit
@@ -177,6 +177,7 @@ class CabInstaller:
             arch=self.winearch,
             proton_verb=proton_verb,
             use_32_bit_regedit=arch in ("win32", "wow64"),
+            env=env,
         )
 
     def extract_from_cab(self, cabfile, component):
@@ -192,11 +193,11 @@ class CabInstaller:
         execute(["cabextract", "-F", "*%s*" % component, "-d", self.tmpdir, cabfile])
         return [os.path.join(r, file) for r, d, f in os.walk(self.tmpdir) for file in f]
 
-    def install(self, cabfile, component, proton_verb=None):
+    def install(self, cabfile, component, proton_verb=None, env=None):
         """Install `component` from `cabfile`"""
         logger.info("Installing %s from %s", component, cabfile)
 
         for file_path, arch in self.get_registry_files(self.extract_from_cab(cabfile, component)):
-            self.apply_to_registry(file_path, arch, proton_verb=proton_verb)
+            self.apply_to_registry(file_path, arch, proton_verb=proton_verb, env=env)
 
         self.cleanup()
