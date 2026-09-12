@@ -466,10 +466,10 @@ used for default mappings in Wine.
 If the game requires a mounted drive at runtime you should store its content in the
 prefix and use relative paths for the symlink like in the example above. This ensures
 that users can relocate their entire prefix without risking game breakage. For
-persistent mounts it is also recommended to add a drive label::
+persistent mounts it is also recommended to add a drive label (max 32 characters)::
 
     - write_file:
-        content: "your_label"
+        content: 'your_label'
         file: $GAMEDIR/CD_CONTENT_DIRECTORY/.windows-label
 
 In some cases a Windows installer might insist on wanting a CD-ROM drive. If that is the
@@ -484,7 +484,7 @@ the corresponding registry key. You can do this using the ``set_regedit`` task::
         name: set_regedit
         path: HKEY_LOCAL_MACHINE\Software\Wine\Drives
         key: 'i:'
-        value: 'cdrom'
+        value: cdrom
 
 Note: If you only create the registry key without creating the symlink, you will
 not see an entry in ``winecfg``. Wine actually checks that there is a symlink with
@@ -505,9 +505,8 @@ a ``$CACHE`` directory) and the registry keys::
         name: delete_registry_key
         key: HKEY_LOCAL_MACHINE\Software\Wine\Drives
 
-Currently it is not easily possible to delete only a single key-value pair (i.e.
-drive). If you created multiple drives and wanted to keep only one, you'll need
-to recreate it (again) after this.
+If at least one drive is required at runtime you can also delete single drives
+using ``set_regedit`` as documented below.
 
 Moving files and directories
 ----------------------------
@@ -780,7 +779,8 @@ Currently, the following tasks are implemented:
     are ``path`` (the registry path, use backslashes), ``key``, ``value``,
     ``type`` (optional value type, default is REG_SZ (string)), ``prefix``
     (optional WINEPREFIX), ``arch``
-    (optional architecture of the prefix).
+    (optional architecture of the prefix). Use the special value ``null`` to
+    delete a single value (as opposed to an entire key with ``delete_registry_key``).
 
     Example::
 
