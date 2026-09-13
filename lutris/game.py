@@ -814,6 +814,7 @@ class Game:
         @watch_game_errors(game_stop_result=False, game=self)
         def proceed() -> None:
             self.reload_config()  # Reload the config before launching it.
+            self.runner.validate_game()
 
             if self.id in LOG_BUFFERS:  # Reset game logs on each launch
                 log_buffer = LOG_BUFFERS[self.id]

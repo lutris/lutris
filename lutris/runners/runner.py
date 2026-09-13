@@ -475,6 +475,13 @@ class Runner:  # pylint: disable=too-many-public-methods
         monitored_command.log_handlers (e.g. to parse runner-specific output
         and update game.launch_status)."""
 
+    def validate_game(self) -> None:
+        """Validate the game configuration without changing system state.
+
+        This runs before :meth:`prelaunch`, so runners can reject an invalid
+        configuration before prelaunch actions create or modify files.
+        """
+
     def prelaunch(self) -> None:
         """Run actions before running the game, override this method in runners; raise an
         exception if prelaunch fails, and it will be reported to the user, and
