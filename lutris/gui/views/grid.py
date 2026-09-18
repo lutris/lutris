@@ -708,8 +708,16 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         schedule_at_idle(scroll_now)
 
     def get_selected(self):
-        """Return list of all selected items as paths"""
-        return [Gtk.TreePath(index) for index in sorted(child.get_index() for child in self.get_selected_children())]
+        """Return list of all selected items as paths.
+
+        The range guard keeps stale indices (e.g. selected rows removed
+        mid-rebuild) from ever escaping as phantom paths.
+        """
+        return [
+            Gtk.TreePath(index)
+            for index in sorted(child.get_index() for child in self.get_selected_children())
+            if 0 <= index < len(self._ordered_ids)
+        ]
 
     def select_path(self, path):
         """Selects the item at a path; kept for callers written against IconView."""
@@ -751,8 +759,7 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         if card is not None:
             translated = self.translate_coordinates(card, event.x, event.y)
             if translated is None:
-                self.unselect_all()
-                return True
+                return False
             hit_x, hit_y = translated
             if not (0 <= hit_x < card.get_allocated_width() and 0 <= hit_y < card.get_allocated_height()):
                 self.unselect_all()
