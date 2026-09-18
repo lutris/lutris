@@ -195,7 +195,7 @@ flowboxchild:selected {
   background-color: mix(@theme_base_color, white, 0.08);
   border: 1px solid alpha(currentColor, .12);
   border-radius: 12px;
-  padding: 10px;
+  padding: 4px;
   box-shadow: 0 2px 10px alpha(black, .3);
 }
 

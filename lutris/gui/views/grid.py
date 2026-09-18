@@ -82,8 +82,8 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         self.set_selection_mode(Gtk.SelectionMode.MULTIPLE)
         self.set_activate_on_single_click(False)
         self.set_homogeneous(False)
-        self.set_column_spacing(14)
-        self.set_row_spacing(14)
+        self.set_column_spacing(10)
+        self.set_row_spacing(10)
 
         self._hide_text = hide_text
         self._show_badges = True
