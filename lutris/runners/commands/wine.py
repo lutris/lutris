@@ -4,6 +4,7 @@
 
 import os
 import shlex
+import tempfile
 import time
 from gettext import gettext as _
 from typing import TYPE_CHECKING, cast
@@ -461,7 +462,19 @@ def wineexec(
     runner.prelaunch()
 
     if blocking:
-        return system.execute(command_parameters, env=baseenv, cwd=working_dir)
+        # We collect stderr in a file rather than a pipe: wineserver keeps running with the
+        # stderr it inherited from us, so a pipe would not reach EOF until wineserver times
+        # out, adding seconds to every command.
+        with tempfile.TemporaryFile() as stderr_file:
+            stdout, stderr = system.execute_with_error(
+                command_parameters, env=baseenv, cwd=working_dir, stderr_file=stderr_file
+            )
+        # Blocking commands aren't monitored, so nothing else would report what they said;
+        # regedit in particular reports its failures here and still exits 0. This is debug
+        # output because umu is very chatty, and only the rare failure is worth reading.
+        for line in stdout.splitlines() + stderr.splitlines():
+            logger.debug("%s: %s", executable or wine_path, line)
+        return stdout
 
     command = MonitoredCommand(
         command_parameters,
