@@ -84,6 +84,17 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         self.set_homogeneous(False)
         self.set_column_spacing(10)
         self.set_row_spacing(10)
+        # Natural height, top-aligned: rows keep their size and the
+        # ScrolledWindow scrolls instead of stretching rows to fit.
+        self.set_valign(Gtk.Align.START)
+        self.set_vexpand(False)
+        # Left-aligned fixed-width grid (see _fit_width_to_viewport):
+        # leftover window width stays on the right edge, never card stretch.
+        self.set_halign(Gtk.Align.START)
+        self._card_min_width = 0
+        self._fit_pending = False
+        self._viewport = None
+        self._viewport_alloc_id = None
 
         self._hide_text = hide_text
         self._show_badges = True
@@ -107,11 +118,89 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         self.connect("child-activated", self.on_child_activated)
         self.connect("selected-children-changed", self.on_selection_changed)
         self.connect("button-press-event", self.on_button_press)
+        self.connect("hierarchy-changed", self._on_hierarchy_changed)
         self.connect("destroy", self._disconnect_model)
         self.connect("destroy", self._on_destroy)
 
     def _on_destroy(self, _widget):
         self.categories_registration.unregister()
+        self._untrack_viewport()
+
+    def _on_hierarchy_changed(self, _widget, _previous_toplevel):
+        """Retracks the viewport whenever the view is (un)parented."""
+        self._track_viewport()
+
+    def _track_viewport(self):
+        """Observes the viewport's resizes; our own allocation goes quiet
+        while overflowing, so it alone cannot trigger refits."""
+        self._untrack_viewport()
+        viewport = self.get_parent()
+        if viewport is None:
+            return
+        self._viewport = viewport
+        self._viewport_alloc_id = viewport.connect("size-allocate", self._on_viewport_allocate)
+
+    def _untrack_viewport(self):
+        """Disconnects the viewport handler (it outlives the view)."""
+        if self._viewport is not None and self._viewport_alloc_id is not None:
+            try:
+                self._viewport.disconnect(self._viewport_alloc_id)
+            except TypeError:  # already disconnected
+                pass
+        self._viewport = None
+        self._viewport_alloc_id = None
+
+    def _on_viewport_allocate(self, _viewport, allocation):
+        """Schedules a refit on every viewport resize."""
+        if self._model is None or not self._ordered_ids or allocation.width <= 1:
+            return
+        self._schedule_fit()
+
+    def _schedule_fit(self):
+        """Coalesces refit requests into one idle callback."""
+        if self._fit_pending:
+            return
+        self._fit_pending = True
+        schedule_at_idle(self._apply_fit_width)
+
+    def _apply_fit_width(self):
+        """Idle callback applying the width fit outside layout."""
+        self._fit_pending = False
+        if self._model is None:
+            return
+        self._fit_width_to_viewport()
+
+    def _fit_width_to_viewport(self):
+        """Requests exactly the width of the columns that fit, left-aligned.
+
+        FlowBox always spreads leftover width into its cells, so a
+        full-width grid means stretching cards (FILL) or gaps (fixed
+        cards). Instead the grid sizes itself to whole columns: leftover
+        stays on the right edge, cards and gaps stay pixel-stable
+        while resizing and only the column count snaps at thresholds.
+        The request never exceeds the viewport, so no horizontal scrolling
+        and no feedback loop: it only shrinks us, never the viewport.
+        """
+        if self._model is None or not self._ordered_ids or self._card_min_width <= 0:
+            return
+        parent = self.get_parent()
+        if parent is None:
+            return
+        viewport_width = parent.get_allocated_width()
+        if viewport_width <= 1:
+            return
+        spacing = self.get_column_spacing()
+        try:
+            padding = self.get_style_context().get_padding(Gtk.StateFlags.NORMAL)
+            horizontal_padding = padding.left + padding.right
+        except Exception:  # noqa: BLE001 - fall back to the CSS default below
+            horizontal_padding = 16
+        available = viewport_width - horizontal_padding
+        columns = max(1, (available + spacing) // (self._card_min_width + spacing))
+        request = columns * (self._card_min_width + spacing) - spacing + horizontal_padding
+        request = max(self._card_min_width + horizontal_padding, min(request, viewport_width))
+        if self.get_size_request()[0] != request:
+            self.set_size_request(request, -1)
 
     @property
     def cards_by_id(self):
@@ -223,6 +312,13 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
             self.add(card)
             tree_iter = self._model.iter_next(tree_iter)
         self.show_all()
+        first_card = next(iter(self._cards_by_id.values()), {}).get("card")
+        if first_card is not None:
+            minimum, _natural = first_card.get_preferred_width()
+            if minimum > 0:
+                self._card_min_width = minimum
+        # Rebuilds run at idle (outside layout), so fitting directly is safe.
+        self._fit_width_to_viewport()
         for game_id in selected_ids:
             if game_id in self._cards_by_id:
                 child = self._cards_by_id[game_id]["card"].get_parent()
@@ -298,7 +394,10 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         installed = bool(model.get_value(tree_iter, COL_INSTALLED))
         card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0, visible=True)
         card.set_valign(Gtk.Align.START)
-        card.set_halign(Gtk.Align.CENTER)
+        # Fills its exactly-fitted cell (see _fit_width_to_viewport) so
+        # rounding dust never shows; cards keep a constant size.
+        card.set_halign(Gtk.Align.FILL)
+        card.set_hexpand(True)
         card.get_style_context().add_class("game-card")
 
         refs = {
