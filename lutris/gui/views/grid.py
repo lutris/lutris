@@ -434,6 +434,10 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
             star_button.set_always_show_image(True)
             star_button.set_halign(Gtk.Align.END)
             star_button.set_valign(Gtk.Align.START)
+            # Same corner insets as the badge box below, so both pills
+            # sit on one vertical line.
+            star_button.set_margin_top(8)
+            star_button.set_margin_end(8)
             star_button.get_style_context().add_class("game-card-favorite")
             self._update_star_button(star_button, game_id)
             star_button.connect("clicked", self._on_star_clicked, game_id)
@@ -554,9 +558,26 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         pixbuf = self._load_pixbuf(icon_path, (size, size), True)
         if pixbuf is None:
             return None
-        icon = Gtk.Image.new_from_pixbuf(pixbuf)
+        key = ("badge-tint", icon_path, size)
+        tinted = self._pixbuf_cache.get(key)
+        if tinted is None:
+            tinted = self._tinted_badge_icon(pixbuf)
+            self._cache_pixbuf(key, tinted)
+        icon = Gtk.Image.new_from_pixbuf(tinted)
         icon.get_style_context().add_class("game-card-badge")
         return icon
+
+    @staticmethod
+    def _tinted_badge_icon(pixbuf):
+        """Repaints badge artwork as a light-grey glyph (alpha mask), so it
+        reads on black, white and colored banners alike."""
+        width, height = pixbuf.get_width(), pixbuf.get_height()
+        surface = Gdk.cairo_surface_create_from_pixbuf(pixbuf, 1, None)
+        target = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+        context = cairo.Context(target)
+        context.set_source_rgb(0.9, 0.9, 0.9)
+        context.mask_surface(surface, 0, 0)
+        return Gdk.pixbuf_get_from_surface(target, 0, 0, width, height)
 
     def _set_card_art(self, art, model, tree_iter):
         """Loads (or reloads) the artwork of one tile."""
