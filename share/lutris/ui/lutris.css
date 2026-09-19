@@ -243,3 +243,11 @@ flowboxchild:selected {
   padding: 2px 8px;
   font-weight: bold;
 }
+
+/* Dark pill behind platform badges: light icons stay readable on any
+   artwork, black banners and white banners alike. */
+.game-card-badge {
+  background-color: rgba(0, 0, 0, .55);
+  border-radius: 999px;
+  padding: 5px;
+}

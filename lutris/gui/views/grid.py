@@ -541,7 +541,9 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         pixbuf = self._load_pixbuf(icon_path, (size, size), True)
         if pixbuf is None:
             return None
-        return Gtk.Image.new_from_pixbuf(pixbuf)
+        icon = Gtk.Image.new_from_pixbuf(pixbuf)
+        icon.get_style_context().add_class("game-card-badge")
+        return icon
 
     def _set_card_art(self, art, model, tree_iter):
         """Loads (or reloads) the artwork of one tile."""
