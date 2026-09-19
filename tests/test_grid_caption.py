@@ -66,6 +66,14 @@ class TestTileCaption(unittest.TestCase):
             'Esc &lt;b&gt;\n<span size="smaller" alpha="60%">Wine • Windows</span>',
         )
 
+    def test_tooltip_is_plain_unescaped_text(self):
+        model = FakeModel({COL_NAME: "Esc &lt;b&gt;", COL_RUNNER_HUMAN_NAME: "Wine", COL_PLATFORM: "Windows"})
+        self.assertEqual(GameGridView.tile_tooltip_text(model, None), "Esc <b>\nWine • Windows")
+
+    def test_tooltip_without_details_is_bare_name(self):
+        model = FakeModel({COL_NAME: "NoMeta", COL_RUNNER_HUMAN_NAME: "", COL_PLATFORM: None})
+        self.assertEqual(GameGridView.tile_tooltip_text(model, None), "NoMeta")
+
 
 if __name__ == "__main__":
     unittest.main()

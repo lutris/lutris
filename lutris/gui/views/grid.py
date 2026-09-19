@@ -7,10 +7,11 @@ signals, show_badges, hide_text) is unchanged from the IconView era.
 """
 
 # pylint: disable=no-member
+import html
 from gettext import gettext as _
 
 import cairo
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gtk, Pango
 
 from lutris import settings
 from lutris.database import categories as categories_db
@@ -459,9 +460,13 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         if not self._hide_text:
             caption = Gtk.Label(visible=True, xalign=0.5)
             caption.set_markup(self.tile_caption_markup(model, tree_iter))
-            caption.set_line_wrap(True)
+            # Single-line ellipsis (never wrapping): long names end in "…"
+            # and the full name stays one hover away.
+            caption.set_line_wrap(False)
+            caption.set_ellipsize(Pango.EllipsizeMode.END)
             caption.set_justify(Gtk.Justification.CENTER)
             caption.set_size_request(max(self._media_size[0], self.min_width), -1)
+            caption.set_tooltip_text(self.tile_tooltip_text(model, tree_iter))
             refs["caption"] = caption
             card.pack_start(caption, False, False, 0)
 
@@ -653,6 +658,23 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
         )
         if details:
             return '%s\n<span size="smaller" alpha="60%%">%s</span>' % (name, details)
+        return name
+
+    @staticmethod
+    def tile_tooltip_text(model, tree_iter):
+        """Plain-text version of the caption for the hover tooltip; store
+        values come markup-escaped, so unescape them for display."""
+        name = html.unescape(model.get_value(tree_iter, COL_NAME) or "")
+        details = " • ".join(
+            html.unescape(part)
+            for part in (
+                model.get_value(tree_iter, COL_RUNNER_HUMAN_NAME),
+                model.get_value(tree_iter, COL_PLATFORM),
+            )
+            if part
+        )
+        if details:
+            return "%s\n%s" % (name, details)
         return name
 
     @staticmethod

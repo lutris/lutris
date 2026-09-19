@@ -87,7 +87,9 @@ class GameBar(Gtk.Box):
 
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12, visible=True)
         self.pack_start(row, False, False, 0)
-        row.pack_start(title_box, False, False, 0)
+        # Expandable so long titles squeeze (and ellipsize) instead of
+        # forcing the whole bar to their natural width.
+        row.pack_start(title_box, True, True, 0)
 
         hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL, spacing=12, visible=True)
         hbox.set_hexpand(True)
@@ -181,6 +183,8 @@ class GameBar(Gtk.Box):
     def get_game_name_label(self):
         """Return the label with the game's title"""
         title_label = Gtk.Label(visible=True)
+        title_label.set_hexpand(True)
+        title_label.set_max_width_chars(30)
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
         title_label.set_markup("<span font_desc='16'><b>%s</b></span>" % gtk_safe(self.game.name))
         return title_label
