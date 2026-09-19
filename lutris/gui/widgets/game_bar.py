@@ -181,10 +181,10 @@ class GameBar(Gtk.Box):
         return button
 
     def get_game_name_label(self):
-        """Return the label with the game's title"""
+        """Return the label with the game's title; it squeezes with the bar
+        and ellipsizes at the bar's right edge instead of forcing its width."""
         title_label = Gtk.Label(visible=True)
         title_label.set_hexpand(True)
-        title_label.set_max_width_chars(30)
         title_label.set_ellipsize(Pango.EllipsizeMode.END)
         title_label.set_markup("<span font_desc='16'><b>%s</b></span>" % gtk_safe(self.game.name))
         return title_label
