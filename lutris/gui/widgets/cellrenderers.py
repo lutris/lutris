@@ -130,6 +130,9 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._service = None
         self._media_paths = []
         self._show_badges = True
+        # Floating card behind the art: grid tiles only. TreeView rows
+        # (fixed-width columns) would clip its bleed on every side.
+        self.render_card_background = True
         self._platform = None
         self._is_installed = True
         self.cached_surfaces_new = {}
@@ -282,7 +285,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             if surface:
                 media_area = self.get_media_area(surface, cell_area)
                 self.select_badge_metrics(surface, media_width, media_height)
-                if self.is_library_view():
+                if self.is_library_view() and self.render_card_background:
                     self.render_card(
                         cr,
                         widget,
@@ -499,7 +502,9 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             return (0.184, 0.184, 0.192, 1.0)
 
     def _render_badges(self, cr, widget, surface, media_area):
-        self.render_platforms(cr, widget, surface, 0, media_area)
+        # Coordinates are media-relative: TreeView columns start past x=0,
+        # so absolute origins would paint (and clip) outside the cell.
+        self.render_platforms(cr, widget, surface, media_area.x, media_area)
 
         game_id = self.game_id
         if game_id:
@@ -507,7 +512,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 game_id = self.service.resolve_game_id(game_id)
 
             if game_id in MISSING_GAMES.missing_game_ids:
-                self.render_text_badge(cr, widget, _("Missing"), 0, media_area.y + media_area.height)
+                self.render_text_badge(cr, widget, _("Missing"), media_area.x, media_area.y + media_area.height)
 
     def render_platforms(self, cr, widget, surface, surface_x, media_area):
         """Renders the stack of platform icons."""

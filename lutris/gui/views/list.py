@@ -43,6 +43,9 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
         # Image column
         if settings.SHOW_MEDIA:
             self.image_renderer = GridViewCellRendererImage()
+            # Fixed-width TreeView columns clip the floating card's bleed;
+            # list rows show the bare artwork with badges instead.
+            self.image_renderer.render_card_background = False
             self.media_column = Gtk.TreeViewColumn(
                 "",
                 self.image_renderer,
@@ -50,6 +53,7 @@ class GameListView(Gtk.TreeView, GameView):  # type:ignore[misc]
                 is_installed=COL_INSTALLED,
                 game_id=COL_ID,
                 name=COL_NAME,
+                platform=COL_PLATFORM,
             )
             self.media_column.set_reorderable(True)
             self.media_column.set_sort_indicator(False)
