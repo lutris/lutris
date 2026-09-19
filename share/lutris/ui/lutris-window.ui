@@ -332,7 +332,7 @@
               <object class="GtkToggleButton" id="search_filters_button">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="receives-default">True</property>
+                <property name="receives-default">False</property>
                 <property name="action-name">win.open-search-filters</property>
                 <child>
                   <object class="GtkImage">
@@ -348,9 +348,6 @@
                 <property name="position">1</property>
               </packing>
             </child>
-            <style>
-              <class name="linked"/>
-            </style>
           </object>
           <packing>
             <property name="position">1</property>

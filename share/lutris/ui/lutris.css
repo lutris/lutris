@@ -107,6 +107,11 @@ headerbar entry.search {
   padding: 4px 14px;
 }
 
+/* Filter toggle detached from the search pill, stock look otherwise */
+#search_filters_button {
+  margin-left: 10px;
+}
+
 /* Primary Add action: filled theme-accent pill, impossible to miss */
 .add-button {
   background-color: @theme_selected_bg_color;
