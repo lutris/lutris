@@ -420,9 +420,12 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
             refs["art"] = art
 
             overlay = Gtk.Overlay(visible=True)
-            # Sized by the artwork (not the card) so overlays anchor to the
-            # art's edges instead of floating in the card's empty areas.
+            # Fixed media box (not shrunk to the artwork): short fallback
+            # art centers inside it like the old grid, cards keep a uniform
+            # height, and overlays anchor to the box corners instead of
+            # jamming onto a little art strip.
             overlay.set_halign(Gtk.Align.CENTER)
+            overlay.set_size_request(*self._media_size)
             overlay.add(art)
 
             star_button = Gtk.Button(visible=True, relief=Gtk.ReliefStyle.NONE, focus_on_click=False)
@@ -461,9 +464,14 @@ class GameGridView(Gtk.FlowBox, GameView):  # type:ignore[misc]
             caption = Gtk.Label(visible=True, xalign=0.5)
             caption.set_markup(self.tile_caption_markup(model, tree_iter))
             # Single-line ellipsis (never wrapping): long names end in "…"
-            # and the full name stays one hover away.
+            # and the full name stays one hover away. The char cap keeps the
+            # label's natural width inside the card; without it FlowBox sizes
+            # the whole column by the title and ellipsis never engages.
             caption.set_line_wrap(False)
             caption.set_ellipsize(Pango.EllipsizeMode.END)
+            # Capped near the card width so long titles neither stretch
+            # their column nor skip the ellipsis above.
+            caption.set_max_width_chars(22)
             caption.set_justify(Gtk.Justification.CENTER)
             caption.set_size_request(max(self._media_size[0], self.min_width), -1)
             caption.set_tooltip_text(self.tile_tooltip_text(model, tree_iter))

@@ -203,6 +203,15 @@ class TestFlowBoxGrid(unittest.TestCase):
         self.assertEqual(len(overlays), 1)
         self.assertEqual(overlays[0].get_halign(), Gtk.Align.CENTER)
 
+    def test_overlay_reserves_full_media_box(self):
+        # Short fallback art must letterbox inside a fixed media box (like
+        # the old grid) instead of shrinking the card; overlays anchor to
+        # the box corners. Test media size is (184, 69) in make_view.
+        view = make_view([make_row("1", "Undertail")])
+        card = view._cards_by_id["1"]["card"]
+        overlays = [c for c in card.get_children() if isinstance(c, Gtk.Overlay)]
+        self.assertEqual(overlays[0].get_size_request(), (184, 69))
+
     def test_star_button_present(self):
         view = make_view([make_row("1", "Undertail")])
         star_button = view._cards_by_id["1"]["star_button"]
