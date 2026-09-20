@@ -95,6 +95,18 @@ class MonitoredCommand:
     def stdout(self) -> str:
         return self._stdout.getvalue()
 
+    @property
+    def game_process_has_exited(self) -> bool:
+        """True once the process has exited. Unlike 'is_running', this does not wait for the
+        GLib main loop to notice, so it is accurate even in code that blocks the main loop.
+        The process is left unreaped, for on_stop() to collect as usual."""
+        if not self.game_process or self.game_process.returncode is not None:
+            return True
+        try:
+            return os.waitid(os.P_PID, self.game_process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT) is not None
+        except ChildProcessError:
+            return True  # already reaped
+
     def get_wrapper_command(self) -> list[str]:
         """Return launch arguments for the wrapper script"""
         # Invoke the wrapper via the current Python explicitly rather than

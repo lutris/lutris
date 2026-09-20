@@ -203,11 +203,13 @@ class LutrisConfig:
         if config:
             existing_env = None
             if self.system_config.get("env") and "env" in config:
-                existing_env = self.system_config["env"]
+                # Copy this; it belongs to the config level we cascaded it from, and
+                # merging the next level's variables into it would alter that level.
+                existing_env = dict(self.system_config["env"])
             self.system_config.update(config)
             if existing_env:
+                existing_env.update(config["env"])
                 self.system_config["env"] = existing_env
-                self.system_config["env"].update(config["env"])
 
         # Don't save env items where the key is empty; this would crash when used.
         if "env" in self.system_config:

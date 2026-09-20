@@ -318,7 +318,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 except KeyError as err:
                     raise ScriptingError(_("Installer commands are not formatted correctly")) from err
                 self.current_command += 1
-                method, params = self._map_command(command)
+                command_name, method, params = self._map_command(command)
                 if isinstance(params, dict):
                     status_text = params.pop("description", None)
                 else:
@@ -326,6 +326,22 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 if status_text:
                     self.interpreter_ui_delegate.report_status(status_text)
                 logger.debug("Installer command: %s", command)
+
+                def run_command():
+                    """Run the command, reporting any error that isn't already meant for the
+                    user as a ScriptingError naming the directive that failed. A malformed
+                    script tends to fail deep inside a command with something like an
+                    AttributeError, which tells the user nothing on its own."""
+                    try:
+                        return method(params)
+                    except (ScriptingError, MissingGameDependencyError):
+                        raise
+                    except Exception as command_error:
+                        raise ScriptingError(
+                            _("Error in the '%(command)s' installer command: %(error)s")
+                            % {"command": command_name, "error": command_error},
+                            faulty_data=params,
+                        ) from command_error
 
                 if self.target_path and os.path.exists(self.target_path):
                     # Establish a CWD for the command, but remove it afterwards
@@ -335,13 +351,13 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                         prev_cwd = os.getcwd()
                         os.chdir(self.target_path)
                         try:
-                            return method(params)
+                            return run_command()
                         finally:
                             os.chdir(prev_cwd)
 
                     AsyncCall(dispatch, self._iter_commands)
                 else:
-                    AsyncCall(method, self._iter_commands, params)
+                    AsyncCall(run_command, self._iter_commands)
             else:
                 logger.debug("Commands %d out of %s completed", self.current_command, len(commands))
                 self._finish_install()
@@ -365,11 +381,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def _map_command(self, command_data):
         """Map a directive from the `installer` section to an internal
-        method."""
+        method. Returns the directive's name along with it, for error reporting."""
         command_name, command_params = self._get_command_name_and_params(command_data)
         if not hasattr(self, command_name):
             raise ScriptingError(_('The command "%s" does not exist.') % command_name)
-        return getattr(self, command_name), command_params
+        return command_name, getattr(self, command_name), command_params
 
     def _finish_install(self):
         game_id, game_config = self.installer.save()

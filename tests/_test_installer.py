@@ -65,7 +65,8 @@ class TestScriptInterpreter(TestCase):
 
     def test_get_command_returns_a_method(self):
         interpreter = MockInterpreter(TEST_INSTALLER, None)
-        command, params = interpreter._map_command({"move": "whatever"})
+        command_name, command, params = interpreter._map_command({"move": "whatever"})
+        self.assertEqual(command_name, "move")
         self.assertIn("bound method CommandsMixin.move", str(command))
         self.assertEqual(params, "whatever")
 

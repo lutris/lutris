@@ -139,7 +139,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
         # Expensive fields are lazy; see properties below.
         self._shared_libraries: dict[str, list[SharedLibrary]] | None = None
-        self._glxinfo: GlxInfo | None | object = self._glxinfo_unset
+        self._glxinfo: GlxInfo | object | None = self._glxinfo_unset
 
     @property
     def shared_libraries(self) -> dict[str, list["SharedLibrary"]]:

@@ -114,9 +114,10 @@ def is_winewayland_available(runner_version: str) -> bool:
             "lib/wine/x86_64-windows/winewayland.drv",
             "lib/wine/i386-windows/winewayland.drv",
         )
-        if not any(os.path.exists(os.path.join(files_dir, winewayland_path)) for winewayland_path in winewayland_paths):
-            return False
+        return any(os.path.exists(os.path.join(files_dir, winewayland_path)) for winewayland_path in winewayland_paths)
 
+    # If there's no file dir to check, we assume Wayland is available- this
+    # happens for GE_PROTON_LATEST.
     return True
 
 
@@ -187,7 +188,7 @@ def get_runner_files_dir_for_version(version: str) -> str | None:
     if version in WINE_PATHS:
         return None
     elif proton.is_proton_version(version):
-        return os.path.join(WINE_DIR, version, "files")
+        return proton.get_proton_wine_files_dir(version)
     else:
         return os.path.join(WINE_DIR, version)
 

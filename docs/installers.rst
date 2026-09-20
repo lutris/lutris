@@ -281,7 +281,9 @@ Example: ``version: staging-2.21-x86_64``
 
 ``dxvk``: Use this to disable DXVK if needed. (``dxvk: false``)
 
-``dxvk_version``: Use this to define a specific DXVK version. (``dxvk_version: 1.10.3``)
+``dxvk_version``: Use this to define a specific DXVK version. Version values
+must be quoted because YAML can parse numeric-looking versions as numbers.
+(``dxvk_version: "1.10.3"``)
 
 ``esync``: Use this to disable esync. (``esync: false``)
 

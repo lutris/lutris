@@ -168,6 +168,8 @@ def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> str | N
     runner_config = config.runner_config
     if runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported():
         version = runner_config.get("dxvk_version")
+        if version is not None:
+            version = str(version)
         if version and not version.startswith("v1."):
             library_api_version = vkquery.get_vulkan_api_version()
             if library_api_version and library_api_version < REQUIRED_VULKAN_API_VERSION:

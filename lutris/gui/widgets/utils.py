@@ -65,6 +65,26 @@ def get_widget_window(widget: Gtk.Widget | None) -> Gtk.Window | None:
         return None
 
 
+def set_cursor_by_name(widget: Gtk.Widget, name: str | None) -> None:
+    """Applies the named cursor to a widget; if 'name' is None the widget reverts to
+    its default cursor. Does nothing if the widget has not been realized, or if the cursor
+    theme in use has no cursor of that name; Gdk.Cursor.new_from_name() returns NULL then,
+    which PyGObject reports as a TypeError."""
+    gdk_window = widget.get_window()
+    if not gdk_window:
+        return
+
+    cursor = None
+    if name:
+        try:
+            cursor = Gdk.Cursor.new_from_name(widget.get_display(), name)
+        except TypeError:
+            logger.warning("The cursor '%s' is not available in the current cursor theme.", name)
+            return
+
+    gdk_window.set_cursor(cursor)
+
+
 TChildWidget = TypeVar("TChildWidget", bound=Gtk.Widget)
 
 
