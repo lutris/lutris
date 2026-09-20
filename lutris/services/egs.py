@@ -38,22 +38,22 @@ class DieselGameMedia(ServiceMedia):
         game_box_path = os.path.join(self.dest_path, filename)
         logo_path = os.path.join(EGS_LOGO_PATH, filename.replace(".jpg", ".png"))
         has_logo = os.path.exists(logo_path)
-        thumb_image = Image.open(game_box_path)
+        thumb_image = Image.open(game_box_path)  # type: ignore[union-attr]
         thumb_image = thumb_image.convert("RGBA")
         thumb_image = thumbnail_image(thumb_image, self.remote_size)
         if has_logo:
-            logo_image = Image.open(logo_path)
+            logo_image = Image.open(logo_path)  # type: ignore[union-attr]
             logo_image = logo_image.convert("RGBA")
             logo_width, logo_height = logo_image.size
             if logo_width > self.min_logo_x:
                 logo_image = logo_image.resize(
                     (self.min_logo_x, int(logo_height * (self.min_logo_x / logo_width))),
-                    resample=Image.Resampling.BICUBIC,
+                    resample=Image.Resampling.BICUBIC,  # type: ignore[union-attr]
                 )
             elif logo_height > self.min_logo_y:
                 logo_image = logo_image.resize(
                     (int(logo_width * (self.min_logo_y / logo_height)), self.min_logo_y),
-                    resample=Image.Resampling.BICUBIC,
+                    resample=Image.Resampling.BICUBIC,  # type: ignore[union-attr]
                 )
             thumb_image = paste_overlay(thumb_image, logo_image)
         thumb_path = os.path.join(self.dest_path, filename)
@@ -63,7 +63,7 @@ class DieselGameMedia(ServiceMedia):
     def get_media_url(self, details: dict[str, Any]) -> str | None:
         for image in details.get("keyImages", []):
             if image["type"] == self.api_field:
-                return f'{image["url"]}?w={self.remote_size[0]}&resize=1&h={self.remote_size[1]}'
+                return f"{image['url']}?w={self.remote_size[0]}&resize=1&h={self.remote_size[1]}"
         return None
 
 
@@ -245,7 +245,11 @@ class EpicGamesStoreService(OnlineService):
         authorization_code: Optional[str] = None,
     ) -> None:
         if exchange_code:
-            params: dict[str, str] = {"grant_type": "exchange_code", "exchange_code": exchange_code, "token_type": "eg1"}
+            params: dict[str, str] = {
+                "grant_type": "exchange_code",
+                "exchange_code": exchange_code,
+                "token_type": "eg1",
+            }
         elif authorization_code:
             params = {"grant_type": "authorization_code", "code": authorization_code, "token_type": "eg1"}
         else:
@@ -316,7 +320,7 @@ class EpicGamesStoreService(OnlineService):
                     "includeMainGameDetails": True,
                     "country": "US",
                     "locale": "en",
-                },
+                },  # type: ignore[arg-type]
             )
             if response.status_code >= 500:
                 response.raise_for_status()
@@ -349,9 +353,7 @@ class EpicGamesStoreService(OnlineService):
 
     def get_library(self) -> list[dict[str, Any]]:
         self.resume_session()
-        response = self.session.get(
-            f"{self.library_url}/library/api/public/items", params={"includeMetadata": "true"}
-        )
+        response = self.session.get(f"{self.library_url}/library/api/public/items", params={"includeMetadata": "true"})
         response.raise_for_status()
         res_data = response.json()
         records: list[dict[str, Any]] = res_data["records"]
@@ -494,7 +496,7 @@ class EpicGamesStoreService(OnlineService):
         sync_media(installed_slugs)
         logger.debug("All EGS games imported")
 
-    def generate_installer(self, db_game: dict[str, Any], egs_db_game: dict[str, Any]) -> dict[str, Any]:
+    def generate_installer(self, db_game: dict[str, Any], egs_db_game: dict[str, Any]) -> dict[str, Any]:  # type: ignore[override]
         egs_game = Game(egs_db_game["id"])
         egs_config = egs_game.config
         if not egs_config or not egs_config.game_config:
@@ -504,9 +506,7 @@ class EpicGamesStoreService(OnlineService):
         egs_prefix = egs_config.game_config.get("prefix")
 
         if not egs_exe or not egs_prefix:
-            raise RuntimeError(
-                f"EGS game '{egs_db_game.get('id')}' is missing 'exe' or 'prefix' in its configuration."
-            )
+            raise RuntimeError(f"EGS game '{egs_db_game.get('id')}' is missing 'exe' or 'prefix' in its configuration.")
 
         if not os.path.isabs(egs_exe):
             egs_exe = os.path.join(egs_prefix, egs_exe)
@@ -553,14 +553,15 @@ class EpicGamesStoreService(OnlineService):
     def get_installed_runner_name(self, db_game: dict[str, Any]) -> str:
         return self.runner
 
-    def install(self, db_game: dict[str, Any]) -> None:
+    def install(self, db_game: dict[str, Any]) -> None:  # type: ignore[override]
         egs_game = get_game_by_field(self.client_installer, "slug")
         application = Gio.Application.get_default()
+        assert application is not None
         if not egs_game or not egs_game.get("installed"):
             logger.warning("EGS (%s) not installed", self.client_installer)
-            application.show_lutris_installer_window(game_slug=self.client_installer)
+            application.show_lutris_installer_window(game_slug=self.client_installer)  # type: ignore[attr-defined]
         else:
-            application.show_installer_window(
+            application.show_installer_window(  # type: ignore[attr-defined]
                 [self.generate_installer(db_game, egs_game)], service=self, appid=db_game["appid"]
             )
 
