@@ -95,7 +95,14 @@ class SteamService(BaseService):
             return
         steam_games = get_steam_library(steamid)
         if not steam_games:
-            raise RuntimeError(_("Failed to load games. Check that your profile is set to public during the sync."))
+            # An empty library almost always means the separate "Game details"
+            # setting is private, even when the profile itself is public.
+            raise RuntimeError(
+                _(
+                    "Failed to load games. Check that your Steam profile and your game details "
+                    "are both set to public during the sync."
+                )
+            )
         for steam_game in steam_games:
             if steam_game["appid"] in self.excluded_appids:
                 continue
