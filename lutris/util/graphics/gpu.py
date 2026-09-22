@@ -1,3 +1,4 @@
+import functools
 import glob
 import os
 import re
@@ -107,6 +108,29 @@ def get_vk_icd_files() -> list[str]:
     return all_icd_files
 
 
+@functools.cache
+def read_vulkaninfo_summary(icd_files: str = "") -> str | None:
+    """Return the output of 'vulkaninfo --summary', restricted to 'icd_files' if given, or None
+    if it failed. vulkaninfo can take seconds to run on some drivers, so it runs once per set of
+    ICD files, not once per GPU."""
+    if not VULKANINFO_PATH:
+        return None
+    env = dict(os.environ)
+    if icd_files:
+        env["VK_DRIVER_FILES"] = icd_files  # Currently supported
+        env["VK_ICD_FILENAMES"] = icd_files  # Deprecated
+    try:
+        return system.read_process_output(
+            [VULKANINFO_PATH, "--summary"],
+            env=env,
+            error_result=None,
+            stderr_handler=log_vulkan_loader_messages,
+        )
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+        # read_process_output() already logged this; callers fall back to lspci.
+        return None
+
+
 class GPU:
     def __init__(self, card: str):
         self.card = card
@@ -116,13 +140,11 @@ class GPU:
         self.pci_subsys_id = self.gpu_info["PCI_SUBSYS_ID"].lower()
         self.pci_slot = self.gpu_info["PCI_SLOT_NAME"]
         self.icd_files = self.get_icd_files()
+        self.device_uuid: str | None = None
         if VULKANINFO_PATH:
-            try:
-                self.device_uuid = self.get_vulkaninfo_device_uuid()
-                self.name = self.get_vulkaninfo_name() or self.get_lspci_name()
-            except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
-                # already logged this, so we'll just fall back to lspci.
-                self.name = self.get_lspci_name()
+            vulkaninfo = self.get_vulkaninfo()
+            self.device_uuid = self.get_vulkaninfo_device_uuid(vulkaninfo)
+            self.name = self.get_vulkaninfo_name(vulkaninfo) or self.get_lspci_name()
         else:
             self.name = self.get_lspci_name()
 
@@ -160,25 +182,10 @@ class GPU:
         return infos
 
     def get_vulkaninfo(self) -> dict[str, dict[str, str]]:
-        """Runs vulkaninfo to find the GPU name"""
-        if not VULKANINFO_PATH:
-            raise RuntimeError("vulkaninfo is not available")
-        subprocess_env = dict(os.environ)
-        vulkaninfo_output_raw = system.read_process_output(
-            [VULKANINFO_PATH, "--summary"],
-            env=os.environ,
-            error_result=None,
-            stderr_handler=log_vulkan_loader_messages,
-        )
-        if not vulkaninfo_output_raw:
-            subprocess_env["VK_DRIVER_FILES"] = self.icd_files  # Currently supporte
-            subprocess_env["VK_ICD_FILENAMES"] = self.icd_files  # Deprecated
-            vulkaninfo_output_raw = system.read_process_output(
-                [VULKANINFO_PATH, "--summary"],
-                env=subprocess_env,
-                error_result="",
-                stderr_handler=log_vulkan_loader_messages,
-            )
+        """Runs vulkaninfo to find the GPU name; returns an empty dict if vulkaninfo fails."""
+        vulkaninfo_output_raw = read_vulkaninfo_summary()
+        if vulkaninfo_output_raw == "" and self.icd_files:
+            vulkaninfo_output_raw = read_vulkaninfo_summary(self.icd_files)
 
         vulkaninfo_output = vulkaninfo_output_raw.split("\n") if vulkaninfo_output_raw else []
         result = {}
@@ -203,8 +210,7 @@ class GPU:
             return {}
         return result
 
-    def get_vulkaninfo_name(self) -> str | None:
-        vulkaninfo = self.get_vulkaninfo()
+    def get_vulkaninfo_name(self, vulkaninfo: dict[str, dict[str, str]]) -> str | None:
         best_name = None
         for gpu_index in vulkaninfo:
             pci_id = "%s:%s" % (
@@ -217,8 +223,7 @@ class GPU:
                     best_name = name
         return best_name
 
-    def get_vulkaninfo_device_uuid(self) -> str | None:
-        vulkaninfo = self.get_vulkaninfo()
+    def get_vulkaninfo_device_uuid(self, vulkaninfo: dict[str, dict[str, str]]) -> str | None:
         for gpu_index in vulkaninfo:
             pci_id = "%s:%s" % (
                 vulkaninfo[gpu_index]["vendorID"].replace("0x", ""),
