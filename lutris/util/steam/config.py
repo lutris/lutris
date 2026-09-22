@@ -75,12 +75,13 @@ def read_user_config() -> dict[str, Any] | None:
     return config
 
 
-def get_config_value(config: dict[str, Any], key: str) -> Any:
+def get_config_value(config: dict[str, Any], key: str, warn_if_missing: bool = True) -> Any:
     """Fetch a value from a configuration in a case insensitive way"""
     keymap = {k.lower(): k for k in config.keys()}
-    if key not in keymap:
-        logger.warning("Config key %s not found in %s", key, ", ".join(list(config.keys())))
-        return
+    if key.lower() not in keymap:
+        if warn_if_missing:
+            logger.warning("Config key %s not found in %s", key, ", ".join(list(config.keys())))
+        return None
     return config[keymap[key.lower()]]
 
 
@@ -98,22 +99,30 @@ def get_user_data_dirs() -> tuple[str, list[str]]:
     return "", []
 
 
+def _account_recency(account: dict[str, Any]) -> tuple[int, int]:
+    """Sort key putting the most recently used account first"""
+    most_recent = get_config_value(account, "mostrecent", warn_if_missing=False) == "1"
+    try:
+        timestamp = int(get_config_value(account, "timestamp", warn_if_missing=False) or 0)
+    except (TypeError, ValueError):
+        timestamp = 0
+    return int(most_recent), timestamp
+
+
 def get_steam_users() -> list[dict[str, Any]]:
     """Return a list of available Steam users.
     Most recently used account is 1st in the list."""
-    steam_users = []
     user_config = read_user_config()
     if not user_config or "users" not in user_config:
         return []
-    most_recent = None
+    steam_users = []
     for steam_id, account in user_config["users"].items():
         account["steamid64"] = steam_id
-        if get_config_value(account, "mostrecent") == "1":
-            most_recent = account
-        else:
-            steam_users.append(account)
-    if most_recent:
-        steam_users = [most_recent] + steam_users
+        steam_users.append(account)
+    # Steam stopped writing MostRecent, leaving the accounts in file order and
+    # the wrong one syncing on a multi-account setup. Timestamp is the login
+    # time and is still written, so it decides when MostRecent is absent.
+    steam_users.sort(key=_account_recency, reverse=True)
     return steam_users
 
 
