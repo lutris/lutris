@@ -696,7 +696,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         service_id = self.filters.get("service")
         if service_id in services.SERVICES:
             if self.service.online and not self.service.is_authenticated():
-                self.show_empty_label()
                 return []
             return self.get_service_games(service_id)
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
