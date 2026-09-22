@@ -27,10 +27,7 @@ from lutris.util.path_cache import MISSING_GAMES
 
 _MEDIA_CACHE_GENERATION_NUMBER = 0
 
-# Library tile cards: breathing room and rounding around each game's artwork.
-CARD_PADDING = 10
-CARD_RADIUS = 12
-CARD_BOTTOM_MARGIN = 6
+# Corner rounding for tile artwork in list rows.
 MEDIA_RADIUS = 8
 
 
@@ -130,9 +127,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._service = None
         self._media_paths = []
         self._show_badges = True
-        # Floating card behind the art: grid tiles only. TreeView rows
-        # (fixed-width columns) would clip its bleed on every side.
-        self.render_card_background = True
         self._platform = None
         self._is_installed = True
         self.cached_surfaces_new = {}
@@ -285,14 +279,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
             if surface:
                 media_area = self.get_media_area(surface, cell_area)
                 self.select_badge_metrics(surface, media_width, media_height)
-                if self.is_library_view() and self.render_card_background:
-                    self.render_card(
-                        cr,
-                        widget,
-                        media_area,
-                        background_area,
-                        bool(flags & Gtk.CellRendererState.SELECTED),
-                    )
 
                 cr.save()
 
@@ -442,64 +428,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cr.clip()
         self.render_media(cr, widget, surface, x, y)
         cr.restore()
-
-    def render_card(self, cr, widget, media_area, background_area, selected):
-        """Draws the floating card behind a library tile: soft shadow plus a
-        theme-aware surface that frames the artwork and its caption. Selected
-        tiles use the theme selection color instead."""
-        pad = CARD_PADDING
-        x = media_area.x - pad
-        y = media_area.y - pad
-        bottom = background_area.y + background_area.height - CARD_BOTTOM_MARGIN
-        width = media_area.width + pad * 2
-        height = bottom - y
-        if width <= 0 or height <= 0:
-            logger.debug("Skipping card for game %s: degenerate rect", self._game_id)
-            return
-        cr.save()
-        rounded_rectangle_path(cr, x, y + 3, width, height, CARD_RADIUS)
-        cr.set_source_rgba(0, 0, 0, 0.3)
-        cr.fill()
-        style = widget.get_style_context()
-        if selected:
-            color = style.get_background_color(Gtk.StateFlags.SELECTED)
-            rgba = (color.red, color.green, color.blue, color.alpha)
-        else:
-            rgba = self._card_color(style)
-        rounded_rectangle_path(cr, x, y, width, height, CARD_RADIUS)
-        cr.set_source_rgba(*rgba)
-        cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 0.08)
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
-
-    @staticmethod
-    def _card_color(style):
-        """Card surface: pulled firmly toward a fixed pole so cards read on
-        any background, while keeping a hint of the theme. Dark themes get a
-        lifted charcoal, light themes a clean near-white."""
-        try:
-            background = style.get_background_color(Gtk.StateFlags.NORMAL)
-            luminance = 0.299 * background.red + 0.587 * background.green + 0.114 * background.blue
-            if luminance > 0.5:
-                pole = (0.96, 0.96, 0.96)
-            else:
-                pole = (0.184, 0.184, 0.192)
-            mix = 0.75
-
-            def blend(base, target):
-                return base * (1 - mix) + target * mix
-
-            return (
-                blend(background.red, pole[0]),
-                blend(background.green, pole[1]),
-                blend(background.blue, pole[2]),
-                1.0,
-            )
-        except Exception:  # noqa: BLE001 - cards must render even if theming fails
-            logger.debug("Could not derive card color, using fallback", exc_info=True)
-            return (0.184, 0.184, 0.192, 1.0)
 
     def _render_badges(self, cr, widget, surface, media_area):
         # Coordinates are media-relative: TreeView columns start past x=0,
