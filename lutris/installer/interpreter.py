@@ -215,6 +215,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
     def launch_install(self, ui_delegate):
         """Launch the install process; returns False if cancelled by the user."""
+        self._unsuppress_runners()
         self.runners_to_install = self.get_runners_to_install()
         self.install_runners(ui_delegate)
         return True
@@ -241,6 +242,12 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     _("Path %s not found, unable to create game folder. Is the disk mounted?"),
                     faulty_data=self.target_path,
                 ) from err
+
+    def _unsuppress_runners(self):
+        """Unsuppress any required runners so the installation can proceed."""
+        runner = self.get_runner_class(self.installer.runner)()
+        if runner.is_suppressed() and runner.is_installed(suppress_allowed=False):
+            runner.unsuppress()
 
     def get_runners_to_install(self):
         """Check if the runner is installed before starting the installation
