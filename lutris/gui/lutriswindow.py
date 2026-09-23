@@ -299,6 +299,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             ),
             "open-search-filters": Action(self.on_open_search_filters),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
+            "open-bug-tracker": Action(lambda *x: open_uri(settings.BUG_TRACKER_URL)),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
             "kill-wine": Action(self.on_kill_wine),
@@ -696,7 +697,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         service_id = self.filters.get("service")
         if service_id in services.SERVICES:
             if self.service.online and not self.service.is_authenticated():
-                self.show_empty_label()
                 return []
             return self.get_service_games(service_id)
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
@@ -844,7 +844,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             # Since get_games_from_filters() seems to be much faster than making a GameStore,
             # we defer the spinner to here, when we know how many games we will show. If there
             # are "many" we show a spinner while the store is built.
-            if len(games) > 512:
+            if not games:
+                self.show_empty_label()
+            elif len(games) > 512:
                 self.show_spinner()
 
             AsyncCall(make_game_store, apply_store, games)
