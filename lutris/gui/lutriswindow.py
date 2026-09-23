@@ -299,6 +299,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             ),
             "open-search-filters": Action(self.on_open_search_filters),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
+            "open-bug-tracker": Action(lambda *x: open_uri(settings.BUG_TRACKER_URL)),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
             "kill-wine": Action(self.on_kill_wine),
