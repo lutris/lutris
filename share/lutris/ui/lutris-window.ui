@@ -791,6 +791,20 @@
           </packing>
         </child>
         <child>
+          <object class="GtkModelButton" id="open_bug_tracker">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="action-name">win.open-bug-tracker</property>
+            <property name="text" translatable="yes">Report a bug</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">13</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkModelButton" id="donate">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
@@ -801,7 +815,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">13</property>
+            <property name="position">14</property>
           </packing>
         </child>
         <child>
@@ -815,7 +829,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">14</property>
+            <property name="position">15</property>
           </packing>
         </child>
       </object>
