@@ -117,18 +117,30 @@ video 65536 0 - Live 0x0000000000000000
 
 
 class TestGetNvidiaDriverInfo(unittest.TestCase):
+    def setUp(self):
+        # get_nvidia_driver_info() is cache_single'd, so without this the first
+        # test to call it decides the answer for all the others.
+        drivers.get_nvidia_driver_info.cache_clear()
+
+    tearDown = setUp
+
+    @unittest.skipUnless(drivers.is_nvidia(), "no Nvidia driver on this machine")
     def test_success_on_current_machine(self):
         drivers.get_nvidia_driver_info()
 
     @patch("os.path.exists", return_value=False)
-    def test_returns_none_if_file_doesnt_exist(self, mock_path_exists):
-        self.assertEqual(drivers.get_nvidia_driver_info(), {})
+    def test_falls_back_to_glxinfo_if_file_doesnt_exist(self, mock_path_exists):
+        with patch.object(drivers, "GlxInfo", return_value=FAKE_GLXINFO_NVIDIA):
+            info = drivers.get_nvidia_driver_info()
+        self.assertEqual(info["vendor"], "NVIDIA Corporation")
+        self.assertEqual(info["version"], "525.105.17")
 
     @patch("builtins.open")
     @patch("os.path.exists", return_value=True)
     def test_from_file(self, mock_path_exists, mock_open):
         for test_type, version_file, expected in DRIVER_VERSION_FILES:
             with self.subTest(test_type):
+                drivers.get_nvidia_driver_info.cache_clear()
                 mock_open.return_value = io.StringIO(version_file)
 
                 actual = drivers.get_nvidia_driver_info()
@@ -197,21 +209,20 @@ class TestGetNvidiaGpuInfo(unittest.TestCase):
     def test_get_from_lspci_glxinfo(self, mock_open, mock_lspci):
         result = drivers.get_nvidia_gpu_info(self.sample_gpu_id)
 
-        self.assertDictContainsSubset(
-            {
-                "Model": "NVIDIA GeForce GTX 1660 SUPER",
-                "IRQ": "35",
-                "Bus Location": self.sample_gpu_id,
-                "Subsystem": "eVga.com. Corp. TU116 [GeForce GTX 1660 SUPER]",
-                "Interrupt": "pin A routed to IRQ 35",
-                "Region 0": "Memory at f6000000 (32-bit, non-prefetchable) [size=16M]",
-                "Region 1": "Memory at e0000000 (64-bit, prefetchable) [size=256M]",
-                "Region 3": "Memory at f0000000 (64-bit, prefetchable) [size=32M]",
-                "Region 5": "I/O ports at e000 [size=128]",
-                "Kernel driver in use": "nvidia",
-            },
-            result,
-        )
+        expected = {
+            "Model": "NVIDIA GeForce GTX 1660 SUPER",
+            "IRQ": "35",
+            "Bus Location": self.sample_gpu_id,
+            "Subsystem": "eVga.com. Corp. TU116 [GeForce GTX 1660 SUPER]",
+            "Interrupt": "pin A routed to IRQ 35",
+            "Region 0": "Memory at f6000000 (32-bit, non-prefetchable) [size=16M]",
+            "Region 1": "Memory at e0000000 (64-bit, prefetchable) [size=256M]",
+            "Region 3": "Memory at f0000000 (64-bit, prefetchable) [size=32M]",
+            "Region 5": "I/O ports at e000 [size=128]",
+            "Kernel driver in use": "nvidia",
+        }
+
+        self.assertEqual(result, {**result, **expected})
 
 
 class TestIsNvidia(unittest.TestCase):
