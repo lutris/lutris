@@ -61,6 +61,9 @@ INSTALLER_REVISION_URL = SITE_URL + "/api/installers/game/%s/revisions/%s"
 GAME_URL = SITE_URL + "/games/%s/"
 RUNTIME_URL = SITE_URL + "/api/runtimes"
 
+GITHUB_URL = "https://github.com/lutris/lutris"
+BUG_TRACKER_URL = GITHUB_URL + "/issues"
+
 STEAM_API_KEY = sio.read_setting("steam_api_key") or "34C9698CEB394AB4401D65927C6B3752"
 STEAM_FAMILY_INCLUDE_OWN = sio.read_setting("steam_family_include_own", default="False")
 
