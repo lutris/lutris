@@ -14,6 +14,7 @@ from lutris.config import LutrisConfig
 from lutris.exceptions import MissingExecutableError
 from lutris.monitored_command import MonitoredCommand
 from lutris.runners import import_runner
+from lutris.runners.commands import register_runner_task
 from lutris.util import linux, system
 from lutris.util.log import logger
 from lutris.util.shell import get_shell_command
@@ -35,6 +36,7 @@ if TYPE_CHECKING:
     from lutris.runners.wine import wine
 
 
+@register_runner_task
 def set_regedit(
     path,
     key,
@@ -43,6 +45,7 @@ def set_regedit(
     wine_path=None,
     prefix=None,
     arch=WINE_DEFAULT_ARCH,
+    env=None,
 ):
     """Add keys to the windows registry.
 
@@ -60,11 +63,12 @@ def set_regedit(
     with open(reg_path, "w", encoding="utf-8") as reg_file:
         reg_file.write('REGEDIT4\n\n[%s]\n"%s"=%s\n' % (path, key, formatted_value[type]))
     logger.debug("Setting [%s]:%s=%s", path, key, formatted_value[type])
-    set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch)
+    set_regedit_file(reg_path, wine_path=wine_path, prefix=prefix, arch=arch, env=env)
     os.remove(reg_path)
 
 
-def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
+@register_runner_task
+def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None, env=None):
     """Apply a regedit file to the Windows registry."""
     if arch == "win64" and wine_path and system.path_exists(wine_path + "64"):
         # Use wine64 by default if set to a 64bit prefix. Using regular wine
@@ -82,11 +86,13 @@ def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_AR
         prefix=prefix,
         arch=arch,
         blocking=True,
+        env=env,
         proton_verb=proton_verb,
     )
 
 
-def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
+@register_runner_task
+def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None, env=None):
     """Deletes a registry key from a Wine prefix"""
 
     if not wine_path or proton.is_proton_path(wine_path):
@@ -99,6 +105,7 @@ def delete_registry_key(key, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH
         prefix=prefix,
         arch=arch,
         blocking=True,
+        env=env,
         proton_verb=proton_verb,
     )
 
@@ -125,10 +132,19 @@ def is_disallowed_fs(prefix):
     return fs_type in disallowed_fs_types
 
 
+@register_runner_task
 def create_prefix(
-    prefix, wine_path=None, arch=WINE_DEFAULT_ARCH, overrides=None, install_gecko=None, install_mono=None, runner=None
+    prefix,
+    wine_path=None,
+    arch=WINE_DEFAULT_ARCH,
+    overrides=None,
+    install_gecko=None,
+    install_mono=None,
+    runner=None,
+    env=None,
 ):
     """Create a new Wine prefix."""
+    env = env or {}
     if overrides is None:
         overrides = {}
     if not prefix:
@@ -198,12 +214,17 @@ def create_prefix(
     if system.path_exists(gecko_cache_dir):
         wineenv["WINE_GECKO_CACHE_DIR"] = gecko_cache_dir
 
-    if install_gecko == "False":
-        wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"
-        overrides["mshtml"] = "disabled"
-    if install_mono == "False":
-        wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
-        overrides["mscoree"] = "disabled"
+    if install_gecko == "False" or install_mono == "False":
+        if install_gecko == "False":
+            wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"
+            overrides["mshtml"] = "disabled"
+        if install_mono == "False":
+            wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
+            overrides["mscoree"] = "disabled"
+        # Update the mshtml and mscoree WINEDLLOVERRIDES to disable the gecko and mono installation dialogs
+        wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
+
+    wineenv.update(env)
 
     if proton.is_umu_path(wine_path) or proton.is_proton_path(wine_path):
         # All proton path prefixes are created via Umu; if you aren't using
@@ -261,6 +282,7 @@ def create_prefix(
     prefix_manager.setup_defaults()
 
 
+@register_runner_task
 def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path="", env=None, initial_pids=None, runner=None):
     """Kill processes in Wine prefix."""
 
@@ -336,6 +358,7 @@ def use_lutris_runtime(wine_path, force_disable=False):
     return True
 
 
+@register_runner_task
 def wineexec(
     executable: str,
     prefix: str,
@@ -418,7 +441,7 @@ def wineexec(
         arch = detect_arch(prefix, wine_path)
     if not is_prefix_directory(prefix):
         wine_bin = winetricks_wine if winetricks_wine and not proton.is_proton_path(wine_path) else wine_path
-        create_prefix(prefix, wine_path=wine_bin, arch=arch, runner=runner)
+        create_prefix(prefix, wine_path=wine_bin, arch=arch, runner=runner, env=env)
 
     wine_system_config = config.system_config if config else runner.system_config
     disable_runtime = disable_runtime or wine_system_config["disable_runtime"]
@@ -521,6 +544,7 @@ def find_winetricks(
     return (winetricks_path, working_dir, env)
 
 
+@register_runner_task
 def winetricks(
     app: str | None,
     prefix: str,
@@ -590,6 +614,7 @@ def winetricks(
     )
 
 
+@register_runner_task
 def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, env=None, runner=None, proton_verb=None):
     """Execute winecfg."""
 
@@ -615,15 +640,17 @@ def winecfg(wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, config=None, en
     )
 
 
-def eject_disc(wine_path: str, prefix: str, proton_verb=None):
+@register_runner_task
+def eject_disc(wine_path: str, prefix: str, proton_verb=None, env=None):
     """Use Wine to eject a drive"""
 
     if proton.is_proton_path(wine_path):
         proton_verb = "run"
-    wineexec("eject", prefix=prefix, wine_path=wine_path, args="-a", proton_verb=proton_verb)
+    wineexec("eject", prefix=prefix, wine_path=wine_path, args="-a", proton_verb=proton_verb, env=env)
 
 
-def install_cab_component(cabfile, component, wine_path: str, prefix=None, arch=None, proton_verb=None):
+@register_runner_task
+def install_cab_component(cabfile, component, wine_path: str, prefix=None, arch=None, proton_verb=None, env=None):
     """Install a component from a cabfile in a prefix"""
 
     if proton.is_proton_path(wine_path):
@@ -632,10 +659,13 @@ def install_cab_component(cabfile, component, wine_path: str, prefix=None, arch=
     files = cab_installer.extract_from_cab(cabfile, component)
     registry_files = cab_installer.get_registry_files(files)
     for registry_file, _arch in registry_files:
-        set_regedit_file(registry_file, wine_path=wine_path, prefix=prefix, arch=_arch, proton_verb=proton_verb)
+        set_regedit_file(
+            registry_file, wine_path=wine_path, prefix=prefix, arch=_arch, proton_verb=proton_verb, env=env
+        )
     cab_installer.cleanup()
 
 
+@register_runner_task
 def open_wine_terminal(
     terminal: str | None, wine_path: str, prefix: str, env: dict[str, str] | None, system_winetricks: bool
 ):
