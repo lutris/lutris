@@ -32,14 +32,27 @@ class RunnersBox(BaseConfigBox):
         self.runner_list_frame.add(self.runner_listbox)
         self.pack_start(self.runner_list_frame, False, False, 0)
 
+    def _add_runner_list_box_row(self, runner):
+        list_box_row = Gtk.ListBoxRow(visible=True)
+        list_box_row.set_selectable(False)
+        list_box_row.set_activatable(False)
+        list_box_row.add(RunnerBox(runner))
+        self.runner_listbox.add(list_box_row)
+
     def populate_runners(self):
         runner_count = 0
+        not_installed_runners = []
+
         for runner_name in sorted(runners.__all__):
-            list_box_row = Gtk.ListBoxRow(visible=True)
-            list_box_row.set_selectable(False)
-            list_box_row.set_activatable(False)
-            list_box_row.add(RunnerBox(runner_name))
-            self.runner_listbox.add(list_box_row)
+            runner = runners.import_runner(runner_name)()
+            if runner.is_installed():
+                self._add_runner_list_box_row(runner)
+                runner_count += 1
+            else:
+                not_installed_runners.append(runner)
+
+        for runner in not_installed_runners:
+            self._add_runner_list_box_row(runner)
             runner_count += 1
 
         self._update_row_visibility()
