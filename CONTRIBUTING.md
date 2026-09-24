@@ -1,6 +1,15 @@
 Contributing to Lutris
 ======================
 
+Note regarding AI and human contributions
+-----------------------------------------
+
+All contributions regardless of how they were generated are subject to the same level of scrutiny and are expected to be useful, understandable and validated.
+You are free to use any tool available to help you create your contributions.
+Contributions that break those rules are subject to being closed without notice.
+If we are particularly impressed by how bad a contribution, we reserve the right to instantly and permanently ban the author from our Github account without notice.
+
+
 Finding features to work on
 ---------------------------
 
