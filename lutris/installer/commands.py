@@ -430,6 +430,8 @@ class CommandsMixin:
 
         for key in data:
             value = data[key]
+            if value is None and task_name == "set_regedit":
+                continue
             if isinstance(value, dict):
                 for inner_key in value:
                     value[inner_key] = self._substitute(value[inner_key])
