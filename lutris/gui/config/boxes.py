@@ -36,7 +36,7 @@ def set_option_wrapper_style_class(wrapper: Gtk.Widget, class_name: str | None):
 
 
 class AdvancedSettingsBox(VBox):
-    """Intermediate vbox class for expsoing the Advanced Visibility options"""
+    """Intermediate vbox class for exposing the Advanced Visibility options"""
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
@@ -65,7 +65,14 @@ class ConfigBox(AdvancedSettingsBox):
 
     config_section = NotImplemented
 
-    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game | None = None, **kwargs) -> None:
+    def __init__(
+        self,
+        config_level: str,
+        lutris_config: LutrisConfig,
+        game: Game | None = None,
+        widget_container: Gtk.Box | None = None,
+        **kwargs,
+    ) -> None:
         super().__init__(**kwargs)
         self.options = []
         self.config_level = config_level
@@ -76,6 +83,7 @@ class ConfigBox(AdvancedSettingsBox):
         self.files = []
         self.files_list_store = None
         self._widget_generator = None
+        self._widget_container = widget_container
         self._filter = ""
         self._filter_text = ""
 
@@ -83,6 +91,8 @@ class ConfigBox(AdvancedSettingsBox):
         self.no_options_label.set_line_wrap(True)
         self.no_options_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         self.pack_end(self.no_options_label, True, True, 0)
+        if self._widget_container:
+            self.pack_end(self._widget_container, True, True, 0)
 
     @property
     def filter(self) -> str:
@@ -123,7 +133,9 @@ class ConfigBox(AdvancedSettingsBox):
         if self._widget_generator:
             return self._widget_generator
 
-        gen = ConfigWidgetGenerator(self)
+        gen = ConfigWidgetGenerator(self, self._widget_container)
+        if self._widget_container:
+            self._widget_container.show_all()
 
         if self.game and self.game.directory:
             gen.default_directory = self.game.directory
@@ -185,24 +197,11 @@ class ConfigBox(AdvancedSettingsBox):
                 logger.exception("Failed to generate option widget for '%s': %s", option.get("option"), ex)
 
         show_advanced = settings.read_setting("show_advanced_options") == "True"
-        self._advanced_visibility = show_advanced
-        gen.update_widgets()
+        self.advanced_visibility = show_advanced
 
     def update_widgets(self):
         if self._widget_generator:
             self._widget_generator.update_widgets()
-
-
-class GameBox(ConfigBox):
-    config_section = "game"
-
-    def __init__(self, config_level: str, lutris_config: LutrisConfig, game: Game, **kwargs):
-        ConfigBox.__init__(self, config_level, lutris_config, game, **kwargs)
-        self.runner = game.runner
-        if self.runner:
-            self.options = self.runner.game_options
-        else:
-            logger.warning("No runner in game supplied to GameBox")
 
 
 class RunnerBox(ConfigBox):
@@ -260,8 +259,8 @@ class SystemConfigBox(ConfigBox):
 
 
 class ConfigWidgetGenerator(WidgetGenerator):
-    def __init__(self, parent: ConfigBox) -> None:
-        super().__init__(parent, parent.lutris_config)
+    def __init__(self, parent: ConfigBox, widget_container: Gtk.Box | None = None) -> None:
+        super().__init__(parent, widget_container, parent.lutris_config)
 
         if parent.config is None or parent.raw_config is None:
             raise RuntimeError("Widgets can't be generated before the config is initialized.")
@@ -270,10 +269,13 @@ class ConfigWidgetGenerator(WidgetGenerator):
         self.raw_config = parent.raw_config
         self.lutris_config = parent.lutris_config
         self.reset_buttons: dict[str, Gtk.Button] = {}
+        # Stores the config currently available for edit in the view
+        self.config_view = self.config
+        self.raw_config_view = self.raw_config
 
     def get_setting(self, option_key: str, default: Any) -> Any:
-        if option_key in self.config:
-            return self.config.get(option_key)
+        if option_key in self.config_view:
+            return self.config_view.get(option_key)
         else:
             return default
 
@@ -281,7 +283,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
         super().update_option_container(option, container, wrapper)
         option_key = option["option"]
 
-        if option_key in self.raw_config:
+        if option_key in self.raw_config_view:
             set_option_wrapper_style_class(wrapper, "option-wrapper-assigned-here")
         else:
             default = self.get_default(option)
@@ -308,7 +310,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
         reset_button.connect("clicked", self.on_reset_button_clicked, option)
         self.reset_buttons[option_key] = reset_button
 
-        if option_key not in self.raw_config:
+        if option_key not in self.raw_config_view:
             reset_button.set_visible(False)
             reset_button.set_no_show_all(True)
 
@@ -332,7 +334,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
     def get_tooltip(self, option: dict[str, Any], value: Any, default: Any):
         tooltip = super().get_tooltip(option, value, default)
         option_key = option["option"]
-        if value != default and option_key not in self.raw_config:
+        if value != default and option_key not in self.raw_config_view:
             tooltip = tooltip + "\n\n" if tooltip else ""
             tooltip += _("<i>(Italic indicates that this option is modified in a lower configuration level.)</i>")
         return tooltip
@@ -367,7 +369,7 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
         btn.set_visible(False)
 
-        self.raw_config.pop(option_key, None)
+        self.raw_config_view.pop(option_key, None)
         self.lutris_config.update_cascaded_config()
 
         self.generate_widget(option, wrapper=wrapper)
@@ -375,11 +377,20 @@ class ConfigWidgetGenerator(WidgetGenerator):
 
     def on_changed(self, option_key, new_value):
         """Common actions when value changed on a widget"""
-        self.raw_config[option_key] = new_value
-        self.config[option_key] = new_value
+        self.raw_config_view[option_key] = new_value
+        self.config_view[option_key] = new_value
         reset_btn = self.reset_buttons.get(option_key)
 
         if reset_btn:
             reset_btn.set_visible(True)
 
         super().on_changed(option_key, new_value)
+
+    def update_widget_values(self):
+        """Updates the values on the widgets using the config model data
+        This is the reverse of on_changed
+        """
+        for option_key, option_setter in self.option_setters.items():
+            option_value = self.raw_config_view.get(option_key, None)
+            if option_value is not None:
+                option_setter(option_value)
