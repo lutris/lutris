@@ -1,3 +1,5 @@
+from typing import Optional
+
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
@@ -20,8 +22,8 @@ class StyleManager(GObject.Object):
     """
 
     _dbus_proxy = None
-    _preferred_theme = "default"
-    _system_theme = None
+    _preferred_theme: Optional[str] = None
+    _system_theme: Optional[str] = None
     _is_dark = False
 
     def __init__(self):
@@ -73,7 +75,9 @@ class StyleManager(GObject.Object):
         try:
             values = obj.call_finish(result)
             if values:
-                value = values[0]
+                # The portal Read method returns (v); unpack() recursively
+                # unwraps all variant layers to plain Python types.
+                value = values.unpack()[0]
                 self.system_theme = self._read_value(value)
             else:
                 raise RuntimeError("Could not read color-scheme")
@@ -84,7 +88,9 @@ class StyleManager(GObject.Object):
         if signal_name != "SettingChanged":
             return
 
-        namespace, name, value = params
+        # params is a GLib.Variant tuple (ssv); unpack() converts to
+        # native Python types so string comparisons and _read_value work.
+        namespace, name, value = params.unpack()
 
         if namespace == "org.freedesktop.appearance" and name == "color-scheme":
             self.system_theme = self._read_value(value)
@@ -113,7 +119,7 @@ class StyleManager(GObject.Object):
         self._update_is_dark()
 
     @property
-    def preferred_theme(self) -> str:
+    def preferred_theme(self) -> Optional[str]:
         """Can be 'light' or 'dark' to override the theme, or 'default' to go with
         the system's default theme."""
         return self._preferred_theme
