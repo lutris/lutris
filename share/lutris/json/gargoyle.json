@@ -1,0 +1,24 @@
+{
+    "name": "gargoyle",
+    "human_name": "Gargoyle",
+    "description": "An IF player with support for most interactive fiction formats",
+    "platforms": ["Z-Machine"],
+    "runnable_alone": "True",
+    "runner_executable": "Gargoyle-x86_64.AppImage",
+    "flatpak_id": "io.github.garglk.Gargoyle",
+    "download_url": "https://github.com/garglk/garglk/releases/download/2026.1.1/Gargoyle-x86_64.AppImage",
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Story File",
+            "help": "supported formats: Z-code(1-5,7-8), Gluxe, TADS 2/3, Adrift(3-4, partial 5), AdvSys, AGT, Alan 2/3, Hugo, Level9, Magnetic, JACL, Scott Adams games"
+        }
+    ],
+    "system_options_override": [
+        {
+            "option": "disable_runtime",
+            "default": true
+        }
+    ]
+}
