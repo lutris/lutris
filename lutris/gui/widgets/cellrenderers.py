@@ -2,7 +2,7 @@
 # pylint:disable=using-constant-test
 # pylint:disable=comparison-with-callable
 from gettext import gettext as _
-from math import floor
+from math import floor, pi
 
 import gi
 
@@ -17,6 +17,7 @@ from gi.repository import Gdk, GObject, Gtk, Pango, PangoCairo
 from lutris.gui.widgets.utils import (
     MEDIA_CACHE_INVALIDATED,
     get_default_icon_path,
+    get_generated_game_art,
     get_runtime_icon_path,
     get_scaled_surface_by_path,
     get_surface_size,
@@ -25,6 +26,20 @@ from lutris.services.service_media import resolve_media_path
 from lutris.util.path_cache import MISSING_GAMES
 
 _MEDIA_CACHE_GENERATION_NUMBER = 0
+
+# Corner rounding for tile artwork in list rows.
+MEDIA_RADIUS = 8
+
+
+def rounded_rectangle_path(cr, x, y, width, height, radius):
+    """Adds a rounded-rectangle sub-path for the given rect to the context."""
+    radius = max(0, min(radius, width / 2, height / 2))
+    cr.new_sub_path()
+    cr.arc(x + width - radius, y + radius, radius, -pi / 2, 0)
+    cr.arc(x + width - radius, y + height - radius, radius, 0, pi / 2)
+    cr.arc(x + radius, y + height - radius, radius, pi / 2, pi)
+    cr.arc(x + radius, y + radius, radius, pi, 3 * pi / 2)
+    cr.close_path()
 
 
 class GridViewCellRendererText(Gtk.CellRendererText):
@@ -37,6 +52,7 @@ class GridViewCellRendererText(Gtk.CellRendererText):
         self.props.wrap_mode = Pango.WrapMode.WORD
         self.props.xalign = 0.5
         self.props.yalign = 0
+        self.props.ypad = 4
         self.fixed_width = None
         self.cached_height = {}
         self.cached_width = {}
@@ -107,6 +123,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._game_id = None
+        self._name = None
         self._service = None
         self._media_paths = []
         self._show_badges = True
@@ -163,6 +180,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     @game_id.setter
     def game_id(self, value):
         self._game_id = value
+
+    @GObject.Property(type=str)
+    def name(self):
+        """The game name, used for generated fallback artwork."""
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     @GObject.Property(type=GObject.TYPE_PYOBJECT)
     def service(self):
@@ -242,6 +268,9 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         if media_width > 0 and media_height > 0 and path:
             surface = self._get_cached_surface_by_path(widget, path, size=(media_width, media_height))
             if not surface:
+                # No art: generated gradient tile first, plain default icon last.
+                surface = get_generated_game_art(self.game_id, self.name, (media_width, media_height))
+            if not surface:
                 # The default icon needs to be scaled to fill the cell space.
                 path = get_default_icon_path((media_width, media_height))
                 surface = self._get_cached_surface_by_path(
@@ -267,12 +296,12 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 media_area.y = 0
 
                 if alpha >= 1:
-                    self.render_media(cr, widget, surface, 0, 0)
+                    self.render_tile_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
                         self._render_badges(cr, widget, surface, media_area)
                 else:
                     cr.push_group()
-                    self.render_media(cr, widget, surface, 0, 0)
+                    self.render_tile_media(cr, widget, surface, 0, 0)
                     if self.show_badges:
                         self._render_badges(cr, widget, surface, media_area)
                     cr.pop_group_to_source()
@@ -387,8 +416,23 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         cr.rectangle(x, y, width, height)
         cr.fill()
 
+    def render_tile_media(self, cr, widget, surface, x, y):
+        """Renders tile artwork; library tiles get rounded corners so they sit
+        cleanly inside their card. Service views keep square artwork."""
+        if not self.is_library_view():
+            self.render_media(cr, widget, surface, x, y)
+            return
+        width, height = get_surface_size(surface)
+        cr.save()
+        rounded_rectangle_path(cr, x, y, width, height, MEDIA_RADIUS)
+        cr.clip()
+        self.render_media(cr, widget, surface, x, y)
+        cr.restore()
+
     def _render_badges(self, cr, widget, surface, media_area):
-        self.render_platforms(cr, widget, surface, 0, media_area)
+        # Coordinates are media-relative: TreeView columns start past x=0,
+        # so absolute origins would paint (and clip) outside the cell.
+        self.render_platforms(cr, widget, surface, media_area.x, media_area)
 
         game_id = self.game_id
         if game_id:
@@ -396,7 +440,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                 game_id = self.service.resolve_game_id(game_id)
 
             if game_id in MISSING_GAMES.missing_game_ids:
-                self.render_text_badge(cr, widget, _("Missing"), 0, media_area.y + media_area.height)
+                self.render_text_badge(cr, widget, _("Missing"), media_area.x, media_area.y + media_area.height)
 
     def render_platforms(self, cr, widget, surface, surface_x, media_area):
         """Renders the stack of platform icons."""

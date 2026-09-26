@@ -1,11 +1,17 @@
 """Various utilities using the GObject framework"""
 
+import colorsys
+import hashlib
 import os
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, TypeVar, cast
 
 import cairo
-from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
+import gi
+
+gi.require_version("PangoCairo", "1.0")
+
+from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk, Pango, PangoCairo
 
 from lutris import settings
 from lutris.exceptions import MissingMediaError
@@ -187,6 +193,38 @@ def get_default_icon_path(size: tuple[int, int]) -> str:
     else:
         filename = "media/default_banner.png"
     return os.path.join(datapath.get(), filename)
+
+
+def get_generated_game_art(game_id: str, name: str, size: tuple[int, int]) -> "cairo.ImageSurface | None":
+    """Fallback artwork for games without art: the game's initial over a
+    deterministic gradient (same game always yields the same tile), so tiles
+    without art look designed instead of broken. Returns None on failure."""
+    width, height = size
+    if width <= 0 or height <= 0:
+        return None
+    try:
+        hue = int(hashlib.md5(str(game_id).encode()).hexdigest(), 16) % 360 / 360.0
+        top_color = colorsys.hsv_to_rgb(hue, 0.55, 0.5)
+        bottom_color = colorsys.hsv_to_rgb((hue + 0.11) % 1.0, 0.6, 0.38)
+        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
+        context = cairo.Context(surface)
+        gradient = cairo.LinearGradient(0, 0, width * 0.3, height)
+        gradient.add_color_stop_rgb(0, *top_color)
+        gradient.add_color_stop_rgb(1, *bottom_color)
+        context.set_source(gradient)
+        context.paint()
+        letter = next((char.upper() for char in str(name or "") if char.isalnum()), "?")
+        layout = PangoCairo.create_layout(context)
+        layout.set_text(letter, -1)
+        layout.set_font_description(Pango.FontDescription.from_string("bold %d" % int(height * 0.42)))
+        _ink, logical = layout.get_pixel_extents()
+        context.move_to((width - logical.width) / 2, (height - logical.height) / 2)
+        context.set_source_rgba(1, 1, 1, 0.92)
+        PangoCairo.show_layout(context, layout)
+        return surface
+    except Exception:  # noqa: BLE001 - generated art is a nicety, never fatal
+        logger.debug("Could not generate artwork", exc_info=True)
+        return None
 
 
 def get_pixbuf_by_path(

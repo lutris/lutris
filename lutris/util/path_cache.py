@@ -154,9 +154,14 @@ class MissingGames:
 
     def _apply_missing_status(self, game_id: str, path: str | None) -> bool:
         """Update ``missing_game_ids`` for one game given its current path,
-        and return True if the membership changed. A falsy path means we
-        can't tell, so the membership is left as-is."""
+        and return True if the membership changed. A falsy path means the
+        game has nowhere to look (unconfigured, ID-only), so it is unknown
+        rather than missing: any stale flag is dropped instead of frozen,
+        otherwise one stale evaluation tags the game forever."""
         if not path:
+            if game_id in self.missing_game_ids:
+                self.missing_game_ids.discard(game_id)
+                return True
             return False
         old_status = game_id in self.missing_game_ids
         new_status = not os.path.exists(path)
