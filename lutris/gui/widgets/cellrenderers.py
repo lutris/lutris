@@ -29,6 +29,9 @@ _MEDIA_CACHE_GENERATION_NUMBER = 0
 
 # Corner rounding for tile artwork in list rows.
 MEDIA_RADIUS = 8
+# Breathing room above and below list artwork; the renderer's ypad is
+# ignored by row sizing, so rows only grow via the reported height.
+LIST_ROW_BREATHING = 10
 
 
 def rounded_rectangle_path(cr, x, y, width, height, radius):
@@ -253,7 +256,8 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         if self.is_library_view() and self._expected_height:
             return self._expected_height, self._expected_height
         size = self._get_preferred_size()
-        return size[1], size[1]
+        height = size[1] + LIST_ROW_BREATHING * 2
+        return height, height
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
         media_path = resolve_media_path(self.media_paths) if self.media_paths else None
