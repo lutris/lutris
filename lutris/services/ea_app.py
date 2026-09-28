@@ -3,6 +3,7 @@
 import json
 import os
 import ssl
+from collections.abc import Iterator
 from gettext import gettext as _
 from typing import Any
 from xml.etree import ElementTree
@@ -16,163 +17,151 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.gui.widgets.utils import Image, thumbnail_image
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
-from lutris.services.service_media import ServiceMedia
+from lutris.services.service_media import LogoOverlayMedia
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
+# SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION, as needed by LegacyRenegotiationHTTPAdapter.
+# Python's ssl module does not expose this OpenSSL flag (it only provides
+# OP_LEGACY_SERVER_CONNECT), so its value has to be passed to OpenSSL directly.
 SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION = 1 << 18
+
+# EA can be slow to answer, but it must never hang a service reload forever.
+HTTP_TIMEOUT = 30
+
+# Number of entitlements to request, and of game details to look up, at a time.
+API_PAGE_SIZE = 100
 
 
 class EAAppGames:
+    """Scans the games installed by the EA App inside a Wine prefix."""
+
     ea_games_location = "Program Files/EA Games"
 
-    def __init__(self, prefix_path):
+    def __init__(self, prefix_path: str) -> None:
         self.prefix_path = prefix_path
         self.ea_games_path = os.path.join(self.prefix_path, "drive_c", self.ea_games_location)
 
-    def iter_installed_games(self):
-        if not os.path.exists(self.ea_games_path):
+    def iter_installed_games(self) -> Iterator[str]:
+        """Yield the name of each folder in the EA Games directory."""
+        try:
+            with os.scandir(self.ea_games_path) as entries:
+                for entry in entries:
+                    if entry.is_dir():
+                        yield entry.name
+        except OSError:
+            logger.debug("No EA Games folder in %s", self.prefix_path)
             return
-        for game_folder in os.listdir(self.ea_games_path):
-            yield game_folder
 
-    def get_installed_games_content_ids(self):
+    def get_installed_games_content_ids(self) -> list[list[str]]:
+        """Return the content IDs of each game installed by the EA App, as read
+        from the installerdata.xml files it writes next to the games."""
         installed_game_ids = []
         for game_folder in self.iter_installed_games():
-            installer_data_path = os.path.join(self.ea_games_path, game_folder, "__Installer/installerdata.xml")
-            if not os.path.exists(installer_data_path):
-                logger.warning("No installerdata.xml for %s", game_folder)
-                continue
-            tree = ElementTree.parse(installer_data_path)
-            nodes = tree.find("contentIDs").findall("contentID")
-            if not nodes:
-                logger.warning("Content ID not found for %s", game_folder)
-                continue
-            installed_game_ids.append([node.text for node in nodes])
+            content_ids = self._read_content_ids(game_folder)
+            if content_ids:
+                installed_game_ids.append(content_ids)
         return installed_game_ids
 
+    def _read_content_ids(self, game_folder: str) -> list[str]:
+        """Return the content IDs in the installerdata.xml of a game folder, or
+        an empty list if it is missing or unreadable."""
+        installer_data_path = os.path.join(self.ea_games_path, game_folder, "__Installer", "installerdata.xml")
+        if not os.path.exists(installer_data_path):
+            logger.warning("No installerdata.xml for %s", game_folder)
+            return []
+        try:
+            tree = ElementTree.parse(installer_data_path)
+        except ElementTree.ParseError:
+            logger.warning("Could not parse %s", installer_data_path)
+            return []
+        content_ids_node = tree.find("contentIDs")
+        content_ids: list[str] = []
+        if content_ids_node is not None:
+            content_ids = [node.text for node in content_ids_node.findall("contentID") if node.text]
+        if not content_ids:
+            logger.warning("Content ID not found for %s", game_folder)
+        return content_ids
 
-EA_LOGO_PATH = os.path.join(settings.CACHE_DIR, "ea_app/primaryLogo")
 
+class EAAppMedia(LogoOverlayMedia):
+    """Media of the EA App games, as returned by the EA API.
 
-class EAAppMedia(ServiceMedia):
+    The API provides the artwork and a separate logo image, and the logo is
+    composited onto the artwork when it is a real logo rather than a duplicate of
+    the artwork itself.
+    """
+
     service = "ea_app"
     file_patterns = ["%s.jpg"]
     name = NotImplemented
-    max_logo_x = None
-    max_logo_y = None
     logo_y_position = 0.7
 
+    # ServiceMedia declares dest_path as a plain attribute; deriving it from the
+    # media name keeps the media directory in sync with that name instead.
     @property
-    def dest_path(self):
-        return os.path.join(settings.CACHE_DIR, self.service, self.name)
+    def dest_path(self) -> str:  # type: ignore[override]
+        return self.get_dest_path()
+
+    @classmethod
+    def get_dest_path(cls) -> str:
+        return os.path.join(settings.CACHE_DIR, cls.service, cls.name)
 
     def get_media_url(self, details: dict[str, Any]) -> str | None:
+        """Return the URL of this media for a game, or None if the API did not
+        provide an image of this type."""
         base_item = details.get("baseItem")
-        if not base_item:
-            return None
-        art = base_item.get(self.name)
-        if not art:
-            return None
-        image = art.get("largestImage")
-        return image.get("path", None) if image is not None else None
+        art = base_item.get(self.name) if isinstance(base_item, dict) else None
+        largest_image = art.get("largestImage") if isinstance(art, dict) else None
+        path = largest_image.get("path") if isinstance(largest_image, dict) else None
+        return path if isinstance(path, str) else None
 
-    @staticmethod
-    def _is_transparent_logo(image):
-        """Check if an image is a transparent logo rather than a full artwork image.
-        A real logo will have significant transparent pixels in its alpha channel."""
-        if image.mode != "RGBA":
-            return False
-        alpha = image.getchannel("A")
-        transparent_pixels = sum(1 for p in alpha.getdata() if p < 128)
-        total_pixels = alpha.size[0] * alpha.size[1]
-        return transparent_pixels > total_pixels * 0.1
 
-    def _render_filename(self, filename):
-        art_path = os.path.join(self.dest_path, filename)
-        logo_path = os.path.join(EA_LOGO_PATH, filename.replace(".jpg", ".png"))
-        if not os.path.exists(logo_path):
-            return
-        try:
-            logo_image = Image.open(logo_path)
-            logo_image = logo_image.convert("RGBA")
-        except Exception:
-            logger.warning("Could not open logo for %s, skipping overlay", filename)
-            return
-        if not self._is_transparent_logo(logo_image):
-            return
-        try:
-            thumb_image = Image.open(art_path)
-            thumb_image = thumb_image.convert("RGBA")
-            thumb_image = thumbnail_image(thumb_image, self.size)
-        except Exception:
-            logger.warning("Could not open art for %s, skipping overlay", filename)
-            return
-        logo_width, logo_height = logo_image.size
-        if logo_width > self.max_logo_x:
-            logo_image = logo_image.resize(
-                (self.max_logo_x, int(logo_height * (self.max_logo_x / logo_width))),
-                resample=Image.Resampling.BICUBIC,
-            )
-        elif logo_height > self.max_logo_y:
-            logo_image = logo_image.resize(
-                (int(logo_width * (self.max_logo_y / logo_height)), self.max_logo_y),
-                resample=Image.Resampling.BICUBIC,
-            )
-        base_width, base_height = thumb_image.size
-        overlay_width, overlay_height = logo_image.size
-        offset_x = int((base_width - overlay_width) / 2)
-        offset_y = int(base_height * self.logo_y_position - overlay_height / 2)
-        offset_y = max(0, min(offset_y, base_height - overlay_height))
-        thumb_image.paste(
-            logo_image,
-            (offset_x, offset_y, overlay_width + offset_x, overlay_height + offset_y),
-            mask=logo_image,
-        )
-        thumb_image = thumb_image.convert("RGB")
-        thumb_image.save(art_path)
+class EAAppPrimaryLogo(EAAppMedia):
+    """The logo images; these are composited onto the other media types."""
 
-    def render(self):
-        if self.max_logo_x is None:
-            return
-        for filename in os.listdir(self.dest_path):
-            self._render_filename(filename)
+    name = "primaryLogo"
+    size = (200, 100)
+    file_patterns = ["%s.png"]
+
+
+EA_LOGO_PATH = EAAppPrimaryLogo.get_dest_path()
 
 
 class EAAppKeyArt(EAAppMedia):
     name = "keyArt"
     size = (192, 108)
-    max_logo_x = 150
-    max_logo_y = 65
+    logo_path = EA_LOGO_PATH
+    logo_max_size = (150, 65)
 
 
 class EAAppPackArt(EAAppMedia):
     name = "packArt"
     size = (135, 240)
-    max_logo_x = 110
-    max_logo_y = 80
-
-
-class EAAppPrimaryLogo(EAAppMedia):
-    name = "primaryLogo"
-    size = (200, 100)
-    file_patterns = ["%s.png"]
-    visible = False
+    logo_path = EA_LOGO_PATH
+    logo_max_size = (110, 80)
 
 
 class EAAppGame(ServiceGame):
     service = "ea_app"
 
     @classmethod
-    def new_from_api(cls, game):
-        ea_game = EAAppGame()
-        ea_game.appid = game["contentId"]
-        ea_game.slug = game["gameSlug"]
-        ea_game.name = game["baseItem"]["title"]
+    def new_from_api(cls, game: dict[str, Any]) -> "EAAppGame | None":
+        """Convert an EA App API game to a service game, or None if the API data
+        is missing the fields that Lutris needs."""
+        base_item = game.get("baseItem")
+        title = base_item.get("title") if isinstance(base_item, dict) else None
+        content_id = game.get("contentId")
+        if not content_id or not title:
+            logger.warning("Skipping an EA game without content ID or title: %s", game)
+            return None
+        ea_game = cls()
+        ea_game.appid = content_id
+        ea_game.slug = game.get("gameSlug") or slugify(str(title))
+        ea_game.name = title
         ea_game.details = json.dumps(game)
         return ea_game
 
@@ -248,7 +237,7 @@ class EAAppService(OnlineService):
     api_url = "https://service-aggregation-layer.juno.ea.com/graphql"
     login_user_agent = settings.DEFAULT_USER_AGENT + " QtWebEngine/5.8.0"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         self.session = requests.session()
@@ -256,19 +245,19 @@ class EAAppService(OnlineService):
         self.access_token = self.load_access_token()
 
     @property
-    def api_headers(self):
+    def api_headers(self) -> dict[str, str]:
         headers = {"User-Agent": self.login_user_agent}
         headers.update(self.get_auth_headers())
         return headers
 
-    def is_connected(self):
+    def is_connected(self) -> bool:
         return bool(self.access_token)
 
-    def login_callback(self, url):
+    def login_callback(self, url: str) -> None:
         self.fetch_access_token()
         SERVICE_LOGIN.fire(self)
 
-    def fetch_access_token(self):
+    def fetch_access_token(self) -> None:
         token_data = self.get_access_token()
         if not token_data:
             raise RuntimeError("Failed to get access token")
@@ -276,24 +265,37 @@ class EAAppService(OnlineService):
             token_file.write(json.dumps(token_data, indent=2))
         self.access_token = self.load_access_token()
 
-    def load_access_token(self):
-        if not os.path.exists(self.token_path):
+    def load_access_token(self) -> str:
+        """Return the stored access token, or an empty string if there is none."""
+        try:
+            with open(self.token_path, encoding="utf-8") as token_file:
+                token_data = json.load(token_file)
+        except FileNotFoundError:
             return ""
-        with open(self.token_path, encoding="utf-8") as token_file:
-            token_data = json.load(token_file)
-            return token_data.get("access_token", "")
+        except (OSError, ValueError):
+            logger.warning("Unreadable EA access token in %s", self.token_path, exc_info=True)
+            return ""
+        if not isinstance(token_data, dict):
+            return ""
+        return token_data.get("access_token") or ""
 
-    def fetch_api(self, query, params: dict | None = None):
-        result = self.session.post(
-            self.api_url, headers=self.api_headers, json={"query": query, "variables": params or {}}
-        ).json()
-
-        if "errors" in result:
-            raise RuntimeError("Errors occurred while running an EA api query.", result["errors"])
-
+    def fetch_api(self, query: str, params: dict | None = None) -> dict[str, Any]:
+        """Run a GraphQL query against the EA API and return the reply."""
+        response = self.session.post(
+            self.api_url,
+            headers=self.api_headers,
+            json={"query": query, "variables": params or {}},
+            timeout=HTTP_TIMEOUT,
+        )
+        response.raise_for_status()
+        result = response.json()
+        if not isinstance(result, dict):
+            raise RuntimeError("Unexpected reply from the EA api: %s" % result)
+        if result.get("errors"):
+            raise RuntimeError("Errors occurred while running an EA api query: %s" % result["errors"])
         return result
 
-    def get_access_token(self):
+    def get_access_token(self) -> dict[str, Any]:
         """Request an access token from EA"""
         response = self.session.get(
             "https://accounts.ea.com/connect/auth",
@@ -304,74 +306,87 @@ class EAAppService(OnlineService):
                 "prompt": "none",
             },
             cookies=self.load_cookies(),
+            timeout=HTTP_TIMEOUT,
         )
         response.raise_for_status()
-        token_data = response.json()
-        return token_data
+        return response.json()
 
-    def _request_identity(self):
+    def _request_identity(self) -> dict[str, Any]:
         response = self.session.get(
             "https://gateway.ea.com/proxy/identity/pids/me",
             cookies=self.load_cookies(),
             headers=self.get_auth_headers(),
+            timeout=HTTP_TIMEOUT,
         )
-        return response.json()
+        response.raise_for_status()
+        identity = response.json()
+        return identity if isinstance(identity, dict) else {}
 
-    def get_identity(self):
+    def _refresh_access_token(self) -> None:
+        """Request a new access token, raising AuthTokenExpiredError if EA refuses."""
+        try:
+            self.fetch_access_token()
+        except Exception:  # pylint: disable=broad-except
+            raise AuthTokenExpiredError("EA access token expired, please log in again")
+
+    def get_identity(self) -> tuple[str, str, str]:
         """Request the user info"""
         if not self.access_token:
             logger.warning("No EA access token, attempting to refresh")
-            try:
-                self.fetch_access_token()
-            except Exception:
-                raise AuthTokenExpiredError("EA access token expired, please log in again")
+            self._refresh_access_token()
 
         identity_data = self._request_identity()
         if identity_data.get("error") == "invalid_access_token":
             logger.warning("Refreshing EA access token")
-            try:
-                self.fetch_access_token()
-            except Exception:
-                raise AuthTokenExpiredError("EA access token expired, please log in again")
+            self._refresh_access_token()
             identity_data = self._request_identity()
-        elif identity_data.get("error"):
-            raise RuntimeError("%s (Error code: %s)" % (identity_data["error"], identity_data["error_number"]))
 
-        if "error" in identity_data:
-            raise RuntimeError(identity_data["error"])
+        error = identity_data.get("error")
+        if error:
+            raise RuntimeError("%s (Error code: %s)" % (error, identity_data.get("error_number")))
 
         player = self.fetch_api("query{me{player{pd psd displayName}}}")["data"]["me"]["player"]
-        user_id = player["pd"]
-        persona_id = player["psd"]
-        user_name = player["displayName"]
-        return str(user_id), str(persona_id), str(user_name)
+        return str(player["pd"]), str(player["psd"]), str(player["displayName"])
 
-    def load(self):
-        user_id, _persona_id, _user_name = self.get_identity()
-        games = self.get_library(user_id)
+    def load(self) -> list[EAAppGame]:
+        # get_identity() refreshes the access token, and raises AuthTokenExpiredError
+        # if the user has to log in again.
+        self.get_identity()
+        games = self.get_library()
         logger.info("Retrieved %s games from EA library", len(games))
-        ea_games = []
+        ea_games: list[EAAppGame] = []
         for game in games:
             ea_game = EAAppGame.new_from_api(game)
-            ea_game.save()
-            ea_games.append(ea_game)
+            if ea_game:
+                ea_game.save()
+                ea_games.append(ea_game)
         return ea_games
 
-    def get_library(self, user_id):
-        """Load EA library"""
-        chunk_size = 100
-        games = []
-        entitlements = list(
-            filter(
-                lambda e: e["product"] is not None and e["product"]["baseItem"]["gameType"] == "BASE_GAME",
-                self.get_entitlements(user_id),
-            )
-        )
-        for chunk in [entitlements[i : i + chunk_size] for i in range(0, len(entitlements), chunk_size)]:
-            games += self.get_games([e["originOfferId"] for e in chunk])
+    def get_library(self) -> list[dict[str, Any]]:
+        """Load the EA library: the API details of each owned base game."""
+        entitlements = [
+            entitlement
+            for entitlement in self.get_entitlements()
+            if entitlement.get("originOfferId") and self._is_base_game(entitlement)
+        ]
+        games: list[dict[str, Any]] = []
+        for start in range(0, len(entitlements), API_PAGE_SIZE):
+            chunk = entitlements[start : start + API_PAGE_SIZE]
+            games += self.get_games([entitlement["originOfferId"] for entitlement in chunk])
         return games
 
-    def get_games(self, offer_ids):
+    @staticmethod
+    def _is_base_game(entitlement: dict[str, Any]) -> bool:
+        """True for the entitlements of a base game. The other entitlements (DLC and
+        the likes) have no artwork of their own, and the EA App does not list them
+        either."""
+        product = entitlement.get("product")
+        if not isinstance(product, dict):
+            return False
+        base_item = product.get("baseItem")
+        return isinstance(base_item, dict) and base_item.get("gameType") == "BASE_GAME"
+
+    def get_games(self, offer_ids: list[str]) -> list[dict[str, Any]]:
         """Load game details from EA"""
         result = self.fetch_api(
             """query getOffers($offerIds: [String!]!) {
@@ -403,38 +418,37 @@ class EAAppService(OnlineService):
             params={"offerIds": offer_ids},
         )
 
-        games = []
-        legacy_offers = result["data"].get("legacyOffers")
-        game_products = (result["data"].get("gameProducts") or {}).get("items", [])
-        by_offer = {p.get("originOfferId"): p for p in game_products if isinstance(p, dict) and p.get("originOfferId")}
-        by_product_id = {p.get("id"): p for p in game_products if isinstance(p, dict) and p.get("id")}
+        data = result.get("data") or {}
+        legacy_offers = data.get("legacyOffers") or []
+        game_products = (data.get("gameProducts") or {}).get("items") or []
+        products = [product for product in game_products if isinstance(product, dict)]
+        by_offer = {p.get("originOfferId"): p for p in products if p.get("originOfferId")}
+        by_product_id = {p.get("id"): p for p in products if p.get("id")}
 
+        games = []
         for legacy_offer in legacy_offers:
             if not isinstance(legacy_offer, dict):
                 continue
-            offer_id = legacy_offer["offerId"]
-            content_id = legacy_offer["contentId"]
+            offer_id = legacy_offer.get("offerId")
+            content_id = legacy_offer.get("contentId")
             if not offer_id:
                 continue
-            product = (
-                by_offer.get(offer_id)
-                or (content_id and by_product_id.get(content_id))
-                or by_product_id.get(offer_id)
-                or {}
-            )
-            # Certain games will have identification data but without any product information.
-            # Skip those.
+            # The game details can be listed under the offer ID or the content ID.
+            product = by_offer.get(offer_id)
+            if not product and content_id:
+                product = by_product_id.get(content_id)
+            if not product:
+                product = by_product_id.get(offer_id)
+            # Certain games have identification data but no product information; skip those.
             if not product:
                 continue
-            game = {"contentId": content_id}
-            game.update(product)
-            games.append(game)
+            games.append({"contentId": content_id, **product})
         return games
 
-    def get_entitlements(self, user_id):
+    def get_entitlements(self) -> list[dict[str, Any]]:
         """Request the user's entitlements"""
-        games = []
-        variables = {"limit": 100}
+        games: list[dict[str, Any]] = []
+        variables: dict[str, Any] = {"limit": API_PAGE_SIZE}
         while True:
             result = self.fetch_api(
                 """query getEntitlements($limit: Int, $next: String) {
@@ -466,13 +480,15 @@ class EAAppService(OnlineService):
             )
 
             products = result["data"]["me"]["ownedGameProducts"]
-            variables["next"] = products["next"]
             games += products["items"]
-            if products["next"] is None:
+            next_cursor = products["next"]
+            # Stop at the end of the list, or if EA hands out the same cursor again.
+            if not next_cursor or next_cursor == variables.get("next"):
                 break
+            variables["next"] = next_cursor
         return games
 
-    def get_auth_headers(self):
+    def get_auth_headers(self) -> dict[str, str]:
         """Return headers needed to authenticate HTTP requests"""
         if not self.access_token:
             raise RuntimeError("User not authenticated to EA")
@@ -482,14 +498,14 @@ class EAAppService(OnlineService):
             "X-AuthToken": self.access_token,
         }
 
-    def add_installed_games(self):
-        ea_app_game = get_game_by_field("ea-app", "slug")
+    def add_installed_games(self) -> None:
+        """Scan the games installed by the EA App and add them to the library."""
+        ea_app_game = get_game_by_field(self.client_installer, "slug")
         if not ea_app_game:
             logger.error("EA App is not installed")
             return
-        ea_app_prefix = ea_app_game["directory"].split("drive_c")[0]
-        if not os.path.exists(os.path.join(ea_app_prefix, "drive_c")):
-            logger.error("Invalid install of EA App at %s", ea_app_prefix)
+        ea_app_prefix = self._get_prefix_path(ea_app_game)
+        if not ea_app_prefix:
             return
         ea_app_launcher = EAAppGames(ea_app_prefix)
         installed_slugs = []
@@ -497,29 +513,52 @@ class EAAppService(OnlineService):
             slug = self.install_from_ea_app(ea_app_game, content_ids)
             if slug:
                 installed_slugs.append(slug)
-        sync_media(installed_slugs)
         logger.debug("Installed %s EA games", len(installed_slugs))
+        sync_media(installed_slugs)
 
-    def install_from_ea_app(self, ea_game, content_ids):
+    @staticmethod
+    def _get_prefix_path(ea_app_game: dict[str, Any]) -> str | None:
+        """Return the Wine prefix that the EA App is installed in, or None if the
+        game directory does not look like a Wine prefix."""
+        directory = ea_app_game.get("directory")
+        if not directory:
+            logger.error("The EA App install has no directory; cannot scan for games.")
+            return None
+        drive_c_index = directory.find("drive_c")
+        if drive_c_index == -1:
+            logger.error("Could not find a Wine prefix in the EA App directory '%s'.", directory)
+            return None
+        prefix_path = directory[:drive_c_index].rstrip("/\\")
+        if not os.path.isdir(os.path.join(prefix_path, "drive_c")):
+            logger.error("Invalid install of EA App at %s", prefix_path)
+            return None
+        return prefix_path
+
+    def install_from_ea_app(self, ea_app_game: dict[str, Any], content_ids: list[str]) -> str | None:
+        """Add a game the EA App installed to the Lutris library, and return the
+        slug of the added game, if it was added."""
+        content_ids = [content_id for content_id in content_ids if content_id]
+        if not content_ids:
+            return None
         offer_id = content_ids[0]
         logger.debug("Installing EA game %s", offer_id)
-        service_game = ServiceGameCollection.get_game("ea_app", offer_id)
+        service_game = ServiceGameCollection.get_game(self.id, offer_id)
         if not service_game:
             logger.error("Aborting install, %s is not present in the game library.", offer_id)
-            return
-        lutris_game_id = slugify(service_game["name"]) + "-" + self.id
+            return None
+        lutris_game_id = slugify(str(service_game["name"])) + "-" + self.id
         existing_game = get_game_by_field(lutris_game_id, "installer_slug")
         if existing_game:
-            return
-        game_config = LutrisConfig(game_config_id=ea_game["configpath"]).game_level
+            return None
+        game_config = LutrisConfig(game_config_id=ea_app_game["configpath"]).game_level
         game_config["game"]["args"] = get_launch_arguments(",".join(content_ids))
         configpath = write_game_config(lutris_game_id, game_config)
-        slug = self.get_installed_slug(ea_game)
+        slug = self.get_installed_slug(service_game)
         add_game(
             name=service_game["name"],
-            runner=ea_game["runner"],
+            runner=ea_app_game["runner"],
             slug=slug,
-            directory=ea_game["directory"],
+            directory=ea_app_game["directory"],
             installed=1,
             installer_slug=lutris_game_id,
             configpath=configpath,
@@ -528,11 +567,20 @@ class EAAppService(OnlineService):
         )
         return slug
 
-    def generate_installer(self, db_game, ea_db_game):
+    def generate_installer(  # type: ignore[override]
+        self, db_game: dict[str, Any], ea_db_game: dict[str, Any]
+    ) -> dict[str, Any]:
         ea_game = Game(ea_db_game["id"])
-        ea_exe = ea_game.config.game_config["exe"]
+        ea_config = ea_game.config
+        if not ea_config or not ea_config.game_config:
+            raise RuntimeError("EA App game '%s' has no configuration." % ea_db_game.get("id"))
+
+        ea_exe = ea_config.game_config.get("exe")
+        ea_prefix = ea_config.game_config.get("prefix")
+        if not ea_exe or not ea_prefix:
+            raise RuntimeError("EA App game '%s' has no 'exe' or 'prefix'." % ea_db_game.get("id"))
         if not os.path.isabs(ea_exe):
-            ea_exe = os.path.join(ea_game.config.game_config["prefix"], ea_exe)
+            ea_exe = os.path.join(ea_prefix, ea_exe)
         return {
             "name": db_game["name"],
             "version": self.name,
@@ -551,7 +599,7 @@ class EAAppService(OnlineService):
                             "name": "wineexec",
                             "executable": ea_exe,
                             "args": get_launch_arguments(db_game["appid"]),
-                            "prefix": ea_game.config.game_config["prefix"],
+                            "prefix": ea_prefix,
                             "description": ("EA App will now open and prompt you to install %s." % db_game["name"]),
                         }
                     }
@@ -559,22 +607,25 @@ class EAAppService(OnlineService):
             },
         }
 
-    def get_installed_runner_name(self, db_game):
+    def get_installed_runner_name(self, db_game: dict[str, Any]) -> str:
         return self.runner
 
-    def install(self, db_game):
+    def install(self, db_game: dict[str, Any]) -> None:  # type: ignore[override]
         ea_app_game = get_game_by_field(self.client_installer, "slug")
         application = Gio.Application.get_default()
-        if not ea_app_game or not ea_app_game["installed"]:
+        assert application is not None
+        if not ea_app_game or not ea_app_game.get("installed"):
             logger.warning("Installing the EA App client")
-            application.show_lutris_installer_window(game_slug=self.client_installer)
+            application.show_lutris_installer_window(game_slug=self.client_installer)  # type: ignore[attr-defined]
         else:
-            application.show_installer_window(
+            application.show_installer_window(  # type: ignore[attr-defined]
                 [self.generate_installer(db_game, ea_app_game)], service=self, appid=db_game["appid"]
             )
 
 
-def get_launch_arguments(content_id, action="launch"):
-    """Return launch argument for EA games.
-    download used to be a valid action but it doesn't seem like it's implemented in EA App."""
+def get_launch_arguments(content_id: str, action: str = "launch") -> str:
+    """Return the launch argument for an EA game.
+
+    download used to be a valid action but it doesn't seem like it's implemented in
+    the EA App."""
     return f"origin2://game/{action}?offerIds={content_id}&autoDownload=1"
