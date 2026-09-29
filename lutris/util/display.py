@@ -17,7 +17,7 @@ try:
 
     # check for AttributeError on newer systems on which the
     # deprecated attributes have been removed
-    GnomeDesktop.RRScreen  # type: ignore
+    GnomeDesktop.RRScreen  # type: ignore  # noqa: B018
 
     LIB_GNOME_DESKTOP_AVAILABLE = True
 except (ValueError, AttributeError):
