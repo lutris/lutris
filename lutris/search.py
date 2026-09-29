@@ -1,6 +1,7 @@
 import copy
 import time
-from typing import Any, Callable, Optional, Set
+from collections.abc import Callable
+from typing import Any
 
 from lutris.database import games
 from lutris.database.categories import (
@@ -34,7 +35,7 @@ ISOLATED_TOKENS = set([":", "-", "(", ")", "<", ">", ">=", "<="])
 ITEM_STOP_TOKENS = (ISOLATED_TOKENS | set(["OR", "AND"])) - set(["(", "-"])
 
 
-def read_flag_token(tokens: TokenReader) -> Optional[bool]:
+def read_flag_token(tokens: TokenReader) -> bool | None:
     token = tokens.get_cleaned_token() or ""
     folded = token.casefold()
     if folded in FLAG_TEXTS:
@@ -43,11 +44,11 @@ def read_flag_token(tokens: TokenReader) -> Optional[bool]:
 
 
 class BaseSearch:
-    tags: Set[str] = set()
+    tags: set[str] = set()
 
     def __init__(self, text: str) -> None:
         self.text = text
-        self.predicate: Optional[SearchPredicate] = None
+        self.predicate: SearchPredicate | None = None
 
     def __str__(self) -> str:
         return self.text
@@ -82,7 +83,7 @@ class BaseSearch:
                 self.predicate = TRUE_PREDICATE
         return self.predicate
 
-    def _parse_or(self, tokens: TokenReader) -> Optional[SearchPredicate]:
+    def _parse_or(self, tokens: TokenReader) -> SearchPredicate | None:
         parsed = self._parse_items(tokens)
         parts = []
         if parsed:
@@ -101,7 +102,7 @@ class BaseSearch:
             return parts[0]
         return OrPredicate(parts)
 
-    def _parse_items(self, tokens: TokenReader) -> Optional[SearchPredicate]:
+    def _parse_items(self, tokens: TokenReader) -> SearchPredicate | None:
         buffer = []
         while True:
             parsed = self._parse_item(tokens)
@@ -116,7 +117,7 @@ class BaseSearch:
             return buffer[0]
         return AndPredicate(buffer)
 
-    def _parse_item(self, tokens: TokenReader) -> Optional[SearchPredicate]:
+    def _parse_item(self, tokens: TokenReader) -> SearchPredicate | None:
         # AND is kinda fake - we and together items by default anyway,
         # so we'll just ignore this conjunction.
         while tokens.consume("AND"):
@@ -265,7 +266,7 @@ class GameSearch(BaseSearch):
 
         return super().get_part_predicate(name, tokens)
 
-    def get_flag_predicate(self, name: str, flag: Optional[bool]) -> Optional[SearchPredicate]:
+    def get_flag_predicate(self, name: str, flag: bool | None) -> SearchPredicate | None:
         if name == "installed":
             return self.get_installed_predicate(flag)
 
@@ -343,7 +344,7 @@ class GameSearch(BaseSearch):
     def get_directory_predicate(self, directory: str) -> SearchPredicate:
         return TextPredicate(directory, lambda c: c.get("directory"), tag="directory")
 
-    def get_installed_predicate(self, installed: Optional[bool]) -> SearchPredicate:
+    def get_installed_predicate(self, installed: bool | None) -> SearchPredicate:
         if self.service:
 
             def is_installed(db_game):
@@ -354,7 +355,7 @@ class GameSearch(BaseSearch):
 
         return FlagPredicate(installed, lambda db_game: bool(db_game["installed"]), tag="installed")
 
-    def get_categorized_predicate(self, categorized: Optional[bool]) -> SearchPredicate:
+    def get_categorized_predicate(self, categorized: bool | None) -> SearchPredicate:
         uncategorized_ids = get_uncategorized_game_ids()
 
         def is_categorized(db_game):
@@ -363,25 +364,50 @@ class GameSearch(BaseSearch):
         return FlagPredicate(categorized, is_categorized, tag="categorized")
 
     def get_category_predicate(self, category: str) -> SearchPredicate:
-        names = normalized_category_names(category, subname_allowed=True)
-        category_game_ids = set(get_game_ids_for_categories(names))
-
-        def match_category(db_game):
-            game_id = db_game["id"]
-            return game_id in category_game_ids
-
+        match_category = self._get_category_matcher(category)
         text = f"category:{self.quote_token(category)}"
         return MatchPredicate(match_category, text=text, tag="category", value=category)
 
-    def get_category_flag_predicate(self, category: str, tag: str, in_category: Optional[bool] = True) -> FlagPredicate:
+    def get_category_flag_predicate(self, category: str, tag: str, in_category: bool | None = True) -> FlagPredicate:
+        # Same matcher as get_category_predicate(), reused for flag predicates
+        # like hidden/favorite/categorized handling within source views.
+        match_category = self._get_category_matcher(category)
+        return FlagPredicate(in_category, match_category, tag=tag)
+
+    def _get_category_matcher(self, category: str) -> Callable[[Any], bool]:
+        """Returns a function that tests a candidate row for membership in 'category'.
+
+        Category membership is stored against local game IDs, but source views iterate
+        service_games rows, so those are matched on the service appid instead.
+        """
         names = normalized_category_names(category, subname_allowed=True)
         category_game_ids = set(get_game_ids_for_categories(names))
 
-        def is_in_category(db_game):
-            game_id = db_game["id"]
-            return game_id in category_game_ids
+        if not self.service:
 
-        return FlagPredicate(in_category, is_in_category, tag=tag)
+            def match_local_category(db_game):
+                # Local view candidates are local DB games, so compare game ID.
+                return str(db_game["id"]) in category_game_ids
+
+            return match_local_category
+
+        # Build the comparable service appid set once.
+        category_games = games.get_games_by_ids(category_game_ids)
+        if self.service.id == "lutris":
+            category_service_appids = {str(game["slug"]) for game in category_games if game.get("slug")}
+        else:
+            category_service_appids = {
+                str(game["service_id"])
+                for game in category_games
+                if game.get("service") == self.service.id and game.get("service_id")
+            }
+
+        def match_service_category(db_game):
+            # Source view candidates are service entries, so compare appid.
+            appid = db_game.get("appid")
+            return bool(appid and category_service_appids and str(appid) in category_service_appids)
+
+        return match_service_category
 
     def get_service_predicate(self, service_name: str) -> SearchPredicate:
         service_name = service_name.casefold()

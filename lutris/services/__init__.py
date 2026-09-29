@@ -1,14 +1,16 @@
 """Service package"""
 
 import os
+from typing import TYPE_CHECKING
 
 from lutris import settings
 from lutris.services.amazon import AmazonService
-from lutris.services.battlenet import BNET_ENABLED, BattleNetService
+from lutris.services.battlenet import BattleNetService
 from lutris.services.dolphin import DolphinService
 from lutris.services.ea_app import EAAppService
 from lutris.services.egs import EpicGamesStoreService
 from lutris.services.flathub import FlathubService
+from lutris.services.gamejolt import GameJoltService
 from lutris.services.gog import GOGService
 from lutris.services.humblebundle import HumbleBundleService
 from lutris.services.itchio import ItchIoService
@@ -25,24 +27,27 @@ from lutris.util import system
 from lutris.util.dolphin.cache_reader import DOLPHIN_GAME_CACHE_FILE
 from lutris.util.linux import LINUX_SYSTEM
 
+if TYPE_CHECKING:
+    from lutris.services.base import BaseService
+
 DEFAULT_SERVICES = ["gog", "egs", "ea_app", "ubisoft", "steam"]
 
 
-def get_services():
+def get_services() -> dict[str, "type[BaseService]"]:
     """Return a mapping of available services"""
     _services = {
         "gog": GOGService,
         "zoomplatform": ZoomService,
         "humblebundle": HumbleBundleService,
         "egs": EpicGamesStoreService,
+        "gamejolt": GameJoltService,
         "itchio": ItchIoService,
         "ea_app": EAAppService,
         "ubisoft": UbisoftConnectService,
         "amazon": AmazonService,
         "flathub": FlathubService,
     }
-    if BNET_ENABLED:
-        _services["battlenet"] = BattleNetService
+    _services["battlenet"] = BattleNetService
     if not LINUX_SYSTEM.is_flatpak():
         _services["xdg"] = XDGService
     if LINUX_SYSTEM.has_steam():
@@ -62,9 +67,11 @@ SERVICES = get_services()
 
 
 # Those services are not yet ready to be used
-WIP_SERVICES = {
-    "mame": MAMEService,
-}
+def get_wip_services() -> dict[str, "type[BaseService]"]:
+    return {"mame": MAMEService}
+
+
+WIP_SERVICES = get_wip_services()
 
 if os.environ.get("LUTRIS_ENABLE_ALL_SERVICES"):
     SERVICES.update(WIP_SERVICES)

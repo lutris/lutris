@@ -8,8 +8,9 @@ import shlex
 import subprocess
 import sys
 import uuid
+from collections.abc import Callable
 from copy import copy
-from typing import List
+from typing import IO, TYPE_CHECKING
 
 from gi.repository import GLib
 
@@ -18,8 +19,13 @@ from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.shell import get_terminal_script
 
+if TYPE_CHECKING:
+    from gi.repository import Gtk
 
-def get_wrapper_script_location():
+    from lutris.runners.runner import Runner
+
+
+def get_wrapper_script_location() -> str:
     """Return absolute path of lutris-wrapper script"""
     wrapper_relpath = "share/lutris/bin/lutris-wrapper"
     candidates = [
@@ -46,15 +52,15 @@ class MonitoredCommand:
 
     def __init__(
         self,
-        command,
-        runner=None,
-        env=None,
-        term=None,
-        cwd=None,
-        include_processes=None,
-        exclude_processes=None,
-        log_buffer=None,
-        title=None,
+        command: list[str],
+        runner: "Runner | None" = None,
+        env: dict[str, str] | None = None,
+        term: str | None = None,
+        cwd: str | None = None,
+        include_processes: list[str] | None = None,
+        exclude_processes: list[str] | None = None,
+        log_buffer: "Gtk.TextBuffer | None" = None,
+        title: str | None = None,
     ):  # pylint: disable=too-many-arguments
         self.ready_state = True
         self.env = self.get_environment(env)
@@ -63,8 +69,8 @@ class MonitoredCommand:
 
         self.command = command
         self.runner = runner
-        self.stop_func = lambda: True
-        self.game_process = None
+        self.stop_func: Callable[[], bool] = lambda: True
+        self.game_process: subprocess.Popen[bytes] | None = None
         self.prevent_on_stop = False
         self.return_code = None
         self.terminal = term
@@ -86,13 +92,34 @@ class MonitoredCommand:
         self._title = title if title else command[0]
 
     @property
-    def stdout(self):
+    def stdout(self) -> str:
         return self._stdout.getvalue()
 
-    def get_wrapper_command(self) -> List[str]:
+    @property
+    def game_process_has_exited(self) -> bool:
+        """True once the process has exited. Unlike 'is_running', this does not wait for the
+        GLib main loop to notice, so it is accurate even in code that blocks the main loop.
+        The process is left unreaped, for on_stop() to collect as usual."""
+        if not self.game_process or self.game_process.returncode is not None:
+            return True
+        try:
+            return os.waitid(os.P_PID, self.game_process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT) is not None
+        except ChildProcessError:
+            return True  # already reaped
+
+    def get_wrapper_command(self) -> list[str]:
         """Return launch arguments for the wrapper script"""
+        # Invoke the wrapper via the current Python explicitly rather than
+        # relying on its `#!/usr/bin/env python3` shebang. The shebang
+        # resolves through PATH at exec time, which silently picks up a
+        # different interpreter in distribution scenarios where the host
+        # Python doesn't match the one running Lutris (AppImage, venv
+        # launched from outside, etc.) — and a wrong-version Python
+        # crashes hard on Lutris's own stdlib via the inherited
+        # PYTHONPATH.
         wrapper_command = (
             [
+                sys.executable,
                 WRAPPER_SCRIPT,
                 self._title,
                 str(len(self.include_processes)),
@@ -102,37 +129,48 @@ class MonitoredCommand:
             + self.exclude_processes
         )
         if not self.terminal:
-            return wrapper_command + self.command
+            return wrapper_command + list(self.command)
 
         terminal_path = system.find_required_executable(self.terminal)
         script_path = get_terminal_script(self.command, self.cwd, self.env)
         return wrapper_command + [terminal_path, "-e", script_path]
 
-    def set_log_buffer(self, log_buffer):
+    def set_log_buffer(self, log_buffer: "Gtk.TextBuffer | None") -> None:
         """Attach a TextBuffer to this command enables the buffer handler"""
         if not log_buffer:
-            return
+            return None
         self.log_buffer = log_buffer
         if self.log_handler_buffer not in self.log_handlers:
             self.log_handlers.append(self.log_handler_buffer)
 
-    def get_cwd(self, cwd):
+    def get_cwd(self, cwd: str | None) -> str:
         """Return the current working dir of the game"""
         if not cwd:
             cwd = self.runner.working_dir if self.runner else None
         return os.path.expanduser(cwd or "~")
 
     @staticmethod
-    def get_environment(user_env):
+    def get_environment(user_env: dict[str, str] | None) -> dict[str, str]:
         """Process the user provided environment variables for use as self.env"""
         env = copy(user_env) if user_env else {}
 
-        # not clear why this needs to be added, the path is already added in
-        # the wrappper script.
+        # Defense-in-depth for lutris-wrapper subprocesses: the wrapper script
+        # bootstraps its own sys.path when run from a git checkout, but
+        # publishing PYTHONPATH here means any unusual layout the wrapper's
+        # own bootstrap doesn't recognise still resolves `from lutris...`
+        # imports. Safe because:
+        #   * The wrapper now runs on the same Python as Lutris (sys.executable
+        #     in get_wrapper_command), so an inherited PYTHONPATH pointing at
+        #     our stdlib is ABI-compatible.
+        #   * lutris-wrapper deletes PYTHONPATH from os.environ before
+        #     spawning the game, so the leak doesn't propagate to Wine,
+        #     umu-launcher, or any other runner subprocess.
         env["PYTHONPATH"] = ":".join(sys.path)
         # Drop bad values of environment keys, those will confuse the Python
         # interpreter.
-        env["LUTRIS_GAME_UUID"] = str(uuid.uuid4())
+        game_uuid = str(uuid.uuid4())
+        env["LUTRIS_GAME_UUID"] = game_uuid
+        env["LUTRIS_RETURN_CODE_FILE"] = os.path.join(settings.TMP_DIR, "return-code-%s" % game_uuid)
 
         cleaned = {}
         for key, value in env.items():
@@ -147,13 +185,13 @@ class MonitoredCommand:
                 cleaned[key] = value
         return cleaned
 
-    def get_child_environment(self):
+    def get_child_environment(self) -> dict[str, str]:
         """Returns the calculated environment for the child process."""
         env = system.get_environment()
         env.update(self.env)
         return env
 
-    def start(self):
+    def start(self) -> None:
         """Run the thread."""
         if os.environ.get("LUTRIS_DEBUG_ENV") == "1":
             for key, value in self.env.items():
@@ -166,13 +204,14 @@ class MonitoredCommand:
 
         if not self.game_process:
             logger.error("No game process available")
-            return
+            return None
 
-        GLib.child_watch_add(self.game_process.pid, self.on_stop)
+        GLib.child_watch_add(self.game_process.pid, self.on_stop)  # type: ignore
 
         # make stdout nonblocking.
-        fileno = self.game_process.stdout.fileno()
-        fcntl.fcntl(fileno, fcntl.F_SETFL, fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK)
+        if self.game_process.stdout:
+            fileno = self.game_process.stdout.fileno()
+            fcntl.fcntl(fileno, fcntl.F_SETFL, fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK)
 
         self.stdout_monitor = GLib.io_add_watch(
             self.game_process.stdout,
@@ -192,27 +231,27 @@ class MonitoredCommand:
             return False
         return True
 
-    def log_handler_stdout(self, line):
+    def log_handler_stdout(self, line: str) -> None:
         """Add the line to this command's stdout attribute"""
         if not self.log_filter(line):
-            return
+            return None
         self._stdout.write(line)
 
-    def log_handler_buffer(self, line):
+    def log_handler_buffer(self, line: str) -> None:
         """Add the line to the associated LogBuffer object"""
         self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
 
-    def log_handler_console_output(self, line):
+    def log_handler_console_output(self, line: str) -> None:
         """Print the line to stdout"""
         if not self.log_filter(line):
-            return
+            return None
         with contextlib.suppress(BlockingIOError):
             sys.stdout.write(line)
             sys.stdout.flush()
 
-    def get_return_code(self):
+    def get_return_code(self) -> str:
         """Get the return code from the file written by the wrapper"""
-        return_code_path = "/tmp/lutris-%s" % self.env["LUTRIS_GAME_UUID"]
+        return_code_path = self.env["LUTRIS_RETURN_CODE_FILE"]
         if os.path.exists(return_code_path):
             with open(return_code_path, encoding="utf-8") as return_code_file:
                 return_code = return_code_file.read()
@@ -222,11 +261,12 @@ class MonitoredCommand:
             logger.warning("No file %s", return_code_path)
         return return_code
 
-    def on_stop(self, pid, _user_data):
+    def on_stop(self, pid: GLib.Pid, _user_data: None) -> bool:
         """Callback registered on game process termination"""
         if self.prevent_on_stop:  # stop() already in progress
             return False
-        self.game_process.wait()
+        if self.game_process:
+            self.game_process.wait()
         self.return_code = self.get_return_code()
         self.is_running = False
         logger.debug("Process %s has terminated with code %s", pid, self.return_code)
@@ -236,7 +276,7 @@ class MonitoredCommand:
             return False
         return False
 
-    def on_stdout_output(self, stdout, condition):
+    def on_stdout_output(self, stdout: IO[bytes], condition: GLib.IOCondition) -> bool:
         """Called by the stdout monitor to dispatch output to log handlers"""
         if condition == GLib.IO_HUP:
             self.stdout_monitor = None
@@ -254,8 +294,10 @@ class MonitoredCommand:
             log_handler(line)
         return True
 
-    def execute_process(self, command, env=None):
+    def execute_process(self, command: list[str], env: dict[str, str] | None = None) -> subprocess.Popen[bytes] | None:
         """Execute and return a subprocess"""
+
+        env = env or {}
 
         # If a None gets into execute_process, we get annoying errors
         # that are hard to race. We'll try to repair the bad command or environment
@@ -297,17 +339,19 @@ class MonitoredCommand:
         except OSError as ex:
             logger.exception("Failed to execute %s: %s", " ".join(command), ex)
             self.error = ex.strerror
+            return None
 
-    def stop(self):
+    def stop(self) -> bool:
         """Stops the current game process and cleans up the instance"""
         # Prevent stop() being called again by the process exiting
         self.prevent_on_stop = True
 
-        try:
-            self.game_process.terminate()
-        except ProcessLookupError:
-            # process already dead.
-            pass
+        if self.game_process:
+            try:
+                self.game_process.terminate()
+            except ProcessLookupError:
+                # process already dead.
+                pass
 
         resume_stop = self.stop_func()
         if not resume_stop:
@@ -324,7 +368,7 @@ class MonitoredCommand:
         return True
 
 
-def exec_command(command):
+def exec_command(command: str) -> MonitoredCommand:
     """Execute arbitrary command in a MonitoredCommand
 
     Used by the --exec command line flag.

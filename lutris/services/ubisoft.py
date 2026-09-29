@@ -5,7 +5,7 @@ import json
 import os
 import shutil
 from gettext import gettext as _
-from typing import Any, Dict, Optional
+from typing import Any
 from urllib.parse import unquote
 
 from gi.repository import Gio
@@ -39,7 +39,7 @@ class UbisoftCover(ServiceMedia):
     api_field = "thumbImage"
     url_pattern = "https://static3.cdn.ubi.com/orbit/uplay_launcher_3_0/assets/%s"
 
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
+    def get_media_url(self, details: dict[str, Any]) -> str | None:
         # First try coverUrl from the API (available for games fetched via GraphQL)
         if details.get("coverUrl"):
             return details["coverUrl"]

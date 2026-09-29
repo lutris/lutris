@@ -1,6 +1,5 @@
 # pylint: disable=no-member
 from gettext import gettext as _
-from typing import Dict, Set
 
 from gi.repository import Gtk
 
@@ -20,7 +19,8 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         self.category = category["name"]
         self.category_id = category["id"]
         self.available_games = sorted(
-            [Game(x["id"]) for x in games_db.get_games()], key=lambda g: (g.is_installed, get_natural_sort_key(g.name))
+            [Game(x["id"]) for x in games_db.get_games()],
+            key=lambda g: (g.is_installed, get_natural_sort_key(g.name)),
         )
         self.category_games = {
             game_id: Game(game_id) for game_id in categories_db.get_game_ids_for_categories([self.category])
@@ -89,16 +89,19 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         """Save game info and destroy widget."""
         old_name: str = self.category
         new_name: str = categories_db.strip_category_name(self.name_entry.get_text())
-        category_games_ids: Set[str] = set(self.category_games.keys())
+        category_games_ids: set[str] = set(self.category_games.keys())
 
         # Work out which games hae been added or removed from the category
-        unchecked_game_ids: Set[str] = set()
-        checked_game_ids: Set[str] = set()
-        updated_games: Dict[str, Game] = {}
+        unchecked_game_ids: set[str] = set()
+        checked_game_ids: set[str] = set()
+        updated_games: dict[str, Game] = {}
 
         for game_checkbox in self.grid.get_children():
             label = game_checkbox.get_label()
-            game_id = games_db.get_game_by_field(label, "name")["id"]
+            db_game = games_db.get_game_by_field(label, "name")
+            if not db_game:
+                continue
+            game_id = db_game["id"]
             if game_checkbox.get_active():
                 checked_game_ids.add(game_id)
             else:

@@ -3,6 +3,7 @@
 import json
 import os
 from gettext import gettext as _
+from typing import Any
 
 import requests
 
@@ -65,19 +66,34 @@ class SteamFamilyService(SteamService, OnlineService):
     def fetch_access_token(self):
         """Fetch the access token from the store, save to disk and set"""
         token_data = self.get_access_token()
-        if not token_data:
+        access_token = self.extract_access_token(token_data)
+        if not access_token:
             raise RuntimeError("Failed to get access token")
         with open(self.token_path, "w", encoding="utf-8") as token_file:
             token_file.write(json.dumps(token_data, indent=2))
         self.access_token = self.load_access_token()
 
+    @staticmethod
+    def extract_access_token(token_data: Any) -> str:
+        if not isinstance(token_data, dict):
+            return ""
+        data = token_data.get("data")
+        if not isinstance(data, dict):
+            return ""
+        access_token = data.get("webapi_token", "")
+        return access_token if isinstance(access_token, str) else ""
+
     def load_access_token(self):
         """Load the access token from disk"""
         if not os.path.exists(self.token_path):
             return ""
-        with open(self.token_path, encoding="utf-8") as token_file:
-            token_data = json.load(token_file)
-            return token_data.get("data").get("webapi_token", "")
+        try:
+            with open(self.token_path, encoding="utf-8") as token_file:
+                token_data = json.load(token_file)
+        except (OSError, ValueError) as ex:
+            logger.warning("Failed to read Steam Family token cache '%s': %s", self.token_path, ex)
+            return ""
+        return self.extract_access_token(token_data)
 
     def get_access_token(self):
         """Request an access token from steam and return dump"""

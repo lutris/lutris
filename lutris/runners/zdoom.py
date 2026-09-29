@@ -12,7 +12,7 @@ class zdoom(Runner):
     # http://zdoom.org/wiki/Command_line_parameters
     description = _("GZDoom Game Engine")
     human_name = _("GZDoom")
-    platforms = [_("Linux")]
+    platform_dict = Runner.to_platform_dict([_("Linux")])
     runner_executable = "zdoom/gzdoom"
     flatpak_id = "org.zdoom.GZDoom"
     game_options = [

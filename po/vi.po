@@ -2,14 +2,15 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the lutris package.
 # Loc Huynh <huynhloc.contact@gmail.com>, 2025.
+# akikohatsune <aya@ayanomi.io.vn>
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-13 21:52+0700\n"
-"PO-Revision-Date: 2025-12-13 22:57+0700\n"
-"Last-Translator: Loc Huynh <huynhloc.contact@gmail.com>\n"
+"PO-Revision-Date: 2026-09-19 11:15+0700\n"
+"Last-Translator: akikohatsune <aya@ayanomi.io.vn>\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
 "MIME-Version: 1.0\n"
@@ -134,7 +135,7 @@ msgstr "Thêm runner Duckstation"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:61
 msgid "Fix critical bug preventing completion of installs if the script specifies a wine version"
-msgstr "Sửa lỗi nghiêm trọng ngăn cản quá trình cài đặt hoàn tất nếu tập lệnh chỉ định phiên bản Wine vang"
+msgstr "Sửa lỗi nghiêm trọng ngăn cản quá trình cài đặt hoàn tất nếu tập lệnh chỉ định phiên bản Wine"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:62
 msgid "Fix critical bug preventing Steam library sync"
@@ -576,7 +577,7 @@ msgstr "Tùy chọn"
 
 #: share/lutris/ui/lutris-window.ui:723
 msgid "Discord"
-msgstr "Bất hòa"
+msgstr "Discord"
 
 #: share/lutris/ui/lutris-window.ui:737
 msgid "Lutris forums"
@@ -1343,7 +1344,7 @@ msgstr "Bạn có muốn xóa danh mục '%s' không?"
 
 #: lutris/gui/config/edit_category_games.py:71
 msgid "This will permanently destroy the category, but the games themselves will not be deleted."
-msgstr "Điều này sẽ phá hủy vĩnh viễn danh mục này nhưng bản thân các trò chơi sẽ không bị xóa."
+msgstr "Thao tác này sẽ xóa vĩnh viễn danh mục, nhưng các trò chơi bên trong sẽ không bị xóa."
 
 #: lutris/gui/config/edit_category_games.py:113
 #, python-format
@@ -1353,12 +1354,12 @@ msgstr "'%s' là tên danh mục dành riêng."
 #: lutris/gui/config/edit_category_games.py:118
 #, python-format
 msgid "Merge the category '%s' into '%s'?"
-msgstr "Hợp nhất danh mục '%s' thành '%s'?"
+msgstr "Gộp danh mục '%s' thành '%s'?"
 
 #: lutris/gui/config/edit_category_games.py:120
 #, python-format
 msgid "If you rename this category, it will be combined with '%s'. Do you want to merge them?"
-msgstr "Nếu bạn đổi tên danh mục này, nó sẽ được kết hợp với '%s'. Bạn có muốn hợp nhất chúng?"
+msgstr "Nếu đổi tên, danh mục này sẽ bị gộp chung với '%s'. Bạn có muốn gộp chúng lại không?"
 
 #: lutris/gui/config/edit_game_categories.py:78
 #, python-format
@@ -1446,7 +1447,7 @@ msgstr "Bạn có muốn xóa tìm kiếm đã lưu '%s' không?"
 
 #: lutris/gui/config/edit_saved_search.py:338
 msgid "This will permanently destroy the saved search, but the games themselves will not be deleted."
-msgstr "Điều này sẽ hủy vĩnh viễn tìm kiếm đã lưu nhưng bản thân trò chơi sẽ không bị xóa."
+msgstr "Tìm kiếm đã lưu này sẽ bị xóa vĩnh viễn, nhưng các trò chơi sẽ vẫn được giữ lại."
 
 #: lutris/gui/config/game_common.py:35
 msgid "Select a runner in the Game Info tab"
@@ -1467,7 +1468,7 @@ msgstr "Thông tin trò chơi"
 
 #: lutris/gui/config/game_common.py:187
 msgid "Sort name"
-msgstr "Sắp xếp tên"
+msgstr "Sắp xếp theo tên"
 
 #: lutris/gui/config/game_common.py:203
 #, python-format
@@ -1561,7 +1562,7 @@ msgstr "Hiển thị tùy chọn nâng cao"
 
 #: lutris/gui/config/game_common.py:512
 msgid "Advanced"
-msgstr "Trình độ cao"
+msgstr "Nâng cao"
 
 #: lutris/gui/config/game_common.py:566
 msgid "Are you sure you want to change the runner for this game ? This will reset the full configuration for this game and is not reversible."
@@ -1601,11 +1602,11 @@ msgstr "Hình ảnh"
 
 #: lutris/gui/config/preferences_box.py:22
 msgid "Minimize client when a game is launched"
-msgstr "Giảm thiểu ứng dụng khách khi trò chơi được khởi chạy"
+msgstr "Thu nhỏ cửa sổ khi chạy game"
 
 #: lutris/gui/config/preferences_box.py:24
 msgid "Minimize the Lutris window while playing a game; it will return when the game exits."
-msgstr "Thu nhỏ cửa sổ Lutris khi chơi trò chơi; nó sẽ quay trở lại khi trò chơi kết thúc."
+msgstr "Thu nhỏ cửa sổ Lutris trong khi chơi; cửa sổ sẽ tự động hiển thị lại khi tắt trò chơi."
 
 #: lutris/gui/config/preferences_box.py:28
 msgid "Hide text under icons"
@@ -1629,11 +1630,11 @@ msgstr "Hiển thị biểu tượng khay"
 
 #: lutris/gui/config/preferences_box.py:45
 msgid "Adds a Lutris icon to the tray, and prevents Lutris from exiting when the Lutris window is closed. You can still exit using the menu of the tray icon."
-msgstr "Thêm biểu tượng Lutris vào khay và ngăn Lutris thoát ra khi cửa sổ Lutris đóng. Bạn vẫn có thể thoát bằng menu của biểu tượng khay."
+msgstr "Thêm biểu tượng Lutris vào khay hệ thống và giữ ứng dụng chạy ngầm khi đóng cửa sổ. Bạn vẫn có thể thoát hoàn toàn thông qua menu của biểu tượng này."
 
 #: lutris/gui/config/preferences_box.py:51
 msgid "Enable Discord Rich Presence for Available Games"
-msgstr "Kích hoạt sự hiện diện phong phú của Discord cho các trò chơi có sẵn"
+msgstr "Kích hoạt Discord Rich Presence cho các trò chơi có sẵn"
 
 #: lutris/gui/config/preferences_box.py:57
 msgid "Theme"
@@ -1641,19 +1642,19 @@ msgstr "Chủ đề"
 
 #: lutris/gui/config/preferences_box.py:59
 msgid "System Default"
-msgstr "Mặc định hệ thống"
+msgstr "Theo hệ thống"
 
 #: lutris/gui/config/preferences_box.py:60
 msgid "Light"
-msgstr "Ánh sáng"
+msgstr "Sáng"
 
 #: lutris/gui/config/preferences_box.py:61
 msgid "Dark"
-msgstr "Tối tăm"
+msgstr "Tối"
 
 #: lutris/gui/config/preferences_box.py:64
 msgid "Overrides Lutris's appearance to be light or dark."
-msgstr "Ghi đè vẻ ngoài của Lutris thành sáng hay tối."
+msgstr "Thay đổi giao diện của Lutris sang chế độ Sáng hoặc Tối."
 
 #: lutris/gui/config/preferences_box.py:72
 msgid "Interface options"
@@ -1738,7 +1739,7 @@ msgstr "Cho phép tích hợp với các nguồn trò chơi"
 
 #: lutris/gui/config/services_box.py:21
 msgid "Access your game libraries from various sources. Changes require a restart to take effect."
-msgstr "Truy cập thư viện trò chơi của bạn từ nhiều nguồn khác nhau. Những thay đổi yêu cầu khởi động lại để có hiệu lực."
+msgstr "Truy cập thư viện trò chơi từ nhiều nguồn khác nhau. Thay đổi sẽ có hiệu lực sau khi khởi động lại."
 
 #: lutris/gui/config/storage_box.py:24
 msgid "Paths"
@@ -1927,11 +1928,11 @@ msgstr "<i>Đang kiểm tra cập nhật...</i>"
 
 #: lutris/gui/config/updates_box.py:121
 msgid "Updates are already being downloaded and installed."
-msgstr "Các bản cập nhật đã được tải xuống và cài đặt."
+msgstr "Các bản cập nhật hiện đang được tải xuống và cài đặt."
 
 #: lutris/gui/config/updates_box.py:123
 msgid "No updates are required at this time."
-msgstr "Không có cập nhật được yêu cầu tại thời điểm này."
+msgstr "Chưa có bản cập nhật nào mới vào lúc này."
 
 #: lutris/gui/config/widget_generator.py:215
 msgid "<b>Default</b>: "
@@ -1943,7 +1944,7 @@ msgstr "Đã bật"
 
 #: lutris/gui/config/widget_generator.py:377 lutris/runners/easyrpg.py:371 lutris/runners/mednafen.py:78 lutris/runners/wine.py:559
 msgid "Disabled"
-msgstr "Tàn tật"
+msgstr "Đã tắt"
 
 #: lutris/gui/config/widget_generator.py:424
 #, python-format
@@ -2019,15 +2020,15 @@ msgstr "Đang tải xuống %s"
 
 #: lutris/gui/dialogs/game_import.py:96
 msgid "Launch"
-msgstr "Viceng"
+msgstr "Khởi chạy"
 
 #: lutris/gui/dialogs/game_import.py:129
 msgid "Calculating checksum..."
-msgstr "Đang tính tổng kiểm tra..."
+msgstr "Đang tính checksum..."
 
 #: lutris/gui/dialogs/game_import.py:138
 msgid "Looking up checksum on Lutris.net..."
-msgstr "Tra cứu tổng kiểm tra trên Lutris.net..."
+msgstr "Đang tra cứu checksum trên Lutris.net..."
 
 #: lutris/gui/dialogs/game_import.py:141
 msgid "This ROM could not be identified."
@@ -2058,7 +2059,7 @@ msgstr "Lutris không có trình cài đặt mặc định cho nền tảng '%s'
 
 #: lutris/gui/dialogs/__init__.py:175
 msgid "Save"
-msgstr "Cứu"
+msgstr "Lưu"
 
 #: lutris/gui/dialogs/__init__.py:303
 msgid "Lutris has encountered an error"
@@ -2095,7 +2096,7 @@ msgstr "%s đã được cài đặt"
 
 #: lutris/gui/dialogs/__init__.py:496
 msgid "Launch game"
-msgstr "Khởi động trò chơi"
+msgstr "Khởi chạy trò chơi"
 
 #: lutris/gui/dialogs/__init__.py:500
 msgid "Install the game again"
@@ -2115,7 +2116,7 @@ msgstr "Cài đặt tập lệnh cho {}"
 
 #: lutris/gui/dialogs/__init__.py:628
 msgid "Humble Bundle Cookie Authentication"
-msgstr "Xác thực cookie gói khiêm tốn"
+msgstr "Xác thực Humble Bundle bằng Cookie"
 
 #: lutris/gui/dialogs/__init__.py:640
 msgid ""
@@ -2156,7 +2157,7 @@ msgstr "Mô tả sự cố bạn đang gặp phải trong hộp văn bản bên 
 
 #: lutris/gui/dialogs/issue.py:54
 msgid "_Save"
-msgstr "_Cứu"
+msgstr "_Lưu"
 
 #: lutris/gui/dialogs/issue.py:70
 msgid "Select a location to save the issue"
@@ -2178,7 +2179,7 @@ msgstr "Đang di chuyển %s tới %s..."
 
 #: lutris/gui/dialogs/move_game.py:57
 msgid "Do you want to change the game location anyway? No files can be moved, and the game configuration may need to be adjusted."
-msgstr "Bạn có muốn thay đổi vị trí trò chơi không? Không thể di chuyển tệp nào và có thể cần phải điều chỉnh cấu hình trò chơi."
+msgstr "Bạn vẫn muốn thay đổi vị trí trò chơi chứ? Sẽ không có tệp nào được di chuyển, và bạn có thể cần phải điều chỉnh lại cấu hình."
 
 #: lutris/gui/dialogs/runner_install.py:59
 #, python-format
@@ -2197,7 +2198,7 @@ msgstr "Không thể tải phiên bản runner: %s"
 
 #: lutris/gui/dialogs/runner_install.py:182
 msgid "Unable to get runner versions from lutris.net"
-msgstr "Không thể tải phiên bản chạy từ lutris.net"
+msgstr "Không thể tải các phiên bản runner từ lutris.net"
 
 #: lutris/gui/dialogs/runner_install.py:189
 #, python-format
@@ -2216,7 +2217,7 @@ msgstr "Gỡ cài đặt"
 
 #: lutris/gui/dialogs/runner_install.py:294
 msgid "Wine version usage"
-msgstr "Sử dụng phiên bản Wine vang"
+msgstr "Sử dụng phiên bản Wine"
 
 #: lutris/gui/dialogs/runner_install.py:365
 #, python-format
@@ -2288,8 +2289,8 @@ msgid ""
 "will be moved to the trash."
 msgstr ""
 "Vui lòng xác nhận.\n"
-"Mọi thứ trong <b>%s</b>\n"
-"sẽ được chuyển vào thùng rác."
+"Toàn bộ dữ liệu trong <b>%s</b>\n"
+"sẽ bị chuyển vào thùng rác."
 
 #: lutris/gui/dialogs/uninstall_dialog.py:269
 #, python-format
@@ -2298,7 +2299,7 @@ msgid ""
 "All the files for %d games will be moved to the trash."
 msgstr ""
 "Vui lòng xác nhận.\n"
-"Tất cả các tệp cho trò chơi %d sẽ được chuyển vào thùng rác."
+"Toàn bộ dữ liệu của %d trò chơi sẽ bị chuyển vào thùng rác."
 
 #: lutris/gui/dialogs/uninstall_dialog.py:277
 msgid "Permanently delete files?"
@@ -2463,7 +2464,7 @@ msgstr "Đã xảy ra lỗi không mong muốn khi cài đặt trò chơi này. 
 
 #: lutris/gui/installerwindow.py:1003
 msgid "_Launch"
-msgstr "_Viceng"
+msgstr "_Khởi chạy"
 
 #: lutris/gui/installerwindow.py:1083
 msgid "_Abort"
@@ -2533,7 +2534,7 @@ msgstr "Phiên bản Lutris không được hỗ trợ"
 
 #: lutris/gui/lutriswindow.py:1071
 msgid "This version of Lutris will no longer receive support on Github and Discord, and may not interoperate properly with Lutris.net. Do you want to use it anyway?"
-msgstr "Phiên bản Lutris này sẽ không còn nhận được hỗ trợ trên Github và Discord nữa và có thể không tương tác đúng cách với Lutris.net. Bạn có muốn sử dụng nó không?"
+msgstr "Phiên bản Lutris này không còn được hỗ trợ trên Github và Discord, đồng thời có thể hoạt động không ổn định với Lutris.net. Bạn vẫn muốn tiếp tục sử dụng chứ?"
 
 #: lutris/gui/lutriswindow.py:1282
 msgid "Show Hidden Games"
@@ -2549,7 +2550,7 @@ msgstr "Giới hạn của bạn không được đặt chính xác. Vui lòng t
 
 #: lutris/gui/widgets/cellrenderers.py:376 lutris/gui/widgets/sidebar.py:501
 msgid "Missing"
-msgstr "Mất tích"
+msgstr "Bị thiếu"
 
 #: lutris/gui/widgets/common.py:87
 msgid "Select a folder"
@@ -2827,7 +2828,7 @@ msgstr "Giá trị sai cho chế độ write_file: '%s'"
 
 #: lutris/installer/commands.py:651
 msgid "install_or_extract only works with wine!"
-msgstr "install_or_extract chỉ hoạt động với Wine vang!"
+msgstr "install_or_extract chỉ hoạt động với Wine!"
 
 #: lutris/installer/errors.py:49
 #, python-format
@@ -3077,7 +3078,7 @@ msgstr "Tập tin ISO"
 
 #: lutris/runners/dolphin.py:42
 msgid "Batch"
-msgstr "Lô"
+msgstr "Chạy tự động"
 
 #: lutris/runners/dolphin.py:45
 msgid "Exit Dolphin with emulator."
@@ -3133,7 +3134,7 @@ msgstr "Đối số dòng lệnh được sử dụng khi khởi chạy DOSBox"
 
 #: lutris/runners/dosbox.py:54 lutris/runners/flatpak.py:69 lutris/runners/linux.py:39 lutris/runners/wine.py:223
 msgid "Working directory"
-msgstr "Thư mục làm việc"
+msgstr "Thư mục gốc"
 
 #: lutris/runners/dosbox.py:57 lutris/runners/linux.py:41 lutris/runners/wine.py:225
 msgid ""
@@ -4559,7 +4560,7 @@ msgstr "Phím chế độ menu"
 
 #: lutris/runners/mame.py:215
 msgid "Scroll Lock"
-msgstr "Khóa cuộn"
+msgstr "Scroll Lock"
 
 #: lutris/runners/mame.py:216
 msgid "Num Lock"
@@ -4567,7 +4568,7 @@ msgstr "Khóa số"
 
 #: lutris/runners/mame.py:217
 msgid "Caps Lock"
-msgstr "Khóa mũ"
+msgstr "Caps Lock"
 
 #: lutris/runners/mame.py:218
 msgid "Menu"
@@ -4591,11 +4592,11 @@ msgstr "Alt trái"
 
 #: lutris/runners/mame.py:223
 msgid "Right Super"
-msgstr "Đúng siêu"
+msgstr "Super phải / Phím Windows phải"
 
 #: lutris/runners/mame.py:224
 msgid "Left Super"
-msgstr "Siêu trái"
+msgstr "Phím Super trái / Phím Windows trái"
 
 #: lutris/runners/mame.py:228
 msgid "Key to switch between Full Keyboard Mode and Partial Keyboard Mode (default: Scroll Lock)"
@@ -5968,7 +5969,7 @@ msgstr "Giai đoạn WineHQ ({})"
 
 #: lutris/runners/wine.py:183
 msgid "Wine Development ({})"
-msgstr "Phát triển Wine vang ({})"
+msgstr "Phát triển Wine ({})"
 
 #: lutris/runners/wine.py:184
 msgid "System ({})"
@@ -6036,7 +6037,7 @@ msgstr "Đặt 'Tài liệu', 'Hình ảnh' và các tệp tương tự vào th�
 
 #: lutris/runners/wine.py:263
 msgid "Wine version"
-msgstr "Phiên bản Wine vang"
+msgstr "Phiên bản Wine"
 
 #: lutris/runners/wine.py:269
 msgid ""
@@ -6254,7 +6255,7 @@ msgid ""
 "<b>Force</b>: always warp the pointer"
 msgstr ""
 "Ghi đè hành vi cong vênh của con trỏ chuột mặc định\n"
-"<b>Bật</b>: (Mặc định Wine vang) làm cong con trỏ khi chỉ thu được chuột \n"
+"<b>Bật</b>: (Mặc định Wine) làm cong con trỏ khi chỉ thu được chuột \n"
 "<b>Tắt</b>: không bao giờ làm cong con trỏ chuột \n"
 "<b>Bắt buộc</b>: luôn làm cong con trỏ"
 
@@ -6526,8 +6527,8 @@ msgid ""
 "This service requires a game launcher. The following steps will install it.\n"
 "Once the client is installed, you can login to %s."
 msgstr ""
-"Dịch vụ này yêu cầu trình khởi chạy trò chơi. Các bước sau đây sẽ cài đặt nó.\n"
-"Sau khi máy khách được cài đặt, bạn có thể đăng nhập vào %s."
+"Dịch vụ này cần có trình khởi chạy game. Các bước dưới đây sẽ giúp bạn cài đặt.\n"
+"Sau khi ứng dụng được cài đặt hoàn tất, bạn có thể đăng nhập vào %s."
 
 #: lutris/services/battlenet.py:105
 msgid "Battle.net"
@@ -6762,11 +6763,11 @@ msgstr "Vô hiệu hóa các hiệu ứng trên màn hình khi trò chơi đang 
 
 #: lutris/sysoptions.py:156
 msgid "Prevent sleep"
-msgstr "Ngăn ngừa giấc ngủ"
+msgstr "Ngăn máy tính ngủ"
 
 #: lutris/sysoptions.py:161
 msgid "Prevents the computer from suspending when a game is running."
-msgstr "Ngăn chặn máy tính bị treo khi trò chơi đang chạy."
+msgstr "Ngăn máy tính tự động chuyển sang chế độ ngủ khi đang chạy game."
 
 #: lutris/sysoptions.py:167
 msgid "SDL 1.2 Fullscreen Monitor"

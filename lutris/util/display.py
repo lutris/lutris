@@ -1,10 +1,13 @@
 """Module to deal with various aspects of displays"""
 
+from __future__ import annotations
+
 # isort:skip_file
 import enum
 import os
 import subprocess
-from typing import Any, Dict, Optional
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 import gi
 
@@ -12,8 +15,12 @@ try:
     gi.require_version("GnomeDesktop", "3.0")
     from gi.repository import GnomeDesktop  # type: ignore
 
+    # check for AttributeError on newer systems on which the
+    # deprecated attributes have been removed
+    GnomeDesktop.RRScreen  # type: ignore
+
     LIB_GNOME_DESKTOP_AVAILABLE = True
-except ValueError:
+except (ValueError, AttributeError):
     LIB_GNOME_DESKTOP_AVAILABLE = False
     GnomeDesktop = None
 
@@ -29,11 +36,14 @@ from gi.repository import Gdk, GLib, Gio, Gtk
 from lutris.util import cache_single
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
 from lutris.util.graphics.displayconfig import MutterDisplayManager
-from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs
+from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs, Output
 from lutris.util.log import logger
 
+if TYPE_CHECKING:
+    from lutris.gui.application import LutrisApplication
 
-def get_default_dpi():
+
+def get_default_dpi() -> int:
     """Computes the DPI to use for the primary monitor
     which we pass to WINE."""
     display = Gdk.Display.get_default()
@@ -47,7 +57,7 @@ def get_default_dpi():
 
 
 @cache_single
-def is_display_x11():
+def is_display_x11() -> bool:
     """True if"""
     display = Gdk.Display.get_default()
     return "x11" in type(display).__name__.casefold()
@@ -57,15 +67,16 @@ class DisplayManager:
     """Get display and resolution using GnomeDesktop"""
 
     def __init__(self, screen: Gdk.Screen):
-        self.rr_screen = GnomeDesktop.RRScreen.new(screen)
-        self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
-        self.rr_config.load_current()
+        if GnomeDesktop:
+            self.rr_screen = GnomeDesktop.RRScreen.new(screen)
+            self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
+            self.rr_config.load_current()
 
-    def get_display_names(self):
+    def get_display_names(self) -> list[str]:
         """Return names of connected displays"""
         return [output_info.get_display_name() for output_info in self.rr_config.get_outputs()]
 
-    def get_resolutions(self):
+    def get_resolutions(self) -> list[str]:
         """Return available resolutions"""
         resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
         if not resolutions:
@@ -73,14 +84,14 @@ class DisplayManager:
             return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
         return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
 
-    def _get_primary_output(self):
+    def _get_primary_output(self) -> GnomeDesktop.RROutput | None:
         """Return the RROutput used as a primary display"""
         for output in self.rr_screen.list_outputs():
             if output.get_is_primary():
                 return output
-        return
+        return None
 
-    def get_current_resolution(self):
+    def get_current_resolution(self) -> tuple[str, str]:
         """Return the current resolution for the primary display"""
         output = self._get_primary_output()
         if not output:
@@ -90,7 +101,7 @@ class DisplayManager:
         return str(current_mode.get_width()), str(current_mode.get_height())
 
     @staticmethod
-    def set_resolution(resolution):
+    def set_resolution(resolution: str | Iterable[Output]) -> None:
         """Set the resolution of one or more displays.
         The resolution can either be a string, which will be applied to the
         primary display or a list of configurations as returned by `get_config`.
@@ -99,7 +110,7 @@ class DisplayManager:
         return change_resolution(resolution)
 
     @staticmethod
-    def get_config():
+    def get_config() -> list[Output]:
         """Return the current display resolution
         This method uses XrandR and will not work on wayland
         The output can be fed in `set_resolution`
@@ -107,7 +118,7 @@ class DisplayManager:
         return get_outputs()
 
 
-def get_display_manager():
+def get_display_manager() -> MutterDisplayManager | DisplayManager | LegacyDisplayManager:
     """Return the appropriate display manager instance.
     Defaults to Mutter if available. This is the only one to support Wayland.
     """
@@ -207,7 +218,7 @@ _non_de_compositor_commands = [
 ]
 
 
-def get_desktop_environment() -> Optional[DesktopEnvironment]:
+def get_desktop_environment() -> DesktopEnvironment | None:
     """Converts the value of the DESKTOP_SESSION environment variable
     to one of the constants in the DesktopEnvironment class.
     Returns None if DESKTOP_SESSION is empty or unset.
@@ -226,7 +237,7 @@ def get_desktop_environment() -> Optional[DesktopEnvironment]:
     return DesktopEnvironment.UNKNOWN
 
 
-def _get_command_output(command):
+def _get_command_output(command: list[str]) -> bytes | None:
     """Some rogue function that gives no shit about residing in the correct module"""
     try:
         return subprocess.Popen(  # pylint: disable=consider-using-with
@@ -234,6 +245,8 @@ def _get_command_output(command):
         ).communicate()[0]
     except FileNotFoundError:
         logger.error("Unable to run command, %s not found", command[0])
+
+    return None
 
 
 def is_compositing_enabled() -> bool:
@@ -255,7 +268,7 @@ def is_compositing_enabled() -> bool:
     return False
 
 
-def _check_compositor_active(command_set: Dict[str, Any]) -> bool:
+def _check_compositor_active(command_set: dict[str, Any]) -> bool:
     """Applies the 'check' command; and returns whether the result
     was the desired 'active_result'; if that is omitted, we check for
     any result at all."""
@@ -263,7 +276,7 @@ def _check_compositor_active(command_set: Dict[str, Any]) -> bool:
     result = _get_command_output(command)
 
     if "active_result" in command_set:
-        return result == command_set["active_result"]
+        return bool(result == command_set["active_result"])
 
     return result != b""
 
@@ -276,7 +289,7 @@ _COMPOSITING_DISABLED_STACK = []
 
 
 @cache_single
-def _get_compositor_commands():
+def _get_compositor_commands() -> tuple[list[str] | None, list[str] | None, bool]:
     """Returns the commands to enable/disable compositing on the current
     desktop environment as a 3-tuple: start command, stop-command and
     a flag to indicate if we need to run the commands in the background.
@@ -293,15 +306,15 @@ def _get_compositor_commands():
                 break
 
     if command_set:
-        start_compositor = command_set["start_compositor"]
-        stop_compositor = command_set["stop_compositor"]
+        start_compositor: list[str] = command_set["start_compositor"]
+        stop_compositor: list[str] = command_set["stop_compositor"]
         run_in_background = bool(command_set.get("run_in_background"))
         return start_compositor, stop_compositor, run_in_background
 
     return None, None, False
 
 
-def _run_command(*command, run_in_background=False):
+def _run_command(*command: str, run_in_background: bool = False) -> subprocess.Popen[bytes] | None:
     """Random _run_command lost in the middle of the project,
     are you lost little _run_command?
     """
@@ -319,8 +332,10 @@ def _run_command(*command, run_in_background=False):
         errorMessage = "FileNotFoundError when running command:", command
         logger.error(errorMessage)
 
+    return None
 
-def disable_compositing():
+
+def disable_compositing() -> None:
     """Disable compositing if not already disabled."""
     compositing_enabled = is_compositing_enabled()
     if any(_COMPOSITING_DISABLED_STACK):
@@ -333,7 +348,7 @@ def disable_compositing():
         _run_command(*stop_compositor, run_in_background=background)
 
 
-def enable_compositing():
+def enable_compositing() -> None:
     """Re-enable compositing if the corresponding call to disable_compositing
     disabled it."""
 
@@ -355,18 +370,18 @@ class DBusScreenSaverInhibitor:
     org.gnome.ScreenSaver interfaces one can declare a DBus interface which
     requires the Inhibit() and UnInhibit() methods to be exposed."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.proxy = None
         self._used_gtk_fallback = False
 
-    def set_dbus_iface(self, name, path, interface, bus_type=Gio.BusType.SESSION):
+    def set_dbus_iface(self, name: str, path: str, interface: str, bus_type: Gio.BusType = Gio.BusType.SESSION) -> None:
         """Sets a dbus proxy to be used instead of Gtk.Application methods, this
         method can raise an exception."""
         self.proxy = Gio.DBusProxy.new_for_bus_sync(
             bus_type, Gio.DBusProxyFlags.NONE, None, name, path, interface, None
         )
 
-    def inhibit(self, game_name):
+    def inhibit(self, game_name: str) -> int | None:
         """Inhibit suspend.
         Returns a cookie that must be passed to the corresponding uninhibit() call.
         If an error occurs, None is returned instead."""
@@ -384,7 +399,8 @@ class DBusScreenSaverInhibitor:
                 logger.warning("Failed to inhibit screensaver via D-Bus, falling back to GTK: %s", ex)
 
         # GTK fallback
-        app = Gio.Application.get_default()
+        app: "LutrisApplication" = Gio.Application.get_default()
+
         window = app.window
         flags = Gtk.ApplicationInhibitFlags.SUSPEND | Gtk.ApplicationInhibitFlags.IDLE
         cookie = app.inhibit(window, flags, reason)
@@ -396,7 +412,7 @@ class DBusScreenSaverInhibitor:
         self._used_gtk_fallback = True
         return cookie
 
-    def uninhibit(self, cookie):
+    def uninhibit(self, cookie: int | None) -> None:
         """Uninhibit suspend.
         Takes a cookie as returned by inhibit. If cookie is None, no action is taken."""
         if not cookie:
@@ -410,11 +426,11 @@ class DBusScreenSaverInhibitor:
                 logger.warning("Failed to uninhibit screensaver via D-Bus: %s", ex)
 
         # GTK fallback
-        app = Gio.Application.get_default()
+        app: "LutrisApplication" = Gio.Application.get_default()
         app.uninhibit(cookie)
 
 
-def _get_suspend_inhibitor():
+def _get_suspend_inhibitor() -> DBusScreenSaverInhibitor:
     """Return the appropriate suspend inhibitor instance.
     If the required interface isn't available, it will default to GTK's
     implementation."""

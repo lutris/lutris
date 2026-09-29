@@ -1,7 +1,8 @@
 import json
 import os
+from collections.abc import Iterable
 from gettext import gettext as _
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 
 from gi.repository import Gio
 
@@ -152,7 +153,7 @@ class LutrisService(OnlineService):
 
         return ""
 
-    def get_game_platforms(self, db_game: dict) -> List[str]:
+    def get_game_platforms(self, db_game: dict) -> list[str]:
         details = db_game.get("details")
         if details:
             platforms = json.loads(details).get("platforms")
@@ -189,7 +190,7 @@ def download_lutris_media(slug):
         download_media({slug: coverart_url}, LutrisCoverart())
 
 
-def sync_media(slugs: Optional[Iterable[str]] = None) -> Dict[str, int]:
+def sync_media(slugs: Iterable[str] | None = None) -> dict[str, int]:
     """Download missing media for Lutris games; if a set of slugs
     is not provided, downloads them for all games in the PGA."""
     if slugs is None:
@@ -242,23 +243,23 @@ def sync_media(slugs: Optional[Iterable[str]] = None) -> Dict[str, int]:
         if game["slug"] not in covers_available and _get_response_game_coverart(game)
     }
     logger.debug("Syncing %s banners, %s icons and %s covers", len(banner_urls), len(icon_urls), len(coverart_urls))
-    download_media(banner_urls, LutrisBanner())
-    download_media(icon_urls, LutrisIcon())
-    download_media(coverart_urls, LutrisCoverart())
+    downloaded_banners = download_media(banner_urls, LutrisBanner())
+    downloaded_icons = download_media(icon_urls, LutrisIcon())
+    downloaded_covers = download_media(coverart_urls, LutrisCoverart())
     return {
-        "banners": len(banner_urls),
-        "icons": len(icon_urls),
-        "covers": len(coverart_urls),
+        "banners": len(downloaded_banners),
+        "icons": len(downloaded_icons),
+        "covers": len(downloaded_covers),
     }
 
 
-def _get_response_game_coverart(api_game: Dict[str, Any]) -> Optional[str]:
+def _get_response_game_coverart(api_game: dict[str, Any]) -> str | None:
     return api_game.get("coverart")
 
 
-def _get_response_game_banner(api_game: Dict[str, Any]) -> Optional[str]:
+def _get_response_game_banner(api_game: dict[str, Any]) -> str | None:
     return api_game.get("banner_url") or api_game.get("banner")
 
 
-def _get_response_game_icon(api_game: Dict[str, Any]) -> Optional[str]:
+def _get_response_game_icon(api_game: dict[str, Any]) -> str | None:
     return api_game.get("icon_url") or api_game.get("icon")

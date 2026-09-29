@@ -10,7 +10,6 @@ GitHub Release
 --------------
 - Draft new release: https://github.com/lutris/lutris/releases/new
 - Copy changelog to release notes
-- Close the milestone
 
 Launchpad PPA
 -------------

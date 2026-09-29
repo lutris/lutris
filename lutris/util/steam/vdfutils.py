@@ -1,10 +1,12 @@
 """Read and write VDF files"""
 
+from typing import IO, Any
+
 # Lutris Modules
 from lutris.util.log import logger
 
 
-def vdf_parse(steam_config_file, config):
+def vdf_parse(steam_config_file: IO[str], config: dict[str, Any]) -> dict[str, Any]:
     """Parse a Steam config file and return the contents as a dict."""
     line = " "
     while line:
@@ -26,9 +28,12 @@ def vdf_parse(steam_config_file, config):
             if not nextline:
                 break
             line = line[:-1] + nextline
-        if '"PersonaName"' in line:
-            line = line.replace('\\"', "")
+        # Handle escaped quotes in values by temporarily replacing them
+        # This allows split('"') to work correctly
+        line = line.replace('\\"', "\x00")  # Use null as placeholder
         line_elements = line.strip().split('"')
+        # Restore escaped quotes in the parsed values
+        line_elements = [elem.replace("\x00", '"') for elem in line_elements]
         if len(line_elements) == 3:
             key = line_elements[1]
             steam_config_file.readline()  # skip '{'
@@ -41,7 +46,7 @@ def vdf_parse(steam_config_file, config):
     return config
 
 
-def to_vdf(dict_data, level=0):
+def to_vdf(dict_data: dict[str, Any], level: int = 0) -> str:
     """Convert a dictionnary to Steam config file format"""
     vdf_data = ""
     for key in dict_data:
@@ -56,7 +61,7 @@ def to_vdf(dict_data, level=0):
     return vdf_data
 
 
-def vdf_write(vdf_path, config):
+def vdf_write(vdf_path: str, config: dict[str, Any]) -> None:
     """Write a Steam configuration to a vdf file"""
     vdf_data = to_vdf(config)
     with open(vdf_path, "w", encoding="utf-8") as vdf_file:

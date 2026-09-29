@@ -1,9 +1,10 @@
 {
+    "name": "pcem",
     "human_name": "PCem",
     "description": "PCem is an IBM PC emulator",
     "platforms": ["MS-DOS"],
     "runnable_alone": "True",
-    "runner_executable": "pcem/pcem",
+    "runner_executable": "pcem",
     "download_url": "https://pcem-emulator.co.uk/files/PCemV17Linux.tar.gz",
     "game_options": [
         {

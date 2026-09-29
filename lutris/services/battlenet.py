@@ -8,7 +8,7 @@ from gi.repository import Gio
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
-from lutris.database.games import add_game, get_game_by_field
+from lutris.database.games import add_game, get_game_by_field, get_games, update_existing
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.services.base import BaseService
@@ -16,22 +16,8 @@ from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
+from lutris.util.battlenet.product_db import ProductDb
 from lutris.util.log import logger
-
-# Use pure-Python protobuf implementation for compatibility across all protobuf versions.
-# The old-style generated pb2 file is incompatible with protobuf 4.x+ native implementation.
-os.environ.setdefault("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", "python")
-
-try:
-    from lutris.util.battlenet.product_db_pb2 import ProductDb
-
-    BNET_ENABLED = True
-except Exception as ex:
-    # We do get strange Google-defined exceptions from problems with protobuf, so
-    # let's just catch (almost) everything. We do not want Lutris to crash, rather
-    # we just want to suppress Battle.net and nothing else.
-    logger.warning("The Battle.net source is unavailable because Google protobuf could not be loaded: %s", ex)
-    BNET_ENABLED = False
 
 GAME_IDS = {
     "s1": ("s1", "StarCraft", "S1", "starcraft-remastered"),
@@ -78,6 +64,8 @@ GAME_IDS = {
     "sca": ("sca", "StarCraft® Anthology", "Starcraft", "starcraft"),
     "anbs": ("anbs", "Diablo Immortal", "ANBS", "diablo-immortal"),
 }
+
+PRODUCT_CODES = {game[0]: game[2] for game in GAME_IDS.values()}
 
 
 class BattleNetCover(ServiceMedia):
@@ -138,12 +126,22 @@ class BattleNetService(BaseService):
             game.save()
         return games
 
+    def _mark_games_uninstalled(self):
+        """Mark all Battle.net games as uninstalled when the client is missing."""
+        for game in get_games(filters={"service": self.id, "installed": "1"}):
+            update_existing(id=game["id"], installed=0)
+
     def add_installed_games(self):
         """Scan an existing Battle.net install for games"""
         bnet_game = get_game_by_field(self.client_installer, "slug")
-        if not bnet_game:
-            raise RuntimeError("Battle.net is not installed in Lutris")
+        if not bnet_game or not bnet_game.get("directory"):
+            self._mark_games_uninstalled()
+            return
         bnet_prefix = bnet_game["directory"].split("drive_c")[0]
+        product_db_path = bnet_prefix + BlizzardProductDbParser.PRODUCT_DB_PATH
+        if not os.path.exists(product_db_path):
+            self._mark_games_uninstalled()
+            return
         parser = BlizzardProductDbParser(bnet_prefix)
         installed_slugs = []
         for game in parser.games:
@@ -164,7 +162,13 @@ class BattleNetService(BaseService):
         if existing_game:
             return
         game_config = LutrisConfig(game_config_id=bnet_game["configpath"]).game_level
-        game_config["game"]["args"] = '--exec="launch %s"' % game.ngdp
+        product_code = PRODUCT_CODES.get(game.ngdp, game.ngdp)
+        game_config["game"]["args"] = '--exec="launch %s"' % product_code
+        bnet_exe = game_config["game"].get("exe", "")
+        if bnet_exe:
+            if not os.path.isabs(bnet_exe):
+                bnet_exe = os.path.join(game_config["game"].get("prefix", ""), bnet_exe)
+            game_config["game"]["client_exe"] = bnet_exe
         configpath = write_game_config(lutris_game_id, game_config)
         slug = service_game["slug"]
         add_game(
@@ -184,6 +188,27 @@ class BattleNetService(BaseService):
     def get_installed_slug(self, db_game):
         return db_game["slug"]
 
+    def generate_installers(self, db_game):
+        """Generate an installer that requires the Battle.net client.
+        The dependency system will prompt the user to install it if missing."""
+        return [
+            {
+                "name": db_game["name"],
+                "version": self.name,
+                "slug": db_game["slug"] + "-" + self.id,
+                "game_slug": self.get_installed_slug(db_game),
+                "runner": self.runner,
+                "appid": db_game["appid"],
+                "script": {
+                    "requires": self.client_installer,
+                    "game": {
+                        "args": '--exec="launch %s"' % PRODUCT_CODES.get(db_game["appid"], db_game["appid"]),
+                    },
+                    "installer": [],
+                },
+            }
+        ]
+
     def generate_installer(self, db_game, bnet_db_game):
         bnet_app = Game(bnet_db_game["id"])
         bnet_exe = bnet_app.config.game_config["exe"]
@@ -199,14 +224,16 @@ class BattleNetService(BaseService):
             "script": {
                 "requires": self.client_installer,
                 "game": {
-                    "args": '--exec="launch %s"' % db_game["appid"],
+                    "exe": bnet_exe,
+                    "client_exe": bnet_exe,
+                    "args": '--exec="launch %s"' % PRODUCT_CODES.get(db_game["appid"], db_game["appid"]),
                 },
                 "installer": [
                     {
                         "task": {
                             "name": "wineexec",
                             "executable": bnet_exe,
-                            "args": '--exec="install %s"' % db_game["appid"],
+                            "args": '--exec="install %s"' % PRODUCT_CODES.get(db_game["appid"], db_game["appid"]),
                             "prefix": bnet_app.config.game_config["prefix"],
                             "description": (
                                 "Battle.net will now open. Please launch "
@@ -222,8 +249,10 @@ class BattleNetService(BaseService):
     def get_installed_runner_name(self, db_game):
         return self.runner
 
-    def install(self, db_game):
+    def install(self, db_game, update=False):
         bnet_game = get_game_by_field(self.client_installer, "slug")
+        if not bnet_game or not bnet_game.get("installed"):
+            return super().install(db_game, update)
         application = Gio.Application.get_default()
         application.show_installer_window(
             [self.generate_installer(db_game, bnet_game)], service=self, appid=db_game["appid"]
@@ -260,7 +289,7 @@ class BlizzardProductDbParser:
     def parse(self):
         self.products = {}
         database = ProductDb()
-        database.ParseFromString(self.data)
+        database.decode(self.data)
 
         for product_install in database.product_installs:  # pylint: disable=no-member
             # process region

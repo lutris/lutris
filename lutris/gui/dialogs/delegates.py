@@ -1,18 +1,24 @@
+from collections.abc import Callable
 from gettext import gettext as _
-from typing import Optional
+from typing import TYPE_CHECKING, cast
 
-from gi.repository import Gdk, Gtk  # type: ignore
+from gi.repository import Gdk, Gtk
 
 from lutris.exceptions import UnavailableRunnerError
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.services import SERVICES
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import BaseDownloader, SimpleDownloader
+
+if TYPE_CHECKING:
+    from lutris.config import LaunchConfigDict
+    from lutris.gui.lutriswindow import LutrisWindow
+    from lutris.services.base import BaseService
 
 
 class Delegate:
-    def get_service(self, service_id):
+    def get_service(self, service_id: str) -> "BaseService":
         """Returns a new service object by its id. This seems dumb, but it is a work-around
         for Python's circular import limitations."""
         return SERVICES[service_id]()
@@ -31,7 +37,7 @@ class LaunchUIDelegate(Delegate):
     the launch() method, where no delegate is available.
     """
 
-    def check_game_launchable(self, game):
+    def check_game_launchable(self, game: Game) -> bool:
         """See if the game can be launched. If there are adverse conditions,
         this can warn the user and ask whether to launch. If this returs
         False, the launch is cancelled. The default is to return True with no
@@ -41,7 +47,7 @@ class LaunchUIDelegate(Delegate):
             raise UnavailableRunnerError(_("The required runner '%s' is not installed.") % game.runner.name)
         return True
 
-    def select_game_launch_config(self, game):
+    def select_game_launch_config(self, game: Game) -> "LaunchConfigDict | None":
         """Prompt the user for which launch config to use. Returns None
         if the user cancelled, an empty dict for the primary game configuration
         and the launch_config as a dict if one is selected.
@@ -49,6 +55,17 @@ class LaunchUIDelegate(Delegate):
         The default is the select the primary game.
         """
         return {}  # primary game
+
+    def wait_for_component_updates(self, game: Game, on_ready: Callable[[], None]) -> None:
+        """Defer the launch until any in-progress Lutris component downloads
+        complete. Launching while runtime/wine components are being installed
+        can crash games or corrupt their Wine prefix (see issue #6702).
+
+        The default invokes on_ready() immediately; DialogLaunchUIDelegate
+        overrides this to show a wait dialog with a 'Launch Anyway' override.
+        If the user cancels, on_ready is never called.
+        """
+        on_ready()
 
 
 class InstallUIDelegate(Delegate):
@@ -66,7 +83,7 @@ class InstallUIDelegate(Delegate):
         The default is 'yes'."""
         return True
 
-    def show_install_file_inquiry(self, question: str, title: str, message: str) -> Optional[str]:
+    def show_install_file_inquiry(self, question: str, title: str, message: str) -> str | None:
         """Called to ask the user for a file.
 
         Lutris first asks the user the question given (showing the title);
@@ -87,7 +104,7 @@ class InstallUIDelegate(Delegate):
 
         The default is to download with no UI, and no option to cancel.
         """
-        downloader = Downloader(url, destination, overwrite=True)
+        downloader = SimpleDownloader(url, destination, overwrite=True)
         downloader.start()
         return downloader.join()
 
@@ -95,15 +112,15 @@ class InstallUIDelegate(Delegate):
 class CommandLineUIDelegate(LaunchUIDelegate):
     """This delegate can provide user selections that were provided on the command line."""
 
-    def __init__(self, launch_config_name):
+    def __init__(self, launch_config_name: str | None):
         self.launch_config_name = launch_config_name
 
-    def select_game_launch_config(self, game):
+    def select_game_launch_config(self, game: Game) -> "LaunchConfigDict | None":
         if not self.launch_config_name:
             return {}
 
-        game_config = game.config.game_level.get("game", {})
-        configs = game_config.get("launch_configs")
+        game_config = game.config.game_level.get("game", {}) if game.config else {}
+        configs: list["LaunchConfigDict"] = game_config.get("launch_configs") or []
 
         for config in configs:
             if config.get("name") == self.launch_config_name:
@@ -115,7 +132,7 @@ class CommandLineUIDelegate(LaunchUIDelegate):
 class DialogInstallUIDelegate(InstallUIDelegate):
     """This provides UI for runner installation via dialogs."""
 
-    def show_install_yesno_inquiry(self, question, title):
+    def show_install_yesno_inquiry(self, question: str, title: str) -> bool:
         dialog = dialogs.QuestionDialog(
             {
                 "parent": self,
@@ -125,7 +142,7 @@ class DialogInstallUIDelegate(InstallUIDelegate):
         )
         return Gtk.ResponseType.YES == dialog.result
 
-    def show_install_file_inquiry(self, question, title, message):
+    def show_install_file_inquiry(self, question: str, title: str, message: str) -> str | None:
         dlg = dialogs.QuestionDialog(
             {
                 "parent": self,
@@ -134,37 +151,66 @@ class DialogInstallUIDelegate(InstallUIDelegate):
             }
         )
         if dlg.result == dlg.YES:
-            dlg = dialogs.FileDialog(message)
-            return dlg.filename
+            file_dlg = dialogs.FileDialog(message)
+            return file_dlg.filename
+        return None
 
     def download_install_file(self, url: str, destination: str) -> bool:
         dialog = DownloadDialog(url, destination, parent=self)
         dialog.run()
-        return dialog.downloader.state == Downloader.COMPLETED
+        return dialog.downloader.state == BaseDownloader.COMPLETED
 
 
 class DialogLaunchUIDelegate(LaunchUIDelegate):
     """This provides UI for game launch via dialogs."""
 
-    def check_game_launchable(self, game):
+    def check_game_launchable(self, game: Game) -> bool:
         if not game.runner.is_installed():
-            installed = game.runner.install_dialog(self)
+            installed = game.runner.install_dialog(cast(InstallUIDelegate, self))
             if not installed:
                 return False
 
         return True
 
-    def select_game_launch_config(self, game):
-        game_config = game.config.game_level.get("game", {})
-        configs = game_config.get("launch_configs")
+    def wait_for_component_updates(self, game: Game, on_ready: Callable[[], None]) -> None:
+        from lutris.gui.lutriswindow import LutrisWindow  # noqa: PLC0415
 
-        def get_preferred_config_index():
+        window = cast(LutrisWindow, self)
+        if window.is_download_queue_empty:
+            on_ready()
+            return
+
+        dialog = dialogs.ComponentUpdateWaitDialog(
+            is_queue_empty=lambda: window.is_download_queue_empty,
+            parent=window,
+        )
+
+        def on_response(_dialog, response):
+            if response == Gtk.ResponseType.OK:
+                on_ready()
+
+        dialog.connect("response", on_response)
+        dialog.show()
+
+    def select_game_launch_config(self, game: Game) -> "LaunchConfigDict | None":
+        config = game.config
+
+        if not config:
+            return {}  # use primary configuration
+
+        game_config = config.game_level.get("game", {})
+        configs: list["LaunchConfigDict"] = game_config.get("launch_configs")
+
+        if not configs:
+            return {}  # use primary configuration
+
+        def get_preferred_config_index() -> int | None:
             # Validate that the settings are still valid; we need the index to
             # cope when two configs have the same name but we insist on a name
             # match. Returns None if it can't find a match, and then the user
             # must decide.
             preferred_name = game_config.get("preferred_launch_config_name")
-            preferred_index = game_config.get("preferred_launch_config_index")
+            preferred_index: int = game_config.get("preferred_launch_config_index")
 
             if preferred_index == 0 or preferred_name == Game.PRIMARY_LAUNCH_CONFIG_NAME:
                 return 0
@@ -183,19 +229,16 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
 
             return None
 
-        def save_preferred_config(index):
+        def save_preferred_config(index: int) -> None:
             name = configs[index - 1].get("name") if index > 0 else Game.PRIMARY_LAUNCH_CONFIG_NAME
             game_config["preferred_launch_config_index"] = index
             game_config["preferred_launch_config_name"] = name
-            game.config.save()
+            config.save()
 
-        def reset_preferred_config():
+        def reset_preferred_config() -> None:
             game_config.pop("preferred_launch_config_index", None)
             game_config.pop("preferred_launch_config_name", None)
-            game.config.save()
-
-        if not configs:
-            return {}  # use primary configuration
+            config.save()
 
         keymap = Gdk.Keymap.get_default()
         if keymap.get_modifier_state() & Gdk.ModifierType.SHIFT_MASK:
@@ -204,7 +247,9 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
             config_index = get_preferred_config_index()
 
         if config_index is None:
-            dlg = dialogs.LaunchConfigSelectDialog(game, configs, title=_("Select game to launch"), parent=self)
+            dlg = dialogs.LaunchConfigSelectDialog(
+                game, configs, title=_("Select game to launch"), parent=cast("LutrisWindow", self)
+            )
             if not dlg.confirmed:
                 return None  # no error here- the user cancelled out
 

@@ -3,8 +3,9 @@
 # pylint: disable=too-many-lines
 import os
 import shlex
+from collections.abc import Iterable
 from gettext import gettext as _
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
@@ -34,7 +35,7 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
     winekill,
     winetricks,
 )
-from lutris.runners.runner import Runner
+from lutris.runners.runner import RunDataDict, Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, get_default_dpi, is_display_x11
 from lutris.util.graphics import drivers, vkquery
@@ -68,10 +69,20 @@ from lutris.util.wine.wine import (
     is_winewayland_available,
 )
 
+if TYPE_CHECKING:
+    from lutris.api import RunnerVersionDict
+    from lutris.monitored_command import MonitoredCommand
+
+
+def is_umu_managed_version(version: str | None) -> bool:
+    """True if this Wine 'version' is actually launched through umu: the 'ge-proton'
+    sentinel or any Proton build. umu fetches Proton on demand, so there is no Wine
+    runner build for Lutris to download or install for these versions."""
+    return version == GE_PROTON_LATEST or proton.is_proton_version(version)
+
 
 def _is_proton_config(config: LutrisConfig) -> bool:
-    version = config.runner_config.get("version")
-    return version == GE_PROTON_LATEST or proton.is_proton_version(version)
+    return is_umu_managed_version(config.runner_config.get("version"))
 
 
 def _is_pre_proton(_option_key: str, config: LutrisConfig) -> bool:
@@ -86,7 +97,7 @@ def _is_proton_hdr_available(_option_key: str, config: LutrisConfig) -> bool:
     return False
 
 
-def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_version_warning(_option_key: str, config: LutrisConfig) -> str | None:
     arch = config.game_config.get("arch")
     if arch == "win32" and _is_proton_config(config):
         return _("Proton is not compatible with 32-bit prefixes.")
@@ -94,7 +105,7 @@ def _get_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str
     return None
 
 
-def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> str | None:
     game_config = config.game_config
     if game_config.get("prefix"):
         return None
@@ -106,7 +117,7 @@ def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> Optional[str]
     return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
-def _get_exe_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_exe_warning(_option_key: str, config: LutrisConfig) -> str | None:
     exe = config.game_config.get("exe") or ""
     stripped_exe = exe.strip()
 
@@ -129,7 +140,7 @@ def _get_exe_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     return None
 
 
-def _get_dxvk_warning() -> Optional[str]:
+def _get_dxvk_warning() -> str | None:
     if drivers.is_outdated():
         driver_info = drivers.get_nvidia_driver_info()
         return _(
@@ -141,7 +152,7 @@ def _get_dxvk_warning() -> Optional[str]:
     return None
 
 
-def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feature: str) -> Optional[str]:
+def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feature: str) -> str | None:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
     if config.runner_config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
@@ -151,12 +162,14 @@ def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feat
     return None
 
 
-def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> str | None:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
     runner_config = config.runner_config
     if runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported():
         version = runner_config.get("dxvk_version")
+        if version is not None:
+            version = str(version)
         if version and not version.startswith("v1."):
             library_api_version = vkquery.get_vulkan_api_version()
             if library_api_version and library_api_version < REQUIRED_VULKAN_API_VERSION:
@@ -180,7 +193,7 @@ def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> Optiona
     return None
 
 
-def _get_esync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_esync_warning(_option_key: str, config: LutrisConfig) -> str | None:
     if config.runner_config.get("esync"):
         limits_set = is_esync_limit_set()
         if not limits_set:
@@ -192,7 +205,7 @@ def _get_esync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     return ""
 
 
-def _get_fsync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_fsync_warning(_option_key: str, config: LutrisConfig) -> str | None:
     if config.runner_config.get("fsync"):
         fsync_supported = is_fsync_supported()
         if not fsync_supported:
@@ -200,7 +213,7 @@ def _get_fsync_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
     return None
 
 
-def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> str | None:
     message = _("Wine virtual desktop is no longer supported")
     runner_config = config.runner_config
     if runner_config.get("Desktop"):
@@ -211,7 +224,7 @@ def _get_virtual_desktop_warning(_option_key: str, config: LutrisConfig) -> Opti
     return message
 
 
-def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> Optional[str]:
+def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> str | None:
     runner_config = config.runner_config
     if runner_config.get("Graphics") == "wayland":
         runner_version = runner_config.get("version")
@@ -219,7 +232,7 @@ def _get_wine_wayland_warning(_option_key: str, config: LutrisConfig) -> Optiona
         if not runner_version:
             return None
 
-        if not is_display_x11():
+        if is_display_x11():
             return _("You cannot use winewayland driver when using an X11-based session")
 
         if not is_winewayland_available(runner_version):
@@ -255,7 +268,7 @@ def _get_wine_version_choices():
 class wine(Runner):
     description: str = _("Runs Windows games")
     human_name = _("Wine")
-    platforms = [_("Windows")]
+    platform_dict = Runner.to_platform_dict([_("Windows")])
     multiple_versions = True
     entry_point_option = "exe"
 
@@ -366,7 +379,7 @@ class wine(Runner):
             "advanced": True,
             "type": "choice_with_entry",
             "visible": _is_pre_proton,
-            "condition": LINUX_SYSTEM.is_vulkan_supported(),
+            "condition": LINUX_SYSTEM.is_vulkan_supported,
             "conditional_on": "dxvk",
             "choices": lambda: DXVKManager().version_choices,
             "default": lambda: DXVKManager().version,
@@ -390,7 +403,7 @@ class wine(Runner):
             "advanced": True,
             "type": "choice_with_entry",
             "visible": _is_pre_proton,
-            "condition": LINUX_SYSTEM.is_vulkan_supported(),
+            "condition": LINUX_SYSTEM.is_vulkan_supported,
             "conditional_on": "vkd3d",
             "choices": lambda: VKD3DManager().version_choices,
             "default": lambda: VKD3DManager().version,
@@ -469,7 +482,7 @@ class wine(Runner):
             "option": "fsync",
             "label": _("Enable Fsync"),
             "type": "bool",
-            "default": is_fsync_supported(),
+            "default": is_fsync_supported,
             "warning": _get_fsync_warning,
             "active": True,
             "help": _(
@@ -717,8 +730,15 @@ class wine(Runner):
         return system.fix_path_case(os.path.join(self.game_path, exe))
 
     @property
+    def has_working_dir(self) -> bool:
+        return bool(self._get_explicit_working_dir() or super().has_working_dir)
+
+    @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
+        return self._get_explicit_working_dir() or super().working_dir
+
+    def _get_explicit_working_dir(self):
         _working_dir = self._working_dir or self.game_config.get("working_dir")
         if _working_dir:
             return os.path.expanduser(_working_dir)
@@ -726,7 +746,7 @@ class wine(Runner):
             game_dir = os.path.dirname(self.game_exe)
             if os.path.isdir(game_dir):
                 return game_dir
-        return super().working_dir
+        return None
 
     @property
     def nvidia_shader_cache_path(self):
@@ -747,16 +767,16 @@ class wine(Runner):
                 arch = WINE_DEFAULT_ARCH
         return arch
 
-    def get_runner_version(self, version: Optional[str] = None) -> Optional[Dict[str, str]]:
+    def get_runner_version(self, version: str | None = None) -> "RunnerVersionDict | None":
         if version in WINE_PATHS:
             return {"version": version}
 
         return super().get_runner_version(version)
 
-    def read_version_from_config(self, default: Optional[str] = None) -> str:
+    def read_version_from_config(self, default: str | None = None) -> str:
         """Return the Wine version to use. use_default can be set to false to
         force the installation of a specific wine version. If no version is configured,
-        we return the default supplied, or the4 global Wine default if none is."""
+        we return the default supplied, or the global Wine default if none is."""
 
         # We must use the config levels to avoid getting a default if the setting
         # is not set; we'll fall back to get_default_version()
@@ -844,7 +864,7 @@ class wine(Runner):
             # which one to get the correct LutrisConfig object.
         return wine_path
 
-    def get_command(self) -> List[str]:
+    def get_command(self) -> list[str]:
         command = super().get_command()
         if command:
             if proton.is_proton_path(command[0]) and not proton.is_umu_path(command[0]):
@@ -855,7 +875,7 @@ class wine(Runner):
 
         return command
 
-    def is_installed(self, flatpak_allowed: bool = True, version: str = None, fallback: bool = True) -> bool:
+    def is_installed(self, flatpak_allowed: bool = True, version: str | None = None, fallback: bool = True) -> bool:
         """Check if Wine is installed.
         If no version is passed, checks if any version of wine is available
         """
@@ -872,13 +892,33 @@ class wine(Runner):
     def is_installed_for(self, interpreter):
         try:
             version = self.get_installer_runner_version(interpreter.installer, use_api=True)
+        except MisconfigurationError:
+            return False
+        # Proton versions (including the 'ge-proton' sentinel) are managed by umu and
+        # fetched on demand at launch; there is no Wine runner build to download, so the
+        # installer never needs to install one for them.
+        if is_umu_managed_version(version):
+            return True
+        try:
             return self.is_installed(version=version, fallback=False)
         except MisconfigurationError:
             return False
 
+    def install(self, install_ui_delegate, version=None, callback=None):
+        # umu manages Proton on demand; these versions have no downloadable Wine build,
+        # so "installing" one is a no-op. Skipping here keeps the installer flow, the
+        # "install runner?" dialog, and CLI installs from failing with a spurious
+        # "The 'ge-proton' version of the 'wine' runner can't be downloaded" error.
+        if is_umu_managed_version(version):
+            logger.info("Wine version '%s' is provided by umu; nothing to install.", version)
+            if callback:
+                callback()
+            return
+        super().install(install_ui_delegate, version=version, callback=callback)
+
     def get_installer_runner_version(
         self, installer, use_runner_config: bool = True, use_api: bool = False
-    ) -> Optional[str]:
+    ) -> str | None:
         # If a version is specified in the script choose this one
         version = None
         if installer.script.get(installer.runner):
@@ -913,13 +953,13 @@ class wine(Runner):
 
         return version
 
-    def adjust_installer_runner_config(self, installer_runner_config: Dict[str, Any]) -> None:
+    def adjust_installer_runner_config(self, installer_runner_config: dict[str, Any]) -> None:
         version = installer_runner_config.get("version")
         if version:
             installer_runner_config["version"] = normalize_version_architecture(version)
 
     @classmethod
-    def get_runner_version_and_config(cls) -> Tuple[str, LutrisConfig]:
+    def get_runner_version_and_config(cls) -> tuple[str, LutrisConfig]:
         runner_config = LutrisConfig(runner_slug="wine")
         if "wine" in runner_config.runner_level:
             config_version = runner_config.runner_level["wine"].get("version")
@@ -1066,19 +1106,22 @@ class wine(Runner):
                         logger.warning("Your Wine version does not support winewayland graphics driver")
                         continue
 
-                    if proton.is_proton_path(self.get_executable()):
+                    graphics_exe = self.get_executable()
+                    if proton.is_proton_path(graphics_exe) or proton.is_umu_path(graphics_exe):
                         continue
 
                 if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
                         value = None
+                    wine_exe = self.get_executable()
                     if (
                         value
                         and key in ("Desktop", "WineDesktop")
                         and (
-                            "wine-ge" in self.get_executable().casefold()
-                            or proton.is_proton_path(self.get_executable())
+                            proton.is_umu_path(wine_exe)
+                            or proton.is_proton_path(wine_exe)
+                            or "wine-ge" in wine_exe.casefold()
                         )
                     ):
                         logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
@@ -1105,6 +1148,17 @@ class wine(Runner):
                 return get_default_dpi()
         return get_default_dpi()
 
+    def attach_log_handlers(self, monitored_command: "MonitoredCommand", game: Game) -> None:
+        """Install a umu launch-status parser when the wine executable is
+        actually umu — umu's runtime/Proton setup can take a long time on the
+        first launch and there's no other indication of progress."""
+        try:
+            wine_exe = self.get_executable()
+        except MissingExecutableError:
+            return
+        if proton.is_umu_path(wine_exe):
+            monitored_command.log_handlers.append(proton.UmuLaunchStatusParser(game))
+
     def prelaunch(self):
         prefix_path = self.prefix_path
         if prefix_path:
@@ -1128,6 +1182,42 @@ class wine(Runner):
             for manager, enabled in self.get_dll_managers().items():
                 manager.setup(enabled)
 
+        client_exe = self.game_config.get("client_exe")
+        if client_exe:
+            self._ensure_client_running(client_exe)
+
+    def _ensure_client_running(self, client_exe, wait_time=15):
+        """Launch a client application (e.g. Battle.net) and wait for it to be ready.
+        Many game clients need to be fully initialized before they can accept
+        commands like --exec to launch a specific game."""
+        import time
+
+        if not os.path.isabs(client_exe):
+            client_exe = os.path.join(self.prefix_path, client_exe)
+
+        if not os.path.exists(client_exe):
+            logger.warning("Client executable not found: %s", client_exe)
+            return
+
+        exe_name = os.path.basename(client_exe)
+
+        # Search for the full path so we match the umu-run/pressure-vessel
+        # wrapper processes, which use Unix paths.  This also implicitly
+        # scopes the check to the current prefix.
+        if system.is_process_running(client_exe):
+            logger.info("Client %s is already running", exe_name)
+            return
+
+        logger.info("Launching client %s", exe_name)
+        wineexec(
+            client_exe,
+            prefix=self.prefix_path,
+            wine_path=self.get_executable(),
+            arch=self.wine_arch,
+        )
+        logger.info("Waiting %d seconds for client to be ready", wait_time)
+        time.sleep(wait_time)
+
     def get_dll_managers(self, enabled_only=False):
         """Returns the DLL managers in a dict; the keys are the managers themselves,
         and the values are the enabled flags for them. If 'enabled_only' is true,
@@ -1141,7 +1231,8 @@ class wine(Runner):
         ]
 
         managers = {}
-        is_proton = proton.is_proton_path(self.get_executable())
+        wine_exe = self.get_executable()
+        is_proton = proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe)
 
         for manager_class, enabled_option, version_option in manager_classes:
             enabled = bool(self.runner_config.get(enabled_option))
@@ -1190,7 +1281,7 @@ class wine(Runner):
                 env["UMU_LOG"] = "debug"
         env["WINEARCH"] = self.wine_arch
         wine_exe = self.get_executable()
-        is_proton = proton.is_proton_path(wine_exe)
+        is_proton = proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe)
 
         wine_config_version = self.read_version_from_config()
         if wine_config_version == GE_PROTON_LATEST:
@@ -1242,12 +1333,25 @@ class wine(Runner):
         if self.runner_config.get("eac"):
             env["PROTON_EAC_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "eac_runtime")
 
-        using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported
+        using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported()
         if not using_dxvk:
             env["PROTON_USE_WINED3D"] = "1"
 
         if "PROTON_DXVK_D3D8" not in env:
             env["PROTON_DXVK_D3D8"] = "1" if using_dxvk else "0"
+
+        if (
+            using_dxvk
+            and is_proton_version
+            and "PROTON_DXVK_SAREK" not in env
+            and not os.environ.get("LUTRIS_NO_VKQUERY")
+        ):
+            lib_api_version = vkquery.get_vulkan_api_version()
+            devices = vkquery.get_device_info()
+            if (lib_api_version and lib_api_version < REQUIRED_VULKAN_API_VERSION) or (
+                devices and devices[0].api_version < REQUIRED_VULKAN_API_VERSION
+            ):
+                env["PROTON_DXVK_SAREK"] = "1"
 
         if (
             self.runner_config.get("Graphics") == "wayland"
@@ -1270,7 +1374,7 @@ class wine(Runner):
 
         return env
 
-    def finish_env(self, env: Dict[str, str], game) -> None:
+    def finish_env(self, env: dict[str, str], game: Game | None = None) -> None:
         super().finish_env(env, game)
 
         wine_exe = self.get_executable()
@@ -1278,6 +1382,14 @@ class wine(Runner):
         if proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe):
             game_id = proton.get_game_id(game, env)
             proton.update_proton_env(wine_exe, env, game_id=game_id)
+
+    def get_run_data(self) -> RunDataDict:
+        # The standalone run() path does not call finish_env() the way launching a
+        # game does, so finalize the environment here too. Without a game context,
+        # Proton/umu falls back to a default GAMEID.
+        data = super().get_run_data()
+        self.finish_env(data["env"])
+        return data
 
     def get_runtime_env(self):
         """Return runtime environment variables with path to wine for Lutris builds"""
@@ -1296,7 +1408,7 @@ class wine(Runner):
         """Return a list of pids of processes using the current wine exe."""
         try:
             exe = self.get_executable()
-            if proton.is_proton_path(exe):
+            if proton.is_proton_path(exe) or proton.is_umu_path(exe):
                 logger.debug("Tracking PIDs of Proton games is not possible at the moment")
                 return set()
             if not exe.startswith("/"):
@@ -1322,11 +1434,11 @@ class wine(Runner):
         except Exception as ex:
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
-    def play(self) -> Dict[str, Any]:  # pylint: disable=too-many-return-statements
+    def play(self) -> dict[str, Any]:  # pylint: disable=too-many-return-statements
         game_exe = self.game_exe
         arguments: str = self.game_config.get("args", "")
         launch_info: dict = {"env": self.get_env(os_env=False)}
-        using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported
+        using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported()
 
         if using_dxvk:
             # Set this to 1 to enable access to more RAM for 32-bit applications
@@ -1360,11 +1472,12 @@ class wine(Runner):
         launch_info["command"] = command
         return launch_info
 
-    def filter_game_pids(self, candidate_pids: Iterable[int], game_uuid: str, game_folder: str) -> Set[int]:
+    def filter_game_pids(self, candidate_pids: Iterable[int], game_uuid: str, game_folder: str) -> set[int]:
         """Checks the pids given and returns a set containing only those that are part of the running game,
         identified by its UUID and directory."""
 
-        if proton.is_proton_path(self.get_executable()):
+        wine_exe = self.get_executable()
+        if proton.is_proton_path(wine_exe) or proton.is_umu_path(wine_exe):
             folder_pids = set()
             gamescope_pids = set()
             has_gamescope = self.system_config.get("gamescope")

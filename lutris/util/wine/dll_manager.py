@@ -30,7 +30,7 @@ class DLLManager:
     def __init__(self, prefix=None, arch="win64", version=None):
         self.prefix = prefix
         self._versions = []
-        self._version = version
+        self._version = None if version is None else str(version)
         self.wine_arch = arch
 
     @property

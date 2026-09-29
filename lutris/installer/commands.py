@@ -19,6 +19,8 @@ from lutris.runners import InvalidRunnerError, import_runner, import_task
 from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
+from lutris.util.gog import apply_gog_config, find_gog_config_dir
+from lutris.util.gogdl import clear_stale_manifest, run_gogdl
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
@@ -122,6 +124,8 @@ class CommandsMixin:
                 args.append(self._substitute(arg))
             terminal = data.get("terminal")
             working_dir = data.get("working_dir")
+            if working_dir:
+                working_dir = self._substitute(working_dir)
             if not data.get("disable_runtime"):
                 # Possibly need to handle prefer_system_libs here
                 env.update(runtime.get_env())
@@ -159,8 +163,12 @@ class CommandsMixin:
 
         if terminal:
             terminal = linux.get_default_terminal()
-
-        if not working_dir or not os.path.exists(working_dir):
+        if working_dir and not os.path.isdir(working_dir):
+            logger.warning(
+                "Working directory %s doesn't exist or is not a directory, using target path instead", working_dir
+            )
+            working_dir = None
+        if not working_dir:
             working_dir = self.target_path
 
         command = MonitoredCommand(
@@ -291,6 +299,12 @@ class CommandsMixin:
                 self.game_files[params["src"]] = os.path.join(dst, os.path.basename(src))
             return
         self._killable_process(system.merge_folders, src, dst)
+        # Optionally drop the source tree once its contents have been merged.
+        # Useful when the source is throwaway scaffolding (e.g. the
+        # installDirectory subfolder a gogdl depot download creates) that
+        # would otherwise duplicate the merged data.
+        if params.get("remove_source") and os.path.isdir(src):
+            self._killable_process(shutil.rmtree, src)
 
     def copy(self, params):
         """Alias for merge"""
@@ -386,6 +400,10 @@ class CommandsMixin:
             runner_name, task_name = task_name.split(".")
         else:
             runner_name = self.installer.runner
+
+        task_name = task_name.replace("-", "_")
+        # Prevent private functions from being accessed as commands
+        task_name = task_name.strip("_")
         return runner_name, task_name
 
     def task(self, data):
@@ -626,7 +644,7 @@ class CommandsMixin:
             args = "/SP- /NOCANCEL"
             if silent:
                 args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
-            self.installer.is_gog = True
+            self.installer.post_install_hooks.append(apply_gog_config)
             return self.task({"name": "wineexec", "prefix": "$GAMEDIR", "executable": file_id, "args": args})
 
     def _get_dosbox_arguments(self, zoom_bat_path):
@@ -701,7 +719,6 @@ class CommandsMixin:
             args = "/SP- /NOCANCEL"
             if silent:
                 args += " /SUPPRESSMSGBOXES /VERYSILENT /NOGUI"
-            self.installer.is_gog = True
             return self.task({"name": "wineexec", "prefix": "$GAMEDIR", "executable": file_id, "args": args})
 
     def autosetup_amazon(self, file_and_dir_dict):
@@ -734,6 +751,238 @@ class CommandsMixin:
             if os.path.exists(source_file):
                 os.remove(source_file)
 
+    def gogdl_setup(self, data):
+        """Download and set up a GOG game via depot/CDN using heroic-gogdl.
+
+        Params:
+            game_id: GOG product ID (defaults to the installer's resolved
+                gogid, so scripts only need to set it once; an explicit value
+                still wins, e.g. for downloading a DLC)
+            platform: "windows" or "linux" (default: based on runner)
+            lang: language code (default: system locale)
+            dlcs: "all", "none", or comma-separated DLC IDs (optional)
+            preserve_manifest: True to keep an existing gogdl manifest (use when
+                adding DLCs to an installed base game, so gogdl diffs old→new
+                and only downloads the DLC files instead of treating the base
+                as missing)
+            command: "download" | "update" | "repair" (default: "download")
+        """
+        game_id = data.get("game_id") or self.installer.service_appid
+        if not game_id:
+            raise ScriptingError(
+                _("gogdl_setup requires a game_id, or a gogid set on the installer."),
+                data,
+            )
+
+        game_id = str(game_id)
+        command = data.get("command", "download")
+        platform = data.get("platform")
+        lang = data.get("lang")
+        dlcs_param = data.get("dlcs")
+        preserve_manifest = bool(data.get("preserve_manifest"))
+
+        if not platform:
+            platform = "linux" if self.installer.runner == "linux" else "windows"
+
+        # Determine install path
+        # gogdl appends the game's installDirectory (from the depot manifest)
+        # to the path on fresh downloads, so we point it at the parent only.
+        install_path = self.target_path
+
+        os.makedirs(install_path, exist_ok=True)
+
+        # Handle DLC parameter
+        if dlcs_param == "all":
+            dlcs = True
+        elif dlcs_param == "none":
+            dlcs = False
+        elif dlcs_param:
+            dlcs = str(dlcs_param)
+        else:
+            dlcs = None
+
+        # Clear stale manifest for fresh downloads so gogdl doesn't
+        # think the game is already installed from a previous attempt.
+        if command == "download" and not preserve_manifest:
+            clear_stale_manifest(game_id, install_path, runner="linux" if platform == "linux" else "wine")
+
+        msg = _("Downloading via GOG depot...")
+        logger.info(msg)
+        self.interpreter_ui_delegate.report_status(msg)
+
+        def progress_callback(progress):
+            fraction = progress.percent / 100.0
+            parts = []
+            if progress.speed_mib > 0:
+                parts.append(_("{speed:.1f} MiB/s").format(speed=progress.speed_mib))
+            if progress.eta and progress.eta != "00:00:00":
+                parts.append(_("ETA: {eta}").format(eta=progress.eta))
+            text = " — ".join(parts) if parts else ""
+            self.interpreter_ui_delegate.report_progress(fraction, text)
+
+        try:
+            run_gogdl(
+                command=command,
+                game_id=game_id,
+                path=install_path,
+                platform=platform,
+                lang=lang,
+                dlcs=dlcs,
+                progress_callback=progress_callback,
+            )
+        except FileNotFoundError as err:
+            raise ScriptingError(_("gogdl runtime component not found. Please update your Lutris runtime.")) from err
+        except Exception as err:
+            raise ScriptingError(_("GOG depot download failed: %s") % err) from err
+
+        self.interpreter_ui_delegate.report_progress(None)
+
+        # Post-install: find where gogdl actually put the files and apply config.
+        # For a fresh "download", gogdl appends installDirectory to the path, so we
+        # need to discover the actual game directory. For updates and DLC adds
+        # against an existing install, we wrote into the install dir directly.
+        if command == "download" and not preserve_manifest:
+            game_path = self._find_gogdl_game_path(install_path)
+        else:
+            game_path = install_path
+
+        self._apply_gogdl_post_install(game_path, platform)
+        logger.info("GOG depot download completed for %s", game_id)
+
+    def _find_gogdl_game_path(self, parent_path):
+        """Find the actual game directory under parent_path after a gogdl download.
+        gogdl creates a subdirectory named after the game's installDirectory."""
+        if not os.path.isdir(parent_path):
+            return parent_path
+        entries = [e for e in os.listdir(parent_path) if os.path.isdir(os.path.join(parent_path, e))]
+        if len(entries) == 1:
+            return os.path.join(parent_path, entries[0])
+        # Multiple dirs or none — look for goggame-*.info to find the right one
+        for entry in entries:
+            candidate = os.path.join(parent_path, entry)
+            if any(f.startswith("goggame") and f.endswith(".info") for f in os.listdir(candidate)):
+                return candidate
+        return parent_path
+
+    def _apply_gogdl_post_install(self, install_path, platform):
+        """Detect game configuration from goggame-*.info after a depot download."""
+        from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config
+
+        config_path = find_gog_config_dir(install_path)
+        if not config_path:
+            return
+
+        gog_config = get_gog_config(config_path)
+        if not gog_config:
+            return
+
+        play_tasks = gog_config.get("playTasks", [])
+        if not play_tasks:
+            return
+
+        # Detect DOSBox/ScummVM games from playTasks
+        for task in play_tasks:
+            task_path = task.get("path", "").casefold()
+            if "dosbox" in task_path:
+                self._configure_dosbox_from_depot(install_path, gog_config)
+                return
+            if "scummvm" in task_path:
+                self._configure_scummvm_from_depot(install_path, gog_config)
+                return
+
+        # Normal game — apply config from goggame-*.info
+        lutris_config = convert_gog_config_to_lutris(gog_config, config_path)
+        if lutris_config and "game" in self.installer.script:
+            # For Linux GOG games, prefer start.sh over the binary from goggame info.
+            # GOG's start.sh handles working directory setup and permissions.
+            if platform == "linux":
+                start_sh = os.path.join(install_path, "start.sh")
+                if os.path.isfile(start_sh):
+                    lutris_config["exe"] = start_sh
+                    system.make_executable(start_sh)
+            # Don't clobber config the script set explicitly: a community
+            # installer may ship its own engine (e.g. a native source port
+            # run over GOG game data), in which case its exe must win over the
+            # Windows exe detected from goggame-*.info. Auto-generated GOG
+            # installers leave these unset, so detection still fills them in.
+            game_config = self.installer.script["game"]
+            for key, value in lutris_config.items():
+                game_config.setdefault(key, value)
+
+    def _configure_dosbox_from_depot(self, install_path, gog_config):
+        """Configure a DOSBox game from depot download using playTasks args.
+
+        In depot layouts, the -conf paths in goggame-*.info are relative to
+        the GOG Galaxy working dir and may not resolve directly. The actual
+        conf files are typically in gog-support/{id}/app/. We parse the
+        conf filenames from the arguments and search the install tree for them.
+        """
+        game_task = next(
+            (t for t in gog_config.get("playTasks", []) if t.get("category") == "game"),
+            None,
+        )
+        if not game_task:
+            logger.warning("No game playTask found in goggame info for DOSBox game")
+            return
+
+        arguments = game_task.get("arguments", "")
+
+        # Parse -conf arguments to get the config filenames
+        try:
+            args = shlex.split(arguments)
+        except ValueError:
+            args = arguments.split()
+
+        conf_names = []
+        i = 0
+        while i < len(args):
+            if args[i] == "-conf" and i + 1 < len(args):
+                conf_name = os.path.basename(args[i + 1].replace("\\", "/"))
+                conf_names.append(conf_name)
+                i += 2
+            else:
+                i += 1
+
+        # Search install tree for the actual conf files
+        conf_files = []
+        for conf_name in conf_names:
+            for dirpath, _dirnames, filenames in os.walk(install_path):
+                if conf_name in filenames:
+                    conf_files.append(os.path.join(dirpath, conf_name))
+                    break
+
+        dosbox_config = {}
+
+        if conf_files:
+            single = next((c for c in conf_files if "_single" in c), None)
+            dosbox_config["main_file"] = single or conf_files[0]
+            remaining = [c for c in conf_files if c != dosbox_config["main_file"]]
+            if remaining:
+                dosbox_config["config_file"] = remaining[0]
+
+        self.installer.script["game"] = dosbox_config
+        self.installer.runner = "dosbox"
+
+    def _configure_scummvm_from_depot(self, install_path, gog_config):
+        """Configure a ScummVM game from depot download using playTasks args."""
+        game_task = next(
+            (t for t in gog_config.get("playTasks", []) if t.get("category") == "game"),
+            None,
+        )
+        if not game_task:
+            return
+        arguments = game_task.get("arguments", "")
+        parts = arguments.split()
+        if parts:
+            game_id = parts[-1]
+            args = " ".join(parts[:-1])
+            self.installer.script["game"] = {
+                "game_id": game_id,
+                "path": install_path,
+                "args": args,
+            }
+            self.installer.runner = "scummvm"
+
     def install_or_extract(self, file_id):
         """Runs if file is executable or extracts if file is archive"""
         file_path = self._get_file_path(file_id)
@@ -747,3 +996,37 @@ class CommandsMixin:
         slug = self.installer.game_slug
         params = {"file": file_id, "dst": f"$GAMEDIR/drive_c/{slug}"}
         return self.extract(params)
+
+    @staticmethod
+    def _is_installer_exe(path):
+        """Check if an .exe file is a known installer (NSIS or Inno Setup)."""
+        try:
+            with open(path, "rb") as f:
+                header = f.read(512 * 1024)
+            return b"NullsoftInst" in header or b"Inno Setup" in header
+        except OSError:
+            return False
+
+    def extract_or_run(self, data):
+        """Extract an archive. If extraction yields an installer exe (NSIS/Inno),
+        run it with Wine instead of placing the files."""
+        self._check_required_params("file", data, "extract_or_run")
+        file_id = data["file"]
+        dst = self._substitute(data.get("dst", "$CACHE"))
+        file_path = self._get_file_path(file_id)
+
+        # Extract the archive (e.g. tar.gz wrapper)
+        self._killable_process(extract.extract_archive, file_path, dst, True)
+
+        # Check if any extracted .exe is an installer
+        for entry in os.listdir(dst):
+            entry_path = os.path.join(dst, entry)
+            if entry.lower().endswith(".exe") and os.path.isfile(entry_path) and self._is_installer_exe(entry_path):
+                logger.info("Detected installer exe: %s, running with Wine", entry)
+                params = {"name": "wineexec", "executable": entry_path}
+                return self.task(params)
+
+        # No installer found, merge the extracted files to the destination
+        merge_dst = self._substitute(data.get("merge_dst", data.get("dst", "$GAMEDIR")))
+        if merge_dst != dst:
+            self.merge({"src": dst, "dst": merge_dst})

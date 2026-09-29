@@ -11,14 +11,13 @@ from lutris.util import system
 class osmose(Runner):
     human_name = _("Osmose")
     description = _("Sega Master System Emulator")
-    platforms = [_("Sega Master System")]
+    platform_dict = Runner.to_platform_dict([_("Sega Master System")])
     runner_executable = "osmose/osmose"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
             "label": _("ROM file"),
-            "default_path": "game_path",
             "help": _(
                 "The game data, commonly called a ROM image.\n"
                 "Supported formats: SMS and GG files. ZIP compressed "

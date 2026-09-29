@@ -8,19 +8,22 @@ import resource
 import shutil
 import sys
 from collections import Counter, defaultdict
+from collections.abc import Iterator
 from gettext import gettext as _
+from typing import Any, cast
 
 from lutris import settings
 from lutris.exceptions import MisconfigurationError
 from lutris.util import cache_single, flatpak, system
 from lutris.util.graphics import drivers, glxinfo, vkquery
+from lutris.util.graphics.glxinfo import GlxInfo
 from lutris.util.log import logger
 
 try:
-    from distro import linux_distribution
+    import distro
 except ImportError:
     logger.warning("Package 'distro' unavailable. Unable to read Linux distribution")
-    linux_distribution = None
+    distro = None
 
 # Linux components used by lutris
 SYSTEM_COMPONENTS = {
@@ -85,7 +88,7 @@ SYSTEM_COMPONENTS = {
 
 
 @cache_single
-def is_exherbo_with_cross_i686():
+def is_exherbo_with_cross_i686() -> bool:
     return system.path_exists("/etc/exherbo-release") and system.path_exists("/etc/ld-i686-pc-linux-gnu.cache")
 
 
@@ -114,7 +117,9 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     required_components = ["OPENGL", "VULKAN", "GNUTLS"]
     optional_components = ["WINE", "GAMEMODE"]
 
-    def __init__(self):
+    _glxinfo_unset = object()
+
+    def __init__(self) -> None:
         for key in ("COMMANDS", "OPTIONAL_COMMANDS", "TERMINALS"):
             self._cache[key] = {}
             for command in SYSTEM_COMPONENTS[key]:
@@ -129,30 +134,50 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         # Detect if system is 64bit capable
         self.is_64_bit = sys.maxsize > 2**32
         self.arch = self.get_arch()
-        self.shared_libraries = self.get_shared_libraries()
-        self.populate_libraries()
         self.populate_sound_fonts()
         self.soft_limit, self.hard_limit = self.get_file_limits()
-        self.glxinfo = self.get_glxinfo()
+
+        # Expensive fields are lazy; see properties below.
+        self._shared_libraries: dict[str, list[SharedLibrary]] | None = None
+        self._glxinfo: GlxInfo | object | None = self._glxinfo_unset
+
+    @property
+    def shared_libraries(self) -> dict[str, list["SharedLibrary"]]:
+        if self._shared_libraries is None:
+            self._shared_libraries = self.get_shared_libraries()
+            self.populate_libraries()
+        return self._shared_libraries
+
+    @property
+    def glxinfo(self) -> GlxInfo | None:
+        match self._glxinfo:
+            case GlxInfo() as glx:
+                return glx
+            case None:
+                return None
+            case _:
+                result = self._glxinfo = self.get_glxinfo()
+                return result
 
     @staticmethod
-    def get_sbin_path(command):
+    def get_sbin_path(command: str) -> str | None:
         """Some distributions don't put sbin directories in $PATH"""
         path_candidates = ["/sbin", "/usr/sbin"]
         for candidate in path_candidates:
             command_path = os.path.join(candidate, command)
             if os.path.exists(command_path):
                 return command_path
+        return None
 
     @staticmethod
-    def get_file_limits():
+    def get_file_limits() -> tuple[int, int]:
         return resource.getrlimit(resource.RLIMIT_NOFILE)
 
-    def has_enough_file_descriptors(self):
+    def has_enough_file_descriptors(self) -> bool:
         return self.hard_limit >= self.recommended_no_file_open
 
     @staticmethod
-    def get_cpus():
+    def get_cpus() -> list[dict[str, str]]:
         """Parse the output of /proc/cpuinfo"""
         cpus = [{}]
         cpu_index = 0
@@ -167,15 +192,32 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         return [cpu for cpu in cpus if cpu]
 
     @staticmethod
-    def get_drives():
+    def get_drives() -> list[dict[str, Any]]:
         """Return a list of drives with their filesystems"""
-        lsblk_output = system.read_process_output(["lsblk", "-f", "--json"])
-        if not lsblk_output:
+        findmnt_output = system.read_process_output(["findmnt", "-J", "--list"])
+        if not findmnt_output:
             return []
-        return [drive for drive in json.loads(lsblk_output)["blockdevices"] if drive["fstype"] != "squashfs"]
+        return [drive for drive in json.loads(findmnt_output)["filesystems"] if drive["fstype"] != "squashfs"]
 
     @staticmethod
-    def get_ram_info():
+    def _iter_filesystems(devices: list[dict[str, Any]]) -> Iterator[dict[str, Any]]:
+        """Yield filesystems and nested filesystems from findmnt output."""
+        devices = list(devices)
+        while devices:
+            device = devices.pop()
+            devices.extend(device.get("children", []))
+            yield device
+
+    @staticmethod
+    def _path_is_on_mount(path: str, mount_point: str) -> bool:
+        try:
+            return os.path.commonpath((path, mount_point)) == mount_point
+        except ValueError:
+            # Paths on different drives can raise ValueError.
+            return False
+
+    @staticmethod
+    def get_ram_info() -> dict[str, str]:
         """Parse the output of /proc/meminfo and return RAM information in kB"""
         mem = {}
         with open("/proc/meminfo", encoding="utf-8") as meminfo:
@@ -184,40 +226,47 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                 mem[key.strip()] = value.strip("kB \n")
         return mem
 
-    @staticmethod
-    def get_dist_info():
+    def get_dist_info(self) -> str | tuple[str, str, str]:
         """Return distribution information"""
-        if linux_distribution is not None:
-            return linux_distribution()
-        return "unknown"
+        if distro is None:
+            return "unknown"
+        # In Flatpak, read host's os-release instead of the runtime's
+        if self.is_flatpak():
+            host_distro = distro.LinuxDistribution(root_dir="/run/host")
+            return host_distro.name(), host_distro.version(), host_distro.codename()
+        return distro.name(), distro.version(), distro.codename()
 
     @staticmethod
-    def get_arch():
+    def get_arch() -> str | None:
         """Return the system architecture only if compatible
         with the supported architectures from the Lutris API
         """
-        machine = platform.machine()
-        if machine == "x86_64":
-            return "x86_64"
-        if machine in ("i386", "i686"):
-            return "i386"
-        if "armv7" in machine:
-            return "armv7"
-        logger.warning("Unsupported architecture %s", machine)
+        match platform.machine():
+            case "x86_64":
+                return "x86_64"
+            case "i386" | "i686":
+                return "i386"
+            case m if "armv7" in m:
+                return "armv7"
+            case "aarch64" | "arm64":
+                return "aarch64"
+            case m:
+                logger.warning("Unsupported architecture %s", m)
+                return None
 
     @staticmethod
-    def get_kernel_version():
+    def get_kernel_version() -> str:
         """Get kernel info from /proc/version"""
         with open("/proc/version", encoding="utf-8") as kernel_info:
             info = kernel_info.readlines()[0]
             version = info.split(" ")[2]
         return version
 
-    def gamemode_available(self):
+    def gamemode_available(self) -> bool:
         """Return whether gamemode is available"""
         return system.can_find_executable("gamemoderun")
 
-    def nvidia_gamescope_support(self):
+    def nvidia_gamescope_support(self) -> bool:
         """Return whether gamescope is supported if we're on nvidia"""
         if not drivers.is_nvidia():
             return True
@@ -236,7 +285,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
             logger.exception("Unable to determine NVidia version: %s", ex)
             return False
 
-    def has_steam(self):
+    def has_steam(self) -> bool:
         """Return whether Steam is installed locally"""
         return (
             system.can_find_executable("steam")
@@ -245,16 +294,16 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         )
 
     @property
-    def display_server(self):
+    def display_server(self) -> str:
         """Return the display server used"""
         return os.environ.get("XDG_SESSION_TYPE", "unknown")
 
-    def is_flatpak(self):
+    def is_flatpak(self) -> bool:
         """Check is we are running inside Flatpak sandbox"""
         return system.path_exists("/.flatpak-info")
 
     @property
-    def runtime_architectures(self):
+    def runtime_architectures(self) -> list[str]:
         """Return the architectures supported on this machine"""
         x86 = "i386"
         if is_exherbo_with_cross_i686():
@@ -264,35 +313,50 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         return [x86]
 
     @property
-    def requirements(self):
+    def requirements(self) -> list[str]:
         return self.get_requirements()
 
     @property
-    def critical_requirements(self):
+    def critical_requirements(self) -> list[str]:
         return self.get_requirements(include_optional=False)
 
-    def get_fs_type_for_path(self, path):
+    def get_fs_type_for_path(self, path: str) -> str | None:
         """Return the filesystem type a given path uses"""
-        mount_point = system.find_mount_point(path)
-        devices = list(self.get_drives())
-        while devices:
-            device = devices.pop()
-            devices.extend(device.get("children", []))
-            if mount_point in device.get("mountpoints", []) or mount_point == device.get("mountpoint"):
-                return device["fstype"]
-        return None
+        path = os.path.realpath(os.path.expanduser(path))
+        matching_device = None
+        matching_mount_point = ""
 
-    def get_glxinfo(self):
+        for device in self._iter_filesystems(self.get_drives()):
+            target = device.get("target")
+            if not target:
+                continue
+
+            mount_point = os.path.realpath(os.path.expanduser(target))
+            if self._path_is_on_mount(path, mount_point) and len(mount_point) > len(matching_mount_point):
+                matching_device = device
+                matching_mount_point = mount_point
+
+        if not matching_device:
+            return None
+
+        fs_type = matching_device["fstype"]
+        if fs_type == "fuseblk":
+            out = system.read_process_output(["blkid", "-o", "value", "-s", "TYPE", matching_device["source"]])
+            fs_type = out.strip() if out else fs_type
+
+        return cast(str, fs_type)
+
+    def get_glxinfo(self) -> GlxInfo | None:
         """Return a GlxInfo instance if the gfxinfo tool is available"""
         if not self.get("glxinfo"):
-            return
+            return None
         _glxinfo = glxinfo.GlxInfo()
         if not hasattr(_glxinfo, "display"):
             logger.warning("Invalid glxinfo received")
-            return
+            return None
         return _glxinfo
 
-    def get_requirements(self, include_optional=True):
+    def get_requirements(self, include_optional: bool = True) -> list[str]:
         """Return used system requirements"""
         _requirements = self.required_components.copy()
         if include_optional:
@@ -301,24 +365,24 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                 _requirements.append("RADEON")
         return _requirements
 
-    def get(self, command):
+    def get(self, command: str) -> str | None:
         """Return a system command path if available"""
         return self._cache["COMMANDS"].get(command)
 
-    def get_terminals(self):
+    def get_terminals(self) -> list[str]:
         """Return list of installed terminals"""
         return list(self._cache["TERMINALS"].values())
 
-    def get_soundfonts(self):
+    def get_soundfonts(self) -> list[str]:
         """Return path of available soundfonts"""
-        return self._cache["SOUNDFONTS"]
+        return cast(list[str], self._cache["SOUNDFONTS"])
 
-    def get_lib_folders(self):
+    def get_lib_folders(self) -> list[str]:
         """Return shared library folders, sorted by most used to least used"""
         lib_folder_counter = Counter(lib.dirname for lib_list in self.shared_libraries.values() for lib in lib_list)
         return [path[0] for path in lib_folder_counter.most_common()]
 
-    def iter_lib_folders(self):
+    def iter_lib_folders(self) -> Iterator[str]:
         """Loop over existing 32/64 bit library folders"""
         exported_lib_folders = set()
         for lib_folder in self.get_lib_folders():
@@ -339,7 +403,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                     if lib_paths[1] not in exported_lib_folders:
                         yield lib_paths[1]
 
-    def get_ldconfig_libs(self):
+    def get_ldconfig_libs(self) -> list[str]:
         """Return a list of available libraries, as returned by `ldconfig -p`."""
         ldconfig = self.get("ldconfig")
         if not ldconfig:
@@ -353,7 +417,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         output = system.read_process_output(ld_cmd).split("\n")
         return [line.strip("\t") for line in output if line.startswith("\t")]
 
-    def get_shared_libraries(self):
+    def get_shared_libraries(self) -> dict[str, list["SharedLibrary"]]:
         """Loads all available libraries on the system as SharedLibrary instances
         The libraries are stored in a defaultdict keyed by library name.
         """
@@ -369,17 +433,17 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
             shared_libraries[lib.name].append(lib)
         return shared_libraries
 
-    def populate_libraries(self):
+    def populate_libraries(self) -> None:
         """Populates the LIBRARIES cache with what is found on the system"""
         self._cache["LIBRARIES"] = {}
         for arch in self.runtime_architectures:
             self._cache["LIBRARIES"][arch] = defaultdict(list)
         for req in self.requirements:
-            for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:
+            for lib in SYSTEM_COMPONENTS["LIBRARIES"][req]:  # type: ignore
                 for shared_lib in self.shared_libraries[lib]:
                     self._cache["LIBRARIES"][shared_lib.arch][req].append(lib)
 
-    def populate_sound_fonts(self):
+    def populate_sound_fonts(self) -> None:
         """Populates the soundfont cache"""
         self._cache["SOUNDFONTS"] = []
         for folder in self.soundfont_folders:
@@ -388,16 +452,17 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
             for soundfont in os.listdir(folder):
                 self._cache["SOUNDFONTS"].append(soundfont)
 
-    def get_missing_requirement_libs(self, req):
+    def get_missing_requirement_libs(self, req: str) -> list[list[str]]:
         """Return a list of sets of missing libraries for each supported architecture"""
-        required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])
+        _ = self.shared_libraries  # ensure LIBRARIES cache is populated
+        required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])  # type: ignore
         return [list(required_libs - set(self._cache["LIBRARIES"][arch][req])) for arch in self.runtime_architectures]
 
-    def get_missing_libs(self):
+    def get_missing_libs(self) -> dict[str, list[list[str]]]:
         """Return a dictionary of missing libraries"""
         return {req: self.get_missing_requirement_libs(req) for req in self.requirements}
 
-    def get_missing_lib_arch(self, requirement):
+    def get_missing_lib_arch(self, requirement: str) -> list[str]:
         """Returns a list of architectures that are missing a library for a specific
         requirement."""
         missing_arch = []
@@ -406,17 +471,17 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
                 missing_arch.append(arch)
         return missing_arch
 
-    def is_feature_supported(self, feature):
+    def is_feature_supported(self, feature: str) -> bool:
         """Return whether the system has the necessary libs to support a feature"""
         if feature == "ACO":
             try:
-                mesa_version = LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version
+                mesa_version = cast(str, LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version)  # type: ignore
                 return mesa_version >= "19.3"
             except AttributeError:
                 return False
         return not self.get_missing_requirement_libs(feature)[0]
 
-    def is_vulkan_supported(self):
+    def is_vulkan_supported(self) -> bool:
         return not LINUX_SYSTEM.get_missing_lib_arch("VULKAN") and vkquery.is_vulkan_supported()
 
 
@@ -425,13 +490,13 @@ class SharedLibrary:
 
     default_arch = "i386"
 
-    def __init__(self, name, flags, path):
+    def __init__(self, name: str, flags: str, path: str):
         self.name = name
         self.flags = [flag.strip() for flag in flags.split(",")]
         self.path = path
 
     @classmethod
-    def new_from_ldconfig(cls, ldconfig_line):
+    def new_from_ldconfig(cls, ldconfig_line: str) -> "SharedLibrary":
         """Create a SharedLibrary instance from an output line from ldconfig"""
         lib_match = re.match(r"^(.*) \((.*)\) => (.*)$", ldconfig_line)
         if not lib_match:
@@ -439,7 +504,7 @@ class SharedLibrary:
         return cls(lib_match.group(1), lib_match.group(2), lib_match.group(3))
 
     @property
-    def arch(self):
+    def arch(self) -> str:
         """Return the architecture for a shared library"""
         detected_arch = ["x86-64", "x32"]
 
@@ -452,23 +517,35 @@ class SharedLibrary:
         return self.default_arch
 
     @property
-    def basename(self):
+    def basename(self) -> str:
         """Return the name of the library without an extention"""
         return self.name.split(".so")[0]
 
     @property
-    def dirname(self):
+    def dirname(self) -> str:
         """Return the directory where the lib resides"""
         return os.path.dirname(self.path)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "%s (%s)" % (self.name, self.arch)
 
 
 LINUX_SYSTEM = LinuxSystem()
 
 
-def gather_system_info():
+def get_default_runner_wine_version() -> str:
+    """Return the Wine version configured in the Wine runner configuration,
+    falling back to the global default if none is set."""
+    try:
+        from lutris.runners.wine import wine
+
+        return wine().read_version_from_config()
+    except Exception as ex:
+        logger.exception("Unable to determine the default Wine version: %s", ex)
+        return "Unknown"
+
+
+def gather_system_info() -> dict[str, Any]:
     """Get all system information in a single data structure"""
     system_info = {}
     if drivers.is_nvidia():
@@ -487,19 +564,24 @@ def gather_system_info():
     return system_info
 
 
-def gather_system_info_dict():
+def gather_system_info_dict() -> dict[str, Any]:
     """Get all relevant system information already formatted as a string"""
     system_info = gather_system_info()
     system_info_readable = {}
     # Add system information
     system_dict = {}
-    system_dict["OS"] = " ".join(system_info["dist"])
+    system_dict["OS"] = " ".join(x for x in system_info["dist"] if x)
     system_dict["Arch"] = system_info["arch"]
     system_dict["Kernel"] = system_info["kernel"]
-    system_dict["Lutris Version"] = settings.VERSION
     system_dict["Desktop"] = system_info["env"].get("XDG_CURRENT_DESKTOP", "Not found")
     system_dict["Display Server"] = system_info["env"].get("XDG_SESSION_TYPE", "Not found")
     system_info_readable["System"] = system_dict
+    # Add Lutris information
+    lutris_dict = {}
+    lutris_dict["Lutris Version"] = settings.VERSION
+    lutris_dict["Python Version"] = sys.version
+    lutris_dict["Default Wine version"] = get_default_runner_wine_version()
+    system_info_readable["Lutris"] = lutris_dict
     # Add CPU information
     cpu_dict = {}
     cpu_dict["Vendor"] = system_info["cpus"][0].get("vendor_id", "Vendor unavailable")
@@ -537,12 +619,12 @@ def gather_system_info_dict():
     return system_info_readable
 
 
-def get_terminal_apps():
+def get_terminal_apps() -> list[str]:
     """Return the list of installed terminal emulators"""
     return LINUX_SYSTEM.get_terminals()
 
 
-def get_default_terminal():
+def get_default_terminal() -> str | None:
     """Return the default terminal emulator, or None if none found."""
     terms = get_terminal_apps()
     if terms:
@@ -550,7 +632,7 @@ def get_default_terminal():
     return None
 
 
-def get_required_default_terminal():
+def get_required_default_terminal() -> str:
     """Return the default terminal emulator, or raises MisconfigurationError if none can be
     found."""
     term = get_default_terminal()

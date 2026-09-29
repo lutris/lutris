@@ -95,7 +95,14 @@ class SteamService(BaseService):
             return
         steam_games = get_steam_library(steamid)
         if not steam_games:
-            raise RuntimeError(_("Failed to load games. Check that your profile is set to public during the sync."))
+            # An empty library almost always means the separate "Game details"
+            # setting is private, even when the profile itself is public.
+            raise RuntimeError(
+                _(
+                    "Failed to load games. Check that your Steam profile and your game details "
+                    "are both set to public during the sync."
+                )
+            )
         for steam_game in steam_games:
             if steam_game["appid"] in self.excluded_appids:
                 continue
@@ -114,11 +121,11 @@ class SteamService(BaseService):
                 playtime = steam_game_playtime / 60
                 sql.db_update(settings.DB_PATH, "games", {"playtime": playtime}, conditions={"id": game["id"]})
 
-    def get_installer_files(self, installer, _installer_file_id, _selected_extras):
+    def get_installer_files(self, installer, _installer_file_id):
         steam_uri = "$STEAM:%s:."
         appid = str(installer.script["game"]["appid"])
         file = InstallerFile(installer.game_slug, "steam_game", {"url": steam_uri % appid, "filename": appid})
-        return [file], []
+        return [file]
 
     def install_from_steam(self, manifest):
         """Create a new Lutris game based on an existing Steam install"""
@@ -154,6 +161,12 @@ class SteamService(BaseService):
         except Exception as ex:
             logger.error("Failed to install from Steam: %s", ex)
             return None
+
+    def get_store_url(self, db_game: dict) -> str:
+        appid = db_game.get("appid")
+        if appid:
+            return f"https://store.steampowered.com/app/{appid}"
+        return ""
 
     @property
     def steamapps_paths(self):

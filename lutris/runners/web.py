@@ -18,7 +18,7 @@ DEFAULT_ICON = os.path.join(datapath.get(), "media/default_icon.png")
 class web(Runner):
     human_name = _("Web")
     description = _("Runs web based games")
-    platforms = [_("Web")]
+    platform_dict = Runner.to_platform_dict([_("Web")])
     game_options = [
         {
             "option": "main_file",
@@ -183,7 +183,7 @@ class web(Runner):
                 raise GameConfigError(_("The file %s does not exist, \nverify the game's configuration.") % url)
             url = "file://" + url
 
-        game_data = get_game_by_field(self.config.game_config_id, "configpath")
+        game_data = get_game_by_field(self.config.game_config_id, "configpath") or {}
 
         # keep the old behavior from browser runner, but with support for extra arguments!
         if self.runner_config.get("external_browser"):

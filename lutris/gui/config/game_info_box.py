@@ -8,7 +8,7 @@ import uuid
 # pylint: disable=no-member,too-many-public-methods
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -36,7 +36,7 @@ ICON_KEY = "icon"
 class GameInfoBox(AdvancedSettingsBox):
     """Generate a vbox for the Game Info tab."""
 
-    def __init__(self, parent_widget: Any, game: Optional[Game], **kwargs) -> None:
+    def __init__(self, parent_widget: Any, game: Game | None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.parent_widget = parent_widget
 
@@ -45,15 +45,15 @@ class GameInfoBox(AdvancedSettingsBox):
         self.slug = game.slug if game else None
         self.initial_slug = game.slug if game else None
 
-        self.name_entry = None
-        self.sortname_entry = None
+        self.name_entry: Gtk.Entry = None
+        self.sortname_entry: Gtk.Entry = None
         self.runner_dropdown = None
         self.runner_index = None
         self.slug_entry = None
         self.slug_change_button = None
         self.directory_entry = None
-        self.year_entry = None
-        self.playtime_entry = None
+        self.year_entry: NumberEntry = None
+        self.playtime_entry: Gtk.Entry = None
         self.service_medias = {ICON_KEY: LutrisIcon(), BANNER_KEY: LutrisBanner(), COVERART_KEY: LutrisCoverart()}
 
         self.image_buttons = {}
@@ -159,7 +159,7 @@ class GameInfoBox(AdvancedSettingsBox):
         slug_entry_box = Gtk.Box(spacing=12, margin_right=0, margin_left=0)
         slug_label = Label()
         slug_label.set_markup(
-            _(f"Identifier\n<span size='x-small'>(Internal ID: {self.game.id if self.game else '""'})</span>")
+            _(f"""Identifier\n<span size='x-small'>(Internal ID: {self.game.id if self.game else '""'})</span>""")
         )
         slug_entry_box.pack_start(slug_label, False, False, 0)
 
@@ -439,7 +439,7 @@ class GameInfoBox(AdvancedSettingsBox):
         for image_type, image_button in self.image_buttons.items():
             self._set_image(image_type, image_button)
 
-    def get_image_path(self, image_type) -> Optional[Path]:
+    def get_image_path(self, image_type) -> Path | None:
         """Get the path of the image file"""
         if image_type not in self.service_medias:
             return None
@@ -496,6 +496,9 @@ class GameInfoBox(AdvancedSettingsBox):
         url = dialog.get_url()
         dialog.destroy()
 
+        # This tmp file is consumed asynchronously by save_custom_media's
+        # async chains (copy or transcode), so we can't delete it here.
+        # Leftover tmp files are cleaned up on next startup in init_dirs().
         file_id = uuid.uuid4()
         tmp_file = os.path.join(settings.TMP_DIR, f"download-{file_id}.tmp")
         logger.info(f"Downloading custom image from `{url}` to `{tmp_file}`")

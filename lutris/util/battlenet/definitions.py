@@ -1,6 +1,5 @@
 import dataclasses as dc
 import json
-from typing import List, Optional
 
 import requests
 
@@ -28,10 +27,10 @@ class BlizzardGame:
 
 @dc.dataclass(frozen=True)
 class ClassicGame(BlizzardGame):
-    registry_path: Optional[str] = None
-    registry_installation_key: Optional[str] = None
-    exe: Optional[str] = None
-    bundle_id: Optional[str] = None
+    registry_path: str | None = None
+    registry_installation_key: str | None = None
+    exe: str | None = None
+    bundle_id: str | None = None
 
 
 @dc.dataclass
@@ -43,8 +42,8 @@ class RegionalGameInfo:
 @dc.dataclass
 class ConfigGameInfo(object):
     uid: str
-    uninstall_tag: Optional[str]
-    last_played: Optional[str]
+    uninstall_tag: str | None
+    last_played: str | None
 
 
 @dc.dataclass
@@ -154,7 +153,7 @@ class _Blizzard(object, metaclass=Singleton):
             regional_info = self.TITLE_ID_MAP[title_id]
         return self[regional_info.uid]
 
-    def try_for_free_games(self, cn: bool) -> List[BlizzardGame]:
+    def try_for_free_games(self, cn: bool) -> list[BlizzardGame]:
         """
         :param cn: flag if china game definitions should be search though
         """

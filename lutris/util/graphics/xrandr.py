@@ -3,44 +3,92 @@
 import re
 import subprocess
 from collections import namedtuple
+from collections.abc import Iterable
 
 from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
+from lutris.util import cache_single
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
-Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate"))
+Output = namedtuple("Output", ("name", "mode", "position", "rotation", "primary", "rate", "preferred_mode"))
 
 
-def _get_vidmodes():
+@cache_single
+def _get_xrandr_command() -> str | None:
+    """Locate the xrandr binary, warning loudly if it's not installed.
+
+    xrandr is the legacy fallback used by `LegacyDisplayManager` when
+    `MutterDisplayManager` / `GnomeDesktopDisplayManager` are unavailable
+    (notably on KDE/Wayland, where Mutter's display config service isn't
+    present). Without xrandr the resolution dropdown collapses to a
+    single dummy entry — users have to hand-enter the value they want —
+    and per-monitor info is unavailable. The lookup result (and the
+    side-effect warning) are cached so the warning fires at most once
+    per session."""
+    xrandr_command = LINUX_SYSTEM.get("xrandr")
+    if not xrandr_command:
+        logger.warning(
+            "xrandr binary not found on PATH — display detection and resolution "
+            "switching will be disabled. Install it via your package manager "
+            "(Debian/Ubuntu: x11-xserver-utils; Fedora/openSUSE/Arch: xrandr)."
+        )
+    return xrandr_command
+
+
+def _get_vidmodes() -> list[str]:
     """Return video modes from XrandR"""
-    xrandr_output = read_process_output([LINUX_SYSTEM.get("xrandr")]).split("\n")
-    logger.debug("Retrieving %s video modes from XrandR", len(xrandr_output))
-    return xrandr_output
+    if xrandr_command := _get_xrandr_command():
+        xrandr_output = read_process_output([xrandr_command]).split("\n")
+        logger.debug("Retrieving %s video modes from XrandR", len(xrandr_output))
+        return xrandr_output
+    return []
 
 
-def get_outputs():  # pylint: disable=too-many-locals
-    """Return list of namedtuples containing output 'name', 'geometry',
-    'rotation' and whether it is the 'primary' display."""
-    outputs = []
+def get_outputs() -> list[Output]:
+    """Parse xrandr output and return one Output per active connected display.
+
+    Each Output captures the connector name, current mode (resolution), position,
+    rotation, whether it is the primary display, refresh rate, and EDID-preferred
+    mode (which on recent XWayland with fractional scaling is the physical resolution,
+    while the current mode may be an upscaled virtual canvas)."""
+    outputs: list[Output] = []
     logger.debug("Retrieving display outputs")
     vid_modes = _get_vidmodes()
-    position = None
-    rotate = None
-    primary = None
-    name = None
     if not vid_modes:
-        logger.error("xrandr didn't return anything")
         return []
+
+    name = position = rotate = current_mode = preferred_mode = rate = None
+    primary = False
+
+    def flush() -> None:
+        if name and current_mode and position:
+            outputs.append(
+                Output(
+                    name=name,
+                    mode=current_mode,
+                    position=position,
+                    rotation=rotate,
+                    primary=primary,
+                    rate=rate,
+                    preferred_mode=preferred_mode,
+                )
+            )
+
     for line in vid_modes:
         fields = line.split()
+        if not fields:
+            continue
         if "connected" in fields[1:] and len(fields) >= 4:
+            flush()
+            current_mode = preferred_mode = rate = name = position = rotate = None
+            primary = False
             try:
                 connected_index = fields.index("connected", 1)
-                name_fields = fields[:connected_index]
-                name = " ".join(name_fields)
+                candidate_name = " ".join(fields[:connected_index])
                 data_fields = fields[connected_index + 1 :]
                 if data_fields[0] == "primary":
+                    primary = True
                     data_fields = data_fields[1:]
                 geometry, rotate, *_ = data_fields
                 if geometry.startswith("("):  # Screen turned off, no geometry
@@ -49,43 +97,41 @@ def get_outputs():  # pylint: disable=too-many-locals
                     rotate = "normal"
                 _, x_pos, y_pos = geometry.split("+")
                 position = "{x_pos}x{y_pos}".format(x_pos=x_pos, y_pos=y_pos)
+                name = candidate_name
             except ValueError as ex:
                 logger.error(
                     "Unhandled xrandr line %s, error: %s. Please send your xrandr output to the dev team", line, ex
                 )
                 continue
-        elif "*" in line:
-            mode, *framerates = fields
-            for number in framerates:
+        elif name and line.startswith("  ") and re.match(r"\s+\d+x\d+", line):
+            mode = fields[0]
+            for number in fields[1:]:
                 if "*" in number:
-                    hertz = number[:-2]
-                    outputs.append(
-                        Output(
-                            name=name,
-                            mode=mode,
-                            position=position,
-                            rotation=rotate,
-                            primary=primary,
-                            rate=hertz,
-                        )
-                    )
-                    break
+                    current_mode = mode
+                    rate = number.rstrip("*+")
+                if "+" in number and preferred_mode is None:
+                    preferred_mode = mode
+
+    flush()
     return outputs
 
 
-def turn_off_except(display):
+def turn_off_except(display: str) -> None:
     """Use XrandR to turn off displays except the one referenced by `display`"""
     if not display:
         logger.error("No active display given, no turning off every display")
         return
+    xrandr_command = _get_xrandr_command()
+    if not xrandr_command:
+        return
     for output in get_outputs():
         if output.name != display:
             logger.info("Turning off %s", output[0])
-            with subprocess.Popen([LINUX_SYSTEM.get("xrandr"), "--output", output.name, "--off"]) as xrandr:
+            with subprocess.Popen([xrandr_command, "--output", output.name, "--off"]) as xrandr:
                 xrandr.communicate()
 
 
-def get_resolutions():
+def get_resolutions() -> list[str]:
     """Return the list of supported screen resolutions."""
     resolution_list = []
     logger.debug("Retrieving resolution list")
@@ -100,7 +146,7 @@ def get_resolutions():
     return sorted(set(resolution_list), key=lambda x: int(x.split("x")[0]), reverse=True)
 
 
-def change_resolution(resolution):
+def change_resolution(resolution: str | Iterable[Output]) -> None:
     """Change display resolution.
 
     Takes a string for single monitors or a list of displays as returned
@@ -108,6 +154,9 @@ def change_resolution(resolution):
     """
     if not resolution:
         logger.warning("No resolution provided")
+        return
+    xrandr_command = _get_xrandr_command()
+    if not xrandr_command:
         return
     if isinstance(resolution, str):
         logger.debug("Switching resolution to %s", resolution)
@@ -117,7 +166,7 @@ def change_resolution(resolution):
         else:
             output_name = get_outputs()[0].name
             logger.info("Changing resolution on %s to %s", output_name, resolution)
-            args = [LINUX_SYSTEM.get("xrandr"), "--output", output_name, "--mode", resolution]
+            args = [xrandr_command, "--output", output_name, "--mode", resolution]
             with subprocess.Popen(args) as xrandr:
                 xrandr.communicate()
     else:
@@ -136,7 +185,7 @@ def change_resolution(resolution):
             logger.info("Switching resolution of %s to %s", display.name, display.mode)
             with subprocess.Popen(
                 [
-                    LINUX_SYSTEM.get("xrandr"),
+                    xrandr_command,
                     "--output",
                     display.name,
                     "--mode",
@@ -158,32 +207,40 @@ class LegacyDisplayManager:  # pylint: disable=too-few-public-methods
     """
 
     @staticmethod
-    def get_display_names():
+    def get_display_names() -> list[str]:
         """Return output names from XrandR"""
         return [output.name for output in get_outputs()]
 
     @staticmethod
-    def get_resolutions():
+    def get_resolutions() -> list[str]:
         """Return available resolutions"""
         return get_resolutions()
 
     @staticmethod
-    def get_current_resolution():
+    def get_current_resolution() -> tuple[str, str]:
         """Return the current resolution for the desktop"""
-        for line in _get_vidmodes():
-            if line.startswith("  ") and "*" in line:
-                resolution_match = re.match(r".*?(\d+x\d+).*", line)
-                if resolution_match:
-                    return resolution_match.groups()[0].split("x")
-        logger.error("Unable to find the current resolution from xrandr output")
-        return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
+        outputs = get_outputs()
+        if not outputs:
+            logger.error("Unable to find the current resolution from xrandr output")
+            return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
+        primary = next((o for o in outputs if o.primary), None) or outputs[0]
+        mode = primary.mode
+        from lutris.util.display import is_display_x11  # import here to avoid circular import
+
+        # This trick will only work on very recent (2026) XWayland implementations; on
+        # older ones the preferred mode and mode are the same anyway. But it's no worse
+        # than ignoring the issue, and when supported, the preferred mode is the physical
+        # resolution instead of the rendering buffer's resolution (which may be scaled).
+        if not is_display_x11() and primary.preferred_mode and primary.preferred_mode != mode:
+            mode = primary.preferred_mode
+        return tuple(mode.split("x"))
 
     @staticmethod
-    def set_resolution(resolution):
+    def set_resolution(resolution: str | Iterable[Output]) -> None:
         """Change the current resolution"""
         change_resolution(resolution)
 
     @staticmethod
-    def get_config():
+    def get_config() -> list[Output]:
         """Return the current display configuration"""
         return get_outputs()

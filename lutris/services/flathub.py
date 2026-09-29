@@ -4,7 +4,7 @@ import shutil
 import subprocess
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import requests
 
@@ -27,7 +27,7 @@ class FlathubBanner(ServiceMedia):
     file_patterns = ["%s.png"]
     url_field = "icon"
 
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
+    def get_media_url(self, details: dict[str, Any]) -> str | None:
         return details.get(self.url_field)
 
 
@@ -199,7 +199,13 @@ class FlathubService(BaseService):
         )
         return os.path.join(self.install_locations[install_type], application, arch, branch)
 
-    def get_game_platforms(self, db_game: dict) -> List[str]:
+    def get_store_url(self, db_game: dict) -> str:
+        appid = db_game.get("appid", "")
+        if appid:
+            return f"https://flathub.org/apps/{appid}"
+        return ""
+
+    def get_game_platforms(self, db_game: dict) -> list[str]:
         return ["Linux"]
 
     # def add_installed_games(self):

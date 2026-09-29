@@ -1,8 +1,8 @@
 # pylint: disable=no-member
 import os
+from collections.abc import Callable, Iterable
 from gettext import gettext as _
 from gettext import ngettext
-from typing import Callable, Iterable, List
 
 from gi.repository import GObject, Gtk
 
@@ -40,13 +40,13 @@ class UninstallDialog(Gtk.Dialog):
         super().__init__(parent=parent, **kwargs)
         self.parent = parent
         self._setting_all_checkboxes = False
-        self.games: List[Game] = []
+        self.games: list[Game] = []
         self.any_shared = False
         self.any_protected = False
         self.init_template()
         self.show_all()
 
-    def get_game_removal_rows(self) -> List["GameRemovalRow"]:
+    def get_game_removal_rows(self) -> list["GameRemovalRow"]:
         return get_widget_children(self.uninstall_game_list, GameRemovalRow)
 
     def add_games(self, game_ids: Iterable[str]) -> None:
@@ -81,7 +81,7 @@ class UninstallDialog(Gtk.Dialog):
         self.any_protected = False
 
         def is_shared(directory: str) -> bool:
-            dir_users = set(str(g["id"]) for g in get_games(filters={"directory": directory, "installed": 1}))
+            dir_users = set(g["id"] for g in get_games(filters={"directory": directory, "installed": 1}))
             for g in self.games:
                 dir_users.discard(g.id)
             return bool(dir_users)
@@ -99,7 +99,7 @@ class UninstallDialog(Gtk.Dialog):
             else:
                 row.can_delete_files = False
 
-    def update_folder_sizes(self, new_games: List[Game]) -> None:
+    def update_folder_sizes(self, new_games: list[Game]) -> None:
         """Starts fetching folder sizes for new games added to the dialog; we only
         do this for the games given in 'new_games', however."""
         folders_to_size = []
@@ -297,7 +297,9 @@ class UninstallDialog(Gtk.Dialog):
 
         for row in rows:
             if library_syncer and row.remove_from_library:
-                games_removed_from_library.append(get_game_by_field(row.game._id, "id"))
+                db_game = get_game_by_field(row.game._id, "id")
+                if db_game:
+                    games_removed_from_library.append(db_game)
             row.perform_removal()
 
         if library_syncer and games_removed_from_library:
@@ -356,9 +358,9 @@ class GameRemovalRow(Gtk.ListBoxRow):
         super().__init__(activatable=False)
         self.game = game
         self._can_delete_files = False
-        self.delete_files_checkbox: Gtk.CheckButton = None
-        self.folder_size_spinner: Gtk.Spinner = None
-        self.directory_label: Gtk.Label = None
+        self.delete_files_checkbox: Gtk.CheckButton | None = None
+        self.folder_size_spinner: Gtk.Spinner | None = None
+        self.directory_label: Gtk.Label | None = None
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -398,7 +400,7 @@ class GameRemovalRow(Gtk.ListBoxRow):
             vbox.pack_start(dir_box, False, False, 0)
         self.add(vbox)
 
-    def _get_directory_markup(self, folder_size: int = None):
+    def _get_directory_markup(self, folder_size: int | None = None):
         if not self.game.directory or not self.game.is_installed:
             return ""
 
@@ -436,7 +438,8 @@ class GameRemovalRow(Gtk.ListBoxRow):
 
     @delete_files.setter
     def delete_files(self, active: bool) -> None:
-        self.delete_files_checkbox.set_active(active)
+        if self.delete_files_checkbox:
+            self.delete_files_checkbox.set_active(active)
 
     @property
     def can_delete_files(self):

@@ -248,7 +248,7 @@ class UbisoftParser(object):
         field_value = ""
 
         if field in game_yaml["root"]:
-            field_value = game_yaml["root"][field]
+            field_value = game_yaml["root"][field] or ""
         # Fallback 1
         if field == "name" and field_value.lower() in UBISOFT_CONFIGURATIONS_BLACKLISTED_NAMES:
             if "installer" in game_yaml["root"] and "game_identifier" in game_yaml["root"]["installer"]:

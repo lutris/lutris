@@ -11,36 +11,168 @@ from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.exceptions import GameConfigError, MissingBiosError, MissingGameExecutableError, UnspecifiedVersionError
 from lutris.runners.runner import Runner
-from lutris.util import system
+from lutris.util import async_choices, cache_single, system
 from lutris.util.libretro import RetroConfig
 from lutris.util.log import logger
 from lutris.util.retroarch.firmware import get_firmware, scan_firmware_directory
 
 RETROARCH_DIR = os.path.join(settings.RUNNER_DIR, "retroarch")
 
+RETROARCH_TO_LUTRIS_PLATFORM_MAP = {
+    "2048 Game Clone": "",
+    "3D Engine": "",
+    "3DO": "",
+    "3DS": "Nintendo 3DS",
+    "Advanced Test Core": "",
+    "Amiga": "",
+    "Arcade (various)": "Arcade",
+    "Atari 2600": "Atari 2600",
+    "Atari 5200": "",
+    "Atari 7800": "",
+    "Atari ST/STE/TT/Falcon": "",
+    "BK-0010/BK-0011(M)": "",
+    "C128": "",
+    "C64": "",
+    "C64 SuperCPU": "",
+    "Cave Story Game Engine": "",
+    "CBM-5x0": "",
+    "CBM-II": "",
+    "ChaiLove": "",
+    "CHIP-8": "",
+    "Classic Tomb Raider engine": "",
+    "ColecoVision": "",
+    "Commodore Amiga": "",
+    "CPC": "",
+    "CP System I": "",
+    "CP System II": "",
+    "CP System III": "",
+    "Cruzes": "",
+    "Dinothawr Game Engine": "",
+    "Doom 3 Game Engine": "",
+    "Doom 3 XP Game Engine": "",
+    "DOOM Game Engine": "",
+    "DOS": "",
+    "DS": "",
+    "FFmpeg": "",
+    "Flashback Game Engine": "",
+    "FreeChaF": "",
+    "Game Boy Advance": "Nintendo Game Boy Advance",
+    "Game Boy/Game Boy Color": "Nintendo Game Boy (Color)",
+    "Game Boy/Game Boy Color/Game Boy Advance": "Nintendo Game Boy Advance",
+    "GameCube / Wii": "Nintendo Wii",
+    "Game engine": "",
+    "Handheld Electronic": "",
+    "Intellivision": "",
+    "J2ME": "",
+    "Jaguar": "",
+    "Java ME": "",
+    "LowRes NX": "",
+    "Lutro": "",
+    "Lynx": "",
+    "Magnavox Odyssey2 / Phillips Videopac+": "",
+    "Mega Duck": "",
+    "Minecraft Game Clone": "",
+    "Moonlight": "",
+    "MPV": "",
+    "Mr.Boom": "",
+    "MSX": "Microsoft MSX",
+    "MSX/SVI/ColecoVision/SG-1000": "",
+    "Multi (various)": "",
+    "Music": "",
+    "Neo Geo": "",
+    "Neo Geo Pocket (Color)": "SNK Neo Geo Pocket (Color)",
+    "Nintendo 64": "Nintendo 64",
+    "Nintendo DS": "Nintendo DS",
+    "Nintendo Entertainment System": "Nintendo NES",
+    "Oberon RISC machine": "",
+    "Outrun Game Engine": "",
+    "Palm OS": "",
+    "PC": "",
+    "PC-8000 / PC-8800 series": "",
+    "PC-98": "",
+    "PC Engine/PCE-CD": "",
+    "PC Engine SuperGrafx": "",
+    "PC Engine/SuperGrafx/CD": "",
+    "PC-FX": "",
+    "PET": "",
+    "Physics Toy": "",
+    "PICO8": "",
+    "PlayStation": "Sony PlayStation",
+    "PLUS/4": "",
+    "Pokemon Mini": "",
+    "Pong Game Clone": "",
+    "PSP": "Sony Playstation Portable",
+    "Quake 3 Game Engine": "",
+    "Quake Game Engine": "",
+    "Quake II Game Engine": "",
+    "Redbook": "",
+    "Rick Dangerous Game Engine": "",
+    "RPG Maker 2000/2003 Game Engine": "",
+    "SAM coupe": "",
+    "Saturn": "Sega Saturn",
+    "Sega 8/16-bit + 32X (Various)": "",
+    "Sega 8/16-bit (Various)": "",
+    "Sega 8-bit": "",
+    "Sega 8-bit (MS/GG/SG-1000)": "",
+    "Sega Dreamcast": "Sega Dreamcast",
+    "Sega Genesis": "Sega Genesis/Mega Drive",
+    "Sega Master System": "Sega Master System",
+    "SEGA Visual Memory Unit": "",
+    "Sharp X1": "",
+    "Sharp X68000": "",
+    "SNK Neo Geo CD": "",
+    "Sony PlayStation 2": "",
+    "Super Nintendo Entertainment System": "Nintendo SNES",
+    "Super Nintendo Entertainment System / Game Boy / Game Boy Color": "",
+    "Supervision": "",
+    "Test for netplay": "",
+    "Thomson MO/TO": "",
+    "TIC-80": "",
+    "Tyrian Game Engine": "",
+    "Uzebox": "",
+    "Vectrex": "",
+    "VIC-20": "",
+    "Virtual Boy": "Nintendo Virtual Boy",
+    "Wolfenstein 3D Game Engine": "",
+    "WonderSwan/Color": "Bandai WonderSwan Color",
+    "Xbox": "",
+    "ZX81": "",
+    "ZX Spectrum (various)": "",
+}
+
 
 def get_default_config_path(path):
     return os.path.join(RETROARCH_DIR, path)
 
 
-def get_libretro_cores():
-    cores = []
-    if not os.path.exists(RETROARCH_DIR):
-        return []
+def _download_libretro_info():
+    """Download the libretro core info archive from the buildbot. Run on a worker thread."""
+    info_path = os.path.join(RETROARCH_DIR, "info")
+    req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True, timeout=5)
+    if req.status_code == requests.codes.ok:  # pylint: disable=no-member
+        os.makedirs(RETROARCH_DIR, exist_ok=True)
+        with open(os.path.join(RETROARCH_DIR, "info.zip"), "wb") as info_zip:
+            info_zip.write(req.content)
+        with ZipFile(os.path.join(RETROARCH_DIR, "info.zip"), "r") as info_zip:
+            info_zip.extractall(info_path)
+        return True
+    logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
+    return False
 
-    # Get core identifiers from info dir
+
+@cache_single
+def get_libretro_cores():
+    """Return the list of available libretro cores by reading installed info files.
+
+    If the info archive hasn't been downloaded yet, performs a synchronous download. Callers on
+    the UI thread should prefer triggering the async download via get_core_choices() first, so
+    this fallback is rarely reached in practice.
+    """
     info_path = os.path.join(RETROARCH_DIR, "info")
     if not os.path.exists(info_path):
-        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True, timeout=5)
-        if req.status_code == requests.codes.ok:  # pylint: disable=no-member
-            with open(os.path.join(RETROARCH_DIR, "info.zip"), "wb") as info_zip:
-                info_zip.write(req.content)
-            with ZipFile(os.path.join(RETROARCH_DIR, "info.zip"), "r") as info_zip:
-                info_zip.extractall(info_path)
-        else:
-            logger.error("Error retrieving libretro info archive from server: %s - %s", req.status_code, req.reason)
+        if not _download_libretro_info():
             return []
-    # Parse info files to fetch display name and platform/system
+    cores = []
     for info_file in os.listdir(info_path):
         if "_libretro.info" not in info_file:
             continue
@@ -54,15 +186,21 @@ def get_libretro_cores():
     return cores
 
 
-# List of supported libretro cores
-# First element is the human readable name for the core with the platform's short name
-# Second element is the core identifier
-# Third element is the platform's long name
-LIBRETRO_CORES = get_libretro_cores()
-
-
+@async_choices(
+    generate=_download_libretro_info,
+    ready=lambda: os.path.exists(os.path.join(RETROARCH_DIR, "info")),
+    invalidate=get_libretro_cores.cache_clear,
+    error_message="Failed to download libretro info archive",
+)
 def get_core_choices():
-    return [(core[0], core[1]) for core in LIBRETRO_CORES]
+    """Return (label, identifier) pairs for all installed libretro cores, for use as a choices callable.
+
+    If RetroArch is installed but the info archive hasn't been downloaded yet, kicks off a
+    background download and returns [] immediately. Any callbacks registered via
+    register_reload_callback() are invoked on the UI thread when the download completes, so
+    dropdowns can repopulate without the user having to close and reopen the dialog.
+    """
+    return [(core[0], core[1]) for core in get_libretro_cores()]
 
 
 class libretro(Runner):
@@ -78,7 +216,7 @@ class libretro(Runner):
             "option": "core",
             "type": "choice",
             "label": _("Core"),
-            "choices": get_core_choices(),
+            "choices": get_core_choices,
         },
     ]
 
@@ -103,31 +241,55 @@ class libretro(Runner):
         },
     ]
 
+    def __init__(self, config: LutrisConfig | None = None) -> None:
+        super().__init__(config)
+        self.platform_dict = {}
+        for core in get_libretro_cores():
+            platform = core[2]
+            if lutris_platform := RETROARCH_TO_LUTRIS_PLATFORM_MAP.get(platform):
+                self.platform_dict[lutris_platform] = platform
+            else:
+                self.platform_dict[platform] = platform
+
     @property
     def directory(self):
         return os.path.join(settings.RUNNER_DIR, "retroarch")
-
-    @property
-    def platforms(self):
-        return [core[2] for core in LIBRETRO_CORES]
 
     def get_platform(self):
         game_core = self.game_config.get("core")
         if not game_core:
             logger.warning("Game don't have a core set")
             return
-        for core in LIBRETRO_CORES:
-            if core[1] == game_core:
-                return core[2]
+        for core in get_libretro_cores():
+            if core[1] == game_core and core[2] in self.platform_dict:
+                return self.platform_dict[core[2]]
         logger.warning("'%s' not found in Libretro cores", game_core)
         return ""
 
-    def get_core_path(self, core):
-        """Return the path of a core from libretro's runner only"""
+    def get_cores_directory(self):
+        """Return the directory RetroArch loads cores from.
+
+        Honors the 'libretro_directory' setting in the effective RetroArch config file, so a
+        custom RetroArch executable/config that keeps its cores elsewhere (e.g.
+        ~/.config/retroarch/cores) works. Falls back to Lutris's own managed cores folder when the
+        config file is missing or doesn't specify a directory.
+        """
         lutris_cores_folder = get_default_config_path("cores")
+        config_file = self.get_config_file()
+        if system.path_exists(config_file):
+            libretro_directory = RetroConfig(config_file).get("libretro_directory")
+            if libretro_directory and libretro_directory != "default":
+                # RetroArch expands a leading ':' to the directory containing the config file.
+                if libretro_directory.startswith(":"):
+                    config_dir = os.path.dirname(config_file)
+                    libretro_directory = os.path.join(config_dir, libretro_directory[1:].lstrip("/\\"))
+                return os.path.expanduser(libretro_directory)
+        return lutris_cores_folder
+
+    def get_core_path(self, core):
+        """Return the path of a core within the configured cores directory."""
         core_filename = "{}_libretro.so".format(core)
-        lutris_core = os.path.join(lutris_cores_folder, core_filename)
-        return lutris_core
+        return os.path.join(self.get_cores_directory(), core_filename)
 
     def get_version(self, use_default=True):
         return self.game_config["core"]
@@ -153,17 +315,21 @@ class libretro(Runner):
     def install(self, install_ui_delegate, version=None, callback=None):
         captured_super = super()  # super() does not work inside install_core()
 
+        def on_installed():
+            get_libretro_cores.cache_clear()
+            if callback:
+                callback()
+
         def install_core():
             if not version:
-                if callback:
-                    callback()
+                on_installed()
             else:
-                captured_super.install(install_ui_delegate, version, callback)
+                captured_super.install(install_ui_delegate, version, on_installed)
 
         if not super().is_installed():
             captured_super.install(install_ui_delegate, version=None, callback=install_core)
         else:
-            captured_super.install(install_ui_delegate, version, callback)
+            captured_super.install(install_ui_delegate, version, on_installed)
 
     def get_run_data(self):
         return {
@@ -220,8 +386,12 @@ class libretro(Runner):
             retro_config = RetroConfig(info_file)
             try:
                 firmware_count = int(retro_config["firmware_count"])
+                mandatory_firmware_count = sum(
+                    1 for i in range(firmware_count) if not retro_config.get("firmware%d_opt" % i)
+                )
             except (ValueError, TypeError):
                 firmware_count = 0
+                mandatory_firmware_count = 0
             system_path = self.get_system_directory(retro_config)
             notes = str(retro_config["notes"] or "")
             checksums = {}
@@ -238,7 +408,7 @@ class libretro(Runner):
 
             # If this requires firmware, confirm we have the firmware folder configured in the first place
             # then rescan it in case the user added anything since the last time they changed it
-            if firmware_count > 0:
+            if mandatory_firmware_count > 0:
                 lutris_config = LutrisConfig()
                 firmware_directory = lutris_config.raw_system_config.get("bios_path")
                 if not firmware_directory:
@@ -248,24 +418,25 @@ class libretro(Runner):
                 scan_firmware_directory(firmware_directory)
 
             for index in range(firmware_count):
-                required_firmware_filename = retro_config["firmware%d_path" % index]
-                required_firmware_path = os.path.join(system_path, required_firmware_filename)
-                required_firmware_name = required_firmware_filename.split("/")[-1]
-                required_firmware_checksum = checksums.get(required_firmware_name)
-                if system.path_exists(required_firmware_path):
-                    if required_firmware_checksum:
-                        checksum = system.get_md5_hash(required_firmware_path)
-                        if checksum == required_firmware_checksum:
+                optional_prefix = "Optional firmware" if retro_config.get("firmware%d_opt" % index) else "Firmware"
+                firmware_filename = retro_config["firmware%d_path" % index]
+                firmware_path = os.path.join(system_path, firmware_filename)
+                firmware_name = firmware_filename.split("/")[-1]
+                firmware_checksum = checksums.get(firmware_name)
+                if system.path_exists(firmware_path):
+                    if firmware_checksum:
+                        checksum = system.get_md5_hash(firmware_path)
+                        if checksum == firmware_checksum:
                             checksum_status = "Checksum good"
                         else:
                             checksum_status = "Checksum failed"
                     else:
                         checksum_status = "No checksum info"
-                    logger.info("Firmware '%s' found (%s)", required_firmware_filename, checksum_status)
+                    logger.info("%s '%s' found (%s)", optional_prefix, firmware_filename, checksum_status)
                 else:
-                    logger.warning("Firmware '%s' not found!", required_firmware_filename)
-                    if required_firmware_checksum:
-                        get_firmware(required_firmware_name, required_firmware_checksum, system_path)
+                    logger.warning("%s '%s' not found!", optional_prefix, firmware_filename)
+                    if firmware_checksum:
+                        get_firmware(firmware_name, firmware_checksum, system_path)
 
     def get_runner_parameters(self):
         parameters = []

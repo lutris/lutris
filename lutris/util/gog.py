@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 
@@ -19,11 +20,11 @@ def get_gog_game_path(target_path):
 
 def get_gog_config(gog_game_path):
     """Extract runtime information such as executable paths from GOG files"""
-    config_filename = [fn for fn in os.listdir(gog_game_path) if fn.startswith("goggame") and fn.endswith(".info")]
-    if not config_filename:
+    config_files = glob.glob(os.path.join(gog_game_path, "goggame-*.info"))
+    if not config_files:
         logger.error("No config file found in %s", gog_game_path)
         return
-    gog_config_path = os.path.join(gog_game_path, config_filename[0])
+    gog_config_path = config_files[0]
     with open(gog_config_path, encoding="utf-8") as gog_config_file:
         gog_config = json.loads(gog_config_file.read())
     return gog_config
@@ -63,7 +64,7 @@ def get_game_config(task, gog_game_path):
 
 
 def convert_gog_config_to_lutris(gog_config, gog_game_path):
-    play_tasks = gog_config["playTasks"]
+    play_tasks = gog_config.get("playTasks", [])
     lutris_config = {"launch_configs": []}
     for task in play_tasks:
         config = get_game_config(task, gog_game_path)
@@ -81,3 +82,60 @@ def get_gog_config_from_path(target_path):
     gog_game_path = get_gog_game_path(target_path)
     if gog_game_path:
         return get_gog_config(gog_game_path)
+
+
+def find_gog_config_dir(install_dir):
+    """Return the directory containing goggame-*.info files, or None.
+
+    Windows installs place the .info file directly in the install root;
+    Linux offline installs nest it under 'game/'; Linux depot installs nest
+    it under '<gameName>/game/'. We check those locations and one level of
+    subdirectories' 'game/' folders. We deliberately don't recurse further
+    to avoid following symlink cycles inside any Wine prefix that may live
+    under the install dir."""
+    if not install_dir or not os.path.isdir(install_dir):
+        return None
+
+    def has_info(path):
+        return os.path.isdir(path) and any(f.startswith("goggame-") and f.endswith(".info") for f in os.listdir(path))
+
+    candidates = [install_dir, os.path.join(install_dir, "game")]
+    for entry in os.listdir(install_dir):
+        sub = os.path.join(install_dir, entry)
+        if os.path.isdir(sub):
+            candidates.extend([sub, os.path.join(sub, "game")])
+
+    for candidate in candidates:
+        if has_info(candidate):
+            return candidate
+    return None
+
+
+def find_installed_product_ids(install_dir):
+    """Return the GOG product IDs of all goggame-*.info files in the install.
+
+    GOG writes one .info file per installed product (base game + each DLC),
+    named goggame-<productId>.info. The returned set includes the base
+    game's id; callers that only want DLCs should subtract it."""
+    config_dir = find_gog_config_dir(install_dir)
+    if not config_dir:
+        return set()
+    ids = set()
+    for filename in os.listdir(config_dir):
+        if filename.startswith("goggame-") and filename.endswith(".info"):
+            product_id = filename[len("goggame-") : -len(".info")]
+            if product_id.isdigit():
+                ids.add(product_id)
+    return ids
+
+
+def apply_gog_config(installer):
+    """Post-install hook: read GOG config from the install target and merge into the game script."""
+    target_path = installer.interpreter.target_path
+    if (
+        (gog_config := get_gog_config_from_path(target_path))
+        and (gog_game_path := get_gog_game_path(target_path))
+        and "game" in installer.script
+    ):
+        lutris_config = convert_gog_config_to_lutris(gog_config, gog_game_path)
+        installer.script["game"].update(lutris_config)

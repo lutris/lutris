@@ -15,7 +15,7 @@ def migrate():
     """Run migration"""
     try:
         game_ids = get_hidden_ids()
-    except:
+    except Exception:
         print("Failed to read hidden game IDs")
         return []
     for game_id in game_ids:

@@ -1,8 +1,8 @@
 """Sidebar for the main window"""
 
 import locale
+from collections.abc import Callable
 from gettext import gettext as _
-from typing import Callable, List, Optional, Set, Tuple, Union
 
 from gi.repository import Gdk, GObject, Gtk, Pango
 
@@ -21,7 +21,8 @@ from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.config.services_box import ServicesBox
 from lutris.gui.dialogs import display_error
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
-from lutris.gui.widgets.utils import get_widget_children, has_stock_icon
+from lutris.gui.widgets.stock_icon_image import StockIconImage
+from lutris.gui.widgets.utils import get_widget_children, set_cursor_by_name
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
@@ -91,7 +92,7 @@ class SidebarRow(Gtk.ListBoxRow):
         self.box.pack_end(self.spinner, False, False, 0)
 
     @property
-    def sort_key(self) -> Union[int, str]:
+    def sort_key(self) -> int | str:
         """An index indicate the place this row has within its type. The id is used
         as a tie-breaker. Can be int or str depending on row type."""
         return 0
@@ -127,13 +128,13 @@ class SidebarRow(Gtk.ListBoxRow):
         """Adds buttons in the button box based on the row's actions"""
         for child in self.btn_box.get_children():
             child.destroy()
-        for action in self.get_actions():
-            btn = Gtk.Button(tooltip_text=action[1], relief=Gtk.ReliefStyle.NONE, visible=True)
-            image = Gtk.Image.new_from_icon_name(action[0], Gtk.IconSize.MENU)
+        for icon_name, text, clicked, key in self.get_actions():
+            btn = Gtk.Button(tooltip_text=text, relief=Gtk.ReliefStyle.NONE, visible=True)
+            image = StockIconImage([icon_name], fallback_name="preferences-system-symbolic")
             image.show()
             btn.add(image)
-            btn.connect("clicked", action[2])
-            self.buttons[action[3]] = btn
+            btn.connect("clicked", clicked)
+            self.buttons[key] = btn
             self.btn_box.add(btn)
 
     def on_realize(self, widget):
@@ -344,7 +345,7 @@ class SidebarHeader(Gtk.ListBoxRow):
         header_index: int,
         section_id: str,
         collapsible: bool = True,
-        on_toggle: Optional[Callable[[str, bool], None]] = None,
+        on_toggle: Callable[[str, bool], None] | None = None,
     ) -> None:
         super().__init__()
         self.set_selectable(False)
@@ -354,7 +355,7 @@ class SidebarHeader(Gtk.ListBoxRow):
         self.type: str = "header"
         self.id: str = section_id
         self.collapsible: bool = collapsible
-        self.on_toggle: Optional[Callable[[str, bool], None]] = on_toggle
+        self.on_toggle: Callable[[str, bool], None] | None = on_toggle
         self._collapsed: bool = False
 
         outer_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -407,17 +408,13 @@ class SidebarHeader(Gtk.ListBoxRow):
         return True
 
     def _on_enter(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
-        window = widget.get_window()
-        if window:
-            window.set_cursor(Gdk.Cursor.new_from_name(widget.get_display(), "pointer"))
+        set_cursor_by_name(widget, "pointer")
 
     def _on_leave(self, widget: Gtk.EventBox, event: Gdk.EventCrossing) -> None:
-        window = widget.get_window()
-        if window:
-            window.set_cursor(None)
+        set_cursor_by_name(widget, None)
 
     @property
-    def sort_key(self) -> Union[int, str]:
+    def sort_key(self) -> int | str:
         # Headers sort before all rows in their section (not used directly in sorting)
         return 0
 
@@ -437,7 +434,7 @@ class LutrisSidebar(Gtk.ListBox):
 
     def __init__(self, application):
         super().__init__()
-        self.set_size_request(200, -1)
+        self.set_size_request(220, -1)
         self.application = application
         self.previous_category = None
         self.get_style_context().add_class("lutris-sidebar")
@@ -508,26 +505,11 @@ class LutrisSidebar(Gtk.ListBox):
         self.show_all()
 
     @staticmethod
-    def get_sidebar_icon(icon_name: str, fallback_icon_names: List[str] = None) -> Gtk.Image:
+    def get_sidebar_icon(icon_name: str, fallback_icon_names: list[str] | None = None) -> Gtk.Image:
         candidate_names = [icon_name] + (fallback_icon_names or [])
-        candidate_names = [name for name in candidate_names if has_stock_icon(name)]
+        return StockIconImage(candidate_names)
 
-        # Even if this one is not a stock icon, we'll use it as a last resort and
-        # get the 'broken icon' icon if it's not known.
-        if not candidate_names:
-            candidate_names = ["package-x-generic-symbolic"]
-
-        icon = Gtk.Image.new_from_icon_name(candidate_names[0], Gtk.IconSize.MENU)
-
-        # We can wind up with an icon of the wrong size, if that's what is
-        # available. So we'll fix that.
-        icon_size = Gtk.IconSize.lookup(Gtk.IconSize.MENU)
-        if icon_size[0]:
-            icon.set_pixel_size(icon_size[2])
-
-        return icon
-
-    def _load_collapsed_sections(self) -> Set[str]:
+    def _load_collapsed_sections(self) -> set[str]:
         """Load collapsed sections state from settings."""
         collapsed_str = settings.read_setting("sidebar_collapsed_sections", default="")
         if collapsed_str:
@@ -718,7 +700,7 @@ class LutrisSidebar(Gtk.ListBox):
         rows, so this will have to do. This keeps the total row count down reasonably well."""
 
         # Type alias for sort key: (header_index, is_header, sort_key, id)
-        SortKey = Tuple[int, bool, Union[int, str], str]
+        SortKey = tuple[int, bool, int | str, str]
 
         def get_sort_key(row: Gtk.ListBoxRow) -> SortKey:
             """Returns a key used to sort the rows. This keeps rows for a header
@@ -799,6 +781,12 @@ class LutrisSidebar(Gtk.ListBox):
                 )
                 self.platform_rows[platform] = platform_row
                 insert_row(platform_row)
+
+        # Remove stale category rows that no longer exist in the database
+        stale_categories = set(self.category_rows.keys()) - self.used_categories
+        for stale_name in stale_categories:
+            stale_row = self.category_rows.pop(stale_name)
+            stale_row.destroy()
 
         for category in categories:
             if category["name"] not in self.category_rows:

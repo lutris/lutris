@@ -19,7 +19,8 @@ def get_resolutions():
 
 class atari800(Runner):
     human_name = _("Atari800")
-    platforms = [_("Atari 8bit computers")]  # FIXME try to determine the actual computer used
+    # FIXME try to determine the actual computer used
+    platform_dict = Runner.to_platform_dict([_("Atari 8bit computers")])
     runner_executable = "atari800/bin/atari800"
     bios_url = "https://netactuate.dl.sourceforge.net/project/atari800/ROM/Original%20XL%20ROM/xf25.zip?viasf=1"
     description = _("Atari 400, 800 and XL emulator")
@@ -77,7 +78,7 @@ class atari800(Runner):
         {
             "option": "resolution",
             "type": "choice",
-            "choices": get_resolutions(),
+            "choices": get_resolutions,
             "default": "desktop",
             "section": _("Graphics"),
             "label": _("Fullscreen resolution"),

@@ -4,14 +4,19 @@ import os
 from collections import OrderedDict
 from gettext import gettext as _
 from gettext import pgettext as C_
+from typing import TYPE_CHECKING, Any, cast
 
 from lutris import runners
 from lutris.util import linux, system
 from lutris.util.display import DISPLAY_MANAGER, SCREEN_SAVER_INHIBITOR, is_compositing_enabled, is_display_x11
-from lutris.util.graphics.gpu import GPUS
+from lutris.util.graphics.gpu import get_gpus
+from lutris.util.sniper import get_sniper_run_command
+
+if TYPE_CHECKING:
+    from lutris.config import LutrisConfig
 
 
-def get_resolution_choices():
+def get_resolution_choices() -> list[tuple[str, str]]:
     """Return list of available resolutions as label, value tuples
     suitable for inclusion in drop-downs.
     """
@@ -21,7 +26,7 @@ def get_resolution_choices():
     return resolution_choices
 
 
-def get_locale_choices():
+def get_locale_choices() -> list[tuple[str, str]]:
     """Return list of available locales as label, value tuples
     suitable for inclusion in drop-downs.
     """
@@ -47,14 +52,14 @@ def get_locale_choices():
     ]
 
 
-def get_gpu_list():
+def get_gpu_list() -> list[tuple[str, str]]:
     choices = [(_("Auto"), "")]
-    for card, gpu in GPUS.items():
+    for card, gpu in get_gpus().items():
         choices.append((gpu.short_name, card))
     return choices
 
 
-def get_output_choices():
+def get_output_choices() -> list[tuple[str, str]]:
     """Return list of outputs for drop-downs"""
     displays = DISPLAY_MANAGER.get_display_names()
     output_choices = list(zip(displays, displays))
@@ -63,7 +68,7 @@ def get_output_choices():
     return output_choices
 
 
-def get_output_list():
+def get_output_list() -> list[tuple[str, str]]:
     """Return a list of output with their index.
     This is used to indicate to SDL 1.2 which monitor to use.
     """
@@ -76,7 +81,28 @@ def get_output_list():
     return choices
 
 
-system_options = [  # pylint: disable=invalid-name
+def _is_not_wine_runner(_option_key: str, config: "LutrisConfig") -> bool:
+    """Hide option for Wine-based runners since they already use Sniper via umu."""
+    if not config.runner_slug:
+        return True
+    try:
+        from lutris.runners.wine import wine
+
+        runner = runners.import_runner(config.runner_slug)
+        return not issubclass(runner, wine)
+    except (runners.InvalidRunnerError, ImportError):
+        return True
+
+
+def _is_cloud_sync_game(_option_key: str, config: "LutrisConfig") -> bool:
+    """Show cloud sync option at system level, or at game level only for GOG games."""
+    if config.level != "game":
+        return True
+
+    return cast(str, config.game_level.get("service")) == "gog"
+
+
+system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
     {
         "section": _("Lutris"),
         "option": "game_path",
@@ -108,13 +134,37 @@ system_options = [  # pylint: disable=invalid-name
         "help": _("When the runtime is enabled, prioritize the system libraries over the provided ones."),
     },
     {
+        "section": _("Lutris"),
+        "option": "use_sniper_runtime",
+        "type": "bool",
+        "label": _("Use Sniper runtime"),
+        "default": False,
+        "condition": lambda: get_sniper_run_command() is not None,
+        "visible": _is_not_wine_runner,
+        "help": _(
+            "Run the game inside the Steam Sniper runtime (pressure-vessel container). "
+            "This replaces the Lutris runtime with Valve's curated library set. "
+            "Requires umu-launcher or Steam to be installed."
+        ),
+    },
+    {
+        "section": _("Lutris"),
+        "option": "cloud_save_sync",
+        "type": "bool",
+        "label": _("Cloud save sync"),
+        "default": True,
+        "scope": ["system", "game"],
+        "visible": _is_cloud_sync_game,
+        "help": _("Automatically synchronize cloud saves for services that support it (currently GOG)."),
+    },
+    {
         "section": _("Display"),
         "option": "gpu",
         "type": "choice",
         "label": _("GPU"),
         "choices": get_gpu_list,
         "default": "",
-        "condition": lambda: len(GPUS) > 1,
+        "condition": lambda: len(get_gpus()) > 1,
         "help": _("GPU to use to run games"),
     },
     {
@@ -504,7 +554,7 @@ system_options = [  # pylint: disable=invalid-name
 ]
 
 
-def with_runner_overrides(runner_slug):
+def with_runner_overrides(runner_slug: str) -> list[dict[str, Any]]:
     """Return system options updated with overrides from given runner."""
     options = system_options
     try:

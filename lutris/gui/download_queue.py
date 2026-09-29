@@ -1,24 +1,24 @@
 # pylint: disable=no-member
 import os
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set
+from collections.abc import Callable, Iterable
+from typing import Any
 
-from gi.repository import GObject, Gtk  # type: ignore
+from gi.repository import Gtk  # type: ignore
 
+from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.progress_box import ProgressBox
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
+DOWNLOAD_QUEUE_COMPLETED = NotificationSource()
+
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "download-queue.ui"))
 class DownloadQueue(Gtk.ScrolledWindow):
     """This class is a widget that displays a stack of progress boxes, which you can create
     and destroy with its methods."""
-
-    __gsignals__ = {
-        "download-completed": (GObject.SignalFlags.RUN_LAST, None, ()),
-    }
 
     __gtype_name__ = "DownloadQueue"
 
@@ -32,8 +32,8 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self.revealer = revealer
         self.init_template()
 
-        self.running_operation_names: Set[str] = set()
-        self.progress_boxes: Dict[ProgressBox.ProgressFunction, ProgressBox] = {}
+        self.running_operation_names: set[str] = set()
+        self.progress_boxes: dict[ProgressBox.ProgressFunction, ProgressBox] = {}
 
         try:
             # GTK 3.22 is required for this, but if this fails we can still run.
@@ -66,9 +66,6 @@ class DownloadQueue(Gtk.ScrolledWindow):
                 self.remove_progress_box(progress_function)
                 return progress_info
 
-            if progress_info.label_markup:
-                progress_info.label_markup = "<span size='10000'>%s</span>" % progress_info.label_markup
-
             return progress_info
 
         progress_box = self.progress_boxes.get(progress_function)
@@ -99,9 +96,10 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self,
         operation: Callable[[], Any],
         progress_function: ProgressBox.ProgressFunction,
-        completion_function: Optional[CompletionFunction] = None,
-        error_function: Optional[ErrorFunction] = None,
-        operation_name: Optional[str] = None,
+        completion_function: CompletionFunction | None = None,
+        error_function: ErrorFunction | None = None,
+        operation_name: str | None = None,
+        wait_for: set[str] | None = None,
     ) -> bool:
         """Runs 'operation' on a thread, while displaying a progress bar. The 'progress_function'
         controls this progress bar, and it is removed when the 'operation' completes.
@@ -110,12 +108,34 @@ class DownloadQueue(Gtk.ScrolledWindow):
         the 'operation' runs. If the name is present already, this method does nothing
         but returns False. If the worker thread has started, this returns True.
 
+        If 'wait_for' is given, the start is deferred until none of those operation names
+        are running. The new progress box will appear when the actual
+        operation begins- once the blocking operations complete.
+
         Args:
             operation:              Called on a worker thread
             progress_function:      Called on the main thread for progress status
             completion_function:    Called on the main thread on completion, with result
             error_function:         Called on the main threa don error, with exception
-            operation_name:         Name of operation, to prevent duplicate queued work."""
+            operation_name:         Name of operation, to prevent duplicate queued work.
+            wait_for:               Operation names that must finish before this one starts."""
+
+        if wait_for and not self.running_operation_names.isdisjoint(wait_for):
+            # Defer the entire start (including the progress box) until the
+            # blocking operations complete.
+            def on_maybe_ready():
+                if self.running_operation_names.isdisjoint(wait_for):
+                    registration.unregister()
+                    self.start(
+                        operation,
+                        progress_function,
+                        completion_function=completion_function,
+                        error_function=error_function,
+                        operation_name=operation_name,
+                    )
+
+            registration = DOWNLOAD_QUEUE_COMPLETED.register(on_maybe_ready)
+            return True
 
         return self.start_multiple(
             operation,
@@ -129,9 +149,9 @@ class DownloadQueue(Gtk.ScrolledWindow):
         self,
         operation: Callable[[], Any],
         progress_functions: Iterable[ProgressBox.ProgressFunction],
-        completion_function: Optional[CompletionFunction] = None,
-        error_function: Optional[ErrorFunction] = None,
-        operation_names: Optional[List[str]] = None,
+        completion_function: CompletionFunction | None = None,
+        error_function: ErrorFunction | None = None,
+        operation_names: list[str] | None = None,
     ) -> bool:
         """Runs 'operation' on a thread, while displaying a set of progress bars. The
         'progress_functions' control these progress bars, and they are removed when the
@@ -174,7 +194,7 @@ class DownloadQueue(Gtk.ScrolledWindow):
                     error_function(error)
             elif completion_function:
                 completion_function(result)
-            self.emit("download-completed")
+            DOWNLOAD_QUEUE_COMPLETED.fire()
 
         AsyncCall(operation, completion_callback)
         return True

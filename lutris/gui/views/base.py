@@ -1,5 +1,4 @@
 import time
-from typing import List
 
 from gi.repository import Gdk, GObject, Gtk
 
@@ -82,13 +81,17 @@ class GameView:
         return self.get_game_actions_for_paths(self.get_selected())
 
     def get_game_actions_for_paths(self, paths) -> GameActions:
-        game_ids = []
-        for path in paths:
-            game_ids.append(self.get_game_id_for_path(path))
-        games = self._get_games_by_ids(game_ids)
-        return get_game_actions(games, window=self.get_toplevel())
+        from lutris.gui.lutriswindow import LutrisWindow  # avoid circular import at module level
 
-    def _get_games_by_ids(self, game_ids: List[str]) -> List[Game]:
+        game_ids = [self.get_game_id_for_path(path) for path in paths]
+        games = self._get_games_by_ids(game_ids)
+
+        window = self.get_toplevel()
+        if not isinstance(window, LutrisWindow):
+            raise TypeError("GameView must be contained in a LutrisWindow, not %s" % type(window).__name__)
+        return get_game_actions(games, window=window)
+
+    def _get_games_by_ids(self, game_ids: list[str]) -> list[Game]:
         """Resolves a list of game-ids to a list of game objects,
         looking up running games, service games and all that."""
 
@@ -105,8 +108,9 @@ class GameView:
                     if db_game["id"]:
                         games.append(_get_game_by_id(db_game["id"]))
                 else:
-                    db_game = ServiceGameCollection.get_game(self.service.id, game_id)
-                    games.append(Game.create_empty_service_game(db_game, self.service))
+                    service_game = ServiceGameCollection.get_game(self.service.id, game_id)
+                    if service_game:
+                        games.append(Game.create_empty_service_game(service_game, self.service))
             elif game_id:
                 games.append(_get_game_by_id(game_id))
 

@@ -4,7 +4,7 @@ from gi.repository import Gtk
 
 from lutris.gui.dialogs import ModalDialog
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import BaseDownloader
 
 
 class DownloadDialog(ModalDialog):
@@ -25,7 +25,7 @@ class DownloadDialog(ModalDialog):
         self.dialog_progress_box.start()
 
     @property
-    def downloader(self) -> Downloader:
+    def downloader(self) -> BaseDownloader:
         return self.dialog_progress_box.downloader
 
     def download_complete(self, _widget, _data):

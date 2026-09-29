@@ -1,5 +1,6 @@
+from collections.abc import Callable, Iterable
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from gi.repository import GLib, GObject, Gtk
 
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
 AnyCallable = Callable[..., Any]
 
 
-def watch_game_errors(game_stop_result: Any, game: "Game" = None) -> Callable[[AnyCallable], AnyCallable]:
+def watch_game_errors(game_stop_result: Any, game: "Game | None" = None) -> Callable[[AnyCallable], AnyCallable]:
     """Decorator used to catch exceptions and send events instead of propagating them normally.
     If 'game_stop_result' is not None, and the decorated function returns that, this will
     send game-stop and make the game stopped as well. This simplifies handling cancellation.
@@ -48,7 +49,7 @@ def watch_game_errors(game_stop_result: Any, game: "Game" = None) -> Callable[[A
     return inner_decorator
 
 
-def _get_error_parent(error_objects: Iterable[Optional[GObject.Object]]) -> Gtk.Window:
+def _get_error_parent(error_objects: Iterable[GObject.Object | None]) -> Gtk.Window:
     """Obtains a top-level window to use as the parent of an
     error, by examining s list of objects. Any that are None
     are skipped; we call get_toplevel() on each object that has
@@ -65,7 +66,7 @@ def _get_error_parent(error_objects: Iterable[Optional[GObject.Object]]) -> Gtk.
                 toplevel: Gtk.Window = error_object.get_toplevel()
                 if toplevel:
                     return toplevel
-        except GLib.GError:  # type:ignore
+        except GLib.GError:
             pass  # hasattr() is always true for (some) GObjects, but the method fails when used
 
     return get_required_main_window()

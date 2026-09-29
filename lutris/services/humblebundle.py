@@ -16,7 +16,7 @@ from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import linux
-from lutris.util.http import HTTPError, Request
+from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
 
 
@@ -81,6 +81,11 @@ class HumbleBundleService(OnlineService):
     supported_platforms = ("linux", "windows")
 
     def login(self, parent=None):
+        # Clear any stale login-in-progress flag from a previous
+        # abandoned WebConnect login attempt; the cookie path below
+        # bypasses WebConnectDialog entirely.
+        self.is_login_in_progress = False
+
         dialog = QuestionDialog(
             {
                 "title": _("Workaround for Humble Bundle authentication"),
@@ -136,6 +141,10 @@ class HumbleBundleService(OnlineService):
         request = Request(url, cookies=self.load_cookies())
         try:
             request.get()
+        except UnauthorizedAccessError:
+            logger.error("Access to %s denied", url)
+            self.logout()
+            raise
         except HTTPError:
             logger.error("Failed to request %s", url)
             return
@@ -186,6 +195,8 @@ class HumbleBundleService(OnlineService):
         orders = []
         if not gamekeys:
             gamekeys = self.make_api_request(self.api_url + "api/v1/user/order")
+        if not gamekeys:
+            return []
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
             future_orders = [executor.submit(self.get_order, gamekey["gamekey"]) for gamekey in gamekeys]
             for order in future_orders:
@@ -230,7 +241,7 @@ class HumbleBundleService(OnlineService):
                 download_links.append(download)
         return download_links
 
-    def get_installer_files(self, installer, installer_file_id, _selected_extras):
+    def get_installer_files(self, installer, installer_file_id):
         """Replace the user provided file with download links from Humble Bundle"""
         try:
             link = get_humble_download_link(installer.service_appid, installer.runner)
@@ -241,7 +252,7 @@ class HumbleBundleService(OnlineService):
             raise UnavailableGameError(_("No game found on Humble Bundle"))
         filename = link.split("?")[0].split("/")[-1]
         file = InstallerFile(installer.game_slug, installer_file_id, {"url": link, "filename": filename})
-        return [file], []
+        return [file]
 
     @staticmethod
     def get_filename_for_platform(downloads, platform):
@@ -329,6 +340,12 @@ class HumbleBundleService(OnlineService):
         if "windows" in platforms:
             return "wine"
 
+        return ""
+
+    def get_store_url(self, db_game: dict) -> str:
+        machine_name = db_game.get("appid", "")
+        if machine_name:
+            return f"https://www.humblebundle.com/store/{machine_name}"
         return ""
 
 

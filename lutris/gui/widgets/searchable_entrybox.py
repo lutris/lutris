@@ -17,6 +17,7 @@ class SearchableEntrybox(Gtk.Box):
     def __init__(self, choice_func, initial=None):
         super().__init__(orientation=Gtk.Orientation.HORIZONTAL)
         self.initial = initial
+        self.choice_func = choice_func
         self.liststore = Gtk.ListStore(str, str)
         self.entry = Gtk.Entry()
 
@@ -75,6 +76,12 @@ class SearchableEntrybox(Gtk.Box):
         except Exception as ex:
             self.entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "error-symbolic")
             display_error(ex, parent=self.get_toplevel())  # Deprecated in Gtk4, use get_root instead
+
+    def repopulate(self):
+        """Clear and repopulate choices; used when an async choices load completes."""
+        self.liststore.clear()
+        self.popup_menu = Gtk.Menu()
+        self._populate_entrybox_choices(self.choice_func)
 
     def on_entrybox_icon_press(self, _entry, _icon_pos, _event):
         """Show popup menu when the primary icon is pressed."""

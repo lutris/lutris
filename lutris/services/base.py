@@ -4,7 +4,7 @@ import os
 import shutil
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from gi.repository import Gio
 
@@ -115,7 +115,8 @@ class BaseService:
 
     def is_launchable(self):
         if self.client_installer:
-            return bool(get_game_by_field(self.client_installer, "slug"))
+            db_launcher = get_game_by_field(self.client_installer, "slug")
+            return bool(db_launcher and db_launcher.get("installed"))
         return False
 
     def get_launcher(self):
@@ -187,11 +188,11 @@ class BaseService:
     def get_update_installers(self, db_game):
         return []
 
-    def generate_installer(self, db_game: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_installer(self, db_game: dict[str, Any]) -> dict[str, Any]:
         """Used to generate an installer from the data returned from the services"""
         return {}
 
-    def generate_installers(self, db_game: Dict[str, Any]) -> List[dict]:
+    def generate_installers(self, db_game: dict[str, Any]) -> list[dict]:
         """Used to generate a list of installers to choose from, from the data returned from the services
         By default this is just the installer from generate_installer(), and if overridden to return
         more than one, then generate_installer must be overridden ti pick a default installer."""
@@ -214,13 +215,23 @@ class BaseService:
 
         BusyAsyncCall(self.get_installers_from_api, on_installers_ready, appid)
 
-    def get_installer_files(self, installer, installer_file_id, selected_extras):
-        """Used to obtains the content files from the service, when an 'N/A' file is left in
-        the installer. This handles 'extras', and must return a tuple; first a list of
-        InstallerFile or InstallerFileCollection objects that are for the files themselves,
-        and then a list of such objects for the extras. This separation allows us to generate
-        extra installer script steps to move the extras in."""
-        return [], []
+    def get_installer_files(self, installer, installer_file_id):
+        """Used to obtain the content files from the service, when an 'N/A' file is left in
+        the installer. Returns a list of InstallerFile or InstallerFileCollection objects
+        for the game content files."""
+        return []
+
+    def get_dlc_installers_runner(self, db_game, runner, only_owned=True) -> list[dict[str, Any]]:
+        """Return DLC installers for requested runner
+        only_owned=True only return installers for owned DLC (default)"""
+        return []
+
+    def get_extras_files(self, installer, selected_extras):
+        """Download the selected extras for a game. Returns a list of InstallerFile objects.
+
+        Only services with has_extras=True should override this; the base
+        implementation raises UnavailableGameError."""
+        raise NotImplementedError(_("This service does not support extras"))
 
     def match_game(self, service_game, lutris_game):
         """Match a service game to a lutris game referenced by its slug"""
@@ -394,7 +405,7 @@ class BaseService:
         """Specific services should implement this"""
         return ""
 
-    def get_game_platforms(self, db_game: dict) -> List[str]:
+    def get_game_platforms(self, db_game: dict) -> list[str]:
         """Interprets the database record for this game from this service
         to extract its platform, or returns an empty list if this is not available."""
         return []
@@ -412,6 +423,10 @@ class BaseService:
         if game.service == self.id and game.appid:
             return ServiceGameCollection.get_game(self.id, game.appid)
         return None
+
+    def get_store_url(self, db_game: dict) -> str:
+        """Return a URL to the game's store page on this service, or empty string."""
+        return ""
 
     def get_game_release_date(self, db_game: dict):
         """Services can implement this method so games that are not in the
@@ -438,6 +453,12 @@ class OnlineService(BaseService):
     login_window_height = 500
     login_user_agent = settings.DEFAULT_USER_AGENT
     redirect_uris = NotImplemented
+
+    def is_login_complete(self, url):
+        """Check if the given URL indicates that login is complete.
+        Override this for services where simple startswith matching on
+        redirect_uris is not sufficient."""
+        return any(url.startswith(r) for r in self.redirect_uris)
 
     @property
     def credential_files(self):

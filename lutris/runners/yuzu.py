@@ -11,7 +11,7 @@ from lutris.util.log import logger
 
 class yuzu(Runner):
     human_name = _("Yuzu")
-    platforms = [_("Nintendo Switch")]
+    platform_dict = Runner.to_platform_dict([_("Nintendo Switch")])
     description = _("Nintendo Switch emulator")
     runnable_alone = True
     runner_executable = "yuzu/yuzu-mainline.AppImage"

@@ -1,12 +1,61 @@
+[project]
+name = "lutris"
+version = "0.5.23"
+authors = [
+    {name = "Mathieu Comandon", email = "strider@strycore.com"}
+]
+description = """
+Lutris is a video game preservation platform that helps you install and play video games from all eras and from most gaming systems.
+By leveraging and combining existing emulators, engine re-implementations and compatibility layers, it gives you a central interface to launch all your games.
+"""
+readme = "README.rst"
+requires-python = ">=3.10"
+
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+dependencies = [
+    "PyYAML",
+    "lxml",
+    "requests",
+    "Pillow",
+    "setproctitle",
+    "python-magic",
+    "distro",
+    "dbus-python",
+    "types-requests",
+    "types-PyYAML",
+    "evdev",
+    "PyGObject",
+    "pypresence",
+    "protobuf",
+    "moddb"
+]
+
+[project.urls]
+Homepage = "https://lutris.net/"
+Repository = "https://github.com/lutris/lutris"
+Issues = "https://github.com/lutris/lutris/issues"
+
+[dependency-groups]
+dev = [
+    "ruff==0.12.1",
+    "mypy==1.16.1",
+    "mypy-baseline",
+    "nose2",
+    "pygobject-stubs>=2.17.0"
+]
+
+
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.10"
 packages = [
     "lutris",
     "tests",
 ]
 exclude = [
     ".*_pb2.py",  # Any automatically generated protobuf files
-    "venv"
+    "venv",
+    "^build/",  # setuptools build output
 ]
 disable_error_code = [
     "no-redef",  # Allow variable redefinition
@@ -37,8 +86,44 @@ ignore = []
 
 [[tool.mypy.overrides]]
 module = [
+    "lutris.api",
+    "lutris.cache",
+    "lutris.config",
+    "lutris.database.*",
     "lutris.exception_backstops",
     "lutris.exceptions",
+    "lutris.gui.dialogs",
+    "lutris.monitored_command",
+    "lutris.runners",
+    "lutris.scanners.default_installers",
+    "lutris.services.mame",
+    "lutris.settings",
+    "lutris.sysoptions",
+    "lutris.util",
+    "lutris.util.busy",
+    "lutris.util.datapath",
+    "lutris.util.discord.base",
+    "lutris.util.graphics.*",
+    "lutris.util.http",
+    "lutris.util.jobs",
+    "lutris.util.log",
+    "lutris.util.flatpak",
+    "lutris.util.retroarch.core_config",
+    "lutris.util.settings",
+    "lutris.util.standalone_scripts",
+    "lutris.util.steam.*",
+    "lutris.util.shell",
+    "lutris.util.system",
+    "lutris.util.timer",
+    "lutris.util.ubisoft.consts",
+    "lutris.util.urlhandler",
+    "lutris.util.wine.d3d_extras",
+    "lutris.util.wine.dgvoodoo2",
+    "lutris.util.xdgshortcuts",
+    "lutris.util.yaml",
+    "setup",
+    "utils.bios_format",
+    "utils.meson_post_install",
 ]
 # Equivalent to strict = true for per-module config
 # Use strict = true when https://github.com/python/mypy/issues/11401 is fixed

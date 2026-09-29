@@ -6,13 +6,34 @@ import time
 
 from lutris import settings
 from lutris.database.games import get_games
-from lutris.game import Game
+from lutris.game import GAME_START, GAME_UPDATED, Game
 from lutris.gui.widgets import NotificationSource
 from lutris.util import cache_single
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 
 GAME_PATH_CACHE_PATH = os.path.join(settings.CACHE_DIR, "game-paths.json")
+
+
+def _ensure_cache_dir():
+    cache_dir = os.path.dirname(GAME_PATH_CACHE_PATH)
+    if cache_dir and not os.path.isdir(cache_dir):
+        os.makedirs(cache_dir, exist_ok=True)
+
+
+def _write_path_cache(cache):
+    _ensure_cache_dir()
+    temp_path = GAME_PATH_CACHE_PATH + ".tmp"
+    try:
+        with open(temp_path, "w", encoding="utf-8") as cache_file:
+            json.dump(cache, cache_file, indent=2)
+        os.replace(temp_path, GAME_PATH_CACHE_PATH)
+    finally:
+        if os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                pass
 
 
 def get_game_paths():
@@ -34,9 +55,7 @@ def build_path_cache(recreate=False):
     if os.path.exists(GAME_PATH_CACHE_PATH) and not recreate:
         return
     start_time = time.time()
-    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
-        game_paths = get_game_paths()
-        json.dump(game_paths, cache_file, indent=2)
+    _write_path_cache(get_game_paths())
     end_time = time.time()
     get_path_cache.cache_clear()
     logger.debug("Game path cache built in %0.2f seconds", end_time - start_time)
@@ -51,8 +70,7 @@ def add_to_path_cache(game):
         return
     current_cache = read_path_cache()
     current_cache[game.id] = path
-    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
-        json.dump(current_cache, cache_file, indent=2)
+    _write_path_cache(current_cache)
     get_path_cache.cache_clear()
 
 
@@ -65,11 +83,14 @@ def get_path_cache():
 
 def read_path_cache():
     """Read the contents of the path cache file, and does not cache it."""
-    with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
-        try:
-            return json.load(cache_file)
-        except json.JSONDecodeError:
-            return {}
+    try:
+        with open(GAME_PATH_CACHE_PATH, encoding="utf-8") as cache_file:
+            try:
+                return json.load(cache_file)
+            except json.JSONDecodeError:
+                return {}
+    except FileNotFoundError:
+        return {}
 
 
 def remove_from_path_cache(game):
@@ -79,8 +100,7 @@ def remove_from_path_cache(game):
         logger.warning("Game %s (id=%s) not in cache path", game, game.id)
         return
     del current_cache[game.id]
-    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
-        json.dump(current_cache, cache_file, indent=2)
+    _write_path_cache(current_cache)
     get_path_cache.cache_clear()
 
 
@@ -93,6 +113,19 @@ class MissingGames:
         self.updated = NotificationSource()
         self.missing_game_ids = set()
         self._update_running = None
+        # Bulk checks via update_all_missing() are too expensive to run for
+        # large libraries on each event, so re-check just the affected game
+        # whenever its metadata changes (install, move, category edit, etc.)
+        # or it's about to launch — those are the moments where a stale
+        # missing flag would actually mislead the user.
+        GAME_UPDATED.register(self._on_game_event)
+        GAME_START.register(self._on_game_event)
+
+    def _on_game_event(self, game: Game) -> None:
+        # Read the live path off the Game rather than the cached cache —
+        # add_to_path_cache() is itself a GAME_UPDATED handler, so the
+        # cache may not have been refreshed yet when this fires.
+        self.update_one_missing(game.id, path=game.get_path_from_config())
 
     @property
     def is_initialized(self):
@@ -107,6 +140,34 @@ class MissingGames:
             self._update_running = True
             AsyncCall(self._update_missing_games, self._update_missing_games_cb)
 
+    def update_one_missing(self, game_id: str, path: str | None = None) -> None:
+        """Recheck a single game's missing status synchronously and fire
+        ``updated`` if it changed. One ``stat()`` per call, so safe to
+        invoke from frequently-firing notifications like GAME_UPDATED.
+
+        ``path`` lets callers that already have the game's live path
+        (e.g. from ``Game.get_path_from_config()``) pass it directly,
+        avoiding a stale read of the path cache."""
+        path = path or get_path_cache().get(game_id)
+        if self._apply_missing_status(game_id, path):
+            self.updated.fire()
+
+    def _apply_missing_status(self, game_id: str, path: str | None) -> bool:
+        """Update ``missing_game_ids`` for one game given its current path,
+        and return True if the membership changed. A falsy path means we
+        can't tell, so the membership is left as-is."""
+        if not path:
+            return False
+        old_status = game_id in self.missing_game_ids
+        new_status = not os.path.exists(path)
+        if old_status == new_status:
+            return False
+        if new_status:
+            self.missing_game_ids.add(game_id)
+        else:
+            self.missing_game_ids.discard(game_id)
+        return True
+
     def _update_missing_games(self):
         """This is the method that runs on the worker thread; it checks each game given
         and returns True if any changes to missing_game_ids was made."""
@@ -114,17 +175,9 @@ class MissingGames:
         logger.debug("Checking for missing games")
 
         changed = False
-
         for game_id, path in get_path_cache().items():
-            if path:
-                old_status = game_id in self.missing_game_ids
-                new_status = not os.path.exists(path)
-                if old_status != new_status:
-                    if new_status:
-                        self.missing_game_ids.add(game_id)
-                    else:
-                        self.missing_game_ids.discard(game_id)
-                    changed = True
+            if self._apply_missing_status(game_id, path):
+                changed = True
         return changed
 
     def _update_missing_games_cb(self, changed, error):

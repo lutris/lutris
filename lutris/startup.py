@@ -1,13 +1,14 @@
 """Check to run at program start"""
 
 import os
+import shutil
 import sqlite3
+import threading
 from gettext import gettext as _
 
 import gi
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
+gi.require_version("GdkPixbuf", "2.0")
 
 from gi.repository import GdkPixbuf
 
@@ -18,8 +19,7 @@ from lutris.game import Game
 from lutris.runners.json import load_json_runners
 from lutris.services import DEFAULT_SERVICES
 from lutris.util.graphics import vkquery
-from lutris.util.graphics.drivers import get_gpu_cards
-from lutris.util.graphics.gpu import GPU, GPUS
+from lutris.util.graphics.gpu import preload_gpus
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.path_cache import build_path_cache
@@ -46,20 +46,50 @@ def init_dirs():
     ]
     for directory in directories:
         create_folder(directory)
+    _clear_tmp_dir()
+
+
+def _clear_tmp_dir():
+    """Remove leftover files from previous Lutris runs.
+
+    Nothing in TMP_DIR is expected to survive across runs; files there
+    are return-code files from game launches and download temporaries
+    that should have been cleaned up but may not have been (e.g. if
+    Lutris crashed).
+    """
+    try:
+        for entry in os.listdir(settings.TMP_DIR):
+            path = os.path.join(settings.TMP_DIR, entry)
+            try:
+                if os.path.isdir(path) and not os.path.islink(path):
+                    shutil.rmtree(path)
+                else:
+                    os.unlink(path)
+            except OSError as ex:
+                logger.debug("Could not remove %s: %s", path, ex)
+    except OSError as ex:
+        logger.debug("Could not list temp directory %s: %s", settings.TMP_DIR, ex)
 
 
 def check_libs(all_components=False):
-    """Checks that required libraries are installed on the system"""
-    missing_libs = LINUX_SYSTEM.get_missing_libs()
-    if all_components:
-        components = LINUX_SYSTEM.requirements
-    else:
-        components = LINUX_SYSTEM.critical_requirements
+    """Checks that required libraries are installed on the system.
 
-    for req in components:
-        for index, arch in enumerate(LINUX_SYSTEM.runtime_architectures):
-            for lib in missing_libs[req][index]:
-                logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
+    This is purely diagnostic logging and is run on a background thread
+    at startup so the expensive ldconfig parse doesn't block the UI.
+    """
+    try:
+        missing_libs = LINUX_SYSTEM.get_missing_libs()
+        if all_components:
+            components = LINUX_SYSTEM.requirements
+        else:
+            components = LINUX_SYSTEM.critical_requirements
+
+        for req in components:
+            for index, arch in enumerate(LINUX_SYSTEM.runtime_architectures):
+                for lib in missing_libs[req][index]:
+                    logger.error("%s %s missing (needed by %s)", arch, lib, req.lower())
+    except Exception:
+        logger.exception("Library check failed")
 
 
 def check_vulkan():
@@ -112,15 +142,16 @@ def fill_missing_platforms():
             game.save_platform()
 
 
-def run_all_checks() -> None:
-    """Run all startup checks"""
-    for card in get_gpu_cards():
-        gpu = GPU(card)
-        driver_info = gpu.get_driver_info()
-        logger.info('"%s" is %s Driver %s', card, gpu, driver_info.get("version"))
-        GPUS[card] = gpu
-
-    check_libs()
+def run_all_checks(async_ops: bool = True) -> None:
+    """Run all startup checks. When async_ops is True, expensive checks like
+    check_libs run on a background thread to avoid blocking the UI. When False,
+    everything runs synchronously on the calling thread so that log output
+    stays predictable (useful for CLI paths with no main loop)."""
+    preload_gpus(async_ops=async_ops)
+    if async_ops:
+        threading.Thread(target=check_libs, daemon=True).start()
+    else:
+        check_libs()
     check_vulkan()
     check_gnome()
     fill_missing_platforms()

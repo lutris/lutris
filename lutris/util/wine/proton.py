@@ -2,27 +2,73 @@
 
 import json
 import os
+import re
+from collections.abc import Generator
 from gettext import gettext as _
-from typing import Dict, Generator, List, Optional
+from typing import TYPE_CHECKING
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
 from lutris.monitored_command import RUNNING_COMMANDS
 from lutris.util import cache_single, system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
 
+if TYPE_CHECKING:
+    from lutris.game import Game
+
 DEFAULT_GAMEID = "umu-default"
 
+# Matches a umu log line such as
+#   [umu.umu_proton:348] INFO: Downloading GE-Proton10-34.tar.gz...
+_UMU_LOG_LINE_RE = re.compile(r"\[umu\.[\w_]+:\d+\]\s+(?:INFO|WARNING|ERROR):\s+(.+)")
 
-def is_proton_version(version: Optional[str]) -> bool:
+
+class UmuLaunchStatusParser:
+    """Scans umu's stdout for runtime setup progress and pushes it onto a
+    Game's launch_status. The game appears frozen on 'Launching' while umu
+    fetches GE-Proton / the sniper runtime; this surfaces the current step
+    to the UI. MonitoredCommand delivers raw read chunks rather than whole
+    lines, so the parser buffers partial lines across calls."""
+
+    def __init__(self, game: "Game"):
+        self.game = game
+        self._buffer = ""
+
+    def __call__(self, line: str) -> None:
+        # MonitoredCommand delivers raw read chunks, not individual lines,
+        # so this may contain zero, one, or many newlines.
+        data = self._buffer + line
+        lines = data.split("\n")
+        self._buffer = lines[-1]
+        for complete_line in lines[:-1]:
+            self._process_line(complete_line)
+
+    def _process_line(self, line: str) -> None:
+        match = _UMU_LOG_LINE_RE.search(line)
+        if not match:
+            return
+        message = match.group(1).strip()
+        # "Using <Proton>" is logged at the end of umu's setup phase, right
+        # before it hands off to Proton — clear any pending status then.
+        if message.startswith("Using "):
+            self.game.launch_status = ""
+            return
+        # Only the user-meaningful progress messages — skip lock acquisition,
+        # version chatter, env dumps, etc.
+        if message.startswith(("Downloading ", "Extracting ", "Checking updates")):
+            self.game.launch_status = message
+
+
+def is_proton_version(version: str | None) -> bool:
     """True if the version indicated specifies a Proton version of Wine; these
     require special handling. This does not recognize the special 'ge-proton' version
     found in configurations; this must be specially  handled elsewhere."""
     return version in get_proton_versions()
 
 
-def is_umu_path(path: Optional[str]) -> bool:
+def is_umu_path(path: str | None) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
@@ -30,7 +76,7 @@ def is_umu_path(path: Optional[str]) -> bool:
     return bool(path and (path.endswith("/umu_run.py") or path.endswith("/umu-run")))
 
 
-def is_proton_path(wine_path: Optional[str]) -> bool:
+def is_proton_path(wine_path: str | None) -> bool:
     """True if the path given actually runs Umu; this will run Proton-Wine in turn,
     but can be directed to particular Proton implementation by setting the env-var
     PROTONPATH, but if this is omitted it will default to the latest Proton it
@@ -86,17 +132,25 @@ def get_umu_path() -> str:
     raise MissingExecutableError("Install umu to use Proton")
 
 
+def get_proton_wine_files_dir(version: str) -> str | None:
+    """Get the directory holding the Wine files of the specified Proton version; this is
+    the directory containing 'bin', which older builds call 'dist' and newer ones 'files'.
+    Returns None if the version isn't installed or ships no wine executable."""
+    proton_path = get_proton_versions().get(version)
+    if proton_path:
+        for files_dir in ("dist", "files"):
+            files_path = os.path.join(proton_path, files_dir)
+            if os.path.exists(os.path.join(files_path, "bin/wine")):
+                return files_path
+
+    return None
+
+
 def get_proton_wine_path(version: str) -> str:
     """Get the wine path for the specified proton version"""
-    wine_path = get_proton_versions().get(version)
-    if wine_path:
-        wine_path_dist = os.path.join(wine_path, "dist/bin/wine")
-        if os.path.exists(wine_path_dist):
-            return wine_path_dist
-
-        wine_path_files = os.path.join(wine_path, "files/bin/wine")
-        if os.path.exists(wine_path_files):
-            return wine_path_files
+    files_path = get_proton_wine_files_dir(version)
+    if files_path:
+        return os.path.join(files_path, "bin/wine")
 
     raise MissingExecutableError(_("Proton version '%s' is missing its wine executable and can't be used.") % version)
 
@@ -111,13 +165,13 @@ def get_proton_path_by_path(wine_path: str) -> str:
     return version_directory
 
 
-def list_proton_versions() -> List[str]:
+def list_proton_versions() -> list[str]:
     """Return the list of Proton versions installed in Steam, in sorted order."""
     return sorted(get_proton_versions().keys(), key=get_natural_sort_key, reverse=True)
 
 
 @cache_single
-def get_proton_versions() -> Dict[str, str]:
+def get_proton_versions() -> dict[str, str]:
     """Return the dict of Proton versions installed in Steam, which is cached.
     The keys are the versions, and the values are the paths to those versions,
     which are their wine-paths."""
@@ -154,7 +208,34 @@ def _iter_proton_locations() -> Generator[str, None, None]:
         yield path
 
 
-def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = "") -> None:
+def get_umu_folders_path(env: dict[str, str]) -> str:
+    """Return where Umu should keep its own folders, or "" to leave it to Umu.
+
+    Umu decides where to download its runtime and Proton builds from
+    XDG_DATA_HOME (HOST_XDG_DATA_HOME under Flatpak), falling back to
+    $HOME/.local/share. Players override those per game to keep save files out
+    of their home directory, which also sends Umu's downloads there: the runtime
+    is fetched again for every game, into directories the game was never meant
+    to own. UMU_FOLDERS_PATH moves Umu's folders back without touching what the
+    game itself sees.
+    """
+    # Umu keys this off "container=flatpak", which the sandbox sets alongside
+    # the /.flatpak-info that LINUX_SYSTEM looks for.
+    data_home_var = "HOST_XDG_DATA_HOME" if LINUX_SYSTEM.is_flatpak() else "XDG_DATA_HOME"
+    overridden = any(var in env and env[var] != os.environ.get(var) for var in (data_home_var, "HOME"))
+    if not overridden:
+        return ""
+
+    lutris_data_home = os.environ.get(data_home_var)
+    if not lutris_data_home:
+        lutris_home = os.environ.get("HOME")
+        if not lutris_home:
+            return ""
+        lutris_data_home = os.path.join(lutris_home, ".local", "share")
+    return lutris_data_home
+
+
+def update_proton_env(wine_path: str, env: dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = "") -> None:
     """Add various env-vars to an 'env' dict for use by Proton and Umu; this won't replace env-vars, so they can still
     be pre-set before we get here. This sets the PROTONPATH so the Umu launcher will know what Proton to use,
     and the WINEARCH to win64, which is what we expect Proton to always be. GAMEID is required, but we'll use a default
@@ -186,6 +267,11 @@ def update_proton_env(wine_path: str, env: Dict[str, str], game_id: str = DEFAUL
             env["PROTON_VERB"] = "runinprefix"  # do *not* re-initialize a running prefix!
         else:
             env["PROTON_VERB"] = "waitforexitandrun"  # does full initialization with proton-fixes
+
+    if "UMU_FOLDERS_PATH" not in env:
+        umu_folders_path = get_umu_folders_path(env)
+        if umu_folders_path:
+            env["UMU_FOLDERS_PATH"] = umu_folders_path
 
     locale = env.get("LC_ALL")
     host_locale = env.get("HOST_LC_ALL")

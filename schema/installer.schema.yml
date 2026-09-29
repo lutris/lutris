@@ -528,6 +528,9 @@ definitions:
       dxvk:
         type: boolean
         description: Enable DXVK
+      dxvk_version:
+        type: string
+        description: DXVK version override
       esync:
         type: boolean
         description: Enable ESync

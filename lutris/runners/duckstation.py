@@ -11,7 +11,7 @@ from lutris.util.log import logger
 class duckstation(Runner):
     human_name = _("DuckStation")
     description = _("PlayStation 1 Emulator")
-    platforms = [_("Sony PlayStation")]
+    platform_dict = Runner.to_platform_dict([_("Sony PlayStation")])
     runnable_alone = True
     runner_executable = "duckstation/DuckStation-x64.AppImage"
     flatpak_id = "org.duckstation.DuckStation"
@@ -22,7 +22,6 @@ class duckstation(Runner):
             "option": "main_file",
             "type": "file",
             "label": _("ROM file"),
-            "default_path": "game_path",
         }
     ]
 

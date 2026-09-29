@@ -4,7 +4,7 @@ import json
 import os
 import ssl
 from gettext import gettext as _
-from typing import Any, Dict, Optional
+from typing import Any
 from xml.etree import ElementTree
 
 import requests
@@ -16,7 +16,8 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.services.base import SERVICE_LOGIN, OnlineService
+from lutris.gui.widgets.utils import Image, thumbnail_image
+from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -55,33 +56,112 @@ class EAAppGames:
         return installed_game_ids
 
 
+EA_LOGO_PATH = os.path.join(settings.CACHE_DIR, "ea_app/primaryLogo")
+
+
 class EAAppMedia(ServiceMedia):
     service = "ea_app"
     file_patterns = ["%s.jpg"]
     name = NotImplemented
+    max_logo_x = None
+    max_logo_y = None
+    logo_y_position = 0.7
 
     @property
     def dest_path(self):
         return os.path.join(settings.CACHE_DIR, self.service, self.name)
 
-    def get_media_url(self, details: Dict[str, Any]) -> Optional[str]:
-        image = details["baseItem"][self.name]["largestImage"]
+    def get_media_url(self, details: dict[str, Any]) -> str | None:
+        base_item = details.get("baseItem")
+        if not base_item:
+            return None
+        art = base_item.get(self.name)
+        if not art:
+            return None
+        image = art.get("largestImage")
         return image.get("path", None) if image is not None else None
+
+    @staticmethod
+    def _is_transparent_logo(image):
+        """Check if an image is a transparent logo rather than a full artwork image.
+        A real logo will have significant transparent pixels in its alpha channel."""
+        if image.mode != "RGBA":
+            return False
+        alpha = image.getchannel("A")
+        transparent_pixels = sum(1 for p in alpha.getdata() if p < 128)
+        total_pixels = alpha.size[0] * alpha.size[1]
+        return transparent_pixels > total_pixels * 0.1
+
+    def _render_filename(self, filename):
+        art_path = os.path.join(self.dest_path, filename)
+        logo_path = os.path.join(EA_LOGO_PATH, filename.replace(".jpg", ".png"))
+        if not os.path.exists(logo_path):
+            return
+        try:
+            logo_image = Image.open(logo_path)
+            logo_image = logo_image.convert("RGBA")
+        except Exception:
+            logger.warning("Could not open logo for %s, skipping overlay", filename)
+            return
+        if not self._is_transparent_logo(logo_image):
+            return
+        try:
+            thumb_image = Image.open(art_path)
+            thumb_image = thumb_image.convert("RGBA")
+            thumb_image = thumbnail_image(thumb_image, self.size)
+        except Exception:
+            logger.warning("Could not open art for %s, skipping overlay", filename)
+            return
+        logo_width, logo_height = logo_image.size
+        if logo_width > self.max_logo_x:
+            logo_image = logo_image.resize(
+                (self.max_logo_x, int(logo_height * (self.max_logo_x / logo_width))),
+                resample=Image.Resampling.BICUBIC,
+            )
+        elif logo_height > self.max_logo_y:
+            logo_image = logo_image.resize(
+                (int(logo_width * (self.max_logo_y / logo_height)), self.max_logo_y),
+                resample=Image.Resampling.BICUBIC,
+            )
+        base_width, base_height = thumb_image.size
+        overlay_width, overlay_height = logo_image.size
+        offset_x = int((base_width - overlay_width) / 2)
+        offset_y = int(base_height * self.logo_y_position - overlay_height / 2)
+        offset_y = max(0, min(offset_y, base_height - overlay_height))
+        thumb_image.paste(
+            logo_image,
+            (offset_x, offset_y, overlay_width + offset_x, overlay_height + offset_y),
+            mask=logo_image,
+        )
+        thumb_image = thumb_image.convert("RGB")
+        thumb_image.save(art_path)
+
+    def render(self):
+        if self.max_logo_x is None:
+            return
+        for filename in os.listdir(self.dest_path):
+            self._render_filename(filename)
 
 
 class EAAppKeyArt(EAAppMedia):
     name = "keyArt"
     size = (192, 108)
+    max_logo_x = 150
+    max_logo_y = 65
 
 
 class EAAppPackArt(EAAppMedia):
     name = "packArt"
     size = (135, 240)
+    max_logo_x = 110
+    max_logo_y = 80
 
 
 class EAAppPrimaryLogo(EAAppMedia):
     name = "primaryLogo"
     size = (200, 100)
+    file_patterns = ["%s.png"]
+    visible = False
 
 
 class EAAppGame(ServiceGame):
@@ -148,6 +228,8 @@ class EAAppService(OnlineService):
     medias = {
         "keyArt": EAAppKeyArt,
         "packArt": EAAppPackArt,
+    }
+    extra_medias = {
         "primaryLogo": EAAppPrimaryLogo,
     }
     default_format = "keyArt"
@@ -201,7 +283,7 @@ class EAAppService(OnlineService):
             token_data = json.load(token_file)
             return token_data.get("access_token", "")
 
-    def fetch_api(self, query, params: dict = None):
+    def fetch_api(self, query, params: dict | None = None):
         result = self.session.post(
             self.api_url, headers=self.api_headers, json={"query": query, "variables": params or {}}
         ).json()
@@ -237,10 +319,20 @@ class EAAppService(OnlineService):
 
     def get_identity(self):
         """Request the user info"""
+        if not self.access_token:
+            logger.warning("No EA access token, attempting to refresh")
+            try:
+                self.fetch_access_token()
+            except Exception:
+                raise AuthTokenExpiredError("EA access token expired, please log in again")
+
         identity_data = self._request_identity()
         if identity_data.get("error") == "invalid_access_token":
             logger.warning("Refreshing EA access token")
-            self.fetch_access_token()
+            try:
+                self.fetch_access_token()
+            except Exception:
+                raise AuthTokenExpiredError("EA access token expired, please log in again")
             identity_data = self._request_identity()
         elif identity_data.get("error"):
             raise RuntimeError("%s (Error code: %s)" % (identity_data["error"], identity_data["error_number"]))
@@ -394,6 +486,7 @@ class EAAppService(OnlineService):
         ea_app_game = get_game_by_field("ea-app", "slug")
         if not ea_app_game:
             logger.error("EA App is not installed")
+            return
         ea_app_prefix = ea_app_game["directory"].split("drive_c")[0]
         if not os.path.exists(os.path.join(ea_app_prefix, "drive_c")):
             logger.error("Invalid install of EA App at %s", ea_app_prefix)

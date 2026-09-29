@@ -1,3 +1,81 @@
+lutris (0.5.23) jammy; urgency=medium
+
+  * Add GOG depot-based downloads, DLC installs, and incremental updates via gogdl integration
+  * Add GOG cloud save synchronization
+  * Add GameJolt as a game source
+  * Add store page URLs for GOG, Steam, itch.io, Humble Bundle, Flathub, ZOOM Platform, and GameJolt
+  * Add Playtron import
+  * Add parallel GOG download connections with resume support
+  * Replace google-protobuf dependency with custom decoder for Battle.net
+  * Improve Humble Bundle authentication and error handling
+  * Improve EA App auth handling and logo compositing
+  * Refresh expired Epic Games Store tokens automatically instead of forcing a re-login
+  * Speed up Epic Games Store library sync by batching catalog requests
+  * Hide Fab and Unreal Engine editor resources from the Epic Games Store library
+  * Add "Kill all Wine processes" menu option
+  * Make the Lutris.net login sync banner dismissable
+  * Add links to the issue tracker from the main menu and the About dialog
+  * Show the default Wine version in System Information
+  * Honor a custom RetroArch cores directory in the libretro runner
+  * Update the Ruffle runner to release 0.3.0
+  * Enable DXVK-Sarek on Proton runners when Vulkan < 1.3
+  * Add sorting and filtering to Uncategorized, Missing, and Running views
+  * Use cover art for grid view and banners for list view by default
+  * Lazy-load libretro cores and MAME systems to avoid UI stalls
+  * Defer GPU detection and library checks to speed up application startup
+  * Performance improvements for large game libraries
+  * Fix the Xenia runner download URL and launch command
+  * Fix itch.io ARM vs x86 upload selection
+  * Fix $RESOLUTION on KDE/Wayland with fractional scaling
+  * Fix GPU detection in Flatpak
+  * Fix crash when closing Add Games dialog with Escape
+  * Fix optional libretro firmware incorrectly treated as required
+  * Fix favorites view not updating when removing a game from favorites
+  * Added Swedish (sv) translation
+  * Added Galician (gl_ES) translation
+  * Added Traditional Chinese (zh_TW) translation
+  * Add experimental AppImage packaging
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Sat, 15 Mar 2026 21:00:00 -0800
+
+lutris (0.5.22) jammy; urgency=medium
+
+  * Fix type annotations requiring quoting for Python < 3.14 compatibility
+  * Add mypy typing annotations on util/strings.py
+  * Update release targets in PPA CI
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Mon, 24 Feb 2026 18:00:00 -0800
+
+lutris (0.5.21) jammy; urgency=medium
+
+  * Add Sniper runtime support — runners can execute inside Valve's Sniper container (Steam Linux Runtime 3.0)
+  * Add ShadPS4 runner
+  * Add Xenia runner
+  * Dolphin-emu runner updated to use AppImage (fixes libavformat dependency issues)
+  * Add collapsible sidebar sections
+  * Provide a sort for uncategorized games
+  * Fallback icons for sidebar buttons when icon theme is missing them
+  * Add Python version to System Information
+  * Read host os-release in Flatpak for system info
+  * Add more storage types
+  * Fix GPU UUID detection returning wrong GPU on multi-GPU systems
+  * Prefer most descriptive GPU name from vulkaninfo — fixes Intel Arc GPUs reported as "Intel Graphics"
+  * Add defensive check for vulkaninfo option lines with no "="
+  * Fix ghost categories persisting after rename
+  * Fix sync_media returning attempted count instead of successful
+  * Fix VDF parser handling of escaped quotes
+  * Fix Wine-Wayland warning — warns on Wayland only, not X11
+  * Log but continue for individual file errors in ZOOM Platform extras
+  * Add migration to move Proton versions from runners/proton to runners/wine
+  * Fix broken translations and add .po validation to CI
+  * Add Portuguese (Portugal) language support
+  * Update Spanish and French translations
+  * Strict mypy typing added across util/ modules
+  * Minimum Python version set to 3.10 in several places
+  * CI: add plucky (25.04) and questing (25.10) to PPA builds
+
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Tue, 24 Feb 2026 12:49:08 -0800
+
 lutris (0.5.20) jammy; urgency=medium
 
   * Proton-GE launched via umu is now the default. Umu takes care of keeping Proton-GE up to date.

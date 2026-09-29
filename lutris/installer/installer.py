@@ -5,16 +5,18 @@ from functools import cached_property
 from gettext import gettext as _
 from pathlib import Path
 
+import requests
+
+from lutris.api import get_game_details
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.exceptions import AuthenticationError, UnavailableGameError
-from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
+from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, ENTRY_POINT_KEYS
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import import_runner
 from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
-from lutris.util.gog import convert_gog_config_to_lutris, get_gog_config_from_path, get_gog_game_path
 from lutris.util.log import logger
 from lutris.util.moddb import ModDB, is_moddb_url
 from lutris.util.system import fix_path_case
@@ -26,7 +28,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     def __init__(self, installer, interpreter, service, appid):
         self.interpreter = interpreter
         self.installer = installer
-        self.is_update = False
 
         try:
             self.version = installer["version"]
@@ -52,7 +53,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.requires = self.script.get("requires")
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
-        self.is_gog = False
+        self.post_install_hooks = []
         self.discord_id = installer.get("discord_id")
 
     @cached_property
@@ -99,6 +100,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return service_id
         return
 
+    def _get_discord_id_from_api(self):
+        """Fetch the discord_id from the Lutris API if available."""
+        if not self.game_slug:
+            return None
+        try:
+            game_details = get_game_details(self.game_slug)
+            return game_details.get("discord_id") or None
+        except Exception as ex:
+            logger.debug("Unable to fetch Discord ID for %s: %s", self.game_slug, ex)
+            return None
+
     @property
     def script_pretty(self):
         """Return a pretty print of the script"""
@@ -128,6 +140,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return True
         command_names = [self.interpreter._get_command_name_and_params(c)[0] for c in self.script.get("installer", [])]
         if "insert_disc" in command_names:
+            return True
+        if "gogdl_setup" in command_names:
             return True
         return False
 
@@ -161,7 +175,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
     def prepare_game_files(self, extras, patch_version=None):
         """Gathers necessary files before iterating through them."""
-        if not self.script_files:
+        if not self.script_files and not extras:
             return
 
         installer_file_id = None
@@ -179,7 +193,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         for file in files:
             file.set_url(self.interpreter._substitute(file.url))
             if is_moddb_url(file.url):
-                file.set_url(ModDB().transform_url(file.url))
+                moddb_url = file.url
+                try:
+                    file.set_url(ModDB().transform_url(moddb_url))
+                except requests.RequestException as ex:
+                    logger.warning("Unable to resolve ModDB URL %s: %s", moddb_url, ex)
+                    file.set_url(
+                        "N/A:"
+                        + _("Download from {url} and select the file here").format(
+                            url=moddb_url,
+                        )
+                    )
 
         if installer_file_id and self.service:
             logger.info("Getting files for %s", installer_file_id)
@@ -187,10 +211,10 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 if patch_version:
                     # If a patch version is given download the patch files instead of the installer
                     installer_files = self.service.get_patch_files(self, installer_file_id)
+                    for f in installer_files:
+                        f.allow_pga_cache = False
                 else:
-                    content_files, extra_files = self.service.get_installer_files(self, installer_file_id, extras)
-                    extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
-                    installer_files = content_files + extra_files
+                    installer_files = self.service.get_installer_files(self, installer_file_id)
             except (AuthenticationError, UnavailableGameError) as ex:
                 logger.exception("Game not available: %s", ex)
                 installer_files = None
@@ -205,6 +229,14 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                     0, InstallerFile(self.game_slug, installer_file_id, {"url": installer_file_url, "filename": ""})
                 )
 
+        if extras and self.service and self.service.has_extras:
+            try:
+                extra_files = self.service.get_extras_files(self, extras)
+                extra_file_paths = [path for f in extra_files for path in f.get_dest_files_by_id().values()]
+                files.extend(extra_files)
+            except (AuthenticationError, UnavailableGameError) as ex:
+                logger.exception("Failed to get extras: %s", ex)
+
         # Commit changes only at the end; this is more robust in this method is runner
         # my two threads concurrently- the GIL can probably save us. It's not desirable
         # to do this, but this is the easiest workaround.
@@ -213,12 +245,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
     def install_extras(self):
         # Copy extras to game folder; this updates the installer script, so it needs
-        # be called just once, before launching the installers commands.
-        if self.extra_file_paths and len(self.extra_file_paths) == len(self.files):
-            # Reset the install script in case there are only extras.
-            logger.warning("Installer with only extras and no game files")
-            self.script["installer"] = []
-
+        # be called just once, before launching the installer commands.
         for extra_file in self.extra_file_paths:
             self.script["installer"].append({"copy": {"src": extra_file, "dst": "$GAMEDIR/extras"}})
 
@@ -269,8 +296,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
         game_config = config["game"]
 
-        entry_point_keys = ("iso", "rom", "main_file", "exe")
-
         if "game" in self.script:
             try:
                 game_config.update(self.script["game"])
@@ -281,7 +306,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # we'll move them into the game-config if so, and if they are not already
         # there. Add a warning because I'm sure this compatibility ship will get lost,
         # and the scripts would be better updated.
-        for entry_point_key in entry_point_keys:
+        for entry_point_key in ENTRY_POINT_KEYS:
             if entry_point_key in self.script and entry_point_key not in game_config:
                 logger.warning("Moving entry point '%s' from script root level to the game config", entry_point_key)
                 game_config[entry_point_key] = self.script[entry_point_key]
@@ -293,9 +318,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             game_config["exe"] = find_windows_game_executable(self.interpreter.target_path)
 
         # Fix possible case differences
-        for key in entry_point_keys:
+        for key in ENTRY_POINT_KEYS:
             entry_point = game_config.get(key)
-            if entry_point:
+            if isinstance(entry_point, str):
                 game_config[key] = fix_path_case(entry_point)
 
         config["game"] = game_config
@@ -319,16 +344,17 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 "This is an extension to %s, not creating a new game entry",
                 self.extends,
             )
-            return self.game_id
+            return self.game_id, None
 
-        if self.is_gog:
-            gog_config = get_gog_config_from_path(self.interpreter.target_path)
-            if gog_config:
-                gog_game_path = get_gog_game_path(self.interpreter.target_path)
-                lutris_config = convert_gog_config_to_lutris(gog_config, gog_game_path)
-                self.script["game"].update(lutris_config)
+        for hook in self.post_install_hooks:
+            hook(self)
 
-        configpath = write_game_config(self.slug, self.get_game_config())
+        game_config = self.get_game_config()
+        configpath = write_game_config(self.slug, game_config)
+        discord_id = self.discord_id
+        if not discord_id:
+            discord_id = self._get_discord_id_from_api()
+
         self.game_id = add_or_update(
             name=self.game_name,
             runner=self.runner,
@@ -343,6 +369,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             service=self.service.id if self.service else None,
             service_id=self.service_appid,
             id=self.game_id,
-            discord_id=self.discord_id,
+            discord_id=discord_id,
         )
-        return self.game_id
+        return self.game_id, game_config

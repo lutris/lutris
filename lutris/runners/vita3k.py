@@ -1,7 +1,8 @@
 from gettext import gettext as _
+from pathlib import Path
 
 from lutris.exceptions import MissingGameExecutableError
-from lutris.runners.runner import Runner
+from lutris.runners.json import JSON_RUNNER_DIRS, JsonRunner
 
 
 class MissingVitaTitleIDError(MissingGameExecutableError):
@@ -14,92 +15,35 @@ class MissingVitaTitleIDError(MissingGameExecutableError):
         super().__init__(message, *args, **kwargs)
 
 
-class vita3k(Runner):
-    human_name = _("Vita3K")
-    platforms = [_("Sony PlayStation Vita")]
-    description = _("Sony PlayStation Vita emulator")
-    runnable_alone = True
-    runner_executable = "vita3k/Vita3K-x86_64.AppImage"
-    flatpak_id = None
-    download_url = "https://github.com/Vita3K/Vita3K/releases/download/continuous/Vita3K-x86_64.AppImage"
-    game_options = [
-        {
-            "option": "main_file",
-            "type": "string",
-            "label": _("Title ID of Installed Application"),
-            "argument": "-r",
-            "help": _(
-                'Title ID of installed application. Eg."PCSG00042". User installed apps are located in '
-                "ux0:/app/&lt;title-id&gt;."
-            ),
-        }
-    ]
-    runner_options = [
-        {
-            "option": "fullscreen",
-            "type": "bool",
-            "label": _("Fullscreen"),
-            "default": True,
-            "argument": "-F",
-            "help": _("Start the emulator in fullscreen mode."),
-        },
-        {
-            "option": "config",
-            "type": "file",
-            "label": _("Config location"),
-            "argument": "-c",
-            "help": _(
-                'Get a configuration file from a given location. If a filename is given, it must end with ".yml", '
-                "otherwise it will be assumed to be a directory."
-            ),
-        },
-        {
-            "option": "load-config",
-            "label": _("Load configuration file"),
-            "type": "bool",
-            "argument": "-f",
-            "help": _('If trues, informs the emualtor to load the config file from the "Config location" option.'),
-        },
-    ]
+# Use the vita3k.json runner definition as a base class
+RUNNER_NAME = "vita3k"
 
-    # Vita3k uses an AppImage and doesn't require the Lutris runtime.
-    system_options_override = [{"option": "disable_runtime", "default": True}]
+
+def get_vita_json_path():
+    for json_dir in JSON_RUNNER_DIRS:
+        json_dir_path = Path(json_dir)
+        if not json_dir_path.exists():
+            continue
+        vita_json_path = json_dir_path / f"{RUNNER_NAME}.json"
+        if vita_json_path.exists():
+            return vita_json_path
+
+
+class vita3k(JsonRunner):
+    legacy_entry_point_option = "main_file"
+
+    def __init__(self, config=None):
+        self.json_path = get_vita_json_path()
+        super().__init__(config=config)
 
     def play(self):
-        """Run the game."""
-        arguments = self.get_command()
+        # Replace the "main_file" key with "title_id" option for backwards compatibility
+        # This is to prevent the MissingGameExecutableError exception, as Vita3k runs game via title ID
+        if self.entry_point_option not in self.game_config and __class__.legacy_entry_point_option in self.game_config:
+            self.game_config[self.entry_point_option] = self.game_config[__class__.legacy_entry_point_option]
+            del self.game_config[__class__.legacy_entry_point_option]
 
-        # adds arguments from the supplied option dictionary to the arguments list
-        def append_args(option_dict, config):
-            for option in option_dict:
-                if option["option"] not in config:
-                    continue
-                if option["type"] == "bool":
-                    if self.runner_config.get(option["option"]):
-                        if "argument" in option:
-                            arguments.append(option["argument"])
-                elif option["type"] == "choice":
-                    if self.runner_config.get(option["option"]) != "off":
-                        if "argument" in option:
-                            arguments.append(option["argument"])
-                        arguments.append(config.get(option["option"]))
-                elif option["type"] in ("string", "file"):
-                    if "argument" in option:
-                        arguments.append(option["argument"])
-                    arguments.append(config.get(option["option"]))
-                else:
-                    raise RuntimeError("Unhandled type %s" % option["type"])
-
-        # Append the runner arguments first, and game arguments afterwards
-        append_args(self.runner_options, self.runner_config)
-
-        title_id = self.game_config.get("main_file") or ""
-        if not title_id:
+        if not self.game_config.get(self.entry_point_option, ""):
             raise MissingVitaTitleIDError(_("The Vita App has no Title ID set"))
 
-        append_args(self.game_options, self.game_config)
-        return {"command": arguments}
-
-    @property
-    def game_path(self):
-        return self.game_config.get(self.entry_point_option, "")
+        return super().play()

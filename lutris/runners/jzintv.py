@@ -12,14 +12,13 @@ from lutris.util import system
 class jzintv(Runner):
     human_name = _("jzIntv")
     description = _("Intellivision Emulator")
-    platforms = [_("Intellivision")]
+    platform_dict = Runner.to_platform_dict([_("Intellivision")])
     runner_executable = "jzintv/bin/jzintv"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
             "label": _("ROM file"),
-            "default_path": "game_path",
             "help": _(
                 "The game data, commonly called a ROM image. \n"
                 "Supported formats: ROM, BIN+CFG, INT, ITV \n"

@@ -1,20 +1,23 @@
 """Utilities for manipulating Wine"""
 
 import os
+import re
+import signal
 from collections import OrderedDict
 from gettext import gettext as _
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 from lutris.exceptions import MisconfigurationError, UnspecifiedVersionError
 from lutris.settings import WINE_DIR
 from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
+from lutris.util.process import Process
 from lutris.util.strings import get_natural_sort_key, parse_version
 from lutris.util.wine import fsync, proton
 
 WINE_DEFAULT_ARCH: str = "win64" if linux.LINUX_SYSTEM.is_64_bit else "win32"
 GE_PROTON_LATEST: str = "ge-proton"
-WINE_PATHS: Dict[str, str] = {
+WINE_PATHS: dict[str, str] = {
     "winehq-devel": "/opt/wine-devel/bin/wine",
     "winehq-staging": "/opt/wine-staging/bin/wine",
     "wine-development": "/usr/lib/wine-development/wine",
@@ -35,14 +38,21 @@ except Exception as ex:
     logger.exception("Unable to enumerate system Wine versions: %s", ex)
 
 
-def detect_arch(prefix_path: Optional[str] = None, wine_path: Optional[str] = None) -> str:
-    """Given a Wine prefix path, return its architecture"""
+def detect_arch(prefix_path: str | None = None, wine_path: str | None = None) -> str:
+    """Given a Wine prefix path, return its architecture.
+
+    Existing prefixes are detected from their registry. For a prefix that does not
+    exist yet we fall back to the host default (64-bit on a 64-bit system): 32-bit
+    prefixes should only be created on a 32-bit host or when the user explicitly
+    asks for one. Older Wine builds shipped a separate 'wine64' binary, but modern
+    builds using the new WoW64 mode ship a single 'wine' binary, so the absence of
+    'wine64' no longer implies a 32-bit-only build."""
     if wine_path:
         if proton.is_proton_path(wine_path) or system.path_exists(wine_path + "64"):
             return "win64"
     if prefix_path and is_prefix_directory(prefix_path):
         return detect_prefix_arch(prefix_path)
-    return "win32"
+    return WINE_DEFAULT_ARCH
 
 
 def is_prefix_directory(prefix_path: str) -> bool:
@@ -70,8 +80,8 @@ def detect_prefix_arch(prefix_path: str) -> str:
                 return "win64"
             if "win32" in line:
                 return "win32"
-    logger.error("Failed to detect Wine prefix architecture in %s; defaulting to 32-bit.", prefix_path)
-    return "win32"
+    logger.error("Failed to detect Wine prefix architecture in %s; defaulting to %s.", prefix_path, WINE_DEFAULT_ARCH)
+    return WINE_DEFAULT_ARCH
 
 
 def set_drive_path(prefix: str, letter: str, path: str) -> None:
@@ -104,9 +114,10 @@ def is_winewayland_available(runner_version: str) -> bool:
             "lib/wine/x86_64-windows/winewayland.drv",
             "lib/wine/i386-windows/winewayland.drv",
         )
-        if not any(os.path.exists(os.path.join(files_dir, winewayland_path)) for winewayland_path in winewayland_paths):
-            return False
+        return any(os.path.exists(os.path.join(files_dir, winewayland_path)) for winewayland_path in winewayland_paths)
 
+    # If there's no file dir to check, we assume Wayland is available- this
+    # happens for GE_PROTON_LATEST.
     return True
 
 
@@ -118,13 +129,13 @@ def is_installed_systemwide() -> bool:
     return False
 
 
-def list_system_wine_versions() -> List[str]:
+def list_system_wine_versions() -> list[str]:
     """Return the list of wine versions installed on the system"""
     versions = [name for name, path in WINE_PATHS.items() if get_system_wine_version(path)]
     return sorted(versions, key=get_natural_sort_key, reverse=True)
 
 
-def list_lutris_wine_versions() -> List[str]:
+def list_lutris_wine_versions() -> list[str]:
     """Return the list of wine versions installed by lutris"""
     if not system.path_exists(WINE_DIR):
         return []
@@ -140,10 +151,10 @@ def list_lutris_wine_versions() -> List[str]:
 
 
 @cache_single
-def get_installed_wine_versions() -> List[str]:
+def get_installed_wine_versions() -> list[str]:
     """Return the list of Wine versions installed, with no duplicates and in
     the presentation order."""
-    versions: Set[str] = {
+    versions: set[str] = {
         GE_PROTON_LATEST,
     }
 
@@ -168,7 +179,7 @@ def clear_wine_version_cache() -> None:
     proton.get_umu_path.cache_clear()
 
 
-def get_runner_files_dir_for_version(version: str) -> Optional[str]:
+def get_runner_files_dir_for_version(version: str) -> str | None:
     """This returns the path to the root of the Wine files for a specific version. The
     'bin' directory for that version is there, and we can place more directories there.
     If we shouldn't do that, this will return None."""
@@ -177,12 +188,12 @@ def get_runner_files_dir_for_version(version: str) -> Optional[str]:
     if version in WINE_PATHS:
         return None
     elif proton.is_proton_version(version):
-        return os.path.join(WINE_DIR, version, "files")
+        return proton.get_proton_wine_files_dir(version)
     else:
         return os.path.join(WINE_DIR, version)
 
 
-def get_wine_path_for_version(version: str, config: Optional[dict] = None) -> str:
+def get_wine_path_for_version(version: str, config: dict | None = None) -> str:
     """Return the absolute path of a wine executable for a given version,
     or the configured version if you don't ask for a version."""
     if not version and config:
@@ -207,7 +218,7 @@ def get_wine_path_for_version(version: str, config: Optional[dict] = None) -> st
     return os.path.join(WINE_DIR, version, "bin/wine")
 
 
-def parse_wine_version(version: str) -> Tuple[List[int], str, str]:
+def parse_wine_version(version: str) -> tuple[list[int], str, str]:
     """This is a specialized parse_version() that adjusts some odd
     Wine versions for correct parsing."""
     version = version.replace("Proton7-", "Proton-7.")
@@ -216,13 +227,13 @@ def parse_wine_version(version: str) -> Tuple[List[int], str, str]:
     return parse_version(version)
 
 
-def version_sort(versions: List[str], reverse: bool = False) -> List[str]:
-    def version_key(version: str) -> List[Any]:
-        version_list, prefix, suffix = parse_wine_version(version)
+def version_sort(versions: list[str], reverse: bool = False) -> list[str]:
+    def version_key(version: str) -> list[Any]:
+        version_list, suffix, prefix = parse_wine_version(version)
         # Normalize the length of sub-versions
-        sort_key: List[Any] = list(version_list) + [0] * (10 - len(version_list))
-        sort_key.append(prefix)
+        sort_key: list[Any] = list(version_list) + [0] * (10 - len(version_list))
         sort_key.append(suffix)
+        sort_key.append(prefix)
         return sort_key
 
     return sorted(versions, key=version_key, reverse=reverse)
@@ -258,7 +269,7 @@ def get_system_wine_version(wine_path: str = "wine") -> str:
     return version
 
 
-def get_real_executable(windows_executable: str, working_dir: Optional[str]) -> Tuple[str, List[str], Optional[str]]:
+def get_real_executable(windows_executable: str, working_dir: str | None) -> tuple[str, list[str], str | None]:
     """Given a Windows executable, return the real program
     capable of launching it along with necessary arguments."""
 
@@ -279,14 +290,14 @@ def get_real_executable(windows_executable: str, working_dir: Optional[str]) -> 
     return (windows_executable, [], working_dir)
 
 
-def get_overrides_env(overrides: Dict[str, str]) -> str:
+def get_overrides_env(overrides: dict[str, str]) -> str:
     """
     Output a string of dll overrides usable with WINEDLLOVERRIDES
     See: https://wiki.winehq.org/Wine_User%27s_Guide#WINEDLLOVERRIDES.3DDLL_Overrides
     """
     default_overrides = {"winemenubuilder": ""}
     overrides.update(default_overrides)
-    override_buckets: Dict[str, List] = OrderedDict(
+    override_buckets: dict[str, list] = OrderedDict(
         [("n,b", []), ("b,n", []), ("b", []), ("n", []), ("d", []), ("", [])]
     )
     for dll, value in overrides.items():
@@ -308,3 +319,26 @@ def get_overrides_env(overrides: Dict[str, str]) -> str:
             continue
         override_strings.append("{}={}".format(",".join(sorted(dlls)), value))
     return ";".join(override_strings)
+
+
+WINE_PROCESS_PATTERN = re.compile(r"(wine|processid|\.exe)", re.IGNORECASE)
+
+
+def kill_all_wine_processes():
+    """Kill all Wine-related processes on the system.
+
+    Returns the number of processes killed."""
+    killed = 0
+    for pid in system.get_running_pid_list():
+        try:
+            proc = Process(pid)
+            name = proc.name or ""
+            cmdline = proc.cmdline or ""
+            if WINE_PROCESS_PATTERN.search(name) or WINE_PROCESS_PATTERN.search(cmdline):
+                logger.info("Killing Wine process %s (%s)", pid, name)
+                os.kill(pid, signal.SIGKILL)
+                killed += 1
+        except (ProcessLookupError, PermissionError):
+            continue
+    logger.info("Killed %d Wine processes", killed)
+    return killed

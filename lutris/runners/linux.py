@@ -3,8 +3,8 @@
 # Standard Library
 import os
 import stat
+from collections.abc import Callable
 from gettext import gettext as _
-from typing import Callable
 
 # Lutris Modules
 from lutris.exceptions import GameConfigError, MissingGameExecutableError
@@ -16,14 +16,13 @@ from lutris.util.strings import split_arguments
 class linux(Runner):
     human_name = _("Linux")
     description = _("Runs native games")
-    platforms = [_("Linux")]
+    platform_dict = Runner.to_platform_dict([_("Linux")])
     entry_point_option = "exe"
 
     game_options = [
         {
             "option": "exe",
             "type": "file",
-            "default_path": "game_path",
             "label": _("Executable"),
             "help": _("The game's main executable file"),
         },
@@ -98,6 +97,10 @@ class linux(Runner):
         return exe_path
 
     @property
+    def has_working_dir(self) -> bool:
+        return bool(self.game_config.get("working_dir") or self.game_exe or super().has_working_dir)
+
+    @property
     def working_dir(self):
         """Return the working directory to use when running the game."""
         option = self.game_config.get("working_dir")
@@ -119,7 +122,7 @@ class linux(Runner):
     def can_uninstall(self):
         return False
 
-    def uninstall(self, uninstall_callback: Callable[[], None]) -> None:
+    def uninstall(self, uninstall_callback: Callable[[], None] | None = None) -> None:
         raise RuntimeError("Linux shouldn't be installed.")
 
     def get_launch_config_command(self, gameplay_info, launch_config):

@@ -14,25 +14,26 @@ PLATFORMS = [_("Nintendo GameCube"), _("Nintendo Wii")]
 class dolphin(Runner):
     description = _("GameCube and Wii emulator")
     human_name = _("Dolphin")
-    platforms = PLATFORMS
+    platform_dict = {"Nintendo GameCube": "0", "Nintendo Wii": "1"}
     require_libs = [
         "libOpenGL.so.0",
     ]
     runnable_alone = True
-    runner_executable = "dolphin/dolphin-emu"
+    runner_executable = "dolphin/Dolphin_Emulator-2512-anylinux-x86_64.AppImage"
     flatpak_id = "org.DolphinEmu.dolphin-emu"
+    download_url = "https://github.com/pkgforge-dev/Dolphin-emu-AppImage/releases/download/2512%402026-01-26_1769467304/Dolphin_Emulator-2512-anylinux-x86_64.AppImage"
     game_options = [
         {
             "option": "main_file",
             "type": "file",
-            "default_path": "game_path",
             "label": _("ISO file"),
         },
         {
             "option": "platform",
             "type": "choice",
             "label": _("Platform"),
-            "choices": ((_("Nintendo GameCube"), "0"), (_("Nintendo Wii"), "1")),
+            "choices": platform_dict,
+            "default": next(iter(platform_dict.values())),
         },
     ]
     runner_options = [
@@ -52,12 +53,6 @@ class dolphin(Runner):
             "label": _("Custom Global User Directory"),
         },
     ]
-
-    def get_platform(self):
-        selected_platform = self.game_config.get("platform")
-        if selected_platform:
-            return self.platforms[int(selected_platform)]
-        return ""
 
     def play(self):
         command = self.get_command()

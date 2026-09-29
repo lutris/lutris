@@ -1,15 +1,15 @@
 {
+    "name": "virtualjaguar",
     "human_name": "Virtual Jaguar",
     "description": "Atari Jaguar emulator",
     "platforms": ["Atari Jaguar"],
-    "runner_executable": "virtualjaguar/virtualjaguar",
+    "runner_executable": "virtualjaguar",
     "game_options": [
         {
             "option": "main_file",
             "type": "file",
             "label": "ROM file",
-            "help": "A DS ROM",
-            "default_path": "game_path"
+            "help": "A DS ROM"
         }
     ],
     "runner_options": [

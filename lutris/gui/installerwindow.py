@@ -4,7 +4,6 @@
 import os
 import traceback
 from gettext import gettext as _
-from typing import List
 
 from gi.repository import Gdk, Gio, GLib, Gtk
 
@@ -20,6 +19,7 @@ from lutris.gui.dialogs import (
 )
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
+from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
 from lutris.gui.widgets import NotificationSource
@@ -129,6 +129,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.on_cache_clicked,
             tooltip=_("Change where Lutris downloads game installer files."),
         )
+        self.cache_button.is_available = lambda: not self.interpreter or bool(self.interpreter.installer.script_files)
 
         self.source_button = self.add_menu_button(_("View installer source"), self.on_source_clicked)
 
@@ -264,6 +265,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
             self.installer_files_box.stop_all()
             if self.interpreter:
+                self.load_spinner_page(_("Cancelling installation…"), cancellable=False)
                 self.interpreter.revert(
                     remove_game_dir=remove_checkbox.get_active(),
                     completion_function=on_cancelled,
@@ -315,18 +317,17 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         # fail if Lutris components are missing, and users sometimes try to install
         # a game just after their first Lutris startup. This should help.
         window = get_main_window()
-        if window and not window.download_queue.is_empty:
-            download_queue = window.download_queue
+        if window and not window.is_download_queue_empty:
 
             def on_start_installation(*args):
                 self.load_choose_installer_page()
-                download_queue.disconnect(dc_handler)
+                registration.unregister()
 
             def on_download_complete(*args):
-                if download_queue.is_empty:
+                if window.is_download_queue_empty:
                     on_start_installation()
 
-            dc_handler = download_queue.connect("download-completed", on_download_complete)
+            registration = DOWNLOAD_QUEUE_COMPLETED.register(on_download_complete)
             self.load_spinner_page(
                 _(
                     "Waiting for Lutris component installation\n"
@@ -347,6 +348,21 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def report_status(self, status):
         GLib.idle_add(self.set_status, gtk_safe(status))
+
+    def report_progress(self, fraction, text=""):
+        GLib.idle_add(self._set_progress, fraction, text)
+
+    def _set_progress(self, fraction, text):
+        if not hasattr(self, "install_progress_bar"):
+            return
+        if fraction is None:
+            self.install_progress_bar.hide()
+            return
+        self.install_progress_bar.set_fraction(fraction)
+        if text:
+            self.install_progress_bar.set_text(text)
+            self.install_progress_bar.set_show_text(True)
+        self.install_progress_bar.show()
 
     def attach_log(self, command):
         # Hook the log buffer right now, lest we miss updates.
@@ -385,6 +401,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
+        self.interpreter = None
         self.set_status("")
         self.set_title(_("Install %s") % self.installers[0]["name"])
         self.stack.present_page("choose_installer")
@@ -427,7 +444,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         for script in installers:
             for item in ["description", "notes"]:
                 script[item] = script.get(item) or ""
-            for item in ["name", "runner", "version"]:
+            for item in ["name", "runner", "version", "script"]:
                 if item not in script:
                     raise ScriptingError(_('Missing field "%s" in install script') % item)
             for file_desc in script["script"].get("files", {}):
@@ -731,7 +748,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # Provides a generic progress spinner and displays a status. The back button
     # is disabled for this page.
 
-    def load_spinner_page(self, status: str, cancellable: bool = True, extra_buttons: List[Gtk.Button] = None) -> None:
+    def load_spinner_page(
+        self, status: str, cancellable: bool = True, extra_buttons: list[Gtk.Button] | None = None
+    ) -> None:
         def present_spinner_page():
             """Show a spinner in the middle of the view"""
 
@@ -752,9 +771,19 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack.jump_to_page(present_spinner_page)
 
     def create_spinner_page(self):
-        spinner = Gtk.Spinner(halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
+        box.set_spacing(10)
+
+        spinner = Gtk.Spinner(halign=Gtk.Align.CENTER)
         spinner.start()
-        return spinner
+        box.pack_start(spinner, False, False, 0)
+
+        self.install_progress_bar = Gtk.ProgressBar()
+        self.install_progress_bar.set_no_show_all(True)
+        self.install_progress_bar.set_size_request(400, -1)
+        box.pack_start(self.install_progress_bar, False, False, 0)
+
+        return box
 
     # Log Page
     #
@@ -911,7 +940,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         is_expected = hasattr(error, "is_expected") and error.is_expected
 
-        if is_expected:
+        if not is_expected:
             formatted = traceback.format_exception(type(error), error, error.__traceback__)
             formatted = "\n".join(formatted).strip()
 
@@ -938,7 +967,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         error_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
 
-        label = Gtk.Label(xalign=0.0, wrap=True)
+        # The details box is no_show_all so that show_all() on the page can't reveal it,
+        # but that also skips everything inside it, so its contents are created visible.
+        # They stay hidden along with the box until it is made visible.
+        label = Gtk.Label(xalign=0.0, wrap=True, visible=True)
         label.set_markup(
             _(
                 "An unexpected error has occurred while installing this game. "
@@ -949,11 +981,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         )
         self.error_details_box.pack_start(label, False, False, 0)
 
-        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
+        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN, visible=True)
 
-        details_textview = Gtk.TextView(editable=False, buffer=self.error_details_buffer)
+        details_textview = Gtk.TextView(editable=False, buffer=self.error_details_buffer, visible=True)
 
-        scrolledwindow = Gtk.ScrolledWindow()
+        scrolledwindow = Gtk.ScrolledWindow(visible=True)
         scrolledwindow.add(details_textview)
         frame.add(scrolledwindow)
         self.error_details_box.pack_start(frame, True, True, 0)
@@ -1075,7 +1107,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def display_buttons(self, buttons, cancel_sensitive=True):
         """Shows exactly the buttons given, and hides the others. Updates the close button
-        according to whether the install has started."""
+        according to whether the install has started.
+
+        Buttons may have an optional is_available() method; if present and it
+        returns False, the button is hidden even if it is in the list."""
 
         style_context = self.cancel_button.get_style_context()
 
@@ -1093,7 +1128,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         all_buttons = [self.cache_button, self.source_button, self.continue_button]
 
         for b in all_buttons:
-            b.set_visible(b in buttons)
+            available = not hasattr(b, "is_available") or b.is_available()
+            b.set_visible(b in buttons and available)
 
         any_visible = False
         for b in self.menu_box.get_children():

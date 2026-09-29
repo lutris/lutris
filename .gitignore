@@ -36,5 +36,8 @@ env
 # VS Codium files
 .vscode
 
+# Claude Code
+CLAUDE.md
+
 # glade recovery files
 *.ui~

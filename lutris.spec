@@ -1,8 +1,8 @@
 %global appid net.lutris.Lutris
 
 Name:           lutris
-Version:        0.5.20
-Release:        7%{?dist}
+Version:        0.5.23
+Release:        1%{?dist}
 Summary:        Video game preservation platform
 
 License:        GPL-3.0+
@@ -34,6 +34,7 @@ Requires:       python3-evdev
 Requires:       python3-distro
 Requires:       python3-pillow
 Requires:       cabextract
+Requires:       glib-networking
 Requires:       mesa-vulkan-drivers
 Requires:       vulkan-loader
 Recommends:     wine-core
@@ -58,7 +59,7 @@ BuildRequires:  update-desktop-files
 BuildRequires:  hicolor-icon-theme
 Requires:       typelib-1_0-Gtk-3_0
 Requires:       typelib-1_0-GnomeDesktop-3_0
-Requires:       typelib-1_0-WebKit2-4_0
+Requires:       (typelib-1_0-WebKit2-4_0 or typelib-1_0-WebKit2-4_1)
 Requires:       typelib-1_0-Notify-0_7
 %endif
 
@@ -70,7 +71,7 @@ emulators, engine re-implementations and compatibility layers,
 it gives you a central interface to launch all your games.
 
 %prep
-%autosetup -n %{name}-%{version} -p1
+%autosetup -n %{name} -p1
 
 %build
 %py3_build
@@ -139,6 +140,15 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}1.desktop
 %{_datadir}/locale/
 
 %changelog
+* Sat Mar 15 2026 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.23
+- Release 0.5.23
+
+* Mon Feb 24 2026 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.22
+- Release 0.5.22
+
+* Tue Feb 24 2026 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.21
+- Release 0.5.21
+
 * Wed Dec 31 2025 Christophe Henry <contact@c-henry.fr> 0.5.20
 - Add .lutris file type association to install from local script
 

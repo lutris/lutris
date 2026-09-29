@@ -2,14 +2,13 @@
 
 import os
 from gettext import gettext as _
-from typing import Optional
 from urllib.parse import urlparse
 
 from lutris.cache import get_url_cache_path, has_valid_custom_cache_path, save_to_cache
 from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
-from lutris.util.downloader import Downloader
+from lutris.util.downloader import BaseDownloader
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe_urls
 
@@ -23,6 +22,7 @@ class InstallerFile:
         self._file_meta = file_meta
         self._dest_file_override = None  # Used to override the destination
         self._dest_file_found = None  # Lazy storage for the resolved destination file
+        self.allow_pga_cache = True
         if isinstance(self._file_meta, dict):
             self._downloader = self._file_meta.get("downloader")
         else:
@@ -38,6 +38,7 @@ class InstallerFile:
         file._dest_file_override = self._dest_file_override
         file._dest_file_found = self._dest_file_found
         file._downloader = self._downloader
+        file.allow_pga_cache = self.allow_pga_cache
         return file
 
     @property
@@ -85,11 +86,24 @@ class InstallerFile:
             return self._file_meta.get("referer")
 
     @property
-    def downloader(self) -> Optional[Downloader]:
+    def downloader(self) -> BaseDownloader | None:
+        """Return custom downloader instance, if one was provided."""
         if callable(self._downloader):
             self._downloader = self._downloader(self)
 
         return self._downloader
+
+    @property
+    def downloader_class(self):
+        """Return custom downloader class from file metadata.
+
+        Services can specify a 'downloader_class' in _file_meta to use
+        a specialized downloader (e.g., GOGDownloader for parallel downloads)
+        instead of the default SimpleDownloader.
+        """
+        if isinstance(self._file_meta, dict):
+            return self._file_meta.get("downloader_class")
+        return None
 
     @property
     def checksum(self):
@@ -211,7 +225,7 @@ class InstallerFile:
         Returns:
             bool
         """
-        if self.url.startswith("N/A"):
+        if not self.allow_pga_cache or self.url.startswith("N/A"):
             return False
         return has_valid_custom_cache_path()
 
@@ -262,7 +276,7 @@ class InstallerFile:
             )
 
     @property
-    def size(self) -> Optional[int]:
+    def size(self) -> int | None:
         if isinstance(self._file_meta, dict) and "size" in self._file_meta:
             try:
                 size = int(self._file_meta["size"])
@@ -273,7 +287,7 @@ class InstallerFile:
         return None
 
     @property
-    def total_size(self) -> Optional[int]:
+    def total_size(self) -> int | None:
         if isinstance(self._file_meta, dict) and "total_size" in self._file_meta:
             try:
                 total_size = int(self._file_meta["total_size"])

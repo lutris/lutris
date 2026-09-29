@@ -1,8 +1,8 @@
 import os
 import shutil
+from collections.abc import Callable
 from gettext import gettext as _
 from pathlib import Path
-from typing import Callable
 
 from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.monitored_command import MonitoredCommand
@@ -19,7 +19,7 @@ class flatpak(Runner):
     """
 
     description = _("Runs Flatpak applications")
-    platforms = [_("Linux")]
+    platform_dict = Runner.to_platform_dict([_("Linux")])
     entry_point_option = "application"
     human_name = _("Flatpak")
     runnable_alone = False
@@ -88,7 +88,7 @@ class flatpak(Runner):
 
     def get_executable(self) -> str:
         exe = _flatpak.get_executable()
-        if not system.path_exists(exe):
+        if not exe or not system.path_exists(exe):
             raise MissingExecutableError(_("The Flatpak executable could not be found."))
         return exe
 
@@ -103,7 +103,7 @@ class flatpak(Runner):
     def can_uninstall(self):
         return False
 
-    def uninstall(self, uninstall_callback: Callable[[], None]) -> None:
+    def uninstall(self, uninstall_callback: Callable[[], None] | None = None) -> None:
         raise RuntimeError("Flatpak can't be uninstalled from Lutris")
 
     @property

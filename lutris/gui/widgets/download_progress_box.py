@@ -1,12 +1,12 @@
 import os
 from gettext import gettext as _
-from typing import Optional
 from urllib.parse import urlparse
 
 from gi.repository import GObject, Gtk, Pango
 
 from lutris.gui.dialogs import display_error
-from lutris.util.downloader import Downloader
+from lutris.util.download_cache import CacheState, create_cache_lock, update_cache_lock
+from lutris.util.downloader import BaseDownloader, SimpleDownloader
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
@@ -25,11 +25,11 @@ class DownloadProgressBox(Gtk.Box):
         self,
         url: str,
         dest: str,
-        temp: str = None,
-        referer: Optional[str] = None,
-        title: Optional[str] = None,
+        temp: str | None = None,
+        referer: str | None = None,
+        title: str | None = None,
         cancelable: bool = True,
-        downloader: Optional[Downloader] = None,
+        downloader: BaseDownloader | None = None,
     ) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
 
@@ -80,9 +80,9 @@ class DownloadProgressBox(Gtk.Box):
             os.remove(self.temp)
 
     @property
-    def downloader(self) -> Downloader:
+    def downloader(self) -> BaseDownloader:
         if not self._downloader:
-            self._downloader = Downloader(self.url, self.temp, referer=self.referer, overwrite=True)
+            self._downloader = SimpleDownloader(self.url, self.temp, referer=self.referer, overwrite=True)
         return self._downloader
 
     def cancel_download(self):
@@ -98,6 +98,7 @@ class DownloadProgressBox(Gtk.Box):
             self.emit("cancel")
             return None
 
+        create_cache_lock(self.dest, CacheState.DOWNLOADING)
         schedule_repeating_at_idle(self._progress, interval_seconds=0.5)
         self.cancel_button.show()
         self.cancel_button.set_sensitive(True)
@@ -150,6 +151,7 @@ class DownloadProgressBox(Gtk.Box):
         self._set_text(progress_text)
         if downloader.state == downloader.COMPLETED:
             os.rename(self.temp, self.dest)
+            update_cache_lock(self.dest, CacheState.DOWNLOADED)
             self.cancel_button.set_sensitive(False)
             self.is_complete = True
             self.emit("complete", {})

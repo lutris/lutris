@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from gi.repository import Gtk
 
@@ -46,10 +46,10 @@ class BaseConfigBox(VBox):
         setting_key: str,
         label: str,
         default: bool = False,
-        accelerator: str = None,
-        warning_markup: str = None,
-        warning_condition: Callable[[bool], bool] = None,
-        extra_widget: Gtk.Widget = None,
+        accelerator: str | None = None,
+        warning_markup: str | None = None,
+        warning_condition: Callable[[bool], bool] | None = None,
+        extra_widget: Gtk.Widget | None = None,
     ) -> Gtk.Box:
         setting_value = settings.read_bool_setting(setting_key, default=default)
 
@@ -95,9 +95,9 @@ class BaseConfigBox(VBox):
         setting_key: str,
         setting_value: bool,
         label: str,
-        accelerator: str = None,
+        accelerator: str | None = None,
         margin: int = 12,
-        when_setting_changed: Callable[[bool], None] = None,
+        when_setting_changed: Callable[[bool], None] | None = None,
     ):
         checkbox = Gtk.Switch(visible=True, valign=Gtk.Align.CENTER)
         checkbox.set_active(setting_value)
@@ -118,7 +118,7 @@ class BaseConfigBox(VBox):
         return box
 
     def on_setting_change(
-        self, _widget, state: bool, setting_key: str, when_setting_changed: Optional[Callable[[bool], None]] = None
+        self, _widget, state: bool, setting_key: str, when_setting_changed: Callable[[bool], None] | None = None
     ) -> None:
         """Save a setting when an option is toggled"""
         settings.write_setting(setting_key, state)

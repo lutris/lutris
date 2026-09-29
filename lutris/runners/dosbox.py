@@ -15,7 +15,7 @@ from lutris.util import system
 class dosbox(Runner):
     human_name = _("DOSBox")
     description = _("MS-DOS emulator")
-    platforms = [_("MS-DOS")]
+    platform_dict = Runner.to_platform_dict([_("MS-DOS")])
     runnable_alone = True
     runner_executable = "dosbox/dosbox"
     flatpak_id = "io.github.dosbox-staging"
@@ -103,6 +103,10 @@ class dosbox(Runner):
         env = self.get_env()
         env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [self.libs_dir, env.get("LD_LIBRARY_PATH")]))
         return {"env": env, "command": self.get_command()}
+
+    @property
+    def has_working_dir(self) -> bool:
+        return bool(self.game_config.get("working_dir") or self.main_file or super().has_working_dir)
 
     @property
     def working_dir(self):

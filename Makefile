@@ -89,13 +89,19 @@ snap:
 	snapcraft clean lutris -s pull
 	snapcraft
 
+appimage:
+	utils/appimage/build.sh
+
 req-python:
 	pip3 install PyYAML lxml requests Pillow setproctitle python-magic distro dbus-python types-requests \
 	 types-PyYAML evdev PyGObject pypresence protobuf moddb
 
-dev:
+install-hooks:
+	ln -sf -t .git/hooks/ ../../.hooks/pre-commit
+
+dev: install-hooks
 	pip3 install ruff==0.12.1 mypy==1.16.1 mypy-baseline nose2
-	pip3 install pygobject-stubs --no-cache-dir --config-settings=config=Gtk3,Gdk3,Soup2
+	pip3 install 'pygobject-stubs>=2.17.0' --no-cache-dir --config-settings=config=Gtk3,Gdk3,Soup2
 
 # ============
 # Style checks
@@ -112,16 +118,25 @@ format:
 # Static analysis
 # ===============
 
-check: ruff_lint mypy
+check: ruff_lint mypy syntax-compat annotation-compat po-check
 
 ruff_lint:
 	ruff check .
 
+syntax-compat:
+	python3 -m compileall -q lutris/
+
+annotation-compat:
+	python3 utils/check_annotations.py
+
+po-check:
+	@for f in po/*.po; do msgfmt --check "$$f" -o /dev/null; done
+
 mypy:
-	mypy . --install-types --non-interactive 2>&1 | mypy-baseline filter
+	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline filter
 
 mypy-reset-baseline:  # Add new typing errors to mypy. Use sparingly.
-	mypy . --install-types --non-interactive 2>&1 | mypy-baseline sync
+	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline sync
 
 # =============
 # Abbreviations

@@ -76,5 +76,9 @@ class RetroConfig:
                 return
         self._config.append((key, self.serialize_value(value)))
 
+    def get(self, key, default=None):
+        value = self[key]
+        return value if value is not None else default
+
     def keys(self):
         return [key for (key, _value) in self.config]
