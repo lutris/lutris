@@ -78,7 +78,7 @@ UIMODEKEY_CHOICES: list[tuple[str, str]] = [
 def _build_mame_systems_cache(force: bool = False) -> bool:
     """Build the MAME systems cache by generating the XML list and system JSON."""
     mame_inst = mame()
-    if not mame_inst.is_installed():
+    if not mame_inst.is_installed(suppress_allowed=False):
         logger.warning("MAME is not installed, cannot write XML list")
         return False
     if not system.path_exists(mame.CACHE_DIR):
