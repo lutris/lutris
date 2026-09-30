@@ -1434,6 +1434,11 @@ class wine(Runner):
         except Exception as ex:
             logger.exception("Failed to setup desktop integration, the prefix may not be valid: %s", ex)
 
+    def validate_game(self) -> None:
+        game_exe = self.game_exe
+        if not game_exe or not system.path_exists(game_exe):
+            raise MissingGameExecutableError(filename=game_exe)
+
     def play(self) -> dict[str, Any]:  # pylint: disable=too-many-return-statements
         game_exe = self.game_exe
         arguments: str = self.game_config.get("args", "")
@@ -1444,8 +1449,7 @@ class wine(Runner):
             # Set this to 1 to enable access to more RAM for 32-bit applications
             launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
 
-        if not game_exe or not system.path_exists(game_exe):
-            raise MissingGameExecutableError(filename=game_exe)
+        self.validate_game()
 
         if launch_info["env"].get("WINEESYNC") == "1":
             limit_set = is_esync_limit_set()
