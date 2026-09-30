@@ -1,6 +1,7 @@
 """Lutris installer class"""
 
 import json
+import re
 from functools import cached_property
 from gettext import gettext as _
 from pathlib import Path
@@ -20,6 +21,9 @@ from lutris.util.game_finder import find_linux_game_executable, find_windows_gam
 from lutris.util.log import logger
 from lutris.util.moddb import ModDB, is_moddb_url
 from lutris.util.system import fix_path_case
+
+# Matches the $GAMEDIR (or ${GAMEDIR}) variable that expands to the install directory
+GAMEDIR_VARIABLE = re.compile(r"\$(GAMEDIR\b|{GAMEDIR})")
 
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
@@ -143,7 +147,24 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return True
         if "gogdl_setup" in command_names:
             return True
+        if self.uses_gamedir_variable:
+            # The script expects $GAMEDIR to expand to something; without a folder it
+            # would be left unsubstituted and used as a relative path.
+            return True
         return False
+
+    @cached_property
+    def uses_gamedir_variable(self):
+        """True if the script refers to $GAMEDIR anywhere, so that it needs an install directory"""
+
+        def contains_gamedir(value):
+            if isinstance(value, dict):
+                return any(contains_gamedir(v) for v in value.values())
+            if isinstance(value, list):
+                return any(contains_gamedir(v) for v in value)
+            return isinstance(value, str) and bool(GAMEDIR_VARIABLE.search(value))
+
+        return contains_gamedir(self.script)
 
     def get_errors(self):
         """Return potential errors in the script"""
