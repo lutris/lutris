@@ -6,11 +6,53 @@ from lutris.util import system
 from lutris.util.log import logger
 
 
-def get_gog_game_path(target_path):
+def has_primary_executable(info_path):
+    """Whether the game's main executable, as a goggame-*.info file names it, sits next to that
+    file. GOG's installer also leaves copies of the .info file elsewhere (ProgramData)."""
+    try:
+        with open(info_path, encoding="utf-8") as info_file:
+            play_tasks = json.load(info_file).get("playTasks", [])
+    except (OSError, ValueError):
+        return False
+    folder = os.path.dirname(info_path)
+    for task in play_tasks:
+        if task.get("isPrimary") and task.get("path"):
+            path = task["path"].replace("\\", "/").lstrip("/")
+            return os.path.exists(system.fix_path_case(os.path.join(folder, path)))
+    return False
+
+
+def find_gog_info_dir(drive_c, gog_id=None):
+    """Return the folder under a Wine prefix's drive_c where the GOG game is installed, found by
+    its goggame-*.info file wherever the GOG installer was told to put it. With a GOG product id,
+    only that product's file counts. The 'windows' and 'users' folders are skipped (the latter
+    links to $HOME)."""
+    max_depth = drive_c.rstrip(os.sep).count(os.sep) + 4
+    for root, dirs, files in os.walk(drive_c):
+        if root == drive_c:
+            dirs[:] = [d for d in dirs if d.casefold() not in ("windows", "users")]
+        if root.count(os.sep) >= max_depth:
+            dirs[:] = []
+        for filename in files:
+            if not (filename.startswith("goggame-") and filename.endswith(".info")):
+                continue
+            if gog_id and filename != "goggame-%s.info" % gog_id:
+                continue
+            if has_primary_executable(os.path.join(root, filename)):
+                return root
+    return None
+
+
+def get_gog_game_path(target_path, gog_id=None):
     """Return the absolute path where a GOG game is installed"""
+    drive_c = os.path.join(target_path, "drive_c")
+    if os.path.isdir(drive_c):
+        info_dir = find_gog_info_dir(drive_c, gog_id) or (gog_id and find_gog_info_dir(drive_c))
+        if info_dir:
+            return info_dir
     gog_game_path = os.path.join(target_path, "drive_c/GOG Games/")
     if not os.path.exists(gog_game_path):
-        logger.warning("No 'GOG Games' folder in %s", target_path)
+        logger.warning("No GOG game found in %s", target_path)
         return None
     games = os.listdir(gog_game_path)
     if len(games) > 1:
@@ -132,9 +174,10 @@ def find_installed_product_ids(install_dir):
 def apply_gog_config(installer):
     """Post-install hook: read GOG config from the install target and merge into the game script."""
     target_path = installer.interpreter.target_path
+    gog_id = installer.service_appid if installer.service and installer.service.id == "gog" else None
     if (
-        (gog_config := get_gog_config_from_path(target_path))
-        and (gog_game_path := get_gog_game_path(target_path))
+        (gog_game_path := get_gog_game_path(target_path, gog_id))
+        and (gog_config := get_gog_config(gog_game_path))
         and "game" in installer.script
     ):
         lutris_config = convert_gog_config_to_lutris(gog_config, gog_game_path)

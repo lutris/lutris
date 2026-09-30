@@ -1,6 +1,7 @@
 """Lutris installer class"""
 
 import json
+import os
 from functools import cached_property
 from gettext import gettext as _
 from pathlib import Path
@@ -11,15 +12,32 @@ from lutris.api import get_game_details
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_or_update, get_game_by_field
 from lutris.exceptions import AuthenticationError, UnavailableGameError
-from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, ENTRY_POINT_KEYS
+from lutris.installer import AUTO_ELF_EXE, AUTO_EXE_PREFIX, AUTO_WIN32_EXE, ENTRY_POINT_KEYS
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import import_runner
 from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
+from lutris.util.gog import apply_gog_config
 from lutris.util.log import logger
 from lutris.util.moddb import ModDB, is_moddb_url
 from lutris.util.system import fix_path_case
+
+
+def apply_gog_config_if_exe_missing(installer):
+    """Post-install hook for scripted GOG installs. Scripts expect the game where GOG's installer
+    puts it by default ('C:\\GOG Games\\...'); if the player chose another folder, the script's
+    executable doesn't exist, so take the game's entry points from its GOG files instead."""
+    exe = installer.script.get("game", {}).get("exe")
+    if not exe or not isinstance(exe, str) or AUTO_EXE_PREFIX in exe:
+        return
+    exe_path = installer.interpreter._substitute(exe)
+    if not os.path.isabs(exe_path):
+        exe_path = os.path.join(installer.interpreter.target_path, exe_path)
+    if os.path.exists(exe_path):
+        return
+    logger.info("%s doesn't exist, looking for the game's GOG files instead", exe_path)
+    apply_gog_config(installer)
 
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
@@ -54,6 +72,8 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
         self.post_install_hooks = []
+        if self.service and self.service.id == "gog":
+            self.post_install_hooks.append(apply_gog_config_if_exe_missing)
         self.discord_id = installer.get("discord_id")
 
     @cached_property
