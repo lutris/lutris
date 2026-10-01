@@ -119,7 +119,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.menu_button = Gtk.MenuButton(child=menu_icon)
         self.menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, visible=True, halign=Gtk.Align.END)
         self.menu_box.set_border_width(9)
-        self.menu_box.set_spacing(3)
+        self.menu_box.set_spacing(6)
         self.menu_box.set_can_focus(False)
         self.menu_button.set_popover(Gtk.Popover(child=self.menu_box, can_focus=False, relative_to=self.menu_button))
         self.get_header_bar().pack_end(self.menu_button)
@@ -395,9 +395,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def create_choose_installer_page(self):
         installer_picker = InstallerPicker(self.installers)
         installer_picker.connect("installer-selected", self.on_installer_selected)
-        return Gtk.ScrolledWindow(
-            hexpand=True, vexpand=True, child=installer_picker, shadow_type=Gtk.ShadowType.ETCHED_IN
-        )
+        return Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=installer_picker, shadow_type=Gtk.ShadowType.NONE)
 
     def present_choose_installer_page(self):
         """Stage where we choose an install script."""
@@ -472,7 +470,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         installer_create_desktop_shortcut = settings.read_bool_setting("installer_create_desktop_shortcut", False)
         installer_create_menu_shortcut = settings.read_bool_setting("installer_create_menu_shortcut", False)
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
         vbox.pack_start(self.location_entry, False, False, 0)
 
         desktop_shortcut_button = Gtk.CheckButton(_("Create desktop shortcut"), visible=True)
@@ -591,7 +589,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         treeview.append_column(label_column)
 
         return Gtk.ScrolledWindow(
-            hexpand=True, vexpand=True, child=treeview, visible=True, shadow_type=Gtk.ShadowType.ETCHED_IN
+            hexpand=True, vexpand=True, child=treeview, visible=True, shadow_type=Gtk.ShadowType.NONE
         )
 
     def present_extras_page(self):
