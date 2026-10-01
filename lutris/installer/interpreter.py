@@ -222,7 +222,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
     def create_game_folder(self):
         """Create the game folder if needed and store if is was created"""
         if (
-            self.installer.files
+            (self.installer.files or self.installer.uses_gamedir_variable)
             and self.target_path
             and not system.path_exists(self.target_path)
             and self.installer.creates_game_folder
