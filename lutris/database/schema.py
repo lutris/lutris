@@ -50,10 +50,6 @@ DATABASE: dict[str, DBSchema] = {
         {"name": "details", "type": "TEXT"},
         {"name": "lutris_slug", "type": "TEXT"},
     ],
-    "sources": [
-        {"name": "id", "type": "INTEGER", "indexed": True},
-        {"name": "uri", "type": "TEXT UNIQUE"},
-    ],
     "categories": [
         {"name": "id", "type": "INTEGER", "indexed": True},
         {"name": "name", "type": "TEXT", "unique": True},
