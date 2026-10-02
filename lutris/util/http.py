@@ -44,6 +44,12 @@ class UnauthorizedAccessError(Exception):
     """Exception raised for 401 HTTP errors"""
 
 
+def is_connection_error(exc: BaseException) -> bool:
+    """Return True if the exception is a connection failure (offline, DNS,
+    refused, timeout) as wrapped by Request._request."""
+    return isinstance(exc, HTTPError) and "Unable to connect to server" in str(exc)
+
+
 class Request:
     def __init__(
         self,
