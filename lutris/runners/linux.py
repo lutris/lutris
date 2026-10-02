@@ -115,14 +115,14 @@ class linux(Runner):
         """Linux programs should get individual shader caches if possible."""
         return self.game_path or self.shader_cache_dir
 
-    def is_installed(self, flatpak_allowed: bool = True) -> bool:
+    def is_installed(self, flatpak_allowed: bool = True, version: str | None = None, fallback: bool = True) -> bool:
         """Well of course Linux is installed, you're using Linux right ?"""
         return True
 
     def can_uninstall(self):
         return False
 
-    def uninstall(self, uninstall_callback: Callable[[], None] | None = None) -> None:
+    def uninstall(self, uninstall_callback: Callable[[], None] | None = None, version: str | None = None) -> None:
         raise RuntimeError("Linux shouldn't be installed.")
 
     def get_launch_config_command(self, gameplay_info, launch_config):
