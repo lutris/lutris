@@ -40,7 +40,7 @@ installer has finished.
 The configuration for a game is constructed from its installer. The `files` and
 `installer` sections are removed from the script, some variables such as
 $GAMEDIR are substituted and the results is saved in:
-~/.local/share/lutris/games/<game>-<timestamp>.yml.
+``~/.config/lutris/games/<game>-<timestamp>.yml``.
 
 Published installers can be accessed from a command line by using the ``lutris:``
 URL prefix followed by the installer slug.
@@ -448,6 +448,66 @@ Example::
     - insert-disc:
         requires: diablosetup.exe
 
+Mounting a directory as a drive or disc
+---------------------------------------
+
+Wine (and by extension Proton) recognises entries in ``<prefix>/dosdevices`` and will
+add them as drives automatically. So in `most` cases simply creating a symlink like
+this is enough::
+
+    - execute:
+        command: cd "$GAMEDIR/dosdevices" ; ln -s "../CD_CONTENT_DIRECTORY" "i:"
+
+When you check in ``winecfg`` you will see the drive listed, pointing to your directory.
+
+You can use any drive letter you like, but avoid ``c:``, ``x:``, and ``z:``. They are
+used for default mappings in Wine.
+
+If the game requires a mounted drive at runtime you should store its content in the
+prefix and use relative paths for the symlink like in the example above. This ensures
+that users can relocate their entire prefix without risking game breakage. For
+persistent mounts it is also recommended to add a drive label (max 32 characters)::
+
+    - write_file:
+        content: 'your_label'
+        file: $GAMEDIR/CD_CONTENT_DIRECTORY/.windows-label
+
+In some cases a Windows installer might insist on wanting a CD-ROM drive. If that is the
+case you can explicitly tell Wine to treat a drive mapping as a CD-ROM drive in ``winecfg``.
+
+Since ``winecfg`` is a GUI-only tool there are no command line options, which makes it
+impractical to use in a Lutris installer. But luckily everything it does is stored in
+one of Wine's registry files. Forcing a CD-ROM drive is therefore as simple as adding
+the corresponding registry key. You can do this using the ``set_regedit`` task::
+
+    - task:
+        name: set_regedit
+        path: HKEY_LOCAL_MACHINE\Software\Wine\Drives
+        key: 'i:'
+        value: cdrom
+
+Note: If you only create the registry key without creating the symlink, you will
+not see an entry in ``winecfg``. Wine actually checks that there is a symlink with
+the corresponding drive letter under ``<prefix>/dosdevices`` (oddly it doesn't
+even accept a real directory there, only a symlink to one).
+
+When you open ``explorer.exe`` in this prefix, you will also see the difference to
+only creating the symlink in the first step. Drives created with this registry key
+show a disc in their icon.
+
+If the drives are not required after the installation finishes, make sure to clean
+up after yourself by removing the CD directory (automatically done if you're using
+a ``$CACHE`` directory) and the registry keys::
+
+    - execute
+        command: rm -rf "$GAMEDIR/CD_CONTENT_DIRECTORY"
+    - task:
+        name: delete_registry_key
+        key: HKEY_LOCAL_MACHINE\Software\Wine\Drives
+
+If at least one drive is required at runtime you can also delete single drives
+using ``set_regedit`` as documented below.
+
 Moving files and directories
 ----------------------------
 
@@ -719,7 +779,8 @@ Currently, the following tasks are implemented:
     are ``path`` (the registry path, use backslashes), ``key``, ``value``,
     ``type`` (optional value type, default is REG_SZ (string)), ``prefix``
     (optional WINEPREFIX), ``arch``
-    (optional architecture of the prefix).
+    (optional architecture of the prefix). Use the special value ``null`` to
+    delete a single value (as opposed to an entire key with ``delete_registry_key``).
 
     Example::
 
@@ -737,11 +798,8 @@ Currently, the following tasks are implemented:
     Example::
 
         - task:
-            name: set_regedit
-            path: HKEY_CURRENT_USER\Software\Valve\Steam
-            key: SuppressAutoRun
-            value: '00000000'
-            type: REG_DWORD
+            name: delete_registry_key
+            key: HKEY_CURRENT_USER\Software\Valve\Steam
 
 * wine: ``set_regedit_file`` Apply a regedit file to the
   registry, Parameters are ``filename`` (regfile name),
