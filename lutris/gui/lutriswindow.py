@@ -5,7 +5,6 @@
 import os
 from collections import namedtuple
 from collections.abc import Callable, Iterable
-from datetime import datetime
 from gettext import gettext as _
 from gettext import ngettext
 from typing import cast
@@ -35,7 +34,7 @@ from lutris.game import (
     GAME_UPDATED,
     Game,
 )
-from lutris.gui import dialogs
+from lutris.gui import dialogs, game_filter, game_sort
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.edit_saved_search import SearchFiltersBox
 from lutris.gui.config.preferences_dialog import PreferencesDialog
@@ -43,17 +42,8 @@ from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, g
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.download_queue import DownloadQueue
-from lutris.gui.views import (
-    COL_INSTALLED_AT,
-    COL_INSTALLED_AT_TEXT,
-    COL_LASTPLAYED,
-    COL_LASTPLAYED_TEXT,
-    COL_NAME,
-    COL_PLAYTIME,
-    COL_PLAYTIME_TEXT,
-    COL_SORTNAME,
-    COL_YEAR,
-)
+from lutris.gui.game_filter import EmptyViewReason, SidebarSelection
+from lutris.gui.view_state import GameViewState
 from lutris.gui.views.grid import GameGridView
 from lutris.gui.views.list import GameListView
 from lutris.gui.views.store import GameStore
@@ -65,7 +55,6 @@ from lutris.gui.widgets.stock_icon_image import StockIconImage
 from lutris.gui.widgets.utils import load_icon_theme, open_uri, set_cursor_by_name
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
-from lutris.search_predicate import NotPredicate
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService, sync_media
 from lutris.style_manager import THEME_CHANGED
@@ -76,7 +65,7 @@ from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
-from lutris.util.strings import get_natural_sort_key, gtk_safe
+from lutris.util.strings import gtk_safe
 from lutris.util.system import update_desktop_icons
 from lutris.util.wine.wine import clear_wine_version_cache
 
@@ -131,9 +120,8 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.maximized = settings.read_setting("maximized") == "True"
         self.service = None
         self.search_timer_task = COMPLETED_IDLE_TASK
-        self.filters = self.load_filters()
-        self.game_search = None
-        self.set_service(self.filters.get("service"))
+        self.view_state = GameViewState(self.load_filters())
+        self.set_service(self.view_state.values.service)
         self.icon_type = self.load_icon_type()
         self.game_store = GameStore(self.service, self.service_media)
         self._game_store_generation = 0
@@ -463,23 +451,16 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     @property
     def is_view_sort_sensitive(self):
         """True if the view sorting options will be effective; most dynamic categories ignore them."""
-        dynamic = self.filters.get("dynamic_category")
-        return dynamic not in self.dynamic_categories_game_factories or dynamic in self.sortable_dynamic_categories
+        return self.view_state.is_sort_sensitive(
+            self.dynamic_categories_game_factories, self.sortable_dynamic_categories
+        )
 
     def get_sort_sensitive_columns(self) -> set[int]:
-        if self.is_view_sort_sensitive:
-            if self.view_sorting == "name":
-                return {COL_NAME, COL_SORTNAME}
-            elif self.view_sorting == "year":
-                return {COL_YEAR}
-            elif self.view_sorting == "lastplayed":
-                return {COL_LASTPLAYED, COL_LASTPLAYED_TEXT}
-            elif self.view_sorting == "installed_at":
-                return {COL_INSTALLED_AT, COL_INSTALLED_AT_TEXT}
-            elif self.view_sorting == "playtime":
-                return {COL_PLAYTIME, COL_PLAYTIME_TEXT}
+        """Returns the columns of the game store that affect the sort order now, if any."""
+        if not self.is_view_sort_sensitive:
+            return set()
 
-        return set()
+        return game_sort.get_sort_sensitive_columns(self.view_sorting)
 
     def apply_view_sort(self, items, resolver=lambda i: i):
         """This sorts a list of items according to the view settings of this window;
@@ -492,96 +473,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
         This treats 'name' sorting specially, applying a natural sort so that
         'Mega slap battler 20' comes after 'Mega slap battler 3'."""
-        sort_defaults = {
-            "name": "",
-            "year": 0,
-            "lastplayed": 0.0,
-            "installed_at": 0.0,
-            "playtime": 0.0,
-        }
-
-        service = self.service
-        view_sorting = self.view_sorting
-        view_reverse_order = self.view_reverse_order
-        view_sorting_installed_first = self.view_sorting_installed_first
-
-        def get_sort_default(item):
-            """Returns the default value to use when the value is missing; we may be able
-            to extract this from the item.."""
-            if view_sorting == "year" and service:
-                service_year = service.get_game_release_date(item)
-                service_year = convert_value(service_year)
-                if service_year:
-                    return service_year
-
-            # Users may have obsolete view_sorting settings, so
-            # we must tolerate them. We treat them all as blank.
-            return sort_defaults.get(view_sorting, "")
-
-        def convert_value(value):
-            """Converts 'value' to the type required for the sort that is in use. Returns None if this
-            can't be managed."""
-            try:
-                if not value:
-                    return None
-                if view_sorting == "name":
-                    return str(value)
-                if view_sorting == "year":
-                    # Years can take many forms! We'll try to convert as best we can.
-                    if isinstance(value, datetime):
-                        return int(value.year)
-                    else:
-                        try:
-                            return int(value)
-                        except ValueError:
-                            as_date = datetime.strptime(str(value), "%Y-%m-%d")
-                            return int(as_date.year)
-                else:
-                    return float(value)
-            except ValueError:
-                return None  # unable to parse value?
-
-        def extend_value(value):
-            """Expands the value to sort by to a more complex form, for smarter sorting."""
-            if view_sorting == "name":
-                return get_natural_sort_key(value)
-            if view_sorting == "year":
-                contains_year = bool(value)
-                if view_reverse_order:
-                    contains_year = not contains_year
-                return contains_year, value
-            return value
-
-        def get_sort_value(item):
-            db_game = resolver(item)
-            if not db_game:
-                installation_flag = False
-                value = None
-            else:
-                installation_flag = bool(db_game.get("installed"))
-
-                # When sorting by name, check for a valid sortname first, then fall back
-                # on name if valid sortname is not available.
-                if view_sorting == "name":
-                    value = db_game.get("sortname") or db_game.get("name")
-                else:
-                    value = db_game.get(view_sorting)
-
-            value = convert_value(value) or get_sort_default(item)
-            value = extend_value(value)
-
-            if view_sorting_installed_first:
-                # We want installed games to always be first, even in
-                # a descending sort.
-                if view_reverse_order:
-                    installation_flag = not installation_flag
-                if view_sorting == "name":
-                    installation_flag = not installation_flag
-                return installation_flag, value
-            return value
-
-        reverse = view_reverse_order if view_sorting == "name" else not view_reverse_order
-        return sorted(items, key=get_sort_value, reverse=reverse)
+        return game_sort.apply_view_sort(
+            items,
+            self.view_sorting,
+            self.view_reverse_order,
+            self.view_sorting_installed_first,
+            self.service,
+            resolver,
+        )
 
     def get_running_games(self):
         """Return a list of currently running games"""
@@ -615,43 +514,19 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         games = self.filter_games(games)
         return sorted(games, key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0), reverse=True)
 
-    def get_game_search(self):
+    def get_game_search(self) -> GameSearch:
         """Returns a game-search object for the current view settings and search text; this object
         is cached so that we need not re-parse the search if it has not changed."""
-        text = self.filters.get("text") or ""
-        if self.game_search is None or self.game_search.service != self.service or self.game_search.text != text:
-            self.game_search = GameSearch(text, self.service)
-        return self.game_search
+        return self.view_state.get_game_search(self.service)
 
     def filter_games(self, games, searches: Iterable[GameSearch] | None = None):
-        """Filters a list of games according to the 'installed' and 'text' filters, if those are
-        set. But if not, can just return games unchanged."""
-
+        """Filters a list of games to those matching the searches given; if no searches are given,
+        the games are filtered by the filters of the view - the 'installed' and 'text' filters,
+        and the hidden games category."""
         if searches is None:
-            search = self.get_game_search()
+            searches = [game_filter.build_search(self.get_game_search(), self.view_state.values)]
 
-            if self.filters.get("installed") and not search.has_component("installed"):
-                search = search.with_predicate(search.get_installed_predicate(installed=True))
-
-            category = self.filters.get("category") or "all"
-
-            if category != ".hidden" and not search.has_component("hidden"):
-                search = search.with_predicate(NotPredicate(search.get_category_predicate(".hidden")))
-
-            searches = [search]
-
-        to_apply = [search for search in searches if not search.is_empty]
-
-        if not to_apply:
-            return games
-
-        def matches(game):
-            for search in to_apply:
-                if not search.matches(game):
-                    return False
-            return True
-
-        return [game for game in games if matches(game)]
+        return game_filter.filter_games(games, searches)
 
     def set_service(self, service_name):
         if self.service and self.service.id == service_name:
@@ -694,19 +569,20 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         )
 
     def get_games_from_filters(self):
-        service_id = self.filters.get("service")
+        values = self.view_state.values
+        service_id = values.service
         if service_id in services.SERVICES:
             if self.service.online and not self.service.is_authenticated():
                 return []
             return self.get_service_games(service_id)
-        if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
-            return self.dynamic_categories_game_factories[self.filters["dynamic_category"]]()
+        if values.dynamic_category in self.dynamic_categories_game_factories:
+            return self.dynamic_categories_game_factories[values.dynamic_category]()
 
         search = self.get_game_search()
-        category = self.filters.get("category") or "all"
+        category = values.category
         searches = [search]
 
-        saved_search = self.filters.get("saved_search")
+        saved_search = values.saved_search
         if saved_search:
             saved_search_found = saved_searches_db.get_saved_search_by_name(saved_search)
 
@@ -726,7 +602,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         filters = self.get_sql_filters()
         excludes = {}
 
-        if self.filters.get("category") == "all" and "service" not in self.filters:
+        if category == "all" and not service_id:
             excluded_services = set(
                 s.casefold()
                 for s in services.SERVICES.keys()
@@ -741,17 +617,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def get_sql_filters(self) -> dict[str, str]:
         """Return the current filters for the view"""
-        sql_filters = {}
-        if self.filters.get("runner"):
-            sql_filters["runner"] = self.filters["runner"]
-        if self.filters.get("platform"):
-            sql_filters["platform"] = self.filters["platform"]
-        if self.filters.get("installed") and not self.get_game_search().has_component("installed"):
-            sql_filters["installed"] = "1"
-
-        # We omit the "text" search here because SQLite does a fairly literal
-        # search, which is accent sensitive. We'll do better with self.filter_games()
-        return sql_filters
+        return game_filter.get_sql_filters(self.view_state.values, self.get_game_search())
 
     def get_service_media(self, icon_type):
         """Return the ServiceMedia class used for this view"""
@@ -787,35 +653,30 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.show_label(_("Connect your %s account to access your games") % self.service.name)
             return
 
-        filter_text = self.filters.get("text")
-        has_uninstalled_games = games_db.get_game_count("installed", "0")
-        if filter_text:
-            if self.filters.get("category") == "favorite":
-                self.show_label(_("Add a game matching '%s' to your favorites to see it here.") % filter_text)
-            elif self.filters.get("category") == ".hidden":
-                self.show_label(_("No hidden games matching '%s' found.") % filter_text)
-            elif self.filters.get("installed") and has_uninstalled_games:
-                self.show_label(
-                    _("No installed games matching '%s' found. Press Ctrl+I to show uninstalled games.") % filter_text
-                )
-            else:
-                self.show_label(_("No games matching '%s' found ") % filter_text)
+        values = self.view_state.values
+        has_uninstalled_games = bool(games_db.get_game_count("installed", "0"))
+        reason = game_filter.get_empty_view_reason(values, has_uninstalled_games)
+
+        if reason == EmptyViewReason.NO_FAVORITES_MATCHING_TEXT:
+            self.show_label(_("Add a game matching '%s' to your favorites to see it here.") % values.text)
+        elif reason == EmptyViewReason.NO_HIDDEN_MATCHING_TEXT:
+            self.show_label(_("No hidden games matching '%s' found.") % values.text)
+        elif reason == EmptyViewReason.NO_INSTALLED_MATCHING_TEXT:
+            self.show_label(
+                _("No installed games matching '%s' found. Press Ctrl+I to show uninstalled games.") % values.text
+            )
+        elif reason == EmptyViewReason.NO_GAMES_MATCHING_TEXT:
+            self.show_label(_("No games matching '%s' found ") % values.text)
+        elif reason == EmptyViewReason.NO_FAVORITES:
+            self.show_label(_("Add games to your favorites to see them here."))
+        elif reason == EmptyViewReason.NO_HIDDEN_GAMES:
+            self.show_label(_("No games are hidden."))
+        elif reason == EmptyViewReason.NO_INSTALLED_GAMES:
+            self.show_label(_("No installed games found. Press Ctrl+I to show uninstalled games."))
+        elif reason == EmptyViewReason.SPLASH:
+            self.show_splash()
         else:
-            if self.filters.get("category") == "favorite":
-                self.show_label(_("Add games to your favorites to see them here."))
-            elif self.filters.get("category") == ".hidden":
-                self.show_label(_("No games are hidden."))
-            elif self.filters.get("installed") and has_uninstalled_games:
-                self.show_label(_("No installed games found. Press Ctrl+I to show uninstalled games."))
-            elif (
-                not self.filters.get("runner")
-                and not self.filters.get("service")
-                and not self.filters.get("platform")
-                and not self.filters.get("dynamic_category")
-            ):
-                self.show_splash()
-            else:
-                self.show_label(_("No games found"))
+            self.show_label(_("No games found"))
 
     def refresh_view(self):
         self.sidebar.update_rows()
@@ -823,7 +684,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.update_store()
 
     def update_store(self) -> None:
-        service_id = self.filters.get("service")
+        service_id = self.view_state.values.service
         service = self.service
         service_media = self.service_media
         self._game_store_generation += 1
@@ -1095,7 +956,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def update_view_settings(self):
         if self.current_view and self.current_view_type == "grid":
             show_badges = settings.read_setting("hide_badges_on_icons") != "True"
-            self.current_view.show_badges = show_badges and not bool(self.filters.get("platform"))
+            self.current_view.show_badges = show_badges and not bool(self.view_state.values.platform)
 
     def set_viewtype_icon(self, view_type):
         self.viewtype_icon.set_from_icon_name("view-%s-symbolic" % view_type, Gtk.IconSize.BUTTON)
@@ -1103,7 +964,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def set_show_installed_state(self, filter_installed):
         """Shows or hide uninstalled games"""
         settings.write_setting("filter_installed", bool(filter_installed))
-        self.filters["installed"] = filter_installed
+        self.view_state.set_installed(bool(filter_installed))
 
     def update_notification(self):
         show_notification = (
@@ -1260,7 +1121,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def on_search_entry_changed(self, entry):
         """Callback for the search input keypresses"""
         self.search_timer_task.unschedule()
-        self.filters["text"] = entry.get_text().strip()
+        self.view_state.set_text(entry.get_text().strip())
         self.search_timer_task = schedule_at_idle(self.update_store, delay_seconds=0.5)
 
     @GtkTemplate.Callback
@@ -1348,17 +1209,10 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_sidebar_changed(self, widget):
         """Handler called when the selected element of the sidebar changes"""
-        for filter_type in ("category", "dynamic_category", "saved_search", "service", "runner", "platform"):
-            if filter_type in self.filters:
-                self.filters.pop(filter_type)
-
         row_type, row_id = widget.selected_category
-        if row_type == "user_category":
-            row_type = "category"
-        self.filters[row_type] = row_id
+        row_type = self.view_state.select_sidebar(row_type, row_id)
 
-        service_name = self.filters.get("service")
-        self.set_service(service_name)
+        self.set_service(self.view_state.values.service)
         self._bind_zoom_adjustment()
         self.redraw_view()
 
@@ -1412,27 +1266,15 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         """Return whether a game should be displayed on the view"""
         row = self.sidebar.get_selected_row()
 
-        if row:
-            # Stopped games do not get displayed on the running page
-            if row.type == "dynamic_category" and row.id == "running" and game.state == game.STATE_STOPPED:
-                return False
+        if not row:
+            return True
 
-            # If the update took the row out of this view's category, we'll need
-            # to update the view to reflect that.
-            search = self.get_game_search()
-            enforce_hidden = not search.has_component("hidden")
-            if row.type == "dynamic_category" and row.id in ("recent", "missing"):
-                if enforce_hidden and ".hidden" in game.get_categories():
-                    return False
-            elif row.type in ("category", "user_category", "saved_search"):
-                categories = game.get_categories()
-                if enforce_hidden and row.id != ".hidden" and ".hidden" in categories:
-                    return False
-
-                if row.id != "all" and row.id not in categories:
-                    return False
-
-        return True
+        # If the search itself includes hidden games, the view does not enforce hiding them.
+        enforce_hidden = not self.get_game_search().has_component("hidden")
+        selection = SidebarSelection(row.type, row.id)
+        return game_filter.is_game_displayed(
+            selection, game.get_categories(), game.state == game.STATE_STOPPED, enforce_hidden
+        )
 
     def on_game_updated(self, game):
         """Updates an individual entry in the view when a game is updated"""
