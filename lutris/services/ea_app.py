@@ -514,7 +514,7 @@ class EAAppService(OnlineService):
         game_config = LutrisConfig(game_config_id=ea_game["configpath"]).game_level
         game_config["game"]["args"] = get_launch_arguments(",".join(content_ids))
         configpath = write_game_config(lutris_game_id, game_config)
-        slug = self.get_installed_slug(ea_game)
+        slug = lutris_game_id
         add_game(
             name=service_game["name"],
             runner=ea_game["runner"],
