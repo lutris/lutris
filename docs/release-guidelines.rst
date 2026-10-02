@@ -1,6 +1,9 @@
 Release Guidelines
 ==================
 
+Release and packaging automation lives in ``packaging/Makefile``. Run those
+targets from the repository root, e.g. ``make -f packaging/Makefile build-source``.
+
 Preparation
 -----------
 - Write changelog
@@ -24,6 +27,6 @@ OpenSUSE Build Service
 ----------------------
 Upload to OBS (https://build.opensuse.org/package/show/home:strycore/lutris):
 
-- ``lutris.spec``
+- ``packaging/lutris.spec``
 - ``build/lutris*.dsc``
 - ``build/lutris*.tar.xz``

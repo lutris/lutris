@@ -66,7 +66,7 @@ ensure that all dependencies are available.
 If you are working on newly written code that might introduce
 new dependencies, check in the package configuration files for new packages to
 install. Debian based distros will have their dependencies listed
-in `debian/control` and RPM based ones in `lutris.spec`.
+in `debian/control` and RPM based ones in `packaging/lutris.spec`.
 
 The PyGOject introspection libraries are not regular python packages, for that
 reason, using a virtualenv for development is heavily discouraged. Make
@@ -144,7 +144,7 @@ project's code base.
 Project structure
 -----------------
 
-    [root]-+ Config files and READMEs
+    [root]-+ Config files and READMEs (pyproject.toml, meson.build, Makefile)
         |
         +-[bin] Main lutris executable script
         +-[debian] Debian / Ubuntu packaging configuration
@@ -158,6 +158,18 @@ Project structure
         |          +-[services] External services (Steam, GOG, ...)
         |          +-[util] Generic utilities
         |
+        +-[packaging] RPM spec and release/packaging Makefile
         +-[po] Translation files
         +-[share] Lutris resources like icons, ui files, scripts
         +-[tests] Unit tests
+        +-[utils] Helper scripts and the AppImage build
+
+Build tooling
+-------------
+
+* ``pyproject.toml`` is the single source of truth for Python packaging
+  metadata and for ruff/mypy/pyright configuration.
+* ``meson.build`` (plus ``po/meson.build``) drives the install layout used by
+  distro packages.
+* The root ``Makefile`` holds developer tasks only. Release, packaging and
+  upload targets live in ``packaging/Makefile``.
