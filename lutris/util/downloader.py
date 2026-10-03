@@ -3,8 +3,10 @@ import bisect
 import os
 import threading
 import time
-from collections.abc import Callable
+import urllib.request
+from collections.abc import Callable, Iterable
 from typing import Any
+from urllib.parse import urlparse
 
 import requests
 
@@ -447,6 +449,15 @@ class SimpleDownloader(BaseDownloader):
 
     def _do_download(self) -> None:
         """Perform a single download attempt with stall detection."""
+        if urlparse(self.url).scheme == "file":
+            # Installer scripts can name local files, which become 'file:' URLs;
+            # requests has no adapter for that scheme, but urlopen does, and it
+            # decodes the URL into a path for us.
+            local_file = urllib.request.urlopen(self.url, timeout=30)
+            self.full_size = int(local_file.headers.get("Content-Length") or 0)
+            self._write_chunks(iter(lambda: local_file.read(self.chunk_size), b""))
+            return
+
         headers = requests.utils.default_headers()
         headers["User-Agent"] = "Lutris/%s" % __version__
         if self.referer:
@@ -462,13 +473,17 @@ class SimpleDownloader(BaseDownloader):
             logger.info("%s returned a %s error", self.url, response.status_code)
         response.raise_for_status()
         self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
+        self._write_chunks(response.iter_content(chunk_size=self.chunk_size))
+
+    def _write_chunks(self, chunks: Iterable[bytes]) -> None:
+        """Write a stream of chunks to the destination, tracking progress."""
         self.progress_event.set()
 
         # A fresh stall monitor per attempt — see StallMonitor.
         stall_monitor = self._new_stall_monitor()
         stream_bytes = 0
 
-        for chunk in response.iter_content(chunk_size=self.chunk_size):
+        for chunk in chunks:
             if not self.file_pointer:
                 break
             if self.stop_request and self.stop_request.is_set():
