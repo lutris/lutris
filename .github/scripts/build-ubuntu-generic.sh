@@ -58,8 +58,9 @@ sed -i"" \
 
 # Builds and signs the debian package files.
 # PPA_GPG_KEY_ID and PPA_GPG_PASSPHRASE environment variables must be defined
-# by this point.
-make github-ppa
+# by this point.  Release/packaging targets live in packaging/Makefile, which
+# we invoke from the repository root so debuild can find ./debian.
+make -f "${CODEBASE_ROOT}/packaging/Makefile" github-ppa
 
 # Clean up.
 sudo rm -f "${CODEBASE_ROOT}/lutris-build-deps"*
