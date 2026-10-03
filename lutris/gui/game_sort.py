@@ -44,6 +44,17 @@ SORT_SENSITIVE_COLUMNS: dict[str, set[int]] = {
 }
 
 
+def normalize_view_sorting(setting: str | None) -> str:
+    """Returns the sort that the given 'view_sorting' setting names, defaulting to 'name'.
+
+    Settings saved by older versions may end in '_text' (the name of a text column), which we
+    strip, and may name a sort that no longer exists, which the callers tolerate as a blank."""
+    value = setting or "name"
+    if value.endswith("_text"):
+        value = value[:-5]
+    return value
+
+
 def get_sort_sensitive_columns(view_sorting: str) -> set[int]:
     """Returns the columns of the game store that affect the sort order when the view is
     sorted by 'view_sorting'; this is empty for a sort that no column carries.

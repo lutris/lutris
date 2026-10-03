@@ -6,6 +6,7 @@ searches they build are passed to them, so they can be tested without a window.
 
 from collections.abc import Iterable, Mapping, Sequence
 from enum import Enum
+from gettext import gettext as _
 from typing import Any, NamedTuple
 
 from lutris.search import GameSearch
@@ -70,6 +71,33 @@ def get_empty_view_reason(filters: FilterValues, has_uninstalled_games: bool) ->
     if not (filters.runner or filters.service or filters.platform or filters.dynamic_category):
         return EmptyViewReason.SPLASH
     return EmptyViewReason.NO_GAMES
+
+
+def get_empty_view_message(filters: FilterValues, has_uninstalled_games: bool) -> str | None:
+    """Returns the message to show when a view with these filters is empty, or None if the
+    splash screen should be shown instead.
+
+    This resolves both the reason the view is empty and the text that goes with it, so the
+    window has only to decide between a label and the splash."""
+    reason = get_empty_view_reason(filters, has_uninstalled_games)
+
+    if reason == EmptyViewReason.NO_FAVORITES_MATCHING_TEXT:
+        return _("Add a game matching '%s' to your favorites to see it here.") % filters.text
+    if reason == EmptyViewReason.NO_HIDDEN_MATCHING_TEXT:
+        return _("No hidden games matching '%s' found.") % filters.text
+    if reason == EmptyViewReason.NO_INSTALLED_MATCHING_TEXT:
+        return _("No installed games matching '%s' found. Press Ctrl+I to show uninstalled games.") % filters.text
+    if reason == EmptyViewReason.NO_GAMES_MATCHING_TEXT:
+        return _("No games matching '%s' found ") % filters.text
+    if reason == EmptyViewReason.NO_FAVORITES:
+        return _("Add games to your favorites to see them here.")
+    if reason == EmptyViewReason.NO_HIDDEN_GAMES:
+        return _("No games are hidden.")
+    if reason == EmptyViewReason.NO_INSTALLED_GAMES:
+        return _("No installed games found. Press Ctrl+I to show uninstalled games.")
+    if reason == EmptyViewReason.SPLASH:
+        return None
+    return _("No games found")
 
 
 def build_search(search: GameSearch, filters: FilterValues) -> GameSearch:
