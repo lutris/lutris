@@ -7,7 +7,7 @@ application; these are developer- and build-facing helpers.
 
 | Script | Purpose | Used by |
 |--------|---------|---------|
-| `check_annotations.py` | Flags annotation syntax that crashes on Python < 3.14 (unquoted conditional imports, string literals in `|` unions). | `.github/workflows/static.yml`, `.hooks/pre-commit`, `make annotation-compat` |
+| `check_annotations.py` | Flags annotation syntax that crashes on Python < 3.14 (unquoted conditional imports, string literals in `\|` unions). | `.github/workflows/static.yml`, `.hooks/pre-commit`, `make annotation-compat` |
 | `meson_post_install.py` | Meson install hook: refreshes the icon cache and desktop database. | `meson.build` (`meson.add_install_script`) |
 | `bios_format.py` | One-off utility to reformat BIOS/firmware definition data. | Manual use |
 | `cleanup_prefix.py` | Removes known runner directories from a Wine prefix. | Manual use |
