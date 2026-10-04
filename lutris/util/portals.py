@@ -1,5 +1,6 @@
 import os
 from collections.abc import Callable, Iterable
+from gettext import gettext as _
 
 from gi.repository import Gio, GLib, GObject
 
@@ -27,6 +28,12 @@ class TrashPortal(GObject.Object):
         self.file_paths = list(file_paths)
         self.completion_function = completion_function
         self.error_function = error_function
+        # file_paths is preserved for error messages; _pending_paths holds the
+        # files we have not dispatched yet - each is popped as we hand it off,
+        # and travels as user_data until its callback runs. _failed_paths
+        # collects the ones we could not trash at all.
+        self._pending_paths = list(self.file_paths)
+        self._failed_paths: list[str] = []
         Gio.DBusProxy.new_for_bus(
             Gio.BusType.SESSION,
             Gio.DBusProxyFlags.NONE,
@@ -56,14 +63,13 @@ class TrashPortal(GObject.Object):
     def _trash_next_file(self):
         """Trash the next file in the list, then re-invoked from
         _call_cb since TrashFile accepts only a single fd per call."""
-        if not self.file_paths:
-            self.report_completion()
+        if not self._pending_paths:
+            self._report_result()
             return
 
-        file_path = self.file_paths[0]
+        file_path = self._pending_paths.pop(0)
 
         if self._dbus_proxy is None:
-            self.file_paths.pop(0)
             self._fallback_trash(file_path)
             return
 
@@ -88,12 +94,19 @@ class TrashPortal(GObject.Object):
                 fds_in,
                 None,
                 self._call_cb,
+                file_path,
             )
         except Exception as ex:
-            self.report_error(ex)
+            # The portal could not even be asked about this file; g_file_trash()
+            # needs no file descriptor, so it may still succeed.
+            logger.warning(
+                "Could not ask the Trash portal to trash '%s' (%s); falling back to g_file_trash_async().",
+                file_path,
+                ex,
+            )
+            self._fallback_trash(file_path)
 
-    def _call_cb(self, obj, result):
-        file_path = self.file_paths.pop(0)
+    def _call_cb(self, obj, result, file_path):
         failure_reason = None
         try:
             values = obj.call_with_unix_fd_list_finish(result)
@@ -116,23 +129,45 @@ class TrashPortal(GObject.Object):
     def _fallback_trash(self, file_path: str) -> None:
         try:
             gfile = Gio.File.new_for_path(file_path)
-            gfile.trash_async(GLib.PRIORITY_DEFAULT, None, self._fallback_cb)
+            gfile.trash_async(GLib.PRIORITY_DEFAULT, None, self._fallback_cb, file_path)
         except Exception as ex:
-            logger.error("Fallback trash of '%s' failed to start: %s", file_path, ex)
+            logger.exception("Fallback trash of '%s' failed to start: %s", file_path, ex)
+            self._failed_paths.append(file_path)
             self._trash_next_file()
 
-    def _fallback_cb(self, obj, result):
+    def _fallback_cb(self, obj, result, file_path):
         try:
             obj.trash_finish(result)
         except GLib.Error as ex:
-            logger.error("Failed to trash '%s': %s", obj.get_path(), ex.message)
+            logger.exception("Failed to trash '%s': %s", file_path, ex.message)
+            self._failed_paths.append(file_path)
         self._trash_next_file()
+
+    def _report_result(self) -> None:
+        """Invoked once every file has been trashed or has failed; reports an
+        error if any of them failed, and completion only if none did."""
+        if not self._failed_paths:
+            self.report_completion()
+        elif len(self._failed_paths) == 1:
+            self.report_error(
+                RuntimeError(
+                    _("'%s' could not be moved to the trash. You will need to delete it yourself.")
+                    % self._failed_paths[0]
+                )
+            )
+        else:
+            self.report_error(
+                RuntimeError(
+                    _("The items could not be moved to the trash. You will need to delete them yourself:\n%s")
+                    % "\n".join(self._failed_paths)
+                )
+            )
 
     def report_error(self, error: Exception) -> None:
         if self.error_function:
             schedule_at_idle(self.error_function, error)
         else:
-            logger.exception("Failed to trash %s: %s", ", ".join(self.file_paths), error)
+            logger.exception("Failed to trash %s: %s", ", ".join(self.file_paths), error, exc_info=error)
 
     def report_completion(self):
         if self.completion_function:
