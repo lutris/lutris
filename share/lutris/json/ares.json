@@ -42,8 +42,8 @@
         "Sinclair ZX Spectrum 128": "ZX Spectrum 128"
     },
     "entry_point_option": "main_file",
-    "runner_executable": "ares-v146-anylinux-x86_64.AppImage",
-    "download_url": "https://github.com/pkgforge-dev/ares-emu-appimage/releases/download/v146%402025-09-15_1757920610/ares-v146-anylinux-x86_64.AppImage",
+    "runner_executable": "ares-v148-anylinux-x86_64.AppImage",
+    "download_url": "https://github.com/pkgforge-dev/ares-emu-appimage/releases/download/v148%402026-09-07_1788787887/ares-v148-anylinux-x86_64.AppImage",
     "flatpak_id": "dev.ares.ares",
     "runnable_alone": true,
     "env": {},
