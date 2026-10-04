@@ -31,6 +31,8 @@ class JsonRunnerSpec:
     download_url: Optional[str]
     runnable_alone: Optional[bool]
     flatpak_id: Optional[str]
+    env: dict
+    working_dir: Optional[str]
 
 
 _REQUIRED_KEYS = {
@@ -42,7 +44,7 @@ _REQUIRED_KEYS = {
 }
 
 
-def _load_and_validate_json(path: str) -> tuple[dict, JsonRunnerSpec]:
+def _load_and_validate_json(path: str) -> JsonRunnerSpec:
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
@@ -50,7 +52,7 @@ def _load_and_validate_json(path: str) -> tuple[dict, JsonRunnerSpec]:
     if missing:
         raise ValueError(f"Invalid runner JSON {path}: missing {missing}")
 
-    return data, JsonRunnerSpec(
+    return JsonRunnerSpec(
         game_options=data["game_options"],
         runner_options=data.get("runner_options", []),
         runner_name=data.get("name", ""),
@@ -63,6 +65,8 @@ def _load_and_validate_json(path: str) -> tuple[dict, JsonRunnerSpec]:
         download_url=data.get("download_url"),
         runnable_alone=data.get("runnable_alone"),
         flatpak_id=data.get("flatpak_id"),
+        env=data.get("env") or {},
+        working_dir=data.get("working_dir"),
     )
 
 
@@ -76,13 +80,11 @@ class JsonRunner(Runner):
         if not path:
             raise RuntimeError("Create subclasses of JsonRunner with the json_path attribute set")
 
-        cached = self._json_cache.get(path)
-        if cached is None:
-            cached = _load_and_validate_json(path)
-            self._json_cache[path] = cached
+        spec = self._json_cache.get(path)
+        if spec is None:
+            spec = _load_and_validate_json(path)
+            self._json_cache[path] = spec
 
-        data, spec = cached
-        self._json_data = data
         self.spec = spec
 
         self.game_options = spec.game_options
@@ -149,9 +151,9 @@ class JsonRunner(Runner):
 
         arguments.append(main_file)
         result = {"command": arguments}
-        if self._json_data.get("env"):
-            result["env"] = self._json_data["env"]
-        if self._json_data.get("working_dir") == "runner":
+        if self.spec.env:
+            result["env"] = dict(self.spec.env)
+        if self.spec.working_dir == "runner":
             result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable_path))
         return result
 
