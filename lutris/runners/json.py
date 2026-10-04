@@ -42,7 +42,7 @@ _REQUIRED_KEYS = {
 }
 
 
-def _load_and_validate_json(path: str) -> JsonRunnerSpec:
+def _load_and_validate_json(path: str) -> tuple[dict, JsonRunnerSpec]:
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
@@ -50,7 +50,7 @@ def _load_and_validate_json(path: str) -> JsonRunnerSpec:
     if missing:
         raise ValueError(f"Invalid runner JSON {path}: missing {missing}")
 
-    return JsonRunnerSpec(
+    return data, JsonRunnerSpec(
         game_options=data["game_options"],
         runner_options=data.get("runner_options", []),
         runner_name=data.get("name", ""),
@@ -76,28 +76,13 @@ class JsonRunner(Runner):
         if not path:
             raise RuntimeError("Create subclasses of JsonRunner with the json_path attribute set")
 
-        data = self._json_cache.get(path)
-        if data is None:
-            with open(path, encoding="utf-8") as file:
-                data = json.load(file)
-            self._json_cache[path] = data
+        cached = self._json_cache.get(path)
+        if cached is None:
+            cached = _load_and_validate_json(path)
+            self._json_cache[path] = cached
 
+        data, spec = cached
         self._json_data = data
-
-        spec = JsonRunnerSpec(
-            game_options=data["game_options"],
-            runner_options=data.get("runner_options", []),
-            runner_name=data.get("name", ""),
-            human_name=data["human_name"],
-            description=data["description"],
-            platforms=data["platforms"],
-            runner_executable=data["runner_executable"],
-            system_options_override=data.get("system_options_override", []),
-            entry_point_option=data.get("entry_point_option", "main_file"),
-            download_url=data.get("download_url"),
-            runnable_alone=data.get("runnable_alone"),
-            flatpak_id=data.get("flatpak_id"),
-        )
         self.spec = spec
 
         self.game_options = spec.game_options
