@@ -21,6 +21,7 @@ JSON_RUNNER_DIRS = [
 class JsonRunnerSpec:
     game_options: list
     runner_options: list
+    runner_name: str
     human_name: str
     description: str
     platforms: list
@@ -52,6 +53,7 @@ def _load_and_validate_json(path: str) -> JsonRunnerSpec:
     return JsonRunnerSpec(
         game_options=data["game_options"],
         runner_options=data.get("runner_options", []),
+        runner_name=data.get("name", ""),
         human_name=data["human_name"],
         description=data["description"],
         platforms=data["platforms"],
@@ -85,6 +87,7 @@ class JsonRunner(Runner):
         spec = JsonRunnerSpec(
             game_options=data["game_options"],
             runner_options=data.get("runner_options", []),
+            runner_name=data.get("name", ""),
             human_name=data["human_name"],
             description=data["description"],
             platforms=data["platforms"],
@@ -99,6 +102,7 @@ class JsonRunner(Runner):
 
         self.game_options = spec.game_options
         self.runner_options = spec.runner_options
+        self.runner_name = spec.runner_name
         self.human_name = spec.human_name
         self.description = spec.description
         self.platforms = spec.platforms
