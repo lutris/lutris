@@ -4,11 +4,10 @@ import json
 import os
 import shlex
 from dataclasses import dataclass
-from typing import Optional
 
 from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
-from lutris.runners.runner import Runner
+from lutris.runners.runner import Runner, RunnerOptionDict
 from lutris.util import datapath, system
 
 JSON_RUNNER_DIRS = [
@@ -19,20 +18,20 @@ JSON_RUNNER_DIRS = [
 
 @dataclass(frozen=True)
 class JsonRunnerSpec:
-    game_options: list
-    runner_options: list
+    game_options: list[RunnerOptionDict]
+    runner_options: list[RunnerOptionDict]
     runner_name: str
     human_name: str
     description: str
-    platforms: list
+    platforms: list[str]
     runner_executable: str
-    system_options_override: list
+    system_options_override: list[RunnerOptionDict]
     entry_point_option: str
-    download_url: Optional[str]
-    runnable_alone: Optional[bool]
-    flatpak_id: Optional[str]
-    env: dict
-    working_dir: Optional[str]
+    download_url: str | None
+    runnable_alone: bool | None
+    flatpak_id: str | None
+    env: dict[str, str]
+    working_dir: str | None
 
 
 _REQUIRED_KEYS = {
@@ -58,7 +57,7 @@ def _load_and_validate_json(path: str) -> JsonRunnerSpec:
         runner_name=data.get("name", ""),
         human_name=data["human_name"],
         description=data["description"],
-        platforms=data["platforms"],
+        platforms=list(data["platforms"]),
         runner_executable=data["runner_executable"],
         system_options_override=data.get("system_options_override", []),
         entry_point_option=data.get("entry_point_option", "main_file"),
