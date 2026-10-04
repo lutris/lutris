@@ -2,6 +2,7 @@
 
 import os
 import time
+from collections.abc import Iterable
 from shutil import copyfile
 from typing import Any, TypeAlias
 
@@ -51,6 +52,28 @@ def rename_config(old_config_id: str, new_slug: str) -> str | None:
     if os.path.exists(src_path):
         os.rename(src_path, dest_path)
     return new_config_id
+
+
+def find_option(options: Iterable[dict[str, Any]], option_name: str) -> dict[str, Any] | None:
+    """Retrieve an option dict from a list of options, like a runner's 'game_options' or
+    'runner_options'; returns None if the option is not in the list."""
+    for option in options:
+        if option["option"] == option_name:
+            return option
+    return None
+
+
+def is_option_visible(options: Iterable[dict[str, Any]], option_name: str, config: "LutrisConfig") -> bool:
+    """True if an option is visible to the user in the configuration dialogs. An option the
+    user can't even see must not do anything, so this gates applying such settings; an option
+    that merely carries a 'warning' is still visible, and still applies.
+
+    Options missing from 'options' count as visible, as do options with no 'visible' entry."""
+    option = find_option(options, option_name)
+    visible = option.get("visible", True) if option else True
+    if callable(visible):
+        visible = visible(option_name, config)
+    return bool(visible)
 
 
 class LutrisConfig:
