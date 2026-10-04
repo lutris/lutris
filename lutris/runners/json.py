@@ -4,6 +4,7 @@ import json
 import os
 import shlex
 from dataclasses import dataclass
+from typing import Any
 
 from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
@@ -23,7 +24,7 @@ class JsonRunnerSpec:
     runner_name: str
     human_name: str
     description: str
-    platforms: list[str]
+    platform_dict: dict[str, str]
     runner_executable: str
     system_options_override: list[RunnerOptionDict]
     entry_point_option: str
@@ -43,6 +44,16 @@ _REQUIRED_KEYS = {
 }
 
 
+def _to_platform_dict(path: str, platforms: Any) -> dict[str, str]:
+    """Reads the 'platforms' key, which can be a list of Lutris platform names, or a
+    dict mapping each Lutris platform name onto the code the runner uses for it."""
+    if isinstance(platforms, dict):
+        return {str(name): str(code) for name, code in platforms.items()}
+    if isinstance(platforms, list):
+        return Runner.to_platform_dict([str(name) for name in platforms])
+    raise ValueError(f"Invalid runner JSON {path}: 'platforms' must be a list or a dict")
+
+
 def _load_and_validate_json(path: str) -> JsonRunnerSpec:
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
@@ -57,7 +68,7 @@ def _load_and_validate_json(path: str) -> JsonRunnerSpec:
         runner_name=data.get("name", ""),
         human_name=data["human_name"],
         description=data["description"],
-        platforms=list(data["platforms"]),
+        platform_dict=_to_platform_dict(path, data["platforms"]),
         runner_executable=data["runner_executable"],
         system_options_override=data.get("system_options_override", []),
         entry_point_option=data.get("entry_point_option", "main_file"),
@@ -91,7 +102,7 @@ class JsonRunner(Runner):
         self.runner_name = spec.runner_name
         self.human_name = spec.human_name
         self.description = spec.description
-        self.platforms = spec.platforms
+        self.platform_dict = spec.platform_dict
         self.runner_executable = spec.runner_executable
         self.system_options_override = spec.system_options_override
         self.entry_point_option = spec.entry_point_option
