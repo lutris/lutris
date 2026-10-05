@@ -490,9 +490,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         vbox.pack_start(menu_shortcut_button, False, False, 0)
 
         if steam_shortcut.vdf_file_exists():
+            installer_create_steam_shortcut = settings.read_bool_setting("installer_create_steam_shortcut", False)
             steam_shortcut_button = Gtk.CheckButton(_("Create Steam shortcut"), visible=True)
-            steam_shortcut_button.set_active(settings.read_bool_setting("installer_create_steam_shortcut", False))
+            steam_shortcut_button.set_active(installer_create_steam_shortcut)
             steam_shortcut_button.connect("clicked", self.on_create_steam_shortcut_clicked)
+            self.config["create_steam_shortcut"] = installer_create_steam_shortcut
             vbox.pack_start(steam_shortcut_button, False, False, 0)
         return vbox
 
