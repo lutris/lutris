@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.config import LutrisConfig, make_game_config_id, rename_config
+from lutris.config import LutrisConfig, find_option, make_game_config_id, rename_config
 from lutris.game import Game
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
 from lutris.gui.config.boxes import GameBox, RunnerBox, SystemConfigBox
@@ -383,9 +383,12 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         invalid_fields = []
         runner_class = import_runner(self.runner_name)
         runner_instance = runner_class()
-        for config in ["game", "runner"]:
-            for k, v in getattr(self.lutris_config, config + "_config").items():
-                option = runner_instance.find_option(config + "_options", k)
+        for config_values, options in [
+            (self.lutris_config.game_config, runner_instance.game_options),
+            (self.lutris_config.runner_config, runner_instance.runner_options),
+        ]:
+            for k, v in config_values.items():
+                option = find_option(options, k)
                 if option is None:
                     continue
                 validator = option.get("validator")
