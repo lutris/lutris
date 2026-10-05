@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 def set_regedit(
     path,
     key,
-    value="",
+    value,
     type="REG_SZ",  # pylint: disable=redefined-builtin
     wine_path=None,
     prefix=None,
@@ -48,13 +48,18 @@ def set_regedit(
 
     Path is something like HKEY_CURRENT_USER/Software/Wine/Direct3D
     """
-    formatted_value = {
-        "REG_SZ": '"%s"' % value,
-        "REG_DWORD": "dword:" + value,
-        "REG_BINARY": "hex:" + value.replace(" ", ","),
-        "REG_MULTI_SZ": "hex(2):" + value,
-        "REG_EXPAND_SZ": "hex(7):" + value,
-    }
+    # we don't care about the value type when nulling, so just ignore it
+    if value is None:
+        logger.debug("value is Null, using - for value deletion.")
+        formatted_value = {type: "-"}
+    else:
+        formatted_value = {
+            "REG_SZ": '"%s"' % value,
+            "REG_DWORD": "dword:" + value,
+            "REG_BINARY": "hex:" + value.replace(" ", ","),
+            "REG_MULTI_SZ": "hex(2):" + value,
+            "REG_EXPAND_SZ": "hex(7):" + value,
+        }
     # Make temporary reg file
     reg_path = os.path.join(settings.CACHE_DIR, "winekeys.reg")
     with open(reg_path, "w", encoding="utf-8") as reg_file:
