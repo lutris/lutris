@@ -84,7 +84,7 @@ def is_steam_game(game: "Game") -> bool:
     return game.runner_name == "steam"
 
 
-def create_shortcut(game: "Game", launch_config_name: str, standalone: bool = False) -> None:
+def create_shortcut(game: "Game", launch_config_name: str | None = None, standalone: bool = False) -> None:
     if is_steam_game(game):
         logger.warning("Not updating shortcut for Steam game")
         return None
@@ -141,7 +141,7 @@ def generate_shortcut_id(game: "Game") -> int:
     return (generate_preliminary_id(game) >> 32) - 0x100000000
 
 
-def generate_shortcut(game: "Game", launch_config_name: str) -> SteamShortcut:
+def generate_shortcut(game: "Game", launch_config_name: str | None) -> SteamShortcut:
     lutris_binary = "lutris"
 
     launch_options = format_installer_url(
@@ -170,7 +170,7 @@ def generate_shortcut(game: "Game", launch_config_name: str) -> SteamShortcut:
     }
 
 
-def generate_standalone_shortcut(game: "Game", launch_config_name: str) -> SteamShortcut:
+def generate_standalone_shortcut(game: "Game", launch_config_name: str | None) -> SteamShortcut:
     lutris_binary = shutil.which("lutris")
 
     launch_options = format_installer_url(

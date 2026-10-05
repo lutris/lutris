@@ -708,17 +708,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         elif uninstall_callback:
             uninstall_callback()
 
-    def find_option(self, options_group: str, option_name: str) -> Any:
-        """Retrieve an option dict if it exists in the group"""
-        if options_group not in ["game_options", "runner_options"]:
-            return None
-        output = None
-        for item in getattr(self, options_group):
-            if item["option"] == option_name:
-                output = item
-                break
-        return output
-
     def force_stop_game(self, game_pids: Iterable[int]) -> None:
         """Stop the running game. If this leaves any game processes running,
         the caller will SIGKILL them (after a delay)."""
