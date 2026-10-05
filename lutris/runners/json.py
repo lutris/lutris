@@ -4,11 +4,11 @@ import json
 import os
 import shlex
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any
 
 from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
-from lutris.runners.runner import Runner
+from lutris.runners.runner import Runner, RunnerOptionDict
 from lutris.util import datapath, system
 
 JSON_RUNNER_DIRS = [
@@ -19,17 +19,20 @@ JSON_RUNNER_DIRS = [
 
 @dataclass(frozen=True)
 class JsonRunnerSpec:
-    game_options: list
-    runner_options: list
+    game_options: list[RunnerOptionDict]
+    runner_options: list[RunnerOptionDict]
+    runner_name: str
     human_name: str
     description: str
-    platforms: list
+    platform_dict: dict[str, str]
     runner_executable: str
-    system_options_override: list
+    system_options_override: list[RunnerOptionDict]
     entry_point_option: str
-    download_url: Optional[str]
-    runnable_alone: Optional[bool]
-    flatpak_id: Optional[str]
+    download_url: str | None
+    runnable_alone: bool | None
+    flatpak_id: str | None
+    env: dict[str, str]
+    working_dir: str | None
 
 
 _REQUIRED_KEYS = {
@@ -39,6 +42,16 @@ _REQUIRED_KEYS = {
     "platforms",
     "runner_executable",
 }
+
+
+def _to_platform_dict(path: str, platforms: Any) -> dict[str, str]:
+    """Reads the 'platforms' key, which can be a list of Lutris platform names, or a
+    dict mapping each Lutris platform name onto the code the runner uses for it."""
+    if isinstance(platforms, dict):
+        return {str(name): str(code) for name, code in platforms.items()}
+    if isinstance(platforms, list):
+        return Runner.to_platform_dict([str(name) for name in platforms])
+    raise ValueError(f"Invalid runner JSON {path}: 'platforms' must be a list or a dict")
 
 
 def _load_and_validate_json(path: str) -> JsonRunnerSpec:
@@ -52,15 +65,18 @@ def _load_and_validate_json(path: str) -> JsonRunnerSpec:
     return JsonRunnerSpec(
         game_options=data["game_options"],
         runner_options=data.get("runner_options", []),
+        runner_name=data.get("name", ""),
         human_name=data["human_name"],
         description=data["description"],
-        platforms=data["platforms"],
+        platform_dict=_to_platform_dict(path, data["platforms"]),
         runner_executable=data["runner_executable"],
         system_options_override=data.get("system_options_override", []),
         entry_point_option=data.get("entry_point_option", "main_file"),
         download_url=data.get("download_url"),
         runnable_alone=data.get("runnable_alone"),
         flatpak_id=data.get("flatpak_id"),
+        env=data.get("env") or {},
+        working_dir=data.get("working_dir"),
     )
 
 
@@ -74,34 +90,19 @@ class JsonRunner(Runner):
         if not path:
             raise RuntimeError("Create subclasses of JsonRunner with the json_path attribute set")
 
-        data = self._json_cache.get(path)
-        if data is None:
-            with open(path, encoding="utf-8") as file:
-                data = json.load(file)
-            self._json_cache[path] = data
+        spec = self._json_cache.get(path)
+        if spec is None:
+            spec = _load_and_validate_json(path)
+            self._json_cache[path] = spec
 
-        self._json_data = data
-
-        spec = JsonRunnerSpec(
-            game_options=data["game_options"],
-            runner_options=data.get("runner_options", []),
-            human_name=data["human_name"],
-            description=data["description"],
-            platforms=data["platforms"],
-            runner_executable=data["runner_executable"],
-            system_options_override=data.get("system_options_override", []),
-            entry_point_option=data.get("entry_point_option", "main_file"),
-            download_url=data.get("download_url"),
-            runnable_alone=data.get("runnable_alone"),
-            flatpak_id=data.get("flatpak_id"),
-        )
         self.spec = spec
 
         self.game_options = spec.game_options
         self.runner_options = spec.runner_options
+        self.runner_name = spec.runner_name
         self.human_name = spec.human_name
         self.description = spec.description
-        self.platforms = spec.platforms
+        self.platform_dict = spec.platform_dict
         self.runner_executable = spec.runner_executable
         self.system_options_override = spec.system_options_override
         self.entry_point_option = spec.entry_point_option
@@ -160,9 +161,9 @@ class JsonRunner(Runner):
 
         arguments.append(main_file)
         result = {"command": arguments}
-        if self._json_data.get("env"):
-            result["env"] = self._json_data["env"]
-        if self._json_data.get("working_dir") == "runner":
+        if self.spec.env:
+            result["env"] = dict(self.spec.env)
+        if self.spec.working_dir == "runner":
             result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable_path))
         return result
 
