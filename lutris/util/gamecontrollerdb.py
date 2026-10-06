@@ -48,7 +48,10 @@ class ControllerMapping:
         for key_map in key_maps:
             if not key_map:
                 continue
-            xinput_key, sdl_key = key_map.split(":")
+            if ":" not in key_map:
+                logger.warning("Ignoring malformed mapping entry %s for %s", key_map, self.name)
+                continue
+            xinput_key, sdl_key = key_map.split(":", 1)
             if xinput_key not in self.valid_keys:
                 logger.warning("Unrecognized key %s", xinput_key)
                 continue

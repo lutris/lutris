@@ -150,7 +150,7 @@ def _execute(
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
         return "", ""
     except subprocess.TimeoutExpired:
-        logger.error("Command %s after %s seconds", command, timeout)
+        logger.error("Command %s timed out after %s seconds", command, timeout)
         return "", ""
 
     if stderr_file is not None:

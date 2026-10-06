@@ -23,6 +23,8 @@ def _return_local_game_path(launch_id):
     installs_path = UBISOFT_REGISTRY_LAUNCHER_INSTALLS
     registry = WineRegistry()
     game_path = registry.query("HKEY_LOCAL_MACHINE" + installs_path + f"\\{launch_id}", "InstallDir")
+    if not game_path:
+        return None
     return os.path.normcase(os.path.normpath(game_path))
 
 

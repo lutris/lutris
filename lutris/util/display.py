@@ -352,6 +352,9 @@ def enable_compositing() -> None:
     """Re-enable compositing if the corresponding call to disable_compositing
     disabled it."""
 
+    if not _COMPOSITING_DISABLED_STACK:
+        logger.debug("enable_compositing() called without a matching disable_compositing()")
+        return
     compositing_disabled = _COMPOSITING_DISABLED_STACK.pop()
     if not compositing_disabled:
         return

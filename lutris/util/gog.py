@@ -13,6 +13,9 @@ def get_gog_game_path(target_path):
         logger.warning("No 'GOG Games' folder in %s", target_path)
         return None
     games = os.listdir(gog_game_path)
+    if not games:
+        logger.warning("No game found in %s", gog_game_path)
+        return None
     if len(games) > 1:
         logger.warning("More than 1 game found, this is currently unsupported")
     return os.path.join(gog_game_path, games[0])
