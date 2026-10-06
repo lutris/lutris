@@ -203,6 +203,8 @@ def get_gpu_info(card: str) -> dict[str, str]:
         logger.error("Unable to read driver information for card %s", card)
         return infos
     for line in content:
+        if "=" not in line:
+            continue
         key, value = line.split("=", 1)
         infos[key] = value.strip()
     return infos

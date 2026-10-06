@@ -161,14 +161,19 @@ class DLLManager:
         """
         return any(system.path_exists(os.path.join(self.path, arch, dll_name + ".dll")) for arch in self.archs.values())
 
-    def get_download_url(self):
+    def get_download_url(self) -> str | None:
         """Fetch the download URL from the JSON version file"""
         with open(self.versions_path, "r", encoding="utf-8") as version_file:
             releases = json.load(version_file)
         for release in releases:
-            if release["tag_name"] != self.version:
+            if release.get("tag_name") != self.version:
                 continue
-            return release["assets"][0]["browser_download_url"]
+            assets = release.get("assets") or []
+            if not assets:
+                logger.warning("No file to download for %s %s", self.human_name, self.version)
+                continue
+            return assets[0].get("browser_download_url")
+        return None
 
     def download(self):
         """Download component to the local cache; returns True if successful but False

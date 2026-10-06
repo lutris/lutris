@@ -242,10 +242,13 @@ def read_process_output(
         return error_result
 
 
-def get_md5_in_zip(filename: str) -> str:
+def get_md5_in_zip(filename: str) -> bool | str:
     """Return the md5 hash of a file in a zip"""
     with zipfile.ZipFile(filename, "r") as archive:
         files = archive.namelist()
+        if not files:
+            logger.warning("No file found in archive %s", filename)
+            return False
         if len(files) > 1:
             logger.warning("More than 1 file in archive %s, reading 1st one: %s", filename, files[0])
         with archive.open(files[0]) as file_in_zip:

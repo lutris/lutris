@@ -1,3 +1,4 @@
+import io
 import subprocess
 import unittest
 from unittest.mock import patch
@@ -29,6 +30,17 @@ GPU_INFOS = {
     "card0": {"DRIVER": "nvidia", "PCI_ID": "10DE:2684", "PCI_SUBSYS_ID": "", "PCI_SLOT_NAME": "0000:01:00.0"},
     "card1": {"DRIVER": "i915", "PCI_ID": "8086:A780", "PCI_SUBSYS_ID": "", "PCI_SLOT_NAME": "0000:00:02.0"},
 }
+
+VULKANINFO_WITH_STRAY_PROPERTY = """\
+Devices:
+========
+deviceName         = stray name
+GPU0:
+\tapiVersion         = 1.4.329
+\tvendorID           = 0x10de
+\tdeviceID           = 0x2684
+\tdeviceName         = NVIDIA GeForce RTX 4090
+"""
 
 
 def make_gpu(card):
@@ -75,3 +87,21 @@ class TestVulkaninfo(unittest.TestCase):
         self.assertEqual(nvidia.name, "lspci name")
         self.assertIsNone(nvidia.device_uuid)
         self.assertEqual(intel.name, "lspci name")
+
+    def test_ignores_properties_before_the_first_gpu(self, _lspci):
+        with patch.object(gpu.system, "read_process_output", return_value=VULKANINFO_WITH_STRAY_PROPERTY):
+            nvidia = make_gpu("card0")
+
+        self.assertEqual(nvidia.name, "NVIDIA GeForce RTX 4090")
+
+
+class TestGetGpuInfo(unittest.TestCase):
+    @patch("builtins.open", return_value=io.StringIO("DRIVER=nvidia\nmalformed line\n"))
+    def test_ignores_uevent_lines_without_a_separator(self, mock_open):
+        gpu_card = object.__new__(gpu.GPU)
+        gpu_card.card = "card0"
+
+        info = gpu_card.get_gpu_info()
+
+        self.assertEqual(info["DRIVER"], "nvidia")
+        self.assertEqual(info["PCI_ID"], "")
