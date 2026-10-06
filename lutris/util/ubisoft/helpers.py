@@ -55,11 +55,12 @@ def _read_status_from_state_file(game_path):
     try:
         if os.path.exists(os.path.join(game_path, "uplay_install.state")):
             with open(os.path.join(game_path, "uplay_install.state"), "rb") as f:
-                if f.read()[0] == 0x0A:
+                # The state file starts with a newline byte once the game is installed.
+                if f.read(1) == b"\x0a":
                     return INSTALLED
                 return NOT_INSTALLED
         return NOT_INSTALLED
-    except Exception as e:
+    except OSError as e:
         logger.warning("Issue reading install state file for %s: %s", game_path, repr(e))
         return NOT_INSTALLED
 

@@ -11,17 +11,21 @@ def _get_last_content_log(steam_data_dir: str) -> list[str]:
         return []
     path = os.path.join(steam_data_dir, "logs/content_log.txt")
     log = []
+    blank_lines = 0
     try:
         with open(path, "r", encoding="utf-8") as logfile:
-            line = logfile.readline()
-            while line:
-                # Strip old logs
-                if line == "\r\n" and logfile.readline() == "\r\n":
-                    log = []
-                    line = logfile.readline()
-                else:
-                    log.append(line)
-                    line = logfile.readline()
+            for line in logfile:
+                # Strip old logs: Steam separates each run from the previous one
+                # with an empty line, and a second empty line in a row starts a new
+                # block. We can't compare against "\r\n" here, since reading the
+                # file in text mode has already turned those into "\n".
+                if not line.strip():
+                    blank_lines += 1
+                    if blank_lines > 1:
+                        log = []
+                    continue
+                blank_lines = 0
+                log.append(line)
     except IOError:
         return []
     return log

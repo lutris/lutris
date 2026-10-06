@@ -1,4 +1,5 @@
 import os
+import tempfile
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -37,3 +38,52 @@ class TestGetLocalGamePath(TestCase):
             game_path = helpers.get_local_game_path("HKEY_LOCAL_MACHINE\\Software\\Ubisoft", "1234")
 
         self.assertEqual(game_path, "D:/Ubisoft Game")
+
+
+class TestReadStatusFromStateFile(TestCase):
+    def _game_path(self, content):
+        """Return a game directory holding a uplay_install.state file; no file
+        is created when content is None."""
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        if content is not None:
+            with open(os.path.join(temp_dir.name, "uplay_install.state"), "wb") as state_file:
+                state_file.write(content)
+        return temp_dir.name
+
+    def test_installed_when_the_state_file_starts_with_a_newline_byte(self):
+        game_path = self._game_path(b"\n\x01\x00")
+
+        self.assertEqual(helpers._read_status_from_state_file(game_path), helpers.INSTALLED)
+
+    def test_not_installed_when_the_state_file_has_no_newline_byte(self):
+        game_path = self._game_path(b"\x01\x00")
+
+        self.assertEqual(helpers._read_status_from_state_file(game_path), helpers.NOT_INSTALLED)
+
+    def test_not_installed_and_silent_when_the_state_file_is_empty(self):
+        game_path = self._game_path(b"")
+
+        with self.assertNoLogs(helpers.logger, level="WARNING"):
+            status = helpers._read_status_from_state_file(game_path)
+
+        self.assertEqual(status, helpers.NOT_INSTALLED)
+
+    def test_not_installed_and_silent_when_the_state_file_is_missing(self):
+        game_path = self._game_path(None)
+
+        with self.assertNoLogs(helpers.logger, level="WARNING"):
+            status = helpers._read_status_from_state_file(game_path)
+
+        self.assertEqual(status, helpers.NOT_INSTALLED)
+
+    def test_logs_a_warning_when_the_state_file_cannot_be_read(self):
+        game_path = self._game_path(b"\n")
+
+        with (
+            self.assertLogs(helpers.logger, level="WARNING"),
+            patch("builtins.open", side_effect=PermissionError("permission denied")),
+        ):
+            status = helpers._read_status_from_state_file(game_path)
+
+        self.assertEqual(status, helpers.NOT_INSTALLED)
