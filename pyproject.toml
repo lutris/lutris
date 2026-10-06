@@ -1,13 +1,16 @@
+[build-system]
+# setuptools >=77 is required for PEP 639 SPDX license strings, which is the
+# form used by `license = "GPL-3.0-or-later"` below.
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "lutris"
 version = "0.5.23"
 authors = [
     {name = "Mathieu Comandon", email = "strider@strycore.com"}
 ]
-description = """
-Lutris is a video game preservation platform that helps you install and play video games from all eras and from most gaming systems.
-By leveraging and combining existing emulators, engine re-implementations and compatibility layers, it gives you a central interface to launch all your games.
-"""
+description = "Video game preservation platform"
 readme = "README.rst"
 requires-python = ">=3.10"
 
@@ -36,6 +39,46 @@ Homepage = "https://lutris.net/"
 Repository = "https://github.com/lutris/lutris"
 Issues = "https://github.com/lutris/lutris/issues"
 
+[tool.setuptools]
+# `bin/lutris` is the runtime entry point. The meson build installs it too,
+# but setuptools must as well because the AppImage (utils/appimage) and the
+# RPM spec both install through setuptools.
+script-files = ["bin/lutris"]
+zip-safe = false
+# Explicit package list (rather than packages.find) on purpose: the
+# `retroarch` and `ubisoft` sub-packages below intentionally have no
+# `__init__.py`, so discovery-based tooling would silently skip them even
+# though the application imports their modules at runtime.
+packages = [
+    "lutris",
+    "lutris.database",
+    "lutris.gui",
+    "lutris.gui.config",
+    "lutris.gui.dialogs",
+    "lutris.gui.installer",
+    "lutris.gui.views",
+    "lutris.gui.widgets",
+    "lutris.installer",
+    "lutris.migrations",
+    "lutris.runners",
+    "lutris.runners.commands",
+    "lutris.scanners",
+    "lutris.services",
+    "lutris.util",
+    "lutris.util.amazon",
+    "lutris.util.battlenet",
+    "lutris.util.discord",
+    "lutris.util.dolphin",
+    "lutris.util.egs",
+    "lutris.util.graphics",
+    "lutris.util.mame",
+    "lutris.util.retroarch",
+    "lutris.util.steam",
+    "lutris.util.steam.vdf",
+    "lutris.util.ubisoft",
+    "lutris.util.wine",
+]
+
 [dependency-groups]
 dev = [
     "ruff==0.12.1",
@@ -45,6 +88,40 @@ dev = [
     "pygobject-stubs>=2.17.0"
 ]
 
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["A", "ARG", "B", "E", "F", "I", "W", "PERF", "RUF"]
+ignore = [
+    # Ignores that is not worth/too hard to fix
+    "RUF001", #  String contains ambiguous `！` (FULLWIDTH EXCLAMATION MARK). Did you mean `!` (EXCLAMATION MARK)? - used ,mostly on tests
+    "E402", # Module level import not at top of file - gtk stuff
+
+    # Ignores that should be fixed and removed
+    "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+    "PERF401", # Use a list comprehension to create a transformed list
+    "RUF100", # [*] Unused `noqa` directive (non-enabled: `C901`) - unused pylint/noqa directives that should be removed
+    "PERF203", # `try`-`except` within a loop incurs performance overhead
+    "RUF015", #  Prefer `next(...)` over single element slice - opinionated, but some cases could be changed
+    "PERF102",# When using only the values of a dict use the `values()` method
+    "RUF005", # Consider iterable unpacking instead of concatenation
+    "A003", # Class attribute `id` is shadowing a Python builtin
+    "B905", # `zip()` without an explicit `strict=` parameter
+    "ARG002", # Unused method argument: `mock_path_exists`
+    "E722", # Do not use bare `except`
+    "B904", # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+    "B008", # Do not perform function call `_try_import_moddb_library` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+    "ARG005", # Unused lambda argument: `e`
+    "ARG001", # Unused function argument: `args`
+    "PERF402", # Use `list` or `list.copy` to create a copy of a list
+    "A002", # Argument `type` is shadowing a Python builtin
+    "ARG004", # Unused static method argument: `x`
+    "B020", # Loop control variable `upstream_runners` overrides iterable it iterates
+]
+fixable = ["ALL"]
+unfixable = []
 
 [tool.mypy]
 python_version = "3.10"
