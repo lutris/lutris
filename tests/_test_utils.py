@@ -112,6 +112,16 @@ class TestStringUtils(TestCase):
         self.assertEqual(strings.parse_playtime("2h45"), 2.75)
         self.assertEqual(strings.parse_playtime("2:45"), 2.75)
 
+    def test_computer_size(self):
+        self.assertEqual(strings.computer_size("512 bytes"), 512)
+        self.assertEqual(strings.computer_size("1024"), 1024)
+        self.assertEqual(strings.computer_size("1 kb"), 1024)
+        self.assertEqual(strings.computer_size("1.5 kB"), 1536)
+        self.assertEqual(strings.computer_size("2 MB"), 2 * 1024**2)
+        self.assertEqual(strings.computer_size("1.14 GB"), int(1.14 * 1024**3))
+        self.assertEqual(strings.computer_size("0"), 0)
+        self.assertEqual(strings.computer_size("not a size"), 0)
+
 
 class TestVersionSort(TestCase):
     def test_parse_version(self):

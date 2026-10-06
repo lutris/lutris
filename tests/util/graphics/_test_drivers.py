@@ -229,8 +229,9 @@ class TestIsNvidia(unittest.TestCase):
     def test_success_on_current_machine(self):
         self.assertIsInstance(drivers.is_nvidia(), bool)
 
+    @patch("builtins.open", return_value=io.StringIO(""))
     @patch("os.path.exists", return_value=False)
-    def test_not_nvidia_by_directory(self, mock_exists):
+    def test_not_nvidia_by_directory(self, mock_exists, mock_open):
         self.assertFalse(drivers.is_nvidia())
 
     @patch("builtins.open", return_value=io.StringIO(""))
@@ -258,4 +259,15 @@ class TestIsNvidia(unittest.TestCase):
     @patch("builtins.open", side_effect=PermissionError())
     @patch("os.path.exists", side_effect=PermissionError())
     def test_is_nvidia_glxinfo(self, mock_exists, mock_open, mock_glxinfo):
+        self.assertTrue(drivers.is_nvidia())
+
+    @patch("builtins.open", return_value=io.StringIO(SAMPLE_PROC_MODULES))
+    @patch("os.path.exists", return_value=False)
+    def test_is_nvidia_proc_modules_when_proc_dir_missing(self, mock_exists, mock_open):
+        self.assertTrue(drivers.is_nvidia())
+
+    @patch.object(drivers, "GlxInfo", return_value=FAKE_GLXINFO_NVIDIA)
+    @patch("builtins.open", side_effect=PermissionError())
+    @patch("os.path.exists", return_value=False)
+    def test_is_nvidia_glxinfo_when_proc_dir_missing(self, mock_exists, mock_open, mock_glxinfo):
         self.assertTrue(drivers.is_nvidia())
