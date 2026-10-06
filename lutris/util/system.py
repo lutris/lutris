@@ -656,11 +656,8 @@ def create_symlink(source: str, destination: str) -> None:
 def reset_library_preloads() -> None:
     """Remove library preloads from environment"""
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
-        if os.environ.get(key):
-            try:
-                del os.environ[key]
-            except OSError:
-                logger.error("Failed to delete environment variable %s", key)
+        if os.environ.pop(key, None):
+            logger.debug("Removed %s from environment", key)
 
 
 def get_existing_parent(path: str) -> str | None:

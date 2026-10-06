@@ -79,5 +79,9 @@ class GameControllerDB:
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
-                guid, name, mapping = line.strip().split(",", 2)
+                try:
+                    guid, name, mapping = line.split(",", 2)
+                except ValueError:
+                    logger.warning("Ignoring malformed line in %s: %s", self.db_path, line)
+                    continue
                 self.controllers[guid] = ControllerMapping(guid, name, mapping)

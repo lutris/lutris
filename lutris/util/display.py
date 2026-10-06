@@ -319,18 +319,21 @@ def _run_command(*command: str, run_in_background: bool = False) -> subprocess.P
     are you lost little _run_command?
     """
     try:
-        if run_in_background:
-            command = " ".join(command)
+        if not run_in_background:
+            return subprocess.Popen(  # pylint: disable=consider-using-with
+                command,
+                stdin=subprocess.DEVNULL,
+                close_fds=True,
+            )
         return subprocess.Popen(  # pylint: disable=consider-using-with
-            command,
+            " ".join(command),
             stdin=subprocess.DEVNULL,
             close_fds=True,
-            shell=run_in_background,
-            start_new_session=run_in_background,
+            shell=True,
+            start_new_session=True,
         )
     except FileNotFoundError:
-        errorMessage = "FileNotFoundError when running command:", command
-        logger.error(errorMessage)
+        logger.error("FileNotFoundError when running command: %s", command)
 
     return None
 
