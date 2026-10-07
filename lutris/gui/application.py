@@ -32,6 +32,7 @@ from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.api import get_runners, parse_installer_url
+from lutris.controller import ControllerListener
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
@@ -104,6 +105,9 @@ class LutrisApplication(Gtk.Application):
 
         self.quit_on_game_exit = False
         self.style_manager = StyleManager()
+
+        # Setting up Controller Listener
+        self.controller_listener: ControllerListener | None = None
 
         if os.geteuid() == 0:
             NoticeDialog(_("Do not run Lutris as root."))
@@ -352,6 +356,14 @@ class LutrisApplication(Gtk.Application):
             self.window = LutrisWindow(application=self)
             screen = self.window.props.screen  # pylint: disable=no-member
             Gtk.StyleContext.add_provider_for_screen(screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
+        # Start the controller listener; it retries automatically if no device is connected
+        def show_button(name):
+            if self.window:
+                self.window.show_controller_input(name)
+
+        self.controller_listener = ControllerListener(show_button)
+        self.controller_listener.start()
 
     def start_runtime_updates(self) -> None:
         if os.environ.get("LUTRIS_SKIP_INIT"):
@@ -1113,6 +1125,12 @@ Also, check that the version specified is in the correct format.
 
     def do_shutdown(self) -> None:  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
+
+        # Close Controller Listener if it was started
+        if self.controller_listener:
+            self.controller_listener.stop()
+            self.controller_listener = None
+
         if self.window:
             selected_category = "%s:%s" % self.window.selected_category
             settings.write_setting("selected_category", selected_category)
