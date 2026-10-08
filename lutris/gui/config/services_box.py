@@ -5,7 +5,7 @@ from gi.repository import GObject, Gtk
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.widgets.scaled_image import ScaledImage
-from lutris.services import SERVICES
+from lutris.services import IN_GAMES_VIEW_SETTING_SUFFIX, SERVICES, is_service_in_games_view
 
 
 class ServicesBox(BaseConfigBox):
@@ -44,10 +44,10 @@ class ServicesBox(BaseConfigBox):
             height_request=32,
             visible=True,
         )
-        in_games_view_key = service_key + "_in_games_view"
+        in_games_view_key = service_key + IN_GAMES_VIEW_SETTING_SUFFIX
         service = SERVICES[service_key]
         is_active = settings.read_bool_setting(service_key, section="services")
-        is_in_games_view = settings.read_bool_setting(in_games_view_key, default=True, section="services")
+        is_in_games_view = is_service_in_games_view(service_key)
 
         icon = ScaledImage.get_runtime_icon_image(
             service.icon, service.id, scale_factor=self.get_scale_factor(), visible=True
