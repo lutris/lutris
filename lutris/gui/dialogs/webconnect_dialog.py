@@ -54,8 +54,9 @@ class WebConnectDialog(ModalDialog):
         )
         self.context.set_preferred_languages(webview_locales)
 
-        if "http_proxy" in os.environ:
-            proxy = WebKit2.NetworkProxySettings.new(os.environ["http_proxy"])
+        proxy_uri = os.environ.get("http_proxy")
+        if proxy_uri:
+            proxy = WebKit2.NetworkProxySettings.new(proxy_uri)
             self.context.set_network_proxy_settings(WebKit2.NetworkProxyMode.CUSTOM, proxy)
         WebKit2.CookieManager.set_persistent_storage(
             self.context.get_cookie_manager(),
