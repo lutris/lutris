@@ -3,6 +3,14 @@ import os
 from lutris.util.system import get_md5_hash
 
 
+def get_display_path(path):
+    """Collapse the home directory prefix to ~ for display."""
+    home = os.path.expanduser("~")
+    if path == home or path.startswith(home + "/"):
+        return "~" + path[len(home) :]
+    return path
+
+
 def get_folder_contents(target_directory: str, with_hash: bool = True) -> list:
     """Recursively iterate over a folder content and return its details"""
     folder_content = []
