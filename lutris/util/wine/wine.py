@@ -154,22 +154,15 @@ def list_lutris_wine_versions() -> list[str]:
 def get_installed_wine_versions() -> list[str]:
     """Return the list of Wine versions installed, with no duplicates and in
     the presentation order."""
-    versions: set[str] = {
-        GE_PROTON_LATEST,
-    }
-
-    for v in proton.list_proton_versions():
-        if v not in versions:
-            versions.add(v)
-
-    for v in list_lutris_wine_versions():
-        if v not in versions:
-            versions.add(v)
-
-    for v in list_system_wine_versions():
-        if v not in versions:
-            versions.add(v)
-
+    # A dict, unlike a set, removes duplicates while keeping the order
+    versions = dict.fromkeys(
+        [
+            GE_PROTON_LATEST,
+            *proton.list_proton_versions(),
+            *list_lutris_wine_versions(),
+            *list_system_wine_versions(),
+        ]
+    )
     return list(versions)
 
 

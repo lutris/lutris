@@ -162,7 +162,8 @@ def get_steam_library(steamid: str) -> list[dict[str, Any]]:
     json_data = response.json()
     response = json_data["response"]
     if not response:
-        logger.info("No games in response of %s", steam_games_url)
+        # Don't log the URL, it contains the Steam API key
+        logger.info("No games returned for SteamID %s, its game details may be private", steamid)
         return []
     if "games" in response:
         games: list[dict[str, Any]] = response["games"]
