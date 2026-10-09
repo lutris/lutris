@@ -7,7 +7,7 @@ from gi.repository import GObject, Gtk, Pango
 
 from lutris.gui.dialogs import display_error
 from lutris.util.download_cache import CacheState, create_cache_lock, update_cache_lock
-from lutris.util.downloader import BaseDownloader, SimpleDownloader
+from lutris.util.downloader import BaseDownloader, SimpleDownloader, TransferRateMeter
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe, human_size
@@ -64,9 +64,8 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.full_size = file_collection.full_size
         self.time_left = "00:00:00"
         self.time_left_check_time = 0
-        self.last_size = 0
         self.avg_speed = 0
-        self.speed_list = []
+        self.speed_meter = TransferRateMeter()
 
         # --- Concurrent download state ---
         # List of _ActiveDownload objects currently downloading.
@@ -386,21 +385,14 @@ class DownloadCollectionProgressBox(Gtk.Box):
 
     def update_speed_and_time(self):
         """Update time left and average speed using aggregate throughput."""
+        downloaded_size = self._aggregate_downloaded_size()
+        self.speed_meter.add_sample(downloaded_size)
         elapsed_time = get_time() - self.time_left_check_time
         if elapsed_time < 1:  # Minimum delay
             return
+        self.time_left_check_time = get_time()
 
-        downloaded_size = self._aggregate_downloaded_size()
-        elapsed_size = downloaded_size - self.last_size
-        self.last_size = downloaded_size
-
-        speed = elapsed_size / elapsed_time
-        # last 20 speeds
-        if len(self.speed_list) >= 20:
-            self.speed_list.pop(0)
-        self.speed_list.append(speed)
-
-        self.avg_speed = sum(self.speed_list) / len(self.speed_list)
+        self.avg_speed = self.speed_meter.rate
         if self.avg_speed == 0:
             self.time_left = "???"
             return
@@ -408,7 +400,6 @@ class DownloadCollectionProgressBox(Gtk.Box):
         average_time_left = (self.full_size - downloaded_size) / self.avg_speed
         minutes, seconds = divmod(average_time_left, 60)
         hours, minutes = divmod(minutes, 60)
-        self.time_left_check_time = get_time()
         self.time_left = "%d:%02d:%02d" % (hours, minutes, seconds)
 
     # ------------------------------------------------------------------

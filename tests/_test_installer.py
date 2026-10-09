@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import requests
 
+from lutris.database.games import add_game, delete_game, get_games, update_existing
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.installer.interpreter import ScriptInterpreter
@@ -178,3 +179,38 @@ class TestCreatesGameFolder(TestCase):
         interpreter = MockInterpreter(TEST_INSTALLER, None)
         installer = LutrisInstaller({**TEST_INSTALLER, "script": script}, interpreter, service=None, appid=None)
         self.assertFalse(installer.creates_game_folder)
+
+
+class _FakeService:
+    id = "gog"
+
+
+class TestReusesServiceLibraryEntry(TestCase):
+    """Installing a service game fills its library entry, even when lutris.net
+    now gives the game another slug than the one in the library."""
+
+    def setUp(self):
+        self.service_id = "2086050016%s" % id(self)
+        self.library_game_id = add_game(
+            name="SimCity 3000",
+            slug="simcity-3000",
+            service="gog",
+            service_id=self.service_id,
+            installed=0,
+        )
+
+    def tearDown(self):
+        for game in get_games(filters={"service": "gog", "service_id": self.service_id}):
+            delete_game(game["id"])
+
+    def get_installer(self):
+        installer = {**TEST_INSTALLER, "game_slug": "simcity-3000-unlimited", "slug": "simcity_3000"}
+        delegate = ScriptInterpreter.InterpreterUIDelegate(service=_FakeService(), appid=self.service_id)
+        return ScriptInterpreter(installer, delegate).installer
+
+    def test_install_reuses_uninstalled_library_entry(self):
+        self.assertEqual(self.get_installer().game_id, self.library_game_id)
+
+    def test_installed_library_entry_is_not_reused(self):
+        update_existing(id=self.library_game_id, installed=1)
+        self.assertIsNone(self.get_installer().game_id)
