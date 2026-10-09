@@ -3,6 +3,7 @@
 import unittest
 from unittest.mock import patch
 
+from lutris import settings
 from lutris.util import resources
 from lutris.util.steam import config as steam_config
 from lutris.util.steam import shortcut
@@ -71,3 +72,27 @@ class TestSteamUsers(unittest.TestCase):
     def test_a_missing_key_still_warns_by_default(self):
         with self.assertLogs("lutris.util.log", level="WARNING"):
             steam_config.get_config_value({"AccountName": "x"}, "nope")
+
+
+class _FakeResponse:
+    status_code = 200
+
+    def __init__(self, json_data):
+        self.json_data = json_data
+
+    def json(self):
+        return self.json_data
+
+
+class TestSteamLibrary(unittest.TestCase):
+    """Fetching the games owned by a Steam account"""
+
+    @patch.object(settings, "STEAM_API_KEY", "SECRETKEY")
+    def test_empty_response_does_not_log_the_api_key(self):
+        with patch.object(steam_config.requests, "get", return_value=_FakeResponse({"response": {}})):
+            with self.assertLogs("lutris.util.log", level="INFO") as logs:
+                games = steam_config.get_steam_library("76561197960287930")
+
+        self.assertEqual(games, [])
+        self.assertIn("76561197960287930", "\n".join(logs.output))
+        self.assertNotIn("SECRETKEY", "\n".join(logs.output))

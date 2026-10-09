@@ -1,8 +1,8 @@
 import abc
-import bisect
 import os
 import threading
 import time
+from collections import deque
 from collections.abc import Callable
 from typing import Any
 
@@ -23,6 +23,41 @@ get_time = time.monotonic
 # 512KB matches heroic-gogdl and provides good throughput
 # while keeping memory usage reasonable.
 DEFAULT_CHUNK_SIZE = 1024 * 512  # 512KB
+
+# Download speeds are measured over this many seconds of recent progress,
+# so the speed shown follows the connection without jumping at every burst.
+SPEED_WINDOW_SECONDS = 5
+
+
+class TransferRateMeter:
+    """Measures a transfer rate from the total bytes transferred so far, over a
+    sliding window of recent samples rather than from each sample alone."""
+
+    def __init__(self, window: float = SPEED_WINDOW_SECONDS) -> None:
+        self.window = window
+        self.samples: deque[tuple[float, int]] = deque()
+
+    def reset(self) -> None:
+        self.samples.clear()
+
+    def add_sample(self, transferred_size: int, now: float | None = None) -> None:
+        """Record the total bytes transferred at a point in time."""
+        now = get_time() if now is None else now
+        self.samples.append((now, transferred_size))
+        # Keep one sample older than the window, so the window stays covered
+        while len(self.samples) > 2 and now - self.samples[1][0] >= self.window:
+            self.samples.popleft()
+
+    @property
+    def rate(self) -> float:
+        """Bytes per second over the window, or 0 until there are two samples."""
+        if len(self.samples) < 2:
+            return 0
+        (oldest_time, oldest_size), (newest_time, newest_size) = self.samples[0], self.samples[-1]
+        elapsed_time = newest_time - oldest_time
+        if elapsed_time <= 0:
+            return 0
+        return max(newest_size - oldest_size, 0) / elapsed_time
 
 
 class DownloadStallError(Exception):
@@ -146,9 +181,7 @@ class BaseDownloader(abc.ABC):
         self.progress_percentage: float = 0
         self.average_speed = 0
         self.time_left: str = "00:00:00"  # Based on average speed
-        self.last_size: int = 0
-        self.last_check_time: float = 0.0
-        self.last_speeds = []
+        self.speed_meter = TransferRateMeter()
         self.speed_check_time = 0
         self.time_left_check_time = 0
         self.progress_event = threading.Event()
@@ -176,7 +209,7 @@ class BaseDownloader(abc.ABC):
         """Start the download on a background thread."""
         logger.debug("⬇ %s", self._log_name)
         self.state = self.DOWNLOADING
-        self.last_check_time = get_time()
+        self.speed_meter.reset()
         self._prepare_destination()
         self.thread = jobs.AsyncCall(self.async_download, None)
         self.stop_request = self.thread.stop_request
@@ -191,9 +224,7 @@ class BaseDownloader(abc.ABC):
         self.progress_percentage = 0
         self.average_speed = 0
         self.time_left = "00:00:00"  # Based on average speed
-        self.last_size = 0
-        self.last_check_time = 0.0
-        self.last_speeds = []
+        self.speed_meter.reset()
         self.speed_check_time = 0
         self.time_left_check_time = 0
 
@@ -299,43 +330,18 @@ class BaseDownloader(abc.ABC):
         """Calculate and store download stats."""
         self.average_speed = self.get_speed()
         self.time_left = self.get_average_time_left()
-        self.last_check_time = get_time()
-        self.last_size = self.downloaded_size
 
         if self.full_size:
             self.progress_fraction = float(self.downloaded_size) / float(self.full_size)
             self.progress_percentage = self.progress_fraction * 100
 
     def get_speed(self):
-        """Return the average speed of the download so far."""
-        elapsed_time = get_time() - self.last_check_time
-        if elapsed_time > 0:
-            chunk_size = self.downloaded_size - self.last_size
-            speed = chunk_size / elapsed_time or 1
-            # insert in sorted order, so we can omit the least and
-            # greatest value later
-            bisect.insort(self.last_speeds, speed)
-
-        # Until we get the first sample, just return our default
-        if not self.last_speeds:
-            return self.average_speed
-
+        """Return the download speed over the last few seconds."""
+        self.speed_meter.add_sample(self.downloaded_size)
         if get_time() - self.speed_check_time < 1:  # Minimum delay
             return self.average_speed
-
-        while len(self.last_speeds) > 20:
-            self.last_speeds.pop(0)
-
-        if len(self.last_speeds) > 7:
-            # Skip extreme values
-            samples = self.last_speeds[1:-1]
-        else:
-            samples = self.last_speeds[:]
-
-        average_speed = sum(samples) / len(samples)
-
         self.speed_check_time = get_time()
-        return average_speed
+        return self.speed_meter.rate
 
     def get_average_time_left(self) -> str:
         """Return average download time left as string."""
@@ -344,6 +350,9 @@ class BaseDownloader(abc.ABC):
 
         elapsed_time = get_time() - self.time_left_check_time
         if elapsed_time < 1:  # Minimum delay
+            return self.time_left
+
+        if not self.average_speed:
             return self.time_left
 
         average_time_left = (self.full_size - self.downloaded_size) / self.average_speed

@@ -16,6 +16,7 @@ from lutris.gui.widgets.download_collection_progress_box import (
     DownloadCollectionProgressBox,
     _ActiveDownload,
 )
+from lutris.util.downloader import TransferRateMeter
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
@@ -378,9 +379,8 @@ class TestProgress(TestCase):
         box.emit = MagicMock()
         box.time_left = "00:00:00"
         box.time_left_check_time = 0
-        box.last_size = 0
         box.avg_speed = 0
-        box.speed_list = []
+        box.speed_meter = TransferRateMeter()
         return box
 
     def test_returns_false_when_no_active(self):

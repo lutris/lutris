@@ -2,7 +2,6 @@
 
 import os
 import threading
-import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -595,7 +594,6 @@ class TestProgressTracking(TestCase):
         dl.full_size = 1000
         dl.downloaded_size = 500
         dl.state = dl.DOWNLOADING
-        dl.last_check_time = time.monotonic() - 1
 
         progress = dl.check_progress()
         assert 0.4 <= progress <= 0.6  # Approximately 50%
