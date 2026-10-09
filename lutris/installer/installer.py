@@ -10,7 +10,7 @@ import requests
 
 from lutris.api import get_game_details
 from lutris.config import LutrisConfig, write_game_config
-from lutris.database.games import add_or_update, get_game_by_field
+from lutris.database.games import add_or_update, get_game_by_field, get_games
 from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, ENTRY_POINT_KEYS
 from lutris.installer.errors import ScriptingError
@@ -127,6 +127,15 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         existing_game = get_game_by_field(self.game_slug, "slug")
         if existing_game and (self.extends or not existing_game["installed"]):
             return existing_game["id"]
+
+        # The library entry of a service game may have a different slug than the
+        # one lutris.net now gives that game; install into it rather than adding a
+        # second entry that leaves the library one uninstalled.
+        if self.service and self.service_appid:
+            for service_game in get_games(filters={"service": self.service.id, "service_id": self.service_appid}):
+                if not service_game["installed"]:
+                    return service_game["id"]
+        return None
 
     @property
     def creates_game_folder(self):
