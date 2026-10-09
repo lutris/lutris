@@ -719,5 +719,22 @@ class AmazonService(OnlineService):
             },
         }
 
+    def get_game_release_date(self, db_game: dict) -> str:
+        """Return game release date in YYYY-MM-DD format"""
+        details = db_game.get("details")
+        if details:
+            try:
+                product = json.loads(details).get("product", {})
+                product_details = product.get("productDetail", {})
+                details_data = product_details.get("details", {})
+                release_date = details_data.get("releaseDate")
+                if release_date is not None and isinstance(release_date, str):
+                    # Amazon returns ISO 8601 format: "2017-04-13T00:00:00Z"
+                    # Return as YYYY-MM-DD
+                    return release_date[:10]
+            except (KeyError, AttributeError):
+                pass
+        return ""
+
     def get_installed_runner_name(self, db_game):
         return self.runner
