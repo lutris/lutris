@@ -371,7 +371,7 @@ class DBusScreenSaverInhibitor:
     requires the Inhibit() and UnInhibit() methods to be exposed."""
 
     def __init__(self) -> None:
-        self.proxy = None
+        self.proxy: Any = None
         self._used_gtk_fallback = False
 
     def set_dbus_iface(self, name: str, path: str, interface: str, bus_type: Gio.BusType = Gio.BusType.SESSION) -> None:
@@ -454,10 +454,17 @@ def _get_suspend_inhibitor() -> DBusScreenSaverInhibitor:
     for name, path, interface in interfaces_to_try:
         try:
             inhibitor.set_dbus_iface(name, path, interface)
-            logger.debug("Using D-Bus screensaver interface: %s", name)
-            return inhibitor
         except GLib.Error as err:
             logger.debug("D-Bus interface %s not available: %s", name, err)
+            continue
+        # Creating a proxy succeeds even when no service owns the name, so
+        # only keep it if something is actually there to answer our calls.
+        if not inhibitor.proxy.get_name_owner():
+            logger.debug("D-Bus interface %s has no owner, skipping it", name)
+            inhibitor.proxy = None
+            continue
+        logger.debug("Using D-Bus screensaver interface: %s", name)
+        return inhibitor
 
     # No D-Bus interface available, will use GTK fallback
     return inhibitor
