@@ -13,12 +13,13 @@ from gi.repository import Gio, Gtk
 from lutris.config import duplicate_game_config
 from lutris.database import games
 from lutris.database.games import add_game, get_game_by_field
-from lutris.game import Game
+from lutris.database.services import ServiceGameCollection
+from lutris.game import GAME_UPDATED, Game
 from lutris.gui import dialogs
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
-from lutris.gui.dialogs import InputDialog
+from lutris.gui.dialogs import InputDialog, display_error
 from lutris.gui.dialogs.delegates import LaunchUIDelegate
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_dialog import UninstallDialog
@@ -520,6 +521,7 @@ class ServiceGameActions(GameActions):
 
     def get_game_actions(self) -> list[tuple[str | None, str, Callable[..., None] | None]]:
         return [
+            ("category", _("Categories"), self.on_edit_game_categories),
             ("install", _("Install"), self.on_install_clicked),
             ("add", _("Locate installed game"), self.on_locate_installed_game),
             ("view", _("View on Lutris.net"), self.on_view_game),
@@ -529,11 +531,46 @@ class ServiceGameActions(GameActions):
     def get_displayed_entries(self) -> dict[str, bool]:
         """Return a dictionary of actions that should be shown for a game"""
         return {
+            "category": True,
             "install": self.is_installable,
             "add": self.is_installable,
             "view": True,
             "view-store": bool(self.game.service and self._get_store_url(self.game)),
         }
+
+    def on_edit_game_categories(self, _widget: Gtk.Widget) -> None:
+        def on_game_shown(updated_id: str, error: Exception | None) -> None:
+            if error:
+                display_error(error, parent=self.window)
+                return
+
+            self.application.show_window(EditGameCategoriesDialog, game=Game(updated_id), parent=self.window)
+
+        AsyncCall(self.show_in_games, on_game_shown, self.game)
+
+    def show_in_games(self, game: Game) -> str:
+        if game.is_db_stored:
+            return game.id
+
+        existing = get_game_by_field(game.slug, field="slug")
+        if existing:
+            if existing.get("service") and existing.get("service_id"):
+                if existing["service"] == game.service and existing["service_id"] == game.appid:
+                    return existing["id"]
+
+                service_name = SERVICES[existing["service"]].name
+                raise RuntimeError(_("The game '%s' is already linked to the %s service.") % (game.name, service_name))
+
+            # Link to an existing Lutris game without changing its current setup.
+            ServiceGameCollection.link_lutris_game(game.service, game.appid, existing["id"])
+            ServiceGameCollection.link_service_game(game.service, game.appid, game.slug)
+            GAME_UPDATED.fire(game)
+            download_lutris_media(game.slug)
+            return existing["id"]
+
+        game.save()
+        download_lutris_media(game.slug)
+        return game.id
 
 
 def get_game_actions(

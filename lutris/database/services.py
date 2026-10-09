@@ -42,3 +42,23 @@ class ServiceGameCollection:
         if len(results) > 1:
             logger.warning("More than one game found for %s on %s", appid, service)
         return results[0]
+
+    @classmethod
+    def link_service_game(cls, service: str, appid: str, lutris_slug: str) -> None:
+        """Update a service game to point to a Lutris game slug."""
+        sql.db_update(
+            settings.DB_PATH,
+            "service_games",
+            {"lutris_slug": lutris_slug},
+            conditions={"appid": appid, "service": service},
+        )
+
+    @classmethod
+    def link_lutris_game(cls, service: str, appid: str, lutris_game_id: str) -> None:
+        """Update a Lutris game to point to a service game."""
+        sql.db_update(
+            settings.DB_PATH,
+            "games",
+            {"service": service, "service_id": appid},
+            conditions={"id": lutris_game_id},
+        )
