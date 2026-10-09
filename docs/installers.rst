@@ -499,7 +499,7 @@ If the drives are not required after the installation finishes, make sure to cle
 up after yourself by removing the CD directory (automatically done if you're using
 a ``$CACHE`` directory) and the registry keys::
 
-    - execute
+    - execute:
         command: rm -rf "$GAMEDIR/CD_CONTENT_DIRECTORY"
     - task:
         name: delete_registry_key
