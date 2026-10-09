@@ -23,7 +23,7 @@ class InstallerFileBox(Gtk.VBox):
         "file-unready": (GObject.SIGNAL_RUN_FIRST, None, ()),
     }
 
-    def __init__(self, installer_file):
+    def __init__(self, installer_file, use_cached_file=True):
         super().__init__()
         self.installer_file = installer_file
         self.cache_to_pga = self.installer_file.uses_pga_cache()
@@ -34,6 +34,8 @@ class InstallerFileBox(Gtk.VBox):
         self.set_margin_left(12)
         self.set_margin_right(12)
         self.provider = self.installer_file.default_provider
+        if not use_cached_file and self.provider == "pga" and "download" in self.installer_file.providers:
+            self.provider = "download"
         self.file_provider_widget = None
         self.add(self.get_widgets())
 

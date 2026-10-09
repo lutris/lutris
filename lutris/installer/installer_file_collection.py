@@ -156,14 +156,25 @@ class InstallerFileCollection:
     @property
     def is_cached(self):
         """Are the files available in the local PGA cache?"""
-        if self.uses_pga_cache():
-            # check if every file is in cache, without checking
-            # uses_pga_cache() on each.
-            for installer_file in self.files_list:
-                if not system.path_exists(installer_file.dest_file):
-                    return False
-            return True
-        return False
+        for installer_file in self.files_list:
+            if not system.path_exists(installer_file.dest_file):
+                return False
+        return True
+
+    @property
+    def has_valid_cache(self):
+        """Are all cached files present and compatible with known metadata?"""
+        for installer_file in self.files_list:
+            if not installer_file.has_valid_cache:
+                return False
+        if self.full_size:
+            try:
+                cached_size = sum(system.get_disk_size(installer_file.dest_file) for installer_file in self.files_list)
+            except OSError:
+                return False
+            if cached_size != self.full_size:
+                return False
+        return True
 
     def save_to_cache(self):
         """Copy the files into the PGA cache."""
