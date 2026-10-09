@@ -22,6 +22,21 @@ class InstallerScriptBox(Gtk.VBox):
         self.add(box)
         self.add(self.get_revealer(revealed))
 
+    @property
+    def is_not_playable(self):
+        """True if lutris.net knows this installer doesn't result in a working game,
+        as with games using kernel level anticheat. None means it isn't known."""
+        return self.script.get("is_playable") is False
+
+    @staticmethod
+    def get_not_playable_label():
+        label = InstallerLabel(_("Not playable"))
+        label.set_tooltip_text(_("This installer is known not to work, for example because the game uses anticheat."))
+        style_context = label.get_style_context()
+        style_context.add_class("info-pill")
+        style_context.add_class("info-pill-warning")
+        return label
+
     def get_rating(self):
         """Return a string representation of the API rating"""
         return ""
@@ -33,6 +48,8 @@ class InstallerScriptBox(Gtk.VBox):
         runner_label = InstallerLabel("%s" % self.script["runner"])
         runner_label.get_style_context().add_class("info-pill")
         title_box.pack_start(runner_label, False, False, 0)
+        if self.is_not_playable:
+            title_box.pack_start(self.get_not_playable_label(), False, False, 0)
         title_box.add(InstallerLabel("<b>%s</b>" % gtk_safe(self.script["version"]), selectable=True))
         title_box.pack_start(InstallerLabel(""), True, True, 0)
         rating_label = InstallerLabel(self.get_rating(), selectable=True)
@@ -61,8 +78,8 @@ class InstallerScriptBox(Gtk.VBox):
 
         install_button = Gtk.Button(_("Install"))
         install_button.connect("clicked", self.on_install_clicked)
-        style_context = install_button.get_style_context()
-        style_context.add_class("suggested-action")
+        if not self.is_not_playable:
+            install_button.get_style_context().add_class("suggested-action")
         align.add(install_button)
         return align
 
