@@ -77,6 +77,31 @@ class TestReadLibraryFolders(TestCase):
 
         self.assertIn("0", library_folders)
 
+    def test_returns_none_when_libraryfolders_is_not_a_dictionary(self):
+        with tempfile.TemporaryDirectory() as steam_dir:
+            self._write_library_folders(steam_dir, '"libraryfolders"\t\t"4567"\n')
+
+            self.assertIsNone(config.read_library_folders(steam_dir))
+
+    def test_drops_contentstatsid_regardless_of_the_key_case(self):
+        content = (
+            '"LibraryFolders"\n'
+            "{\n"
+            '\t"contentstatsid"\t\t"5678"\n'
+            '\t"0"\n'
+            "\t{\n"
+            '\t\t"path"\t\t"/home/user/.local/share/Steam"\n'
+            "\t}\n"
+            "}\n"
+        )
+        with tempfile.TemporaryDirectory() as steam_dir:
+            self._write_library_folders(steam_dir, content)
+
+            library_folders = config.read_library_folders(steam_dir)
+
+        self.assertIn("0", library_folders)
+        self.assertNotIn("contentstatsid", library_folders)
+
 
 class TestGetSteamappsDirs(TestCase):
     def _get_steamapps_dirs(self, library_config):
@@ -107,3 +132,7 @@ class TestGetSteamappsDirs(TestCase):
             steamapps_dirs = self._get_steamapps_dirs({"0": {"path": steam_dir, "mounted": "0"}})
 
         self.assertEqual(steamapps_dirs, [])
+
+    def test_ignores_library_entries_that_are_not_dicts(self):
+        # Old-format libraryfolders.vdf mixes plain string values with library entries.
+        self.assertEqual(self._get_steamapps_dirs({"TimeNextStatsReport": "1234", "1": "/media/games"}), [])
