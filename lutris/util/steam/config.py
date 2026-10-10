@@ -209,7 +209,7 @@ def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
                 if len(path) <= 1:
                     return value
                 return get_entry_case_insensitive(library_dict[key], path[1:])
-            raise KeyError(path[0])
+        raise KeyError(path[0])
 
     if not steam_data_dir:
         return None
@@ -218,13 +218,19 @@ def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
         return None
     with open(library_filename, "r", encoding="utf-8") as steam_library_file:
         library = vdf_parse(steam_library_file, {})
-        # The contentstatsid key is unused and causes problems when looking for library paths.
-        library["libraryfolders"].pop("contentstatsid", None)
     try:
-        return dict(get_entry_case_insensitive(library, ["libraryfolders"]))
+        library_folders = get_entry_case_insensitive(library, ["libraryfolders"])
     except KeyError as ex:
         logger.error("Steam libraryfolders %s is empty: %s", library_filename, ex)
         return None
+    if not isinstance(library_folders, dict):
+        logger.error(
+            "Steam libraryfolders %s is not a dictionary: %s", library_filename, type(library_folders).__name__
+        )
+        return None
+    # The contentstatsid key is unused and causes problems when looking for library paths.
+    library_folders.pop("contentstatsid", None)
+    return library_folders
 
 
 def get_steam_config() -> dict[str, Any] | None:
@@ -267,12 +273,16 @@ def get_steamapps_dirs() -> Iterable[str]:
     if library_config:
         paths = []
         for entry in library_config.values():
+            if not isinstance(entry, dict):
+                # Old-format libraryfolders.vdf lists libraries as plain strings.
+                continue
+            path = entry.get("path")
             if "mounted" in entry:
-                if entry.get("path") and entry.get("mounted") == "1":
-                    path = system.fix_path_case(entry.get("path") + "/steamapps")
+                if path and entry.get("mounted") == "1":
+                    path = system.fix_path_case(path + "/steamapps")
                     paths.append(path)
-            else:
-                path = system.fix_path_case(entry.get("path") + "/steamapps")
+            elif path:
+                path = system.fix_path_case(path + "/steamapps")
                 paths.append(path)
         for path in paths:
             if path and os.path.isdir(path):
