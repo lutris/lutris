@@ -36,6 +36,15 @@ class TestGetControllerMappings(TestCase):
         ):
             self.assertEqual(joypad.get_controller_mappings(), [])
 
+    def test_returns_nothing_when_the_controller_database_is_corrupt(self):
+        error = UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
+
+        with (
+            patch.object(joypad, "get_devices", return_value=[self._device()]),
+            patch.object(joypad, "GameControllerDB", side_effect=error),
+        ):
+            self.assertEqual(joypad.get_controller_mappings(), [])
+
     def test_returns_the_mapping_of_a_known_device(self):
         device = self._device()
         guid = joypad.get_sdl_identifier(device.info)

@@ -43,13 +43,30 @@ class TestFileUtils(TestCase):
 
             self.assertEqual(system.get_md5_in_zip(archive_path), hashlib.md5(b"file content").hexdigest())
 
+    def test_md5_of_a_zip_whose_first_entry_is_a_directory(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            archive_path = os.path.join(temp_dir, "roms.zip")
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("roms/", b"")
+                archive.writestr("roms/game.rom", b"file content")
+
+            self.assertEqual(system.get_md5_in_zip(archive_path), hashlib.md5(b"file content").hexdigest())
+
     def test_md5_of_an_empty_zip_file_is_unknown(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             archive_path = os.path.join(temp_dir, "empty.zip")
             with zipfile.ZipFile(archive_path, "w"):
                 pass
 
-            self.assertFalse(system.get_md5_in_zip(archive_path))
+            self.assertIsNone(system.get_md5_in_zip(archive_path))
+
+    def test_md5_of_a_zip_holding_only_directories_is_unknown(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            archive_path = os.path.join(temp_dir, "directories.zip")
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("roms/", b"")
+
+            self.assertIsNone(system.get_md5_in_zip(archive_path))
 
 
 class TestSteamUtils(TestCase):

@@ -67,7 +67,7 @@ def get_controller_mappings():
 
     try:
         controller_db = GameControllerDB()
-    except OSError as ex:
+    except (OSError, ValueError) as ex:
         logger.warning("Unable to read the controller mappings database: %s", ex)
         return []
 
