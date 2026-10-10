@@ -32,7 +32,6 @@ SYSTEM_COMPONENTS = {
         "fuser",
         "glxinfo",
         "vulkaninfo",
-        "fuser",
         "7z",
         "gtk-update-icon-cache",
         "lspci",
@@ -41,7 +40,6 @@ SYSTEM_COMPONENTS = {
     "OPTIONAL_COMMANDS": [
         "fluidsynth",
         "nvidia-smi",
-        "fluidsynth",
     ],
     "TERMINALS": [
         "xterm",
@@ -117,7 +115,13 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     required_components = ["OPENGL", "VULKAN", "GNUTLS"]
     optional_components = ["WINE", "GAMEMODE"]
 
-    _glxinfo_unset = object()
+    # Defaults for the lazy caches read by the properties below. `_glxinfo_unset`
+    # is the "not loaded yet" marker, so a cached `None` can mean "no glxinfo".
+    # They are class attributes so the properties also work on instances built
+    # with __new__() instead of __init__(), which is what the tests do.
+    _glxinfo_unset: object = object()
+    _glxinfo: object = _glxinfo_unset
+    _shared_libraries: dict[str, list["SharedLibrary"]] | None = None
 
     def __init__(self) -> None:
         for key in ("COMMANDS", "OPTIONAL_COMMANDS", "TERMINALS"):
@@ -137,13 +141,11 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         self.populate_sound_fonts()
         self.soft_limit, self.hard_limit = self.get_file_limits()
 
-        # Expensive fields are lazy; see properties below.
-        self._shared_libraries: dict[str, list[SharedLibrary]] | None = None
-        self._glxinfo: GlxInfo | object | None = self._glxinfo_unset
-
     @property
     def shared_libraries(self) -> dict[str, list["SharedLibrary"]]:
         if self._shared_libraries is None:
+            # Assign the result before populating: populate_libraries() reads the
+            # cache back through this property, so this avoids infinite recursion.
             self._shared_libraries = self.get_shared_libraries()
             self.populate_libraries()
         return self._shared_libraries
@@ -197,7 +199,12 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         findmnt_output = system.read_process_output(["findmnt", "-J", "--list"])
         if not findmnt_output:
             return []
-        return [drive for drive in json.loads(findmnt_output)["filesystems"] if drive["fstype"] != "squashfs"]
+        try:
+            filesystems = json.loads(findmnt_output).get("filesystems", [])
+        except json.JSONDecodeError as ex:
+            logger.exception("Unable to parse findmnt output: %s", ex)
+            return []
+        return [drive for drive in filesystems if drive.get("fstype") not in (None, "squashfs")]
 
     @staticmethod
     def _iter_filesystems(devices: list[dict[str, Any]]) -> Iterator[dict[str, Any]]:
@@ -328,7 +335,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
         for device in self._iter_filesystems(self.get_drives()):
             target = device.get("target")
-            if not target:
+            if not target or not device.get("fstype"):
                 continue
 
             mount_point = os.path.realpath(os.path.expanduser(target))
@@ -414,8 +421,11 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         if is_exherbo_with_cross_i686():
             ld_cmd = [ldconfig, "-C", "/etc/ld-i686-pc-linux-gnu.cache", "-p"]
 
-        output = system.read_process_output(ld_cmd).split("\n")
-        return [line.strip("\t") for line in output if line.startswith("\t")]
+        output = system.read_process_output(ld_cmd)
+        if not output:
+            logger.warning("ldconfig did not return any output")
+            return []
+        return [line.strip("\t") for line in output.split("\n") if line.startswith("\t")]
 
     def get_shared_libraries(self) -> dict[str, list["SharedLibrary"]]:
         """Loads all available libraries on the system as SharedLibrary instances
@@ -445,31 +455,33 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     def populate_sound_fonts(self) -> None:
         """Populates the soundfont cache"""
-        self._cache["SOUNDFONTS"] = []
+        soundfonts: list[str] = []
         for folder in self.soundfont_folders:
-            if not os.path.exists(folder):
-                continue
-            for soundfont in os.listdir(folder):
-                self._cache["SOUNDFONTS"].append(soundfont)
+            try:
+                soundfonts.extend(os.listdir(folder))
+            except OSError as ex:
+                logger.debug("Could not read soundfont folder %s: %s", folder, ex)
+        self._cache["SOUNDFONTS"] = soundfonts
 
     def get_missing_requirement_libs(self, req: str) -> list[list[str]]:
-        """Return a list of sets of missing libraries for each supported architecture"""
+        """Return, for each supported architecture, the libraries required by `req`
+        that are missing from the system.
+        """
         _ = self.shared_libraries  # ensure LIBRARIES cache is populated
+        libraries = self._cache["LIBRARIES"]
         required_libs = set(SYSTEM_COMPONENTS["LIBRARIES"][req])  # type: ignore
-        return [list(required_libs - set(self._cache["LIBRARIES"][arch][req])) for arch in self.runtime_architectures]
+        return [list(required_libs - set(libraries[arch][req])) for arch in self.runtime_architectures]
 
     def get_missing_libs(self) -> dict[str, list[list[str]]]:
         """Return a dictionary of missing libraries"""
         return {req: self.get_missing_requirement_libs(req) for req in self.requirements}
 
     def get_missing_lib_arch(self, requirement: str) -> list[str]:
-        """Returns a list of architectures that are missing a library for a specific
-        requirement."""
-        missing_arch = []
-        for index, arch in enumerate(self.runtime_architectures):
-            if self.get_missing_requirement_libs(requirement)[index]:
-                missing_arch.append(arch)
-        return missing_arch
+        """Return the architectures that are missing at least one library required
+        by `requirement`.
+        """
+        missing_by_arch = self.get_missing_requirement_libs(requirement)
+        return [arch for arch, missing in zip(self.runtime_architectures, missing_by_arch) if missing]
 
     def is_feature_supported(self, feature: str) -> bool:
         """Return whether the system has the necessary libs to support a feature"""
@@ -477,7 +489,8 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
             try:
                 mesa_version = cast(str, LINUX_SYSTEM.glxinfo.GLX_MESA_query_renderer.version)  # type: ignore
                 return mesa_version >= "19.3"
-            except AttributeError:
+            except (AttributeError, TypeError) as ex:
+                logger.debug("Unable to determine Mesa version for ACO support: %s", ex)
                 return False
         return not self.get_missing_requirement_libs(feature)[0]
 
