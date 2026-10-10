@@ -162,8 +162,7 @@ def is_nvidia() -> bool:
     """
 
     try:
-        if os.path.exists("/proc/driver/nvidia"):
-            return True
+        return os.path.exists("/proc/driver/nvidia")
     except OSError:
         logger.info("Could not determine whether /proc/driver/nvidia exists. Falling back to alternative method")
     try:
