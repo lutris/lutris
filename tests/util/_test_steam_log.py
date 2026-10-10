@@ -38,6 +38,11 @@ class TestGetLastContentLog(TestCase):
 
         self.assertEqual(log._get_last_content_log(steam_dir), _lines(NEW_RUN))
 
+    def test_returns_latest_run_when_the_file_ends_with_a_separator(self):
+        steam_dir = self._steam_dir(OLD_RUN + RUN_SEPARATOR + NEW_RUN + RUN_SEPARATOR)
+
+        self.assertEqual(log._get_last_content_log(steam_dir), _lines(NEW_RUN))
+
     def test_returns_whole_file_when_there_is_no_separator(self):
         steam_dir = self._steam_dir(OLD_RUN)
 
