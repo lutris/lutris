@@ -12,6 +12,17 @@ from lutris.util.download_progress import DownloadProgress
 from lutris.util.gog_downloader import GOGDownloader
 
 
+def response_mock(**attrs):
+    """A stand-in for a streaming requests.Response.
+
+    The downloader consumes responses with ``with``, so ``__enter__`` has to hand
+    back the same object the test configured rather than a fresh auto-mock.
+    """
+    response = MagicMock(**attrs)
+    response.__enter__.return_value = response
+    return response
+
+
 class TestWriteQueue(TestCase):
     """Test the pipelining write queue setup."""
 
@@ -187,7 +198,7 @@ class TestGOGDownloaderStallDetection(TestCase):
 
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
             call_count[0] += 1
-            mock_response = MagicMock()
+            mock_response = response_mock()
             mock_response.status_code = 206
 
             if call_count[0] == 1:
@@ -244,7 +255,7 @@ class TestPipelinedDownloadEndToEnd(TestCase):
 
         # Mock the parallel session for range requests
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
-            response = MagicMock()
+            response = response_mock()
             response.status_code = 206
 
             # Parse the Range header to determine what data to return
@@ -293,7 +304,7 @@ class TestPipelinedDownloadEndToEnd(TestCase):
         mock_probe.return_value = ("https://cdn.gog.com/small.bin", file_size, True)
 
         # Mock single-stream response
-        response = MagicMock()
+        response = response_mock()
         response.status_code = 200
         response.headers = {"Content-Length": str(file_size)}
 

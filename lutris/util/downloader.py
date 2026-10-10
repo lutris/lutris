@@ -466,28 +466,30 @@ class SimpleDownloader(BaseDownloader):
 
         # Use provided session for connection pooling, or fall back to plain requests
         requester = self.session if self.session else requests
-        response = requester.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
-        if response.status_code != 200:
-            logger.info("%s returned a %s error", self.url, response.status_code)
-        response.raise_for_status()
-        self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
-        self.progress_event.set()
-
-        # A fresh stall monitor per attempt — see StallMonitor.
-        stall_monitor = self._new_stall_monitor()
-        stream_bytes = 0
-
-        for chunk in response.iter_content(chunk_size=self.chunk_size):
-            if not self.file_pointer:
-                break
-            if self.stop_request and self.stop_request.is_set():
-                break
-            if chunk:
-                stream_bytes += len(chunk)
-                self.downloaded_size += len(chunk)
-                self.file_pointer.write(chunk)
-                stall_monitor.check(stream_bytes)
+        # Close the response however we leave this block: cancelling and stalling both
+        # abandon the stream part-read, which holds the connection out of the pool.
+        with requester.get(self.url, headers=headers, stream=True, timeout=30, cookies=self.cookies) as response:
+            if response.status_code != 200:
+                logger.info("%s returned a %s error", self.url, response.status_code)
+            response.raise_for_status()
+            self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
             self.progress_event.set()
+
+            # A fresh stall monitor per attempt — see StallMonitor.
+            stall_monitor = self._new_stall_monitor()
+            stream_bytes = 0
+
+            for chunk in response.iter_content(chunk_size=self.chunk_size):
+                if not self.file_pointer:
+                    break
+                if self.stop_request and self.stop_request.is_set():
+                    break
+                if chunk:
+                    stream_bytes += len(chunk)
+                    self.downloaded_size += len(chunk)
+                    self.file_pointer.write(chunk)
+                    stall_monitor.check(stream_bytes)
+                self.progress_event.set()
 
     def _prepare_retry(self) -> None:
         """Restart the file from the beginning for a retry attempt."""
