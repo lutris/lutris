@@ -7,6 +7,10 @@ from lutris.util.steam import log
 # Steam writes content_log.txt with CRLF line endings and separates each run
 # from the previous one with an empty line.
 RUN_SEPARATOR = "\r\n\r\n"
+# Real content_log.txt files start with two blank lines, separate each run from
+# the previous one with two more, and end with a single blank line.
+LEADING_BLANK_LINES = "\r\n\r\n"
+TRAILING_BLANK_LINE = "\r\n"
 OLD_RUN = (
     "[2024-01-01 10:00:00] AppID 440 state changed : Fully Installed,\r\n"
     "[2024-01-01 10:00:01] AppID 570 state changed : Fully Installed,\r\n"
@@ -40,6 +44,12 @@ class TestGetLastContentLog(TestCase):
 
     def test_returns_latest_run_when_the_file_ends_with_a_separator(self):
         steam_dir = self._steam_dir(OLD_RUN + RUN_SEPARATOR + NEW_RUN + RUN_SEPARATOR)
+
+        self.assertEqual(log._get_last_content_log(steam_dir), _lines(NEW_RUN))
+
+    def test_returns_latest_run_from_a_realistically_shaped_log(self):
+        content = LEADING_BLANK_LINES + OLD_RUN + RUN_SEPARATOR + NEW_RUN + TRAILING_BLANK_LINE
+        steam_dir = self._steam_dir(content)
 
         self.assertEqual(log._get_last_content_log(steam_dir), _lines(NEW_RUN))
 
