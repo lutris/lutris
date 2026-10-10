@@ -150,7 +150,7 @@ def _execute(
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
         return "", ""
     except subprocess.TimeoutExpired:
-        logger.error("Command %s after %s seconds", command, timeout)
+        logger.error("Command %s timed out after %s seconds", command, timeout)
         return "", ""
 
     if stderr_file is not None:
@@ -242,10 +242,13 @@ def read_process_output(
         return error_result
 
 
-def get_md5_in_zip(filename: str) -> str:
+def get_md5_in_zip(filename: str) -> bool | str:
     """Return the md5 hash of a file in a zip"""
     with zipfile.ZipFile(filename, "r") as archive:
         files = archive.namelist()
+        if not files:
+            logger.warning("No file found in archive %s", filename)
+            return False
         if len(files) > 1:
             logger.warning("More than 1 file in archive %s, reading 1st one: %s", filename, files[0])
         with archive.open(files[0]) as file_in_zip:
@@ -656,11 +659,8 @@ def create_symlink(source: str, destination: str) -> None:
 def reset_library_preloads() -> None:
     """Remove library preloads from environment"""
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
-        if os.environ.get(key):
-            try:
-                del os.environ[key]
-            except OSError:
-                logger.error("Failed to delete environment variable %s", key)
+        if os.environ.pop(key, None):
+            logger.debug("Removed %s from environment", key)
 
 
 def get_existing_parent(path: str) -> str | None:
