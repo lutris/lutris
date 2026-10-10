@@ -216,9 +216,10 @@ class GPU:
             elif "= " in line:
                 key, value = line.split("= ", maxsplit=1)
                 result[current_gpu][key.strip()] = value.strip()
-        if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
-            logger.warning("Vulkan failed to detect any GPUs: %s", result)
-            return {}
+        if vulkaninfo_output and not result:
+            # The keys of 'result' are device headings, so the loader's own failure text
+            # never appears there; an empty parse is what a failure actually looks like.
+            logger.warning("Vulkan failed to detect any GPUs: %s", vulkaninfo_output_raw)
         return result
 
     def get_vulkaninfo_name(self, vulkaninfo: dict[str, dict[str, str]]) -> str | None:
