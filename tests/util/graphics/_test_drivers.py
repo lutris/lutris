@@ -259,3 +259,31 @@ class TestIsNvidia(unittest.TestCase):
     @patch("os.path.exists", side_effect=PermissionError())
     def test_is_nvidia_glxinfo(self, mock_exists, mock_open, mock_glxinfo):
         self.assertTrue(drivers.is_nvidia())
+
+
+SAMPLE_CARD_UEVENT = """\
+DRIVER=nvidia
+PCI_CLASS=30000
+PCI_ID=10DE:2684
+PCI_SUBSYS_ID=3842:1663
+PCI_SLOT_NAME=0000:01:00.0
+MODALIAS=pci:v000010DEd00002684sv00003842sd00001663bc03sc00i00
+"""
+
+
+class TestGetGpuInfo(unittest.TestCase):
+    @patch("builtins.open", return_value=io.StringIO(SAMPLE_CARD_UEVENT))
+    def test_reads_the_card_uevent_file(self, mock_open):
+        info = drivers.get_gpu_info("card0")
+
+        self.assertEqual(info["DRIVER"], "nvidia")
+        self.assertEqual(info["PCI_ID"], "10DE:2684")
+        self.assertEqual(info["PCI_SUBSYS_ID"], "3842:1663")
+        self.assertEqual(info["PCI_SLOT_NAME"], "0000:01:00.0")
+
+    @patch("builtins.open", return_value=io.StringIO("DRIVER=nvidia\nmalformed line\n"))
+    def test_ignores_uevent_lines_without_a_separator(self, mock_open):
+        info = drivers.get_gpu_info("card0")
+
+        self.assertEqual(info["DRIVER"], "nvidia")
+        self.assertEqual(info["PCI_ID"], "")
