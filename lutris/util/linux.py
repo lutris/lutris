@@ -115,9 +115,10 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
     required_components = ["OPENGL", "VULKAN", "GNUTLS"]
     optional_components = ["WINE", "GAMEMODE"]
 
-    # Lazy caches for expensive lookups. `_glxinfo_unset` means "not loaded yet",
-    # while a cached `None` means "glxinfo is unavailable". Defaulting them on the
-    # class keeps the properties below the single place that initializes them.
+    # Defaults for the lazy caches read by the properties below. `_glxinfo_unset`
+    # is the "not loaded yet" marker, so a cached `None` can mean "no glxinfo".
+    # They are class attributes so the properties also work on instances built
+    # with __new__() instead of __init__(), which is what the tests do.
     _glxinfo_unset: object = object()
     _glxinfo: object = _glxinfo_unset
     _shared_libraries: dict[str, list["SharedLibrary"]] | None = None
@@ -140,8 +141,6 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         self.populate_sound_fonts()
         self.soft_limit, self.hard_limit = self.get_file_limits()
 
-        # Expensive fields are lazy; see the shared_libraries and glxinfo properties.
-
     @property
     def shared_libraries(self) -> dict[str, list["SharedLibrary"]]:
         if self._shared_libraries is None:
@@ -153,10 +152,14 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
     @property
     def glxinfo(self) -> GlxInfo | None:
-        if self._glxinfo is self._glxinfo_unset:
-            self._glxinfo = self.get_glxinfo()
-        value = self._glxinfo
-        return value if isinstance(value, GlxInfo) else None
+        match self._glxinfo:
+            case GlxInfo() as glx:
+                return glx
+            case None:
+                return None
+            case _:
+                result = self._glxinfo = self.get_glxinfo()
+                return result
 
     @staticmethod
     def get_sbin_path(command: str) -> str | None:
@@ -199,9 +202,9 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         try:
             filesystems = json.loads(findmnt_output).get("filesystems", [])
         except json.JSONDecodeError as ex:
-            logger.error("Unable to parse findmnt output: %s", ex)
+            logger.exception("Unable to parse findmnt output: %s", ex)
             return []
-        return [drive for drive in filesystems if drive.get("fstype") != "squashfs"]
+        return [drive for drive in filesystems if drive.get("fstype") not in (None, "squashfs")]
 
     @staticmethod
     def _iter_filesystems(devices: list[dict[str, Any]]) -> Iterator[dict[str, Any]]:
@@ -332,7 +335,7 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
 
         for device in self._iter_filesystems(self.get_drives()):
             target = device.get("target")
-            if not target:
+            if not target or not device.get("fstype"):
                 continue
 
             mount_point = os.path.realpath(os.path.expanduser(target))
@@ -351,27 +354,23 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         return cast(str, fs_type)
 
     def get_glxinfo(self) -> GlxInfo | None:
-        """Return a GlxInfo instance if the glxinfo tool is available and usable"""
+        """Return a GlxInfo instance if the gfxinfo tool is available"""
         if not self.get("glxinfo"):
             return None
-        try:
-            result = glxinfo.GlxInfo()
-        except Exception as ex:
-            logger.exception("Failed to read glxinfo output: %s", ex)
-            return None
-        if not hasattr(result, "display"):
+        _glxinfo = glxinfo.GlxInfo()
+        if not hasattr(_glxinfo, "display"):
             logger.warning("Invalid glxinfo received")
             return None
-        return result
+        return _glxinfo
 
     def get_requirements(self, include_optional: bool = True) -> list[str]:
         """Return used system requirements"""
-        required = list(self.required_components)
+        _requirements = self.required_components.copy()
         if include_optional:
-            required += self.optional_components
+            _requirements += self.optional_components
             if drivers.is_amd():
-                required.append("RADEON")
-        return required
+                _requirements.append("RADEON")
+        return _requirements
 
     def get(self, command: str) -> str | None:
         """Return a system command path if available"""
