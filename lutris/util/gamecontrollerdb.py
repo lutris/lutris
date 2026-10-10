@@ -48,7 +48,10 @@ class ControllerMapping:
         for key_map in key_maps:
             if not key_map:
                 continue
-            xinput_key, sdl_key = key_map.split(":")
+            if ":" not in key_map:
+                logger.warning("Ignoring malformed mapping entry %s for %s", key_map, self.name)
+                continue
+            xinput_key, sdl_key = key_map.split(":", 1)
             if xinput_key not in self.valid_keys:
                 logger.warning("Unrecognized key %s", xinput_key)
                 continue
@@ -76,5 +79,9 @@ class GameControllerDB:
                 line = line.strip()
                 if not line or line.startswith("#"):
                     continue
-                guid, name, mapping = line.strip().split(",", 2)
+                try:
+                    guid, name, mapping = line.split(",", 2)
+                except ValueError:
+                    logger.warning("Ignoring malformed line in %s: %s", self.db_path, line)
+                    continue
                 self.controllers[guid] = ControllerMapping(guid, name, mapping)
