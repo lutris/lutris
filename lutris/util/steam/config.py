@@ -209,7 +209,7 @@ def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
                 if len(path) <= 1:
                     return value
                 return get_entry_case_insensitive(library_dict[key], path[1:])
-            raise KeyError(path[0])
+        raise KeyError(path[0])
 
     if not steam_data_dir:
         return None
@@ -218,8 +218,10 @@ def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
         return None
     with open(library_filename, "r", encoding="utf-8") as steam_library_file:
         library = vdf_parse(steam_library_file, {})
-        # The contentstatsid key is unused and causes problems when looking for library paths.
-        library["libraryfolders"].pop("contentstatsid", None)
+    # The contentstatsid key is unused and causes problems when looking for library paths.
+    library_folders = library.get("libraryfolders")
+    if isinstance(library_folders, dict):
+        library_folders.pop("contentstatsid", None)
     try:
         return dict(get_entry_case_insensitive(library, ["libraryfolders"]))
     except KeyError as ex:
@@ -271,7 +273,7 @@ def get_steamapps_dirs() -> Iterable[str]:
                 if entry.get("path") and entry.get("mounted") == "1":
                     path = system.fix_path_case(entry.get("path") + "/steamapps")
                     paths.append(path)
-            else:
+            elif entry.get("path"):
                 path = system.fix_path_case(entry.get("path") + "/steamapps")
                 paths.append(path)
         for path in paths:
