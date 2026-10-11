@@ -6,10 +6,12 @@ import gettext
 import io
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 from lutris.util import textdomain
 
@@ -69,6 +71,7 @@ class TestImportIsolation(unittest.TestCase):
                 self.assertNotIn("gettext", names)
 
 
+@unittest.skipIf(shutil.which("msgfmt") is None, "gettext is not installed")
 class TestCompileSourceCatalogs(unittest.TestCase):
     def setUp(self):
         self.source = tempfile.mkdtemp()
@@ -154,7 +157,9 @@ class TestNeverFatal(unittest.TestCase):
 
     def run_entry_point(self, extra_env=None):
         """Run bin/lutris far enough to bind the domain, and report how it went."""
-        env = dict(os.environ, LANGUAGE="fr")
+        # bin/lutris drops /home* from sys.path unless this is set, which hides gi
+        # whenever it comes from a virtualenv under /home, as it does on CI.
+        env = dict(os.environ, LANGUAGE="fr", LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES="1")
         env.update(extra_env or {})
         root = MODULE_PATH.parents[2]
         return subprocess.run(
@@ -185,15 +190,35 @@ class TestNeverFatal(unittest.TestCase):
         self.assertIn("msgfmt not found", completed.stderr)
         self.assertIn("Run a game directly", completed.stdout)
 
-    def test_unrunnable_msgfmt_is_not_fatal(self):
-        """msgfmt on PATH but not executable raises from subprocess, not just nonzero."""
+    def test_non_executable_msgfmt_counts_as_missing(self):
+        """shutil.which rejects a non-executable msgfmt, so it never reaches subprocess."""
         fake_bin = tempfile.mkdtemp()
         unrunnable = os.path.join(fake_bin, "msgfmt")
         pathlib.Path(unrunnable).write_text("not an executable")
         os.chmod(unrunnable, 0o644)
         completed = self.run_entry_point({"PATH": fake_bin})
         self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("msgfmt not found", completed.stderr)
         self.assertIn("Run a game directly", completed.stdout)
+
+    def test_msgfmt_raising_is_not_fatal(self):
+        """Covers the handler for subprocess itself failing to run msgfmt.
+
+        Both msgfmt and the call are faked, so this holds without gettext installed.
+        """
+        source = tempfile.mkdtemp()
+        os.makedirs(os.path.join(source, "po"))
+        pathlib.Path(os.path.join(source, "po", "fr.po")).write_text('msgid ""\nmsgstr ""\n')
+
+        def refuse_to_run(*args, **kwargs):
+            raise OSError("Exec format error")
+
+        reported = io.StringIO()
+        with mock.patch.object(textdomain.shutil, "which", return_value="/usr/bin/msgfmt"):
+            with mock.patch.object(textdomain.subprocess, "run", refuse_to_run):
+                with contextlib.redirect_stderr(reported):
+                    self.assertIsNone(textdomain.compile_source_catalogs(source))
+        self.assertIn("Exec format error", reported.getvalue())
 
     def test_failure_inside_the_build_is_not_fatal(self):
         """Even an unforeseen error must only cost the translations."""
