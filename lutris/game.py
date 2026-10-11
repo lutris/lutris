@@ -1140,6 +1140,22 @@ class Game:
             if strings.lookup_strings_in_text(error, self.game_thread.stdout):
                 raise RuntimeError(_("<b>Error: A different Wine version is already using the same Wine prefix.</b>"))
 
+        if self.game_thread.return_code not in ("0", ""):
+            # Mesa could not load a DRI driver, so the game got no OpenGL context and
+            # usually exits without ever showing a window. 32-bit games are the common
+            # case: the host has 64-bit Mesa but not the 32-bit side of it.
+            error = "failed to load driver:"
+            error_lines = strings.lookup_strings_in_text(error, self.game_thread.stdout)
+            if error_lines:
+                raise RuntimeError(
+                    _(
+                        "<b>Error: The OpenGL driver could not be loaded.</b>\n\n%s\n\n"
+                        "32-bit games need the 32-bit build of your graphics drivers, "
+                        "which many distributions package separately from the 64-bit one."
+                    )
+                    % error_lines[0]
+                )
+
     def write_script(self, script_path: str, launch_ui_delegate: "LaunchUIDelegate") -> None:
         """Output the launch argument in a bash script"""
         gameplay_info = self.get_gameplay_info(launch_ui_delegate)
