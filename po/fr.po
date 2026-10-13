@@ -8676,3 +8676,15 @@ msgstr "La version de Wine doit être spécifiée."
 #~ "La version de Wine que vous avez sélectionnée ne prend pas en charge "
 #~ "Fsync.\n"
 #~ "Veuillez passer à une version compatible avec Fsync."
+
+#: lutris/game_actions.py
+msgid "Edit YAML file"
+msgstr "Éditer le fichier YAML"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Show “Edit YAML file” in the game context menu"
+msgstr "Afficher « Éditer le fichier YAML » dans le menu du jeu"
+
+#: lutris/gui/config/preferences_box.py
+msgid "Open the game configuration in your default editor from the right-click menu."
+msgstr "Ouvrir la configuration du jeu dans votre éditeur par défaut depuis le menu clic droit."
