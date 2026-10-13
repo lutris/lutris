@@ -484,7 +484,7 @@ class LutrisApplication(Gtk.Application):
         if options.contains("force"):
             self.force_updates = True
 
-        logger.info("Starting Lutris %s", settings.VERSION)
+        logger.info("Starting Lutris %s", settings.DISPLAY_VERSION)
         init_lutris()
         migrate()
 

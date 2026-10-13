@@ -10,11 +10,13 @@ from typing import cast
 from gi.repository import GLib
 
 from lutris import __version__
+from lutris.buildinfo import get_display_version
 from lutris.util.log import logger
 from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
 VERSION = __version__
+DISPLAY_VERSION = get_display_version(VERSION)
 COPYRIGHT = _("(c) 2009 Lutris Team")
 AUTHORS = [_("The Lutris team")]
 

@@ -578,7 +578,7 @@ def gather_system_info_dict() -> dict[str, Any]:
     system_info_readable["System"] = system_dict
     # Add Lutris information
     lutris_dict = {}
-    lutris_dict["Lutris Version"] = settings.VERSION
+    lutris_dict["Lutris Version"] = settings.DISPLAY_VERSION
     lutris_dict["Python Version"] = sys.version
     lutris_dict["Default Wine version"] = get_default_runner_wine_version()
     system_info_readable["Lutris"] = lutris_dict

@@ -28,6 +28,21 @@ configure_file(
   install_dir: lutrisdir,
 )
 
+# Preserve the source revision even when the installed package has no Git checkout.
+build_commit = run_command(
+  python,
+  join_paths(meson.source_root(), 'utils/get-build-commit.py'),
+  check: true,
+).stdout().strip()
+revision_config = configuration_data()
+revision_config.set('build_commit', build_commit)
+configure_file(
+  input: 'build_commit.txt.in',
+  output: 'build_commit.txt',
+  configuration: revision_config,
+  install_dir: lutrisdir,
+)
+
 # Translations
 subdir('po')
 
@@ -124,3 +139,4 @@ if appstreamcli.found()
 endif
 
 meson.add_install_script('utils/meson_post_install.py')
+

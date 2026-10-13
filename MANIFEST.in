@@ -6,3 +6,7 @@ include MANIFEST.in
 include README.rst
 graft debian
 prune tests
+
+include utils/get-build-commit.py
+include build_commit.txt.in
+
