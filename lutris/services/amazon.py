@@ -11,6 +11,7 @@ import time
 import urllib
 import uuid
 from collections import defaultdict
+from datetime import datetime, timezone
 from gettext import gettext as _
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
@@ -719,6 +720,11 @@ class AmazonService(OnlineService):
             },
         }
 
+    def get_game_platforms(self, db_game: dict) -> list[str]:
+        """Return a list of supported platforms for Amazon games"""
+        # Amazon Games are Windows-based and run via Wine
+        return ["windows"]
+
     def get_game_release_date(self, db_game: dict) -> str:
         """Return game release date in YYYY-MM-DD format"""
         details = db_game.get("details")
@@ -730,8 +736,9 @@ class AmazonService(OnlineService):
                 release_date = details_data.get("releaseDate")
                 if release_date is not None and isinstance(release_date, str):
                     # Amazon returns ISO 8601 format: "2017-04-13T00:00:00Z"
-                    # Return as YYYY-MM-DD
-                    return release_date[:10]
+                    # Parse and normalize to UTC date
+                    release_datetime = datetime.fromisoformat(release_date.replace('Z', '+00:00'))
+                    return release_datetime.astimezone(timezone.utc).date().isoformat()
             except (KeyError, AttributeError):
                 pass
         return ""
