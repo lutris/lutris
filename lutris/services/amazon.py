@@ -720,11 +720,6 @@ class AmazonService(OnlineService):
             },
         }
 
-    def get_game_platforms(self, db_game: dict) -> list[str]:
-        """Return a list of supported platforms for Amazon games"""
-        # Amazon Games are Windows-based and run via Wine
-        return ["windows"]
-
     def get_game_release_date(self, db_game: dict) -> str:
         """Return game release date in YYYY-MM-DD format"""
         details = db_game.get("details")
