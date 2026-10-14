@@ -41,6 +41,8 @@ jobs:
           fi
           test -s "${files[0]}"
           file "${files[0]}"
+          # Run the packaged application without requiring FUSE on the runner.
+          APPIMAGE_EXTRACT_AND_RUN=1 timeout 60s "${files[0]}" --version
 
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
