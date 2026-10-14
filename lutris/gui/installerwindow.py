@@ -356,6 +356,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         GLib.idle_add(self._set_progress, fraction, text)
 
     def _set_progress(self, fraction, text):
+        # A preceding runner task may have switched to the log page.
+        # Present (and lazily create) the progress widgets before updating them.
+        if fraction is not None and self.stack.get_visible_child_name() != "spinner":
+            self.load_spinner_page(self.status_label.get_text())
         if not hasattr(self, "install_progress_bar"):
             return
         if fraction is None:
