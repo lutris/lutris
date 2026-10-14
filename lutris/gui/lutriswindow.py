@@ -930,7 +930,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def show_label(self, message):
         """Display a label in the middle of the UI"""
-        self.show_overlay(Gtk.Label(message, visible=True))
+        self.show_overlay(Gtk.Label(label=message, visible=True))
 
     def show_splash(self):
         theme = "dark" if self.application.style_manager.is_dark else "light"

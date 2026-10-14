@@ -32,7 +32,7 @@ class EditCategoryGamesDialog(SavableModelessDialog):
         self.vbox.set_homogeneous(False)
         self.vbox.set_spacing(10)
         name_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        name_label = Gtk.Label(_("Name"))
+        name_label = Gtk.Label(label=_("Name"))
         self.name_entry = Gtk.Entry()
         self.name_entry.set_text(self.category)
         name_box.pack_start(name_label, False, False, 0)
