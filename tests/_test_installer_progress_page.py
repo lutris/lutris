@@ -7,9 +7,7 @@ from lutris.gui.installerwindow import InstallerWindow
 
 class TestInstallerProgressPage(TestCase):
     def window(self, page):
-        window = SimpleNamespace(
-            stack=MagicMock(), status_label=MagicMock(), load_spinner_page=MagicMock()
-        )
+        window = SimpleNamespace(stack=MagicMock(), status_label=MagicMock(), load_spinner_page=MagicMock())
         window.stack.get_visible_child_name.return_value = page
         window.status_label.get_text.return_value = "Extracting YUNO.7z"
         for name in (
