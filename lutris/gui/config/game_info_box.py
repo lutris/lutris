@@ -211,7 +211,7 @@ class GameInfoBox(AdvancedSettingsBox):
                 text = _("The default launch option will be used for this game")
             else:
                 text = _("The '%s' launch option will be used for this game") % preferred_name
-            label = Gtk.Label(text)
+            label = Gtk.Label(label=text)
             label.set_line_wrap(True)
             label.set_halign(Gtk.Align.START)
             label.set_xalign(0.0)
