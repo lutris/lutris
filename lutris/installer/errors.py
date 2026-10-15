@@ -39,6 +39,26 @@ class ScriptingError(LutrisError):
         return self.message
 
 
+class FlatpakSetupError(ScriptingError):
+    """An expected prerequisite failure, presented without a technical traceback."""
+
+    def __init__(self, reason: str):
+        if reason == "missing":
+            self.title = _("Flatpak is required")
+            message = _(
+                "To install this game, install the Flatpak package using your distribution's "
+                "package manager, then restart the installation in Lutris."
+            )
+        else:
+            self.title = _("Flatpak is inaccessible")
+            message = _(
+                "Lutris cannot access Flatpak on your computer. For Lutris Flatpak, check that "
+                "flatpak-spawn is available and access to org.freedesktop.Flatpak is allowed."
+            )
+        super().__init__(message)
+        self.is_expected = True
+
+
 class MissingGameDependencyError(LutrisError):
     """Raise when a game requires another game that isn't installed"""
 

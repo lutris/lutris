@@ -12,6 +12,7 @@ from lutris.config import LutrisConfig
 from lutris.game import Game
 from lutris.gui.dialogs import (
     DirectoryDialog,
+    ErrorDialog,
     InstallerSourceDialog,
     ModelessDialog,
     QuestionDialog,
@@ -28,7 +29,7 @@ from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.gui.widgets.utils import get_main_window
 from lutris.installer import InstallationKind, interpreter
-from lutris.installer.errors import MissingGameDependencyError, ScriptingError
+from lutris.installer.errors import FlatpakSetupError, MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
@@ -344,7 +345,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # so the installation itself is not interrupted or paused for UI updates.
 
     def report_error(self, error):
-        GLib.idle_add(self.error_reporter, error)
+        reporter = self.load_error_page if isinstance(error, FlatpakSetupError) else self.error_reporter
+        GLib.idle_add(reporter, error)
 
     def report_status(self, status):
         GLib.idle_add(self.set_status, gtk_safe(status))
@@ -933,6 +935,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # and isn't recoverable. Used by the installer script.
 
     def load_error_page(self, error: BaseException) -> None:
+        if isinstance(error, FlatpakSetupError):
+            ErrorDialog(error.title, secondary_markup=gtk_safe(error.message), parent=self)
         self.stack.navigate_to_page(lambda *x: self.present_error_page(error))
         self.stack.set_back_allowed(False)
         self.cancel_button.grab_focus()
