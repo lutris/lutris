@@ -732,7 +732,7 @@ class AmazonService(OnlineService):
                 if release_date is not None and isinstance(release_date, str):
                     # Amazon returns ISO 8601 format: "2017-04-13T00:00:00Z"
                     # Parse and normalize to UTC date
-                    release_datetime = datetime.fromisoformat(release_date.replace('Z', '+00:00'))
+                    release_datetime = datetime.fromisoformat(release_date.replace("Z", "+00:00"))
                     return release_datetime.astimezone(timezone.utc).date().isoformat()
             except (KeyError, AttributeError):
                 pass
