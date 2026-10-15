@@ -22,6 +22,6 @@ class EGSLauncher:
                 continue
             with open(os.path.join(manifests_path, manifest), encoding="utf-8") as manifest_file:
                 manifest_content = json.loads(manifest_file.read())
-            if manifest_content["MainGameAppName"] != manifest_content["AppName"]:
+            if manifest_content["MainGameAppName"] not in ("", manifest_content["AppName"]):
                 continue
             yield manifest_content

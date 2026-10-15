@@ -78,7 +78,7 @@ class DownloadCollectionProgressBox(Gtk.Box):
         self.num_retries = 0
 
         top_box = Gtk.Box()
-        self.main_label = Gtk.Label(self.title)
+        self.main_label = Gtk.Label(label=self.title)
         self.main_label.set_alignment(0, 0)
         self.main_label.set_property("wrap", True)
         self.main_label.set_margin_bottom(10)
