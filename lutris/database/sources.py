@@ -15,7 +15,7 @@ def delete_source(uri: str) -> None:
 
 
 def read_sources() -> list[str]:
-    with sql.db_cursor(settings.DB_PATH) as cursor:
+    with sql.db_read_cursor(settings.DB_PATH) as cursor:
         rows = cursor.execute("select uri from sources")
         results = rows.fetchall()
     return [row[0] for row in results]
