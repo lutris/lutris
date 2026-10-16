@@ -159,7 +159,7 @@ class GameInfoBox(AdvancedSettingsBox):
         slug_entry_box = Gtk.Box(spacing=12, margin_right=0, margin_left=0)
         slug_label = Label()
         slug_label.set_markup(
-            _(f"""Identifier\n<span size='x-small'>(Internal ID: {self.game.id if self.game else '""'})</span>""")
+            _("Identifier\n<span size='x-small'>(Internal ID: %s)</span>") % (self.game.id if self.game else '""')
         )
         slug_entry_box.pack_start(slug_label, False, False, 0)
 
@@ -211,7 +211,7 @@ class GameInfoBox(AdvancedSettingsBox):
                 text = _("The default launch option will be used for this game")
             else:
                 text = _("The '%s' launch option will be used for this game") % preferred_name
-            label = Gtk.Label(text)
+            label = Gtk.Label(label=text)
             label.set_line_wrap(True)
             label.set_halign(Gtk.Align.START)
             label.set_xalign(0.0)

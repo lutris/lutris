@@ -13,7 +13,6 @@
 
 """Main entry point for Lutris"""
 
-import gettext
 import locale
 import multiprocessing
 import os
@@ -37,6 +36,7 @@ if os.path.isdir(os.path.join(LAUNCH_PATH, "../lutris")):
     SOURCE_PATH = normpath(os.path.join(LAUNCH_PATH, ".."))
     sys.path.insert(0, SOURCE_PATH)
 else:
+    SOURCE_PATH = None
     sys.path.insert(0, os.path.normpath(os.path.join(LAUNCH_PATH, "../lib/lutris")))
 
 try:
@@ -44,22 +44,11 @@ try:
 except locale.Error as ex:
     sys.stderr.write("Unsupported locale setting: %s\n" % ex)
 
-try:
-    # optional_settings does not exist if you don't use the meson build system
-    from lutris import optional_settings  # type: ignore
+# Imported here rather than at the top: sys.path has to be set up first, and the text
+# domain has to be bound before the modules that translate strings as they import.
+from lutris.util.textdomain import bind_text_domain
 
-    try:
-        locale.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
-        gettext.bindtextdomain("lutris", optional_settings.LOCALE_DIR)
-        locale.textdomain("lutris")
-        gettext.textdomain("lutris")
-    except Exception as ex:
-        sys.stderr.write(
-            "Couldn't bind gettext domain, translations won't work.\n"
-            "LOCALE_DIR: %s\nError: %s\n" % (optional_settings.LOCALE_DIR, ex)
-        )
-except ImportError:
-    pass
+bind_text_domain(SOURCE_PATH)
 
 if "WEBKIT_DISABLE_DMABUF_RENDERER" not in os.environ:
     os.environ["WEBKIT_DISABLE_DMABUF_RENDERER"] = "1"
