@@ -7,6 +7,7 @@ import signal
 import subprocess
 import sys
 import tarfile
+import tempfile
 import time
 import uuid
 import zipfile
@@ -214,66 +215,6 @@ class _ExtractionProgress:
             print(file=self.terminal, flush=True)
 
 
-class _ProgressReader:
-    """Count data reads without changing tarfile's extraction or metadata handling."""
-
-    def __init__(self, source, callback):
-        self.source = source
-        self.callback = callback
-
-    def read(self, size=-1):
-        data = self.source.read(size)
-        self.callback(len(data))
-        return data
-
-    def __getattr__(self, name):
-        return getattr(self.source, name)
-
-
-class _ProgressTarFile(tarfile.TarFile):
-    progress: _ExtractionProgress | None = None
-    completed_bytes = 0
-    total_bytes = 0
-    completed_files = 0
-    total_files = 0
-
-    def makefile(self, tarinfo, targetpath):
-        source = self.fileobj
-        current_bytes = 0
-
-        def advance(size):
-            nonlocal current_bytes
-            current_bytes += size
-            if self.progress and self.total_bytes:
-                self.progress.report(min(99, (self.completed_bytes + current_bytes) * 100 // self.total_bytes))
-
-        self.fileobj = _ProgressReader(source, advance)
-        try:
-            super().makefile(tarinfo, targetpath)
-        finally:
-            self.fileobj = source
-        self.completed_bytes += tarinfo.size
-        self.completed_files += 1
-        if self.progress and not self.total_bytes and self.total_files:
-            self.progress.report(min(99, self.completed_files * 100 // self.total_files))
-
-
-def _extract_tar(archive, dest, mode, progress_callback=None):
-    progress = _ExtractionProgress(archive, progress_callback)
-    try:
-        progress.report(0)
-        with _ProgressTarFile.open(archive, mode) as handler:
-            # List once; extractall preserves directory timestamps, links and sparse files.
-            members = handler.getmembers()
-            handler.progress = progress
-            handler.total_bytes = sum(member.size for member in members if member.isfile())
-            handler.total_files = sum(member.isfile() for member in members)
-            handler.extractall(dest, members=members)
-        progress.report(100)
-    finally:
-        progress.close()
-
-
 def _do_extract(
     archive: str, dest: str, opener, mode: str | None = None, extractor=None, progress_callback=None
 ) -> None:
@@ -290,7 +231,8 @@ def _do_extract(
     elif opener == "AppImage":
         _extract_AppImage(archive, dest, progress_callback)
     else:
-        _extract_tar(archive, dest, mode, progress_callback)
+        with opener(archive, mode) as handler:
+            handler.extractall(dest)
 
 
 def _decompress_gz(file_path: str, dest_path: str, progress_callback=None):
@@ -356,8 +298,10 @@ def _extract_7zip(path: str, dest: str, archive_type: str | None = None, progres
                 if previous_handler is not None:
                     signal.signal(signal.SIGTERM, previous_handler)
             return_code = process.wait()
-        if return_code:
+        if return_code < 0 or return_code >= 2:
             raise ExtractError(f"7z failed to extract {path} (exit code {return_code})")
+        if return_code == 1:
+            logger.warning("7z completed extraction of %s with warnings", path)
         report(100)
     finally:
         progress.close()
@@ -410,6 +354,7 @@ def _decompress_gog(file_path: str, destination_path: str, progress_callback=Non
     options = [innoextract_path, "-m", "-g", "--color=0", "--progress=0", "--silent", "--list"]
     listing = subprocess.run([*options, file_path], capture_output=True, text=True)
     if listing.returncode:
+        logger.error("Innoextract failed to list GOG setup file: %s", listing.stderr.strip())
         raise ExtractError(f"innoextract failed to list {file_path}")
     files = set(listing.stdout.splitlines())
     completed = set()
@@ -417,9 +362,17 @@ def _decompress_gog(file_path: str, destination_path: str, progress_callback=Non
     progress = _ExtractionProgress(file_path, progress_callback)
     try:
         progress.report(0)
-        with subprocess.Popen(
-            [*options, "--extract", "-d", destination_path, file_path], stdout=subprocess.PIPE, text=True
-        ) as process:
+        # A temporary file captures stderr without a second pipe that could fill
+        # and deadlock while stdout is consumed for progress updates.
+        with (
+            tempfile.TemporaryFile(mode="w+t", encoding="utf-8", errors="replace") as errors,
+            subprocess.Popen(
+                [*options, "--extract", "-d", destination_path, file_path],
+                stdout=subprocess.PIPE,
+                stderr=errors,
+                text=True,
+            ) as process,
+        ):
             assert process.stdout is not None
             previous_handler = None
             if multiprocessing.current_process().name != "MainProcess":
@@ -443,6 +396,9 @@ def _decompress_gog(file_path: str, destination_path: str, progress_callback=Non
             finally:
                 if previous_handler is not None:
                     signal.signal(signal.SIGTERM, previous_handler)
+            if return_code:
+                errors.seek(0)
+                logger.error("Innoextract failed to extract GOG setup file: %s", errors.read().strip())
         if return_code:
             raise ExtractError(f"innoextract failed to extract {file_path} (exit code {return_code})")
         progress.report(100)

@@ -37,6 +37,16 @@ class TestSevenZipProgress(TestCase):
         progress, _ = self.run_extraction(b"file 42% complete\n101%\r 80%\r")
         self.assertEqual(progress, [0, 80, 100])
 
+    def test_warning_exit_is_logged_without_failing_installation(self):
+        with patch.object(extract.logger, "warning") as warning:
+            progress, _ = self.run_extraction(b" 50%\r", return_code=1)
+        self.assertEqual(progress[-1], 100)
+        warning.assert_called_once()
+
+    def test_signal_termination_is_an_error(self):
+        with self.assertRaises(extract.ExtractError):
+            self.run_extraction(b" 50%\r", return_code=-15)
+
     def test_failure_does_not_report_completion(self):
         process = MagicMock()
         process.__enter__.return_value = process
@@ -65,6 +75,16 @@ class TestSevenZipProgress(TestCase):
 
 
 class TestPythonExtractionProgress(TestCase):
+    def test_tar_does_not_prescan_members_for_progress(self):
+        handler = MagicMock()
+        handler.__enter__.return_value = handler
+        opener = MagicMock(return_value=handler)
+        progress = []
+        extract._do_extract("archive.tar.xz", "dest", opener, "r:xz", progress_callback=progress.append)
+        handler.getmembers.assert_not_called()
+        handler.extractall.assert_called_once_with("dest")
+        self.assertEqual(progress, [])
+
     def test_tar_codecs_preserve_contents_links_and_metadata(self):
         for mode in ("", "gz", "bz2", "xz"):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as directory:
@@ -88,7 +108,7 @@ class TestPythonExtractionProgress(TestCase):
                 progress = []
                 dest = os.path.join(directory, "dest")
                 with patch.object(extract.time, "monotonic", side_effect=itertools.count()):
-                    extract._extract_tar(path, dest, "r:" + mode, progress.append)
+                    extract._do_extract(path, dest, tarfile.open, "r:" + mode, progress_callback=progress.append)
                 with open(os.path.join(dest, "folder/payload"), "rb") as result:
                     self.assertEqual(result.read(), data)
                 self.assertEqual(os.stat(os.path.join(dest, "folder")).st_mtime, 123456789)
@@ -97,10 +117,7 @@ class TestPythonExtractionProgress(TestCase):
                     os.stat(os.path.join(dest, "folder/link")).st_ino,
                     os.stat(os.path.join(dest, "folder/payload")).st_ino,
                 )
-                self.assertEqual(progress[0], 0)
-                self.assertEqual(progress[-1], 100)
-                self.assertTrue(any(0 < value < 99 for value in progress))
-                self.assertEqual(progress, sorted(set(progress)))
+                self.assertEqual(progress, [])
 
     def test_gzip_streams_and_checks_crc_before_completion(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -133,7 +150,9 @@ class TestPythonExtractionProgress(TestCase):
                 archive.truncate(1000)
             progress = []
             with self.assertRaises(tarfile.ReadError):
-                extract._extract_tar(path, os.path.join(directory, "dest"), "r:", progress.append)
+                extract._do_extract(
+                    path, os.path.join(directory, "dest"), tarfile.open, "r:", progress_callback=progress.append
+                )
             self.assertNotIn(100, progress)
 
     def test_appimage_copy_keeps_executable_permission(self):
@@ -164,17 +183,53 @@ class TestPythonExtractionProgress(TestCase):
                 reporter.report(percent)
         self.assertEqual(progress, [0, 20, 100])
 
-    def test_empty_tar_completes(self):
+    def test_empty_tar_has_no_numeric_progress(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "empty.tar")
             with tarfile.open(path, "w"):
                 pass
             progress = []
-            extract._extract_tar(path, os.path.join(directory, "dest"), "r:", progress.append)
-            self.assertEqual(progress, [0, 100])
+            extract._do_extract(
+                path, os.path.join(directory, "dest"), tarfile.open, "r:", progress_callback=progress.append
+            )
+            self.assertEqual(progress, [])
 
 
 class TestInnoExtractionProgress(TestCase):
+    def test_listing_failure_logs_stderr(self):
+        with (
+            patch.object(extract, "_get_innoextract_path", return_value="innoextract"),
+            patch.object(extract.system, "create_folder"),
+            patch.object(extract.subprocess, "run", return_value=MagicMock(returncode=2, stderr="broken header\n")),
+            patch.object(extract.logger, "error") as error,
+            self.assertRaises(extract.ExtractError),
+        ):
+            extract._decompress_gog("setup.exe", "dest")
+        error.assert_called_once_with("Innoextract failed to list GOG setup file: %s", "broken header")
+
+    def test_extraction_failure_captures_and_logs_stderr(self):
+        process = MagicMock()
+        process.__enter__.return_value = process
+        process.stdout = io.StringIO("file\n")
+        process.wait.return_value = 2
+
+        def start(*args, **kwargs):
+            kwargs["stderr"].write("missing setup data\n")
+            return process
+
+        progress = []
+        with (
+            patch.object(extract, "_get_innoextract_path", return_value="innoextract"),
+            patch.object(extract.system, "create_folder"),
+            patch.object(extract.subprocess, "run", return_value=MagicMock(returncode=0, stdout="file\n")),
+            patch.object(extract.subprocess, "Popen", side_effect=start),
+            patch.object(extract.logger, "error") as error,
+            self.assertRaises(extract.ExtractError),
+        ):
+            extract._decompress_gog("setup.exe", "dest", progress.append)
+        error.assert_called_once_with("Innoextract failed to extract GOG setup file: %s", "missing setup data")
+        self.assertNotIn(100, progress)
+
     def test_counts_previous_file_and_finishes_only_on_success(self):
         for return_code in (0, 2):
             with self.subTest(return_code=return_code):
