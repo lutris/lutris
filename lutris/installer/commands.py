@@ -110,6 +110,11 @@ class CommandsMixin:
                     _("Parameters file and command can't be used at the same time for the execute command"),
                     faulty_data=data,
                 )
+            if "command" in data and not isinstance(data["command"], str):
+                raise ScriptingError(
+                    _("The command parameter for execute must be a string"),
+                    faulty_data=data,
+                )
 
             # Accept return codes other than 0
             if "return_code" in data:

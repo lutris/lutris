@@ -106,7 +106,7 @@ class ConfigBox(AdvancedSettingsBox):
         icon = Gtk.Image.new_from_icon_name("dialog-information", Gtk.IconSize.MENU)
         help_box.pack_start(icon, False, False, 5)
 
-        title_label = Gtk.Label("<i>%s</i>" % text)
+        title_label = Gtk.Label(label="<i>%s</i>" % text)
         title_label.set_line_wrap(True)
         title_label.set_alignment(0, 0.5)
         title_label.set_use_markup(True)

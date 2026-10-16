@@ -70,7 +70,7 @@ class ImportGameDialog(ModelessDialog):
             vbox.pack_start(description_label, True, True, 5)
             self.description_labels[file_path] = description_label
 
-            file_path_label = Gtk.Label(file_path, halign=Gtk.Align.START, xalign=0)
+            file_path_label = Gtk.Label(label=file_path, halign=Gtk.Align.START, xalign=0)
             file_path_label.set_line_wrap(True)
             vbox.pack_start(file_path_label, True, True, 5)
 
