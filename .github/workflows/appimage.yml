@@ -5,14 +5,12 @@ on:
     paths:
       - ".github/workflows/appimage.yml"
       - "utils/appimage/**"
+      - "Makefile"
       - "pyproject.toml"
       - "setup.py"
       - "lutris/**"
       - "bin/**"
       - "share/**"
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
 
 permissions:
@@ -25,7 +23,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build AppImage
         run: make appimage
@@ -45,7 +43,7 @@ jobs:
           APPIMAGE_EXTRACT_AND_RUN=1 timeout 60s "${files[0]}" --version
 
       - name: Upload AppImage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lutris-appimage-x86_64
           path: dist/Lutris-*-x86_64.AppImage
