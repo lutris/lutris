@@ -1,6 +1,7 @@
 import unittest
 
-from lutris.runners.json import _to_platform_dict, load_json_runners
+from lutris.runners.json import load_json_runners
+from lutris.runners.model import _to_platform_dict
 from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
