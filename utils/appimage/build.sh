@@ -23,7 +23,7 @@ if [ -z "${LUTRIS_VERSION:-}" ]; then
 fi
 : "${LUTRIS_VERSION:=dev}"
 echo "Building Lutris AppImage version: $LUTRIS_VERSION"
-LUTRIS_BUILD_COMMIT="$(python3 "$REPO_ROOT/utils/get-build-commit.py")"
+LUTRIS_BUILD_COMMIT="$(python3 "$REPO_ROOT/lutris/buildinfo.py")"
 
 if command -v docker >/dev/null 2>&1; then
     OCI=docker
@@ -57,4 +57,3 @@ fi
 echo
 echo "Built AppImage(s):"
 ls -lh "$REPO_ROOT/dist/"*.AppImage 2>/dev/null || echo "(no AppImage produced — check build output above)"
-

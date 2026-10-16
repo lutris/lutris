@@ -12,7 +12,7 @@ lutris.spec``) both install through ``setup.py``.
 """
 
 import os
-import subprocess
+import runpy
 import sys
 from pathlib import Path
 from typing import cast
@@ -37,9 +37,7 @@ class BuildPyWithCommit(build_py):  # type: ignore[misc]  # setuptools does not 
 
     def run(self) -> None:
         super().run()
-        revision = subprocess.check_output(
-            [sys.executable, str(Path(__file__).parent / "utils/get-build-commit.py")], text=True
-        ).strip()
+        revision = runpy.run_path(str(Path(__file__).parent / "lutris/buildinfo.py"))["get_commit"]()
         target = Path(self.build_lib) / "lutris/build_commit.txt"
         target.write_text(revision + "\n", encoding="ascii")
 
