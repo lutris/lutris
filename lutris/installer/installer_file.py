@@ -303,8 +303,32 @@ class InstallerFile:
 
     @property
     def is_cached(self):
-        """Is the file available in the local PGA cache?"""
-        return self.uses_pga_cache() and system.path_exists(self.dest_file)
+        """Is the file available in the installer cache?"""
+        return system.path_exists(self.dest_file)
+
+    @property
+    def has_valid_cache(self):
+        """Is the cached file present and compatible with known metadata?"""
+        if not self.is_cached or not os.path.isfile(self.dest_file):
+            return False
+
+        if self.size is not None:
+            try:
+                if os.path.getsize(self.dest_file) != self.size:
+                    return False
+            except OSError:
+                return False
+
+        if self.checksum:
+            try:
+                hash_type, expected_hash = self.checksum.split(":", 1)
+                calculated_hash = system.get_file_checksum(self.dest_file, hash_type)
+            except (OSError, ValueError):
+                return False
+            if calculated_hash != expected_hash:
+                return False
+
+        return True
 
     def save_to_cache(self):
         """Copy the file into the PGA cache."""
