@@ -105,7 +105,7 @@ class BaseConfigBox(Gtk.Box):
         if accelerator and self.shortcut_controller:
             trigger = Gtk.ShortcutTrigger.parse_string(accelerator)
             if trigger:
-                action = Gtk.CallbackAction.new(lambda _w, _a, cb=checkbox: cb.activate() or True)
+                action = Gtk.CallbackAction.new(lambda *_: checkbox.activate() or True)
                 self.shortcut_controller.add_shortcut(Gtk.Shortcut(trigger=trigger, action=action))
 
         return self.get_listed_widget_box(label, checkbox, margin=margin)
