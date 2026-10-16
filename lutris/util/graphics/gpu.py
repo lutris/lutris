@@ -188,6 +188,8 @@ class GPU:
             logger.error("Unable to read driver information for card %s", self.card)
             raise
         for line in content:
+            if "=" not in line:
+                continue
             key, value = line.split("=", 1)
             infos[key] = value.strip()
         return infos
@@ -201,6 +203,7 @@ class GPU:
         vulkaninfo_output = vulkaninfo_output_raw.split("\n") if vulkaninfo_output_raw else []
         result = {}
         devices_seen = False
+        current_gpu: str | None = None
         for line in vulkaninfo_output:
             line = line.strip()
             if not line or line.startswith("==="):
@@ -213,7 +216,7 @@ class GPU:
             if line.startswith("GPU"):
                 current_gpu = line
                 result[current_gpu] = {}
-            elif "= " in line:
+            elif current_gpu and "= " in line:
                 key, value = line.split("= ", maxsplit=1)
                 result[current_gpu][key.strip()] = value.strip()
         if vulkaninfo_output and not result:
