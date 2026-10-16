@@ -15,14 +15,14 @@ branches between `master` and `dj/gtk4` requires reinstalling the stubs to match
 **Install GTK 4 stubs** (for the `dj/gtk4` branch — this is what `make dev` does):
 
 ```bash
-pip install 'pygobject-stubs>=2.17.0' --no-cache-dir --force-reinstall \
+pip install 'pygobject-stubs>=2.18.0' --no-cache-dir --force-reinstall \
     --config-settings=config=Gtk4,Gdk4,Soup2
 ```
 
 **Install GTK 3 stubs** (for `master`):
 
 ```bash
-pip install 'pygobject-stubs>=2.17.0' --no-cache-dir --force-reinstall \
+pip install 'pygobject-stubs>=2.18.0' --no-cache-dir --force-reinstall \
     --config-settings=config=Gtk3,Gdk3,Soup2
 ```
 
