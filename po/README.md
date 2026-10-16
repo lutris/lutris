@@ -49,7 +49,14 @@ and commit your changes.
 - Delete the first five lines (copyright notice) in the `$LANG.po` files.
 - Keep the `LINGUAS` file sorted alphabetically.
 - The files to translate might change, run `./po/generate-potfiles.sh` to check if there are changes in the files list. If that is the case, commit the change.
-- Languages can't be tested without installing Lutris via meson:
+- To try your translation out, just run Lutris from the source tree:
+  ```bash
+  env LANGUAGE=$LANG ./bin/lutris
+  ```
+  The `.po` files are compiled into `po/dev_locale_cache` (gitignored) on startup, and recompiled
+  whenever you edit one, so your changes show up on the next run. This needs `msgfmt` (from
+  gettext) on your `PATH`; if a catalog fails to compile, the error is printed to the terminal.
+- To test a full install instead:
   ```bash
   rm -Rf builddir
   meson builddir --prefix=~/.local

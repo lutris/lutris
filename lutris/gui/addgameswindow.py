@@ -328,7 +328,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
         grid.attach(self._get_explanation_label(explanation), 0, 2, 2, 1)
 
-        preset_label = Gtk.Label(_("Installer preset:"), visible=True)
+        preset_label = Gtk.Label(label=_("Installer preset:"), visible=True)
         grid.attach(preset_label, 0, 3, 1, 1)
 
         self.installer_presets.append(["win11", _("Windows 11 64-bit")])
@@ -349,7 +349,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         grid.attach(self.install_preset_dropdown, 1, 3, 1, 1)
         self.install_preset_dropdown.set_halign(Gtk.Align.START)
 
-        locale_label = Gtk.Label(_("Locale:"), visible=True)
+        locale_label = Gtk.Label(label=_("Locale:"), visible=True)
         locale_label.set_xalign(0)
         grid.attach(locale_label, 0, 4, 1, 1)
 

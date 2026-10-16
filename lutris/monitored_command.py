@@ -208,16 +208,20 @@ class MonitoredCommand:
 
         GLib.child_watch_add(self.game_process.pid, self.on_stop)  # type: ignore
 
-        # make stdout nonblocking.
-        if self.game_process.stdout:
-            fileno = self.game_process.stdout.fileno()
+        stdout = self.game_process.stdout
+        if stdout:
+            # make stdout nonblocking.
+            fileno = stdout.fileno()
             fcntl.fcntl(fileno, fcntl.F_SETFL, fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK)
 
-        self.stdout_monitor = GLib.io_add_watch(
-            self.game_process.stdout,
-            GLib.IO_IN | GLib.IO_HUP,
-            self.on_stdout_output,
-        )
+            # PyGObject accepts a file object here and passes it back to the callback, but the stubs
+            # only allow an IOChannel; they also mistype the condition as an IOChannel.
+            self.stdout_monitor = GLib.io_add_watch(
+                stdout,  # type: ignore[arg-type]
+                GLib.PRIORITY_DEFAULT,
+                GLib.IO_IN | GLib.IO_HUP,  # type: ignore[arg-type]
+                self.on_stdout_output,  # type: ignore[arg-type]
+            )
 
     def log_filter(self, line: str) -> bool:
         """Filter out some message we don't want to show to the user."""
