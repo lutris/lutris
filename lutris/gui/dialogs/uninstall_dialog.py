@@ -49,7 +49,7 @@ class UninstallDialog(Gtk.Window):
         escape_controller.add_shortcut(
             Gtk.Shortcut(
                 trigger=Gtk.ShortcutTrigger.parse_string("Escape"),
-                action=Gtk.CallbackAction.new(lambda w, _: w.close() or True),
+                action=Gtk.NamedAction.new("window.close"),
             )
         )
         self.add_controller(escape_controller)
