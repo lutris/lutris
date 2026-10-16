@@ -14,11 +14,10 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.gui.widgets.utils import Image, paste_overlay, thumbnail_image
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
-from lutris.services.service_media import ServiceMedia
+from lutris.services.service_media import LogoOverlayMedia
 from lutris.util import system
 from lutris.util.egs.egs_launcher import EGSLauncher
 from lutris.util.log import logger
@@ -27,38 +26,16 @@ from lutris.util.strings import slugify
 EGS_LOGO_PATH = os.path.join(settings.CACHE_DIR, "egs/game_logo")
 
 
-class DieselGameMedia(ServiceMedia):
+class DieselGameMedia(LogoOverlayMedia):
     service = "egs"
     remote_size = (200, 267)
     file_patterns = ["%s.jpg"]
-    min_logo_x = 300
-    min_logo_y = 150
+    logo_path = EGS_LOGO_PATH
 
-    def _render_filename(self, filename: str) -> None:
-        game_box_path = os.path.join(self.dest_path, filename)
-        logo_path = os.path.join(EGS_LOGO_PATH, filename.replace(".jpg", ".png"))
-        has_logo = os.path.exists(logo_path)
-        thumb_image = Image.open(game_box_path)  # type: ignore[union-attr]
-        thumb_image = thumb_image.convert("RGBA")
-        thumb_image = thumbnail_image(thumb_image, self.remote_size)
-        if has_logo:
-            logo_image = Image.open(logo_path)  # type: ignore[union-attr]
-            logo_image = logo_image.convert("RGBA")
-            logo_width, logo_height = logo_image.size
-            if logo_width > self.min_logo_x:
-                logo_image = logo_image.resize(
-                    (self.min_logo_x, int(logo_height * (self.min_logo_x / logo_width))),
-                    resample=Image.Resampling.BICUBIC,  # type: ignore[union-attr]
-                )
-            elif logo_height > self.min_logo_y:
-                logo_image = logo_image.resize(
-                    (int(logo_width * (self.min_logo_y / logo_height)), self.min_logo_y),
-                    resample=Image.Resampling.BICUBIC,  # type: ignore[union-attr]
-                )
-            thumb_image = paste_overlay(thumb_image, logo_image)
-        thumb_path = os.path.join(self.dest_path, filename)
-        thumb_image = thumb_image.convert("RGB")
-        thumb_image.save(thumb_path)
+    @property
+    def render_size(self) -> tuple[int, int]:
+        """EGS artwork is downloaded at the size it is rendered at."""
+        return self.remote_size
 
     def get_media_url(self, details: dict[str, Any]) -> str | None:
         for image in details.get("keyImages", []):
@@ -72,16 +49,9 @@ class DieselGameBoxTall(DieselGameMedia):
 
     size = (200, 267)
     remote_size = size
-    min_logo_x = 100
-    min_logo_y = 100
+    logo_max_size = (100, 100)
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box_tall")
     api_field = "DieselGameBoxTall"
-
-    def render(self) -> None:
-        if not os.path.isdir(self.dest_path):
-            return
-        for filename in os.listdir(self.dest_path):
-            self._render_filename(filename)
 
 
 class DieselGameBoxSmall(DieselGameBoxTall):
@@ -94,8 +64,7 @@ class DieselGameBox(DieselGameBoxTall):
 
     size = (316, 178)
     remote_size = size
-    min_logo_x = 300
-    min_logo_y = 150
+    logo_max_size = (300, 150)
     dest_path = os.path.join(settings.CACHE_DIR, "egs/game_box")
     api_field = "DieselGameBox"
 
@@ -106,13 +75,12 @@ class DieselGameBannerSmall(DieselGameBox):
 
 
 class DieselGameBoxLogo(DieselGameMedia):
-    """EGS game box"""
+    """The EGS logo images; these are composited onto the other media types."""
 
     size = (200, 100)
     remote_size = size
     file_patterns = ["%s.png"]
-    visible = False
-    dest_path = os.path.join(settings.CACHE_DIR, "egs/game_logo")
+    dest_path = EGS_LOGO_PATH
     api_field = "DieselGameBoxLogo"
 
 
