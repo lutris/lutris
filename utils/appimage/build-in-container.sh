@@ -107,30 +107,33 @@ while IFS= read -r -d '' so; do
 done < <(find "$TARGET" -maxdepth 3 \( -name '_gi*.so' -o -name '_dbus*.so' -o -name 'gi.repository*.so' \) -print0 2>/dev/null)
 echo "Passing ${#LIB_ARGS[@]} native extensions to linuxdeploy: ${LIB_ARGS[*]}"
 
-# WebKit2 is loaded lazily via gi.repository (only when the user opens a
-# service login dialog), so it never appears in any binary's NEEDED list
-# at build time. Without explicit --library hints linuxdeploy doesn't
-# bundle libwebkit2gtk-4.1 or libjavascriptcoregtk-4.1, and at runtime
-# dlopen() falls through to the host copies — invisible on Ubuntu (same
-# layout), fatal on Fedora/Arch/openSUSE (different versions, different
-# path layouts) with errors like "undefined symbol: webkit_web_context_new".
-WEBKIT_LIB_ARGS=()
-for soname in libwebkit2gtk-4.1.so.0 libjavascriptcoregtk-4.1.so.0; do
+# WebKit2 and GnomeDesktop are loaded lazily via gi.repository (WebKit
+# only when the user opens a service login dialog), so they never appear
+# in any binary's NEEDED list at build time. Without explicit --library
+# hints linuxdeploy doesn't bundle them, and at runtime dlopen() falls
+# through to the host copies — invisible on Ubuntu (same layout), fatal
+# on Fedora/Arch/openSUSE (different versions, different path layouts)
+# with errors like "undefined symbol: webkit_web_context_new". For
+# GnomeDesktop the typelib gets bundled anyway, so a host without
+# libgnome-desktop-3.so.20 logs a load failure and display detection
+# falls back to xrandr.
+GI_LIB_ARGS=()
+for soname in libwebkit2gtk-4.1.so.0 libjavascriptcoregtk-4.1.so.0 libgnome-desktop-3.so.20; do
     so_path="$(ldconfig -p | awk -v n="$soname" '$1 == n { print $NF; exit }')"
     if [ -n "$so_path" ] && [ -f "$so_path" ]; then
-        WEBKIT_LIB_ARGS+=(--library "$so_path")
+        GI_LIB_ARGS+=(--library "$so_path")
     else
-        echo "WARNING: $soname not found via ldconfig — WebKit dialogs will use host libs"
+        echo "WARNING: $soname not found via ldconfig — it will be loaded from the host"
     fi
 done
-echo "Passing ${#WEBKIT_LIB_ARGS[@]} WebKit libraries to linuxdeploy: ${WEBKIT_LIB_ARGS[*]}"
+echo "Passing ${#GI_LIB_ARGS[@]} GI-loaded libraries to linuxdeploy: ${GI_LIB_ARGS[*]}"
 
 linuxdeploy \
     --appdir "$APPDIR" \
     --plugin gtk \
     --executable "$APPDIR/usr/bin/python${PY_VER}" \
     "${LIB_ARGS[@]}" \
-    "${WEBKIT_LIB_ARGS[@]}" \
+    "${GI_LIB_ARGS[@]}" \
     --desktop-file "$DESKTOP_FILE" \
     --icon-file "$ICON_FILE"
 

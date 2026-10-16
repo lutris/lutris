@@ -131,6 +131,17 @@ def read_vulkaninfo_summary(icd_files: str = "") -> str | None:
         return None
 
 
+def get_vulkaninfo_pci_id(gpu_info: dict[str, str]) -> str | None:
+    """Returns the 'vendor:device' PCI id of one vulkaninfo GPU entry, or None if the
+    entry is missing either id, which happens when vulkaninfo reports a device it could
+    only partially describe."""
+    vendor_id = gpu_info.get("vendorID")
+    device_id = gpu_info.get("deviceID")
+    if not vendor_id or not device_id:
+        return None
+    return "%s:%s" % (vendor_id.replace("0x", ""), device_id.replace("0x", ""))
+
+
 class GPU:
     def __init__(self, card: str):
         self.card = card
@@ -205,34 +216,27 @@ class GPU:
             elif "= " in line:
                 key, value = line.split("= ", maxsplit=1)
                 result[current_gpu][key.strip()] = value.strip()
-        if "Failed to detect any valid GPUs" in result or "ERROR: [Loader Message]" in result:
-            logger.warning("Vulkan failed to detect any GPUs: %s", result)
-            return {}
+        if vulkaninfo_output and not result:
+            # The keys of 'result' are device headings, so the loader's own failure text
+            # never appears there; an empty parse is what a failure actually looks like.
+            logger.warning("Vulkan failed to detect any GPUs: %s", vulkaninfo_output_raw)
         return result
 
     def get_vulkaninfo_name(self, vulkaninfo: dict[str, dict[str, str]]) -> str | None:
         best_name = None
-        for gpu_index in vulkaninfo:
-            pci_id = "%s:%s" % (
-                vulkaninfo[gpu_index]["vendorID"].replace("0x", ""),
-                vulkaninfo[gpu_index]["deviceID"].replace("0x", ""),
-            )
-            if pci_id == self.pci_id:
-                name = vulkaninfo[gpu_index]["deviceName"]
-                if not best_name or len(name) > len(best_name):
+        for gpu_info in vulkaninfo.values():
+            if get_vulkaninfo_pci_id(gpu_info) == self.pci_id:
+                name = gpu_info.get("deviceName")
+                if name and (not best_name or len(name) > len(best_name)):
                     best_name = name
         return best_name
 
     def get_vulkaninfo_device_uuid(self, vulkaninfo: dict[str, dict[str, str]]) -> str | None:
-        for gpu_index in vulkaninfo:
-            pci_id = "%s:%s" % (
-                vulkaninfo[gpu_index]["vendorID"].replace("0x", ""),
-                vulkaninfo[gpu_index]["deviceID"].replace("0x", ""),
-            )
-            if pci_id == self.pci_id:
-                deviceUUID = vulkaninfo[gpu_index].get("deviceUUID", "").replace("-", "")
-                if deviceUUID:
-                    return deviceUUID
+        for gpu_info in vulkaninfo.values():
+            if get_vulkaninfo_pci_id(gpu_info) == self.pci_id:
+                device_uuid = gpu_info.get("deviceUUID", "").replace("-", "")
+                if device_uuid:
+                    return device_uuid
         return None
 
     def get_lspci_name(self) -> str:
