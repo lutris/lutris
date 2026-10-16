@@ -77,7 +77,7 @@ class UbisoftParser(object):
             # we end up in the middle of header, return values normalized
             # to end of record as well real yaml size and game launch_id
             return record_size - offset, launch_id, launch_id_2, offset + tmp_size + 1
-        except:
+        except Exception:
             # something went horribly wrong, do not crash it,
             # just return 0s, this way it will be handled later in the code
             # 10 is to step a little in configuration file in order to find next game
@@ -149,7 +149,7 @@ class UbisoftParser(object):
                     if global_offset < len(configuration_content) and configuration_content[global_offset] != 0x0A:
                         object_size, _, _, header_size = self._parse_configuration_header(data, True)
                         global_offset = global_offset_tmp + object_size + header_size
-            except:
+            except Exception:
                 log.exception("parse_configuration failed with exception. Possibly 'configuration' file corrupted")
         return records
 
@@ -168,7 +168,7 @@ class UbisoftParser(object):
                     global_offset += record_size
                 else:
                     break
-        except:
+        except Exception:
             log.exception("parse_ownership failed with exception. Possibly 'ownership' file corrupted")
             return []
         return records
