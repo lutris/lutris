@@ -5,6 +5,7 @@ import re
 from functools import cached_property
 from gettext import gettext as _
 from pathlib import Path
+from urllib.parse import urlparse
 
 import requests
 
@@ -59,6 +60,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.game_id = self.get_game_id()
         self.post_install_hooks = []
         self.discord_id = installer.get("discord_id")
+
+    @property
+    def is_local_script(self) -> bool:
+        """True if the script was loaded from a file on the user's disk rather
+        than downloaded from lutris.net."""
+        return bool(self.installer.get("installer_file"))
 
     @cached_property
     def scriptdir(self):
@@ -222,6 +229,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         # Run variable substitution on the URLs from the script
         for file in files:
             file.set_url(self.interpreter._substitute(file.url))
+            if urlparse(file.url).scheme == "file" and not self.is_local_script:
+                # Only scripts the user loaded from their own disk may read local
+                # files; a script from lutris.net must not reach into the user's files.
+                raise ScriptingError(
+                    _("The file '%s' is a local path, which only local install scripts may use.") % file.id
+                )
             if is_moddb_url(file.url):
                 moddb_url = file.url
                 try:

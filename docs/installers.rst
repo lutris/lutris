@@ -365,6 +365,15 @@ Examples::
         referer: www.mywebsite.com
 
 
+A value can also be a local file: either an absolute path, or a path relative to
+the installer script using ``$SCRIPTDIR`` (see `Variable substitution`_). Lutris
+copies the file into its cache like any download, leaving your own copy
+untouched, so the ``installer`` section can move or extract it freely::
+
+    files:
+    - setup: $SCRIPTDIR/setup.exe
+    - patch: /srv/games/my-game/patch.zip
+
 If the game makes use of Steam data, the value should be
 ``$STEAM:appid:path/to/data``. This will check that the data is available
 or install it otherwise.
