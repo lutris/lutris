@@ -19,7 +19,6 @@ lutris/database/__init__.py
 lutris/database/saved_searches.py
 lutris/database/schema.py
 lutris/database/services.py
-lutris/database/sources.py
 lutris/database/sql.py
 lutris/exception_backstops.py
 lutris/exceptions.py
