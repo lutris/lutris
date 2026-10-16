@@ -83,7 +83,7 @@ class ShowAppsDialog(ModelessDialog):
         for app in self.apps:
             row = Gtk.ListBoxRow(visible=True)
             hbox = Gtk.Box(visible=True, orientation=Gtk.Orientation.HORIZONTAL)
-            lbl_game = Gtk.Label(app.name, visible=True)
+            lbl_game = Gtk.Label(label=app.name, visible=True)
             lbl_game.set_halign(Gtk.Align.START)
             hbox.pack_start(lbl_game, True, True, 5)
             row.add(hbox)
@@ -216,13 +216,13 @@ class RunnerInstallDialog(ModelessDialog):
             hbox.pack_start(icon_container, False, True, 0)
             row.icon = icon
 
-            lbl_version = Gtk.Label(runner["version"])
+            lbl_version = Gtk.Label(label=runner["version"])
             lbl_version.set_max_width_chars(20)
             lbl_version.set_property("width-chars", 20)
             lbl_version.set_halign(Gtk.Align.START)
             hbox.pack_start(lbl_version, False, False, 5)
 
-            arch_label = Gtk.Label(runner["architecture"])
+            arch_label = Gtk.Label(label=runner["architecture"])
             arch_label.set_max_width_chars(8)
             arch_label.set_halign(Gtk.Align.START)
             hbox.pack_start(arch_label, False, True, 5)

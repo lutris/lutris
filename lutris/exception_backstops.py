@@ -162,7 +162,7 @@ def init_exception_backstops() -> None:
     GObject.Object.connect = _error_handling_connect
 
     _original_add_emission_hook: Callable[[GObject.Object, str, AnyCallable], Any] = GObject.add_emission_hook
-    GObject.add_emission_hook = _error_handling_add_emission_hook
+    GObject.add_emission_hook = _error_handling_add_emission_hook  # type: ignore[misc]
 
     _original_idle_add = GLib.idle_add
     GLib.idle_add = _error_handling_idle_add

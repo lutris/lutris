@@ -32,7 +32,7 @@ class CacheConfigurationDialog(ModalDialog):
         prefs_box = Gtk.VBox()
 
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
-        label = Gtk.Label(_("Cache path"))
+        label = Gtk.Label(label=_("Cache path"))
         box.pack_start(label, False, False, 0)
         path_chooser = FileChooserEntry(
             title=_("Set the folder for the cache path"),
