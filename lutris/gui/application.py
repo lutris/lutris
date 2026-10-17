@@ -36,7 +36,7 @@ from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
 from lutris.game import GAME_START, GAME_STOPPED, Game, export_game, import_game
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
+from lutris.gui.dialogs import Dialog, ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
 from lutris.gui.dialogs.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
@@ -51,6 +51,7 @@ from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, resources, system
 from lutris.util.http import HTTPError, Request
+from lutris.util.jobs import schedule_at_idle
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -89,6 +90,7 @@ class LutrisApplication(Gtk.Application):
         INSTALLATION_COMPLETED.register(self.on_install_ended)
         INSTALLATION_FAILED.register(self.on_install_ended)
         DOWNLOAD_QUEUE_COMPLETED.register(self.on_download_queue_completed)
+        self.connect("window-removed", self.on_window_removed)
 
         GLib.set_application_name(_("Lutris"))
         GLib.set_prgname("net.lutris.Lutris")
@@ -850,6 +852,13 @@ class LutrisApplication(Gtk.Application):
 
     def on_download_queue_completed(self, _widget: Gtk.Widget = None) -> None:
         self._quit_if_hidden_and_idle()
+
+    def on_window_removed(self, _app: Gtk.Application, window: Gtk.Window) -> None:
+        # GTK 4's gtk_window_destroy() only drops GTK's own reference; a reference cycle
+        # through a child's signal handler bound to the window then keeps it alive.
+        # Force dispose like GTK 3 did; Dialog.destroy() already does this itself.
+        if not isinstance(window, Dialog):
+            schedule_at_idle(window.run_dispose)
 
     def _quit_if_hidden_and_idle(self) -> None:
         """Quits Lutris if the window is not visible and there is no ongoing activity
