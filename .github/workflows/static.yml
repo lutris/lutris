@@ -17,8 +17,8 @@ jobs:
       - name: Check syntax compatibility
         run: python -m compileall -q lutris/
 
-  mypy-checker:
-    name: Mypy
+  pyrefly-checker:
+    name: Pyrefly
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,10 +37,10 @@ jobs:
           python -m pip install --upgrade pip
           make req-python
           make dev
-      - name: Run mypy analysis
+      - name: Run pyrefly analysis
         run: |
-          mypy --version
-          mypy . --python-version 3.10
+          pyrefly --version
+          pyrefly check
 
   po-checker:
     name: Translation files

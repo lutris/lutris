@@ -20,7 +20,7 @@ help:
 	@echo "  make check          Run every static-analysis check"
 	@echo "  make style          Check code formatting (ruff format --check)"
 	@echo "  make format         Auto-format code and sort imports"
-	@echo "  make mypy           Run mypy against the baseline"
+	@echo "  make pyrefly        Run the pyrefly type checker against the baseline"
 	@echo "  make appimage       Build the AppImage"
 	@echo "  make install-hooks  Install the git pre-commit hook"
 	@echo
@@ -51,7 +51,7 @@ install-hooks:
 	ln -sf -t .git/hooks/ ../../.hooks/pre-commit
 
 dev: install-hooks
-	pip3 install ruff==0.12.1 mypy==1.16.1 mypy-baseline nose2
+	pip3 install ruff==0.12.1 pyrefly==1.4.0 nose2
 	pip3 install 'pygobject-stubs>=2.18.0' --no-cache-dir --config-settings=config=Gtk3,Gdk3,Soup2
 
 # ============
@@ -69,7 +69,7 @@ format:
 # Static analysis
 # ===============
 
-check: ruff_lint mypy syntax-compat annotation-compat po-check
+check: ruff_lint pyrefly syntax-compat annotation-compat po-check
 
 ruff_lint:
 	ruff check .
@@ -83,11 +83,11 @@ annotation-compat:
 po-check:
 	@for f in po/*.po; do msgfmt --check "$$f" -o /dev/null; done
 
-mypy:
-	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline filter
+pyrefly:
+	pyrefly check
 
-mypy-reset-baseline:  # Add new typing errors to mypy. Use sparingly.
-	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline sync
+pyrefly-reset-baseline:  # Record current typing errors in the baseline. Use sparingly.
+	pyrefly check --update-baseline
 
 # ==============================
 # Packaging (developer-facing)

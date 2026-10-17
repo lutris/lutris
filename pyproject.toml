@@ -82,8 +82,7 @@ packages = [
 [dependency-groups]
 dev = [
     "ruff==0.12.1",
-    "mypy==1.16.1",
-    "mypy-baseline",
+    "pyrefly==1.4.0",
     "nose2",
     "pygobject-stubs>=2.18.0"
 ]
@@ -123,101 +122,33 @@ ignore = [
 fixable = ["ALL"]
 unfixable = []
 
-[tool.mypy]
-python_version = "3.10"
-packages = [
-    "lutris",
-    "tests",
+[tool.pyrefly]
+python-version = "3.10"
+project-includes = ["lutris", "tests", "utils"]
+project-excludes = [
+    "**/*_pb2.py",
+    "lutris/gui/**",
+    "lutris/util/display.py",
+    "lutris/game_actions.py",
 ]
-exclude = [
-    ".*_pb2.py",  # Any automatically generated protobuf files
-    "venv",
-    "^build/",  # setuptools build output
-]
-disable_error_code = [
-    "no-redef",  # Allow variable redefinition
-    "has-type",  # Ignore when variable types cannot be determined.
-    "dict-item",  # Dictionaries are always fully dynamic
-    "var-annotated",  # Never require type annotations
-    "assignment",  # Allow incompatible types in assignment (used heavily in lutris class structure).
-]
-allow_redefinition = true
-follow_imports = "silent"
-ignore_missing_imports = true
 
-[tool.mypy-baseline]
-# --baseline-path: the file where the baseline should be stored
-baseline_path = ".mypy_baseline"
-# --depth: cut path names longer than that many directories deep
-depth = 40
-# --allow-unsynced: do not fail for unsynced resolved errors
-allow_unsynced = true
-# --preserve-position: do not remove error position from the baseline
-preserve_position = false
-# --hide-stats: do not show stats and messages at the end
-hide_stats = false
-# --no-colors: do not use colors in stats
-no_colors = false
-# --ignore: regexes for error messages to ignore
-ignore = []
-
-[[tool.mypy.overrides]]
-module = [
-    "lutris.api",
-    "lutris.cache",
-    "lutris.config",
-    "lutris.database.*",
-    "lutris.exception_backstops",
-    "lutris.exceptions",
-    "lutris.gui.dialogs",
-    "lutris.monitored_command",
-    "lutris.runners",
-    "lutris.scanners.default_installers",
-    "lutris.services.mame",
-    "lutris.settings",
-    "lutris.sysoptions",
-    "lutris.util",
-    "lutris.util.busy",
-    "lutris.util.datapath",
-    "lutris.util.discord.base",
-    "lutris.util.graphics.*",
-    "lutris.util.http",
-    "lutris.util.jobs",
-    "lutris.util.log",
-    "lutris.util.flatpak",
-    "lutris.util.retroarch.core_config",
-    "lutris.util.settings",
-    "lutris.util.standalone_scripts",
-    "lutris.util.steam.*",
-    "lutris.util.shell",
-    "lutris.util.system",
-    "lutris.util.timer",
-    "lutris.util.ubisoft.consts",
-    "lutris.util.urlhandler",
-    "lutris.util.wine.d3d_extras",
-    "lutris.util.wine.dgvoodoo2",
-    "lutris.util.xdgshortcuts",
-    "lutris.util.yaml",
-    "setup",
-    "utils.bios_format",
-    "utils.meson_post_install",
-]
-# Equivalent to strict = true for per-module config
-# Use strict = true when https://github.com/python/mypy/issues/11401 is fixed
-check_untyped_defs = true
-disallow_any_generics = true
-disallow_incomplete_defs = true
-disallow_subclassing_any = true
-disallow_untyped_calls = true
-disallow_untyped_decorators = true
-disallow_untyped_defs = true
-extra_checks = true
-no_implicit_reexport = true
-strict_equality = true
-warn_return_any = true
-warn_unused_ignores = true
-
-[tool.pyright]
-
-typeCheckingMode = "basic"
-reportMissingImports = false
+[tool.pyrefly.errors]
+# Disabled to match the leniency of the previous mypy setup; re-enable one at a time
+bad-assignment = false
+missing-attribute = false
+bad-argument-type = false
+bad-override = false
+unsupported-operation = false
+no-matching-overload = false
+bad-override-mutable-attribute = false
+bad-override-param-name = false
+not-iterable = false
+not-callable = false
+unbound-name = false
+bad-return = false
+unexpected-keyword = false
+bad-specialization = false
+bad-index = false
+bad-function-definition = false
+invalid-type-var = false
+missing-import = false

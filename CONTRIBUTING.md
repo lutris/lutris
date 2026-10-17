@@ -168,7 +168,7 @@ Build tooling
 -------------
 
 * ``pyproject.toml`` is the single source of truth for Python packaging
-  metadata and for ruff/mypy/pyright configuration.
+  metadata and for ruff/pyrefly configuration.
 * ``meson.build`` (plus ``po/meson.build``) drives the install layout used by
   distro packages.
 * The root ``Makefile`` holds developer tasks only. Release, packaging and
