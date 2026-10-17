@@ -296,7 +296,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def set_status(self, markup):
         """Display a short status text."""
         self.status_label.set_markup(markup)
-        self.status_label.set_visible(bool(markup))
+        numeric_progress = hasattr(self, "install_progress_bar") and self.install_progress_bar.get_visible()
+        self.status_label.set_visible(bool(markup) and not numeric_progress)
+        if numeric_progress:
+            self.install_progress_status.set_markup(markup)
 
     def get_status(self):
         return self.status_label.get_text() if self.status_label.get_visible() else ""
@@ -353,15 +356,28 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         GLib.idle_add(self._set_progress, fraction, text)
 
     def _set_progress(self, fraction, text):
+        # A preceding runner task may have switched to the log page.
+        # Present (and lazily create) the progress widgets before updating them.
+        if fraction is not None and self.stack.get_visible_child_name() != "spinner":
+            self.load_spinner_page(self.status_label.get_text())
         if not hasattr(self, "install_progress_bar"):
             return
         if fraction is None:
             self.install_progress_bar.hide()
+            self.install_progress_status.hide()
+            self.install_progress_text.hide()
+            self.install_spinner.start()
+            self.install_spinner.show()
+            self.status_label.set_visible(bool(self.status_label.get_text()))
             return
+        self.install_spinner.stop()
+        self.install_spinner.hide()
+        self.install_progress_status.set_text(self.status_label.get_text())
+        self.install_progress_status.set_visible(bool(self.status_label.get_text()))
+        self.status_label.hide()
         self.install_progress_bar.set_fraction(fraction)
-        if text:
-            self.install_progress_bar.set_text(text)
-            self.install_progress_bar.set_show_text(True)
+        self.install_progress_text.set_markup("<b>%s</b>" % gtk_safe(text or f"{fraction:.0%}"))
+        self.install_progress_text.show()
         self.install_progress_bar.show()
 
     def attach_log(self, command):
@@ -776,13 +792,26 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER, valign=Gtk.Align.CENTER)
         box.set_spacing(10)
 
-        spinner = Gtk.Spinner(halign=Gtk.Align.CENTER)
-        spinner.start()
-        box.pack_start(spinner, False, False, 0)
+        self.install_spinner = Gtk.Spinner(halign=Gtk.Align.CENTER)
+        self.install_spinner.set_no_show_all(True)
+        self.install_spinner.start()
+        self.install_spinner.show()
+        box.pack_start(self.install_spinner, False, False, 0)
+
+        self.install_progress_status = Gtk.Label(wrap=True, max_width_chars=55, justify=Gtk.Justification.CENTER)
+        self.install_progress_status.set_no_show_all(True)
+        box.pack_start(self.install_progress_status, False, False, 0)
+
+        self.install_progress_text = Gtk.Label()
+        self.install_progress_text.set_no_show_all(True)
+        box.pack_start(self.install_progress_text, False, False, 0)
 
         self.install_progress_bar = Gtk.ProgressBar()
         self.install_progress_bar.set_no_show_all(True)
         self.install_progress_bar.set_size_request(400, -1)
+        provider = Gtk.CssProvider()
+        provider.load_from_data(b"progressbar trough, progressbar progress { min-height: 14px; border-radius: 4px; }")
+        self.install_progress_bar.get_style_context().add_provider(provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         box.pack_start(self.install_progress_bar, False, False, 0)
 
         return box

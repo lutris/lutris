@@ -8,6 +8,8 @@ import shlex
 import shutil
 from gettext import gettext as _
 from pathlib import Path
+from queue import Empty
+from threading import Event
 
 from lutris import runtime
 from lutris.cache import is_file_in_custom_cache
@@ -214,7 +216,7 @@ class CommandsMixin:
             merge_single = "nomerge" not in data
             extractor = data.get("format")
             logger.debug("extracting file %s to %s", filename, dest_path)
-            self._killable_process(extract.extract_archive, filename, dest_path, merge_single, extractor)
+            self._extract_with_progress(filename, dest_path, merge_single, extractor)
         logger.debug("Extract done")
 
     def input_menu(self, data):
@@ -557,15 +559,56 @@ class CommandsMixin:
             file_path = self._substitute(fileid)
         return file_path
 
-    def _killable_process(self, func, *args, **kwargs):
-        """Run function `func` in a separate, killable process."""
+    def _extract_with_progress(self, *args):
+        """Forward worker progress to the installation window in the parent process."""
+
+        def on_progress(percent):
+            self.interpreter_ui_delegate.report_progress(percent / 100.0, f"{percent} %")
+
+        try:
+            return self._killable_process(extract.extract_archive, *args, progress_callback=on_progress)
+        finally:
+            self.interpreter_ui_delegate.report_progress(None)
+
+    def _killable_process(self, func, *args, progress_callback=None, **kwargs):
+        """Run function in a killable worker, optionally forwarding progress through IPC."""
+        if progress_callback:
+            with multiprocessing.Manager() as manager:
+                progress_queue = manager.Queue()
+                kwargs["progress_callback"] = progress_queue.put
+                return self._run_killable_process(func, args, kwargs, progress_queue, progress_callback)
+        return self._run_killable_process(func, args, kwargs)
+
+    def _run_killable_process(self, func, args, kwargs, progress_queue=None, progress_callback=None):
         with multiprocessing.Pool(1) as process:
             result_obj = process.apply_async(func, args, kwargs)
-            self.abort_current_task = process.terminate
-            result = result_obj.get()  # Wait process end & re-raise exceptions
-            self.abort_current_task = None
-            logger.debug("Process %s returned: %s", func, result)
-            return result
+            cancelled = Event()
+
+            def abort():
+                cancelled.set()
+                process.terminate()
+
+            self.abort_current_task = abort
+            try:
+                if progress_queue is not None:
+                    while not result_obj.ready():
+                        if cancelled.is_set():
+                            raise ScriptingError(_("Installation cancelled"))
+                        try:
+                            progress_callback(progress_queue.get(timeout=0.1))
+                        except Empty:
+                            pass
+                result = result_obj.get()  # Re-raise extraction errors.
+                if progress_queue is not None:
+                    while True:
+                        try:
+                            progress_callback(progress_queue.get_nowait())
+                        except Empty:
+                            break
+                logger.debug("Process %s returned: %s", func, result)
+                return result
+            finally:
+                self.abort_current_task = None
 
     def _extract_innosetup(self, file_id):
         self.extract({"src": file_id, "dst": "$GAMEDIR", "extractor": "innoextract"})
@@ -1023,7 +1066,7 @@ class CommandsMixin:
         file_path = self._get_file_path(file_id)
 
         # Extract the archive (e.g. tar.gz wrapper)
-        self._killable_process(extract.extract_archive, file_path, dst, True)
+        self._extract_with_progress(file_path, dst, True)
 
         # Check if any extracted .exe is an installer
         for entry in os.listdir(dst):
