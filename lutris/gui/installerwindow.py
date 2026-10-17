@@ -30,6 +30,7 @@ from lutris.gui.widgets.utils import get_main_window
 from lutris.installer import InstallationKind, interpreter
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
+from lutris.runners.names import RunnerName
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
 from lutris.util.linux import LINUX_SYSTEM
@@ -905,7 +906,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             buttons_box.pack_start(browse_button, True, True, 40)
 
             self.stack.present_replacement_page("ask_for_disc", vbox)
-            if installer.runner == "wine":
+            if installer.runner == RunnerName.WINE:
                 eject_button = Gtk.Button(_("Eject"), halign=Gtk.Align.END)
                 eject_button.connect("clicked", self.on_eject_clicked)
                 vbox.pack_end(eject_button, False, False, 0)

@@ -10,6 +10,7 @@ from lutris import settings
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import get_runner_human_name
+from lutris.runners.names import RunnerName
 from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -288,13 +289,13 @@ class GameJoltService(OnlineService):
         return installers
 
     def _generate_installer(self, runner, db_game: dict[str, Any]) -> dict[str, Any]:
-        if runner == "linux":
+        if runner == RunnerName.LINUX:
             game_config = {"exe": AUTO_ELF_EXE}
             script = [
                 {"extract": {"file": "gamejoltbuild", "dst": "$CACHE"}},
                 {"merge": {"src": "$CACHE", "dst": "$GAMEDIR"}},
             ]
-        elif runner == "wine":
+        elif runner == RunnerName.WINE:
             slug = db_game["slug"]
             game_config = {"exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR/pfx"}
             script = [
@@ -366,9 +367,9 @@ class GameJoltService(OnlineService):
         # Filter builds by platform
         matching_builds = []
         for build in builds:
-            if runner == "linux" and (build.get("os_linux") or build.get("os_linux_64")):
+            if runner == RunnerName.LINUX and (build.get("os_linux") or build.get("os_linux_64")):
                 matching_builds.append(build)
-            elif runner == "wine" and (build.get("os_windows") or build.get("os_windows_64")):
+            elif runner == RunnerName.WINE and (build.get("os_windows") or build.get("os_windows_64")):
                 matching_builds.append(build)
 
         if not matching_builds:
@@ -436,9 +437,9 @@ class GameJoltService(OnlineService):
         def build_score(build):
             score = 0
             # Prefer 64-bit
-            if runner == "linux" and build.get("os_linux_64"):
+            if runner == RunnerName.LINUX and build.get("os_linux_64"):
                 score += 10
-            elif runner == "wine" and build.get("os_windows_64"):
+            elif runner == RunnerName.WINE and build.get("os_windows_64"):
                 score += 10
             # Prefer non-demo
             if build.get("type") != "downloadable" or build.get("is_demo"):

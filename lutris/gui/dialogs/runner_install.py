@@ -15,6 +15,7 @@ from lutris.database.games import get_games_by_runner
 from lutris.game import Game
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog, display_error
 from lutris.gui.widgets.stock_icon_image import StockIconImage
+from lutris.runners.names import RunnerName
 from lutris.util import jobs, system
 from lutris.util.downloader import SimpleDownloader
 from lutris.util.extract import extract_archive
@@ -343,7 +344,7 @@ class RunnerInstallDialog(ModelessDialog):
 
         def on_complete():
             runner["is_installed"] = False
-            if self.runner_name == "wine":
+            if self.runner_name == RunnerName.WINE:
                 logger.debug("Clearing wine version cache")
                 from lutris.util.wine.wine import clear_wine_version_cache
 
@@ -437,7 +438,7 @@ class RunnerInstallDialog(ModelessDialog):
         row.install_progress.set_fraction(0.0)
         row.install_progress.hide()
         self.update_listboxrow(row)
-        if self.runner_name == "wine":
+        if self.runner_name == RunnerName.WINE:
             logger.debug("Clearing wine version cache")
             from lutris.util.wine.wine import clear_wine_version_cache
 

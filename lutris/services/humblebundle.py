@@ -12,6 +12,7 @@ from lutris.exceptions import UnavailableGameError
 from lutris.gui.dialogs import HumbleBundleCookiesDialog, QuestionDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
+from lutris.runners.names import RunnerName
 from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -383,7 +384,7 @@ def pick_download_url_from_download_info(download_info):
 def get_humble_download_link(humbleid, runner):
     """Return a download link for a given humbleid and runner"""
     service = HumbleBundleService()
-    platform = runner if runner != "wine" else "windows"
+    platform = runner if runner != RunnerName.WINE else "windows"
     downloads = service.get_downloads(humbleid, platform)
     if not downloads:
         logger.error("Game %s for %s not found in the Humble Bundle library", humbleid, platform)

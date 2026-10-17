@@ -16,6 +16,7 @@ from lutris.gui.dialogs import InputDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import get_runner_human_name
+from lutris.runners.names import RunnerName
 from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -558,13 +559,13 @@ class ItchIoService(OnlineService):
         return installers
 
     def _generate_installer(self, runner, db_game: dict[str, Any]) -> dict[str, Any]:
-        if runner == "linux":
+        if runner == RunnerName.LINUX:
             game_config = {"exe": AUTO_ELF_EXE}
             script = [
                 {"extract": {"file": "itchupload", "dst": "$CACHE"}},
                 {"merge": {"src": "$CACHE", "dst": "$GAMEDIR"}},
             ]
-        elif runner == "wine":
+        elif runner == RunnerName.WINE:
             game_config = {"exe": AUTO_WIN32_EXE}
             script = [{"task": {"name": "create_prefix"}}, {"install_or_extract": "itchupload"}]
         else:
@@ -742,7 +743,7 @@ class ItchIoService(OnlineService):
         if not link:
             for upload in uploads["uploads"]:
                 # default =  games/tools ("executables")
-                if upload["type"] == "default" and (installer.runner in ("linux", "wine")):
+                if upload["type"] == "default" and (installer.runner in (RunnerName.LINUX, RunnerName.WINE)):
                     upload_runners = self._get_detail_runners(upload, fix_missing_platforms=False)
                     if installer.runner not in upload_runners:
                         continue

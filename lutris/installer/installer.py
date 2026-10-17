@@ -16,6 +16,7 @@ from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, ENTRY_POINT_KEYS
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import import_runner
+from lutris.runners.names import RunnerName
 from lutris.services import SERVICES
 from lutris.util.game_finder import find_linux_game_executable, find_windows_game_executable
 from lutris.util.log import logger
@@ -143,7 +144,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if self.requires or self.extends:
             # Game is an extension of an existing game, folder exists
             return False
-        if self.runner == "steam":
+        if self.runner == RunnerName.STEAM:
             # Steam games installs in their steamapps directory
             return False
         if not self.script.get("installer"):
@@ -189,12 +190,12 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
                 errors.append("Missing field '%s'" % field)
 
         # Check that libretro installers have a core specified
-        if self.runner == "libretro":
+        if self.runner == RunnerName.LIBRETRO:
             if "game" not in self.script or "core" not in self.script["game"]:
                 errors.append("Missing libretro core in game section")
 
         # Check that Steam games have an AppID
-        if self.runner == "steam":
+        if self.runner == RunnerName.STEAM:
             if not self.script.get("game", {}).get("appid"):
                 errors.append("Missing appid for Steam game")
 

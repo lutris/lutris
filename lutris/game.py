@@ -25,6 +25,7 @@ from lutris.installer import InstallationKind, get_entry_point_path
 from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner, is_valid_runner_name
+from lutris.runners.names import RunnerName
 from lutris.runners.runner import Runner, kill_processes
 from lutris.util import busy, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
@@ -683,7 +684,7 @@ class Game:
         game_config = self.config.game_config
 
         # Skip MAME roms referenced by their ID
-        if self.runner_name == "mame":
+        if self.runner_name == RunnerName.MAME:
             if "main_file" in game_config and "." not in game_config["main_file"]:
                 return ""
 
@@ -698,7 +699,7 @@ class Game:
 
         # The Wine runner fixes case mismatches automatically,
         # sort of like Windows, so we need to do the same.
-        if self.runner_name == "wine":
+        if self.runner_name == RunnerName.WINE:
             path = fix_path_case(path)
 
         return path

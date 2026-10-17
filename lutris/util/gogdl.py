@@ -20,6 +20,7 @@ import threading
 import time
 
 from lutris import settings
+from lutris.runners.names import RunnerName
 from lutris.util.log import logger
 
 # Where the runtime system installs gogdl
@@ -265,7 +266,7 @@ def _find_manifest(game_id, install_dir, runner):
     the install directory (nested one level under an installDirectory
     subfolder named after the game's display name), while the v2 (Windows)
     manager writes to a shared cache dir keyed by game id alone."""
-    if runner == "linux":
+    if runner == RunnerName.LINUX:
         if not install_dir or not os.path.isdir(install_dir):
             return None
         direct = os.path.join(install_dir, LINUX_MANIFEST_FILENAME)

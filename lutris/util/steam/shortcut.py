@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeAlias
 
 from lutris.api import format_installer_url
+from lutris.runners.names import RunnerName
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
@@ -81,7 +82,7 @@ def shortcut_exists(game: "Game") -> bool:
 
 
 def is_steam_game(game: "Game") -> bool:
-    return game.runner_name == "steam"
+    return game.runner_name == RunnerName.STEAM
 
 
 def create_shortcut(game: "Game", launch_config_name: str | None = None, standalone: bool = False) -> None:

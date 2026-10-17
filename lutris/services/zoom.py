@@ -13,6 +13,7 @@ from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.runners import get_runner_human_name
+from lutris.runners.names import RunnerName
 from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -237,7 +238,7 @@ class ZoomService(OnlineService):
     def _generate_installer(self, runner: str, db_game: dict[str, Any]) -> dict[str, Any]:
         slug = db_game["slug"]
         system_config = {}
-        if runner == "linux":
+        if runner == RunnerName.LINUX:
             game_config = {"exe": AUTO_ELF_EXE}
             script = [
                 {"extract": {"file": "zoominstaller", "dst": "$CACHE"}},

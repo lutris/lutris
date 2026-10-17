@@ -3,6 +3,8 @@ import os
 import platform
 from datetime import datetime
 
+from lutris.runners.names import RunnerName
+
 try:
     from webdav4.client import Client
 
@@ -44,7 +46,7 @@ class SaveInfo:
             raise ValueError("No save directory provided")
         prefix_path = os.path.dirname(str(self.game.config.game_config.get("exe")))
 
-        if self.game.runner_name == "wine":
+        if self.game.runner_name == RunnerName.WINE:
             prefix_path = self.game.config.game_config.get("prefix", "")
             if prefix_path and not prefix_path.startswith("/"):
                 prefix_path = os.path.join(self.game.directory, prefix_path)

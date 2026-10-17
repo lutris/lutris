@@ -7,6 +7,7 @@ from lutris.api import get_api_games
 from lutris.config import write_game_config
 from lutris.database import sql
 from lutris.database.games import add_or_update, get_game_by_field, get_games
+from lutris.runners.names import RunnerName
 from lutris.services.lutris import download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -282,7 +283,7 @@ def _create_game_config(install_root: str, info: dict, game_path: str = "") -> d
     # Wine prefix - try install_root from the JSON first, then the local
     # install_root. The JSON path is absolute from the original system and
     # won't exist when importing from a mounted GameOS drive.
-    if runner == "wine" and provider_id:
+    if runner == RunnerName.WINE and provider_id:
         for root in dict.fromkeys([info_install_root, install_root]):
             prefix_path = _get_wine_prefix_path(root, provider, provider_id)
             if os.path.isdir(prefix_path):
@@ -293,7 +294,7 @@ def _create_game_config(install_root: str, info: dict, game_path: str = "") -> d
         "name": name,
         "slug": slugify(name),
         "runner": runner,
-        "platform": "Linux" if runner == "linux" else "Windows",
+        "platform": "Linux" if runner == RunnerName.LINUX else "Windows",
         "directory": install_folder,
         "config": config,
         "provider": provider,

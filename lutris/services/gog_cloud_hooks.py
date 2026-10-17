@@ -13,6 +13,7 @@ import threading
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from lutris.runners.names import RunnerName
 from lutris.services.gog_cloud import (
     GOGCloudSync,
     SyncAction,
@@ -54,7 +55,7 @@ def _get_game_runner_info(game: "Game") -> dict:
         - install_path: Game install directory.
     """
     runner_name = getattr(game, "runner_name", "") or ""
-    is_native = runner_name == "linux"
+    is_native = runner_name == RunnerName.LINUX
     # Use lowercase platform names for GOG APIs (builds API expects lowercase)
     platform = "linux" if is_native else "windows"
 

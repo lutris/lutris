@@ -16,6 +16,7 @@ from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.monitored_command import MonitoredCommand
 from lutris.runners import InvalidRunnerError, import_runner, import_task
+from lutris.runners.names import RunnerName
 from lutris.runners.wine import wine
 from lutris.util import extract, linux, selective_merge, system
 from lutris.util.fileio import EvilConfigParser, MultiOrderedDict
@@ -43,7 +44,7 @@ class CommandsMixin:
 
         # Special case that lets the Wine configuration explicit specify the path
         # to the Wine executable, not just a version number.
-        if self.installer.runner == "wine":
+        if self.installer.runner == RunnerName.WINE:
             try:
                 config_version, runner_config = wine.get_runner_version_and_config()
                 wine_path = get_wine_path_for_version(config_version, config=runner_config.runner_level["wine"])
@@ -789,7 +790,7 @@ class CommandsMixin:
         preserve_manifest = bool(data.get("preserve_manifest"))
 
         if not platform:
-            platform = "linux" if self.installer.runner == "linux" else "windows"
+            platform = "linux" if self.installer.runner == RunnerName.LINUX else "windows"
 
         # Determine install path
         # gogdl appends the game's installDirectory (from the depot manifest)
@@ -994,7 +995,7 @@ class CommandsMixin:
         """Runs if file is executable or extracts if file is archive"""
         file_path = self._get_file_path(file_id)
         runner = self.installer.runner
-        if runner != "wine":
+        if runner != RunnerName.WINE:
             raise ScriptingError(_("install_or_extract only works with wine!"))
         if file_path.endswith(".exe"):
             params = {"name": "wineexec", "executable": file_id}

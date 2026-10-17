@@ -17,6 +17,7 @@ from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.runners import get_runner_human_name
+from lutris.runners.names import RunnerName
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -467,7 +468,7 @@ class GOGService(OnlineService):
 
     def _normalize_runner_name(self, runner: str) -> str:
         """Normalize a runner name to either 'linux' or 'wine'."""
-        return "linux" if runner == "linux" else "wine"
+        return "linux" if runner == RunnerName.LINUX else "wine"
 
     def get_update_versions(self, gog_id: str, runner_name: str | None) -> dict[str, list]:
         """Return updates available for a game, keyed by patch version"""
@@ -696,9 +697,9 @@ class GOGService(OnlineService):
         """Generate an installer that uses gogdl depot downloads.
         The exe is not set here — gogdl_setup reads it from goggame-*.info
         after the download completes."""
-        platform = "linux" if runner == "linux" else "windows"
+        platform = "linux" if runner == RunnerName.LINUX else "windows"
         game_config = {}
-        if runner == "wine":
+        if runner == RunnerName.WINE:
             game_config["prefix"] = "$GAMEDIR/pfx"
         return {
             "name": db_game["name"],
@@ -722,7 +723,7 @@ class GOGService(OnlineService):
 
     def _generate_installer(self, slug: str, runner: str, db_game: dict[str, Any]) -> dict[str, Any]:
         system_config = {}
-        if runner == "linux":
+        if runner == RunnerName.LINUX:
             game_config = {"exe": AUTO_ELF_EXE}
             script = [
                 {"extract": {"file": "goginstaller", "format": "zip", "dst": "$CACHE"}},
@@ -830,7 +831,7 @@ class GOGService(OnlineService):
         requested DLC's files into the existing install directory."""
         appid = db_game["service_id"]
         runner = runner_name or "wine"
-        platform = "linux" if runner == "linux" else "windows"
+        platform = "linux" if runner == RunnerName.LINUX else "windows"
         installers = []
         for dlc in dlcs:
             installers.append(
@@ -881,7 +882,7 @@ class GOGService(OnlineService):
             installers = self.get_dlc_installers(db_game)
 
         # only handle linux & wine for now
-        if runner != "linux":
+        if runner != RunnerName.LINUX:
             runner = "wine"
 
         installers = [installer for installer in installers if installer["runner"] == runner]
@@ -897,7 +898,7 @@ class GOGService(OnlineService):
         from lutris.util.gogdl import is_depot_installed
 
         if is_depot_installed(appid, install_dir=install_dir, runner=runner):
-            platform = "linux" if runner == "linux" else "windows"
+            platform = "linux" if runner == RunnerName.LINUX else "windows"
             # Include currently-installed DLCs so they get updated alongside
             # the base game. Without this gogdl only refreshes base files;
             # passing "all" would surprise the user by installing every DLC

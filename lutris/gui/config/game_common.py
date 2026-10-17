@@ -19,6 +19,7 @@ from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.dialogs.move_game import MoveDialog
 from lutris.gui.widgets.notifications import send_notification
 from lutris.runners import import_runner
+from lutris.runners.names import RunnerName
 from lutris.services.lutris import download_lutris_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -369,7 +370,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if not game_info_box.name_entry.get_text():
             ErrorDialog(_("Please fill in the name"), parent=self)
             return False
-        if self.runner_name == "steam" and not self.lutris_config.game_config.get("appid"):
+        if self.runner_name == RunnerName.STEAM and not self.lutris_config.game_config.get("appid"):
             ErrorDialog(_("Steam AppID not provided"), parent=self)
             return False
         playtime_text = game_info_box.playtime_entry.get_text()
