@@ -164,13 +164,16 @@ class GameInfoBox(AdvancedSettingsBox):
         box.pack_start(label, False, False, 0)
         self.notes_textview = Gtk.TextView()
         self.notes_textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        self.notes_textview.set_left_margin(6)
-        self.notes_textview.set_right_margin(6)
+        self.notes_textview.set_left_margin(8)
+        self.notes_textview.set_right_margin(8)
+        self.notes_textview.set_top_margin(6)
+        self.notes_textview.set_bottom_margin(6)
         if self.game:
             self.notes_textview.get_buffer().set_text(self.game.notes)
         notes_scroll = Gtk.ScrolledWindow()
         notes_scroll.set_min_content_height(130)
         notes_scroll.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        notes_scroll.get_style_context().add_class("notes-frame")
         notes_scroll.add(self.notes_textview)
         box.pack_start(notes_scroll, True, True, 0)
 
