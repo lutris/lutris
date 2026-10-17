@@ -34,18 +34,18 @@ def main():
         modified_python_files: list[Path] = [f for f in modified_files if f.suffix == '.py']
         if modified_python_files:
             # Run command existence checks
-            for command in ["mypy", "ruff", "nose2"]:
+            for command in ["uv"]:
                 command_path = shutil.which(command)
                 if not command_path:
                     error_list.append(
-                        f"{command} command is missing: Have you run `make dev` to install it or sourced your virtual env?"
+                        f"{command} command is missing: Install it from https://docs.astral.sh/uv/ and run `make dev`."
                     )
             checks_to_run: list[list[str]] = [
-                ["mypy", "--python-version=3.10"] + [str(f) for f in modified_python_files],
-                [sys.executable, "utils/check_annotations.py"],
-                ["ruff", "check"] + [str(f) for f in modified_python_files],
-                ["ruff", "format", "--check"] + [str(f) for f in modified_python_files],
-                ["nose2"]
+                ["uv", "run", "mypy", "--python-version=3.10"] + [str(f) for f in modified_python_files],
+                ["uv", "run", "python", "utils/check_annotations.py"],
+                ["uv", "run", "ruff", "check"] + [str(f) for f in modified_python_files],
+                ["uv", "run", "ruff", "format", "--check"] + [str(f) for f in modified_python_files],
+                ["uv", "run", "nose2"]
             ]
             for check in checks_to_run:
                 comp_process = subprocess.run(check, capture_output=True)

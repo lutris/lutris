@@ -76,8 +76,10 @@ install the necessary GObject bindings as described in the INSTALL file.
 Set up your development environment
 -----------------------------------
 
-To ensure you have the proper tools installed run `make dev`
-This will install all necessary python to allow testing and validating your code.
+To ensure you have the proper tools installed, install [uv](https://docs.astral.sh/uv/)
+and run `make dev`. This runs `uv sync --locked`, which creates a `.venv` with the
+development tools pinned in `uv.lock`, and installs the git pre-commit hook.
+After changing dependencies in `pyproject.toml`, run `uv lock` and commit `uv.lock`.
 
 This project includes .editorconfig so you're good to go if you're using any
 editor/IDE that supports this. Otherwise make sure to configure your max line

@@ -25,8 +25,6 @@ dependencies = [
     "python-magic",
     "distro",
     "dbus-python",
-    "types-requests",
-    "types-PyYAML",
     "evdev",
     "PyGObject",
     "pypresence",
@@ -85,8 +83,17 @@ dev = [
     "mypy==1.16.1",
     "mypy-baseline",
     "nose2",
-    "pygobject-stubs>=2.18.0"
+    "pygobject-stubs>=2.18.0",
+    "types-requests",
+    "types-PyYAML",
 ]
+
+[tool.uv]
+default-groups = ["dev"]
+no-binary-package = ["pygobject-stubs"]
+
+[tool.uv.config-settings-package]
+pygobject-stubs = { config = "Gtk3,Gdk3,Soup2" }
 
 
 [tool.ruff]
