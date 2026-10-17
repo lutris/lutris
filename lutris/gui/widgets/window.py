@@ -27,10 +27,3 @@ class BaseApplicationWindow(Gtk.ApplicationWindow):
         if tooltip:
             button.set_tooltip_text(tooltip)
         return button
-
-    def present(self):  # pylint: disable=arguments-differ
-        """The base implementation doesn't always work, this one does."""
-        self.set_keep_above(True)
-        super().present()
-        self.set_keep_above(False)
-        super().present()
