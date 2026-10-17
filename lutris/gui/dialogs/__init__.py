@@ -202,11 +202,19 @@ class Dialog(Gtk.Window):
             if loop.is_running() and response != Gtk.ResponseType.NONE:
                 loop.quit()
 
+        def on_run_unmap(_dialog: "Dialog") -> None:
+            # GTK 4 emits 'destroy' only on dispose, which can't happen while
+            # our caller holds a reference; unmap fires on destroy() or hide().
+            if loop.is_running():
+                loop.quit()
+
         handler_id = self.connect("response", on_run_response)
+        unmap_id = self.connect("unmap", on_run_unmap)
         self.set_modal(True)
         self.present()
         loop.run()
         self.disconnect(handler_id)
+        self.disconnect(unmap_id)
         return response
 
     def destroy_at_idle(self, condition: Callable[[], bool] | None = None) -> None:
