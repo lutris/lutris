@@ -37,6 +37,8 @@ DATABASE: dict[str, DBSchema] = {
             "name": "discord_id",
             "type": "TEXT",
         },
+        {"name": "notes", "type": "TEXT"},
+        {"name": "notes_updated_at", "type": "INTEGER"},
     ],
     "service_games": [
         {"name": "id", "type": "INTEGER", "indexed": True},

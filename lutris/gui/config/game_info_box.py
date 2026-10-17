@@ -54,6 +54,7 @@ class GameInfoBox(AdvancedSettingsBox):
         self.directory_entry = None
         self.year_entry: NumberEntry = None
         self.playtime_entry: Gtk.Entry = None
+        self.notes_textview: Gtk.TextView = None
         self.service_medias = {ICON_KEY: LutrisIcon(), BANNER_KEY: LutrisBanner(), COVERART_KEY: LutrisCoverart()}
 
         self.image_buttons = {}
@@ -83,6 +84,8 @@ class GameInfoBox(AdvancedSettingsBox):
             self.pack_start(self._get_launch_config_box(), False, False, 6)
             self._game_config_location_entry = self._get_game_config_location_box()
             self.pack_start(self._game_config_location_entry, False, False, 6)
+
+        self.pack_start(self._get_notes_box(), False, False, 6)  # Notes
 
         # Read the show advanced options from the settings before updating the widget to have
         # it show correctly
@@ -150,6 +153,26 @@ class GameInfoBox(AdvancedSettingsBox):
         if self.game:
             self.playtime_entry.set_text(self.game.formatted_playtime)
         box.pack_start(self.playtime_entry, True, True, 0)
+
+        return box
+
+    def _get_notes_box(self):
+        box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
+
+        label = Label(_("Notes"))
+        label.set_valign(Gtk.Align.START)
+        box.pack_start(label, False, False, 0)
+        self.notes_textview = Gtk.TextView()
+        self.notes_textview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.notes_textview.set_left_margin(6)
+        self.notes_textview.set_right_margin(6)
+        if self.game:
+            self.notes_textview.get_buffer().set_text(self.game.notes)
+        notes_scroll = Gtk.ScrolledWindow()
+        notes_scroll.set_min_content_height(130)
+        notes_scroll.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        notes_scroll.add(self.notes_textview)
+        box.pack_start(notes_scroll, True, True, 0)
 
         return box
 
