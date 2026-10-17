@@ -30,6 +30,7 @@ Requires:       python3-gobject
 Requires:       python3-PyYAML
 Requires:       python3-requests
 Requires:       python3-dbus
+Requires:       python3-msgspec
 Requires:       python3-evdev
 Requires:       python3-distro
 Requires:       python3-pillow
