@@ -1,7 +1,7 @@
 project(
   'lutris',
   license: 'GPL-3.0-or-later',
-  meson_version: '>=0.46.0',
+  meson_version: '>=0.47.0',
 )
 
 # Find Python installation
@@ -21,19 +21,22 @@ podir = join_paths(meson.source_root(), 'po')
 config = configuration_data()
 config.set('localedir_path', join_paths(prefix, localedir))
 
+# Only a checkout of Lutris itself: a tarball unpacked inside some other repository
+# (an AUR clone, say) must not pick up that repository's commit.
+commit = ''
+git = find_program('git', required: false)
+if git.found()
+  toplevel = run_command(git, '-C', meson.source_root(), 'rev-parse', '--show-prefix', check: false)
+  if toplevel.returncode() == 0 and toplevel.stdout().strip() == ''
+    commit = run_command(git, '-C', meson.source_root(), 'rev-parse', '--short', 'HEAD', check: false).stdout().strip()
+  endif
+endif
+config.set('commit', commit)
+
 configure_file(
   input: 'optional_settings.py.in',
   output: 'optional_settings.py',
   configuration: config,
-  install_dir: lutrisdir,
-)
-
-# Capture the source revision without importing Lutris or requiring Git at runtime.
-configure_file(
-  input: 'lutris/buildinfo.py',
-  output: 'build_commit.txt',
-  command: [python, '@INPUT@'],
-  capture: true,
   install_dir: lutrisdir,
 )
 

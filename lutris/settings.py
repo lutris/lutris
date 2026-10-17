@@ -10,15 +10,25 @@ from typing import cast
 from gi.repository import GLib
 
 from lutris import __version__
-from lutris.buildinfo import get_display_version
 from lutris.util.log import logger
 from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
 VERSION = __version__
-DISPLAY_VERSION = get_display_version(VERSION)
 COPYRIGHT = _("(c) 2009 Lutris Team")
 AUTHORS = [_("The Lutris team")]
+
+
+def get_display_version() -> str:
+    """VERSION with the short commit hash appended, for builds that recorded one."""
+    try:
+        from lutris import optional_settings  # type: ignore
+
+        commit = getattr(optional_settings, "COMMIT", "")
+    except ImportError:
+        commit = ""
+    return f"{VERSION}-{commit}" if commit else VERSION
+
 
 # Paths
 CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "lutris")
