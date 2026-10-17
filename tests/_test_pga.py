@@ -5,6 +5,7 @@ from sqlite3 import OperationalError
 from lutris import settings
 from lutris.database import games as games_db
 from lutris.database import schema, sql
+from lutris.game import Game
 from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
@@ -83,6 +84,36 @@ class TestPersonnalGameArchive(DatabaseTester):
         self.assertEqual(game["directory"], "/foo")
 
 
+class TestGameNotes(DatabaseTester):
+    def test_game_without_notes(self):
+        game = Game(games_db.add_game(name="LutrisTest", runner="linux"))
+        self.assertEqual(game.notes, "")
+        self.assertEqual(game.notes_updated_at, 0)
+
+    def test_notes_are_saved(self):
+        game_id = games_db.add_game(name="LutrisTest", runner="linux")
+        game = Game(game_id)
+        game.set_notes("Add /x64 to the arguments")
+        game.save()
+        saved_game = Game(game_id)
+        self.assertEqual(saved_game.notes, "Add /x64 to the arguments")
+        self.assertEqual(saved_game.notes_updated_at, game.notes_updated_at)
+
+    def test_changing_notes_updates_timestamp(self):
+        game = Game(games_db.add_game(name="LutrisTest", runner="linux"))
+        game.set_notes("First note")
+        game.notes_updated_at = 1
+        game.set_notes("Second note")
+        self.assertGreater(game.notes_updated_at, 1)
+
+    def test_unchanged_notes_keep_timestamp(self):
+        game = Game(games_db.add_game(name="LutrisTest", runner="linux"))
+        game.set_notes("Same note")
+        game.notes_updated_at = 1
+        game.set_notes("Same note")
+        self.assertEqual(game.notes_updated_at, 1)
+
+
 class TestDbCreator(DatabaseTester):
     def test_can_generate_fields(self):
         text_field = schema.field_to_string("name", "TEXT")
@@ -152,3 +183,13 @@ class TestMigration(DatabaseTester):
         _schema = schema.get_schema(self.tablename)
         self.assertEqual(_schema[2]["name"], "new_field")
         self.assertEqual(migrated, ["new_field"])
+
+    def test_notes_are_added_to_existing_games(self):
+        os.remove(settings.DB_PATH)
+        old_schema = [f for f in schema.DATABASE["games"] if f["name"] not in ("notes", "notes_updated_at")]
+        schema.create_table("games", old_schema)
+        game_id = games_db.add_game(name="LutrisTest", runner="linux")
+        schema.syncdb()
+        game = games_db.get_game_by_field(game_id, "id")
+        self.assertIsNone(game["notes"])
+        self.assertIsNone(game["notes_updated_at"])
