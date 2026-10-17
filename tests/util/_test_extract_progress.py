@@ -165,15 +165,36 @@ class TestPythonExtractionProgress(TestCase):
             dest = os.path.join(directory, "dest")
             os.mkdir(dest)
             progress = []
-            with (
-                patch.object(extract.system, "create_folder", create=True),
-                patch.object(extract.time, "monotonic", side_effect=itertools.count()),
-            ):
-                extract._extract_AppImage(path, dest, progress.append)
+            with patch.object(extract.system, "create_folder", create=True):
+                extract._do_extract(path, dest, "AppImage", progress_callback=progress.append)
             with open(os.path.join(dest, "game.AppImage"), "rb") as copied:
                 self.assertEqual(copied.read(), data)
             self.assertTrue(os.stat(os.path.join(dest, "game.AppImage")).st_mode & 0o100)
-            self.assertEqual(progress, [0, 50, 99, 100])
+            self.assertEqual(progress, [])
+
+    def test_deb_does_not_report_outer_archive_completion(self):
+        with tempfile.TemporaryDirectory() as dest:
+            data_path = os.path.join(dest, "data.tar.xz")
+            control_path = os.path.join(dest, "control.tar.gz")
+
+            def unpack_outer(_archive, _dest, archive_type=None, progress_callback=None):
+                for path in (data_path, control_path):
+                    with open(path, "wb") as output:
+                        output.write(b"archive")
+                if progress_callback:
+                    progress_callback(100)
+
+            progress = []
+            with (
+                patch.object(extract, "_extract_7zip", side_effect=unpack_outer) as outer,
+                patch.object(extract, "extract_archive") as inner,
+            ):
+                extract._do_extract("game.deb", dest, "deb", progress_callback=progress.append)
+            outer.assert_called_once_with("game.deb", dest, archive_type="ar")
+            inner.assert_called_once_with(data_path, dest)
+            self.assertEqual(progress, [])
+            self.assertFalse(os.path.exists(data_path))
+            self.assertTrue(os.path.exists(os.path.join(dest, "debian", "control.tar.gz")))
 
     def test_throttles_updates_but_never_delays_completion(self):
         progress = []

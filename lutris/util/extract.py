@@ -227,9 +227,9 @@ def _do_extract(
     elif opener == "innoextract":
         _extract_gog(archive, dest, progress_callback)
     elif opener == "deb":
-        _extract_deb(archive, dest, progress_callback)
+        _extract_deb(archive, dest)
     elif opener == "AppImage":
-        _extract_AppImage(archive, dest, progress_callback)
+        _extract_AppImage(archive, dest)
     else:
         with opener(archive, mode) as handler:
             handler.extractall(dest)
@@ -426,9 +426,9 @@ def _extract_gog(path: str, dest: str, progress_callback=None) -> None:
         raise RuntimeError("specified exe is not a GOG setup file")
 
 
-def _extract_deb(archive: str, dest: str, progress_callback=None) -> None:
+def _extract_deb(archive: str, dest: str) -> None:
     """Extract the contents of a deb file to a destination folder"""
-    _extract_7zip(archive, dest, archive_type="ar", progress_callback=progress_callback)
+    _extract_7zip(archive, dest, archive_type="ar")
     debian_folder = os.path.join(dest, "debian")
     os.makedirs(debian_folder)
 
@@ -443,31 +443,16 @@ def _extract_deb(archive: str, dest: str, progress_callback=None) -> None:
     for extension in data_file_exts:
         data_tar_path = os.path.join(dest, "data.tar{}".format(extension))
         if os.path.exists(data_tar_path):
-            extract_archive(data_tar_path, dest, progress_callback=progress_callback)
+            extract_archive(data_tar_path, dest)
             os.remove(data_tar_path)
             break
 
 
-def _extract_AppImage(path: str, dest: str, progress_callback=None) -> None:
+def _extract_AppImage(path: str, dest: str) -> None:
     """This is really here to prevent 7-zip from extracting the AppImage;
     we want to just use this sort of file as-is."""
     system.create_folder(dest)
-    progress = _ExtractionProgress(path, progress_callback)
-    try:
-        progress.report(0)
-        total = os.path.getsize(path)
-        copied = 0
-        target = os.path.join(dest, os.path.basename(path))
-        with open(path, "rb") as source, open(target, "wb") as destination:
-            while chunk := source.read(1024 * 1024):
-                destination.write(chunk)
-                copied += len(chunk)
-                if total:
-                    progress.report(min(99, copied * 100 // total))
-        shutil.copymode(path, target)
-        progress.report(100)
-    finally:
-        progress.close()
+    shutil.copy(path, dest)
 
 
 def get_innoextract_list(file_path: str) -> list[str]:
