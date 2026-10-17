@@ -217,6 +217,13 @@ class Dialog(Gtk.Window):
         self.disconnect(unmap_id)
         return response
 
+    def destroy(self) -> None:
+        # GTK 4's gtk_window_destroy() only drops GTK's own reference; a reference cycle
+        # through a child's signal handler bound to this dialog then keeps it alive, and
+        # 'destroy' never fires. Force dispose like GTK 3's gtk_widget_destroy() did.
+        super().destroy()
+        self.run_dispose()
+
     def destroy_at_idle(self, condition: Callable[[], bool] | None = None) -> None:
         """Adds as idle task to destroy this window at idle time;
         it can do so conditionally if you provide a callable to check,
