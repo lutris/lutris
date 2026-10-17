@@ -71,6 +71,7 @@ python3 -m pip install --no-compile --break-system-packages --target="$TARGET" \
     requests \
     protobuf \
     'moddb>=0.8.1' \
+    msgspec \
     setproctitle \
     pycairo \
     'PyGObject<3.50' \
