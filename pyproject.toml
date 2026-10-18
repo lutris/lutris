@@ -25,8 +25,6 @@ dependencies = [
     "python-magic",
     "distro",
     "dbus-python",
-    "types-requests",
-    "types-PyYAML",
     "evdev",
     "PyGObject",
     "pypresence",
@@ -85,6 +83,8 @@ dev = [
     "mypy==1.16.1",
     "mypy-baseline",
     "nose2",
+    "types-requests",
+    "types-PyYAML",
     "pygobject-stubs>=2.18.0"
 ]
 
