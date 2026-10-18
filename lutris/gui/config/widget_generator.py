@@ -20,6 +20,9 @@ from lutris.util.strings import gtk_safe
 if TYPE_CHECKING:
     from lutris.gui.config.boxes import ConfigBox
 
+# Dropdown ID for the 'Custom' choice of a choice_with_entry; can't collide with a real choice value
+CUSTOM_CHOICE_ID = "\0custom"
+
 
 class WidgetGenerator(ABC):
     """This class generates widgets for an options page. It even adds the widgets
@@ -438,37 +441,50 @@ class WidgetGenerator(ABC):
                 expanded.append((choice_ui, choice_value))
             if not has_value and value:
                 expanded.insert(0, (value, value))
+            elif has_entry and not value and "" not in valid:
+                # Gtk.DropDown always selects something, so offer an explicit choice for no value
+                expanded.insert(0, (_("None"), ""))
             return expanded, tooltip_default, valid
 
         def populate_dropdown():
-            expanded, tooltip_default, _valid_choices = expand_dropdown_choices()
+            nonlocal valid_choices
+            expanded, tooltip_default, valid_choices = expand_dropdown_choices()
             dropdown.clear()
             for label, item_id in expanded:
                 dropdown.append(item_id, label)
+            if has_entry:
+                # Custom values are entered in the entry, shown only when this is selected
+                dropdown.append(CUSTOM_CHOICE_ID, _("Custom"))
 
             if tooltip_default:
                 self.tooltip_default = str(tooltip_default)
 
+        def select_value(selected_value):
+            """Select the choice for a value; with an entry, values not in the dropdown go to 'Custom'."""
+            if not dropdown.set_active_id(selected_value) and has_entry:
+                dropdown.set_active_id(CUSTOM_CHOICE_ID)
+                entry.set_text(selected_value)
+            if has_entry:
+                entry.set_visible(dropdown.get_active_id() == CUSTOM_CHOICE_ID)
+
+        def get_selected_value():
+            option_value = dropdown.get_active_id()
+            if option_value == CUSTOM_CHOICE_ID:
+                return entry.get_text()
+            return option_value
+
         def on_dropdown_change(_widget):
             """Action triggered on dropdown 'changed' signal."""
             if has_entry:
-                # Sync entry with dropdown selection
-                label = dropdown.get_active_label()
-                if label and entry:
-                    entry.set_text(label)
-                option_value = dropdown.get_active_id()
-            else:
-                option_value = dropdown.get_active_id()
-            self.changed.fire(option_key, option_value)
+                is_custom = dropdown.get_active_id() == CUSTOM_CHOICE_ID
+                entry.set_visible(is_custom)
+                if is_custom:
+                    entry.grab_focus()
+            self.changed.fire(option_key, get_selected_value())
 
         def on_entry_change(_widget):
             """Action triggered on entry text change for choice_with_entry."""
-            text = entry.get_text()
-            # If the text matches a known choice label, select it in the dropdown
-            # Otherwise, fire the raw text as the value
-            active_label = dropdown.get_active_label()
-            if text != active_label:
-                self.changed.fire(option_key, text)
+            self.changed.fire(option_key, entry.get_text())
 
         option_key = option["option"]
         choices_src = option.get("choices")  # raw value before evaluation, for reload hook
@@ -476,28 +492,20 @@ class WidgetGenerator(ABC):
 
         dropdown = KeyValueDropDown()
         dropdown.set_size_request(240, -1)
-        entry = None
+        dropdown.set_valign(Gtk.Align.CENTER)
+        entry = Gtk.Entry()
+        entry.set_hexpand(True)
+        valid_choices = []
         populate_dropdown()
 
-        expanded_choices, _tooltip_default, valid_choices = expand_dropdown_choices()
-        if value in [v for _k, v in expanded_choices]:
-            dropdown.set_active_id(value)
-        elif has_entry:
-            pass  # entry text will be set below
-        else:
+        select_value(value or "")
+        if not dropdown.get_active_id() and not has_entry:
             dropdown.set_active_id(default)
 
-        dropdown.connect("changed", on_dropdown_change)
-        dropdown.set_valign(Gtk.Align.CENTER)
+        dropdown_changed_handler = dropdown.connect("changed", on_dropdown_change)
 
         # With entry ("choice_with_entry" type): wrap dropdown + entry in a box
         if has_entry:
-            entry = Gtk.Entry()
-            entry.set_hexpand(True)
-            if value and not dropdown.get_active_id():
-                entry.set_text(value or "")
-            elif dropdown.get_active_label():
-                entry.set_text(dropdown.get_active_label() or "")
             entry.connect("changed", on_entry_change)
 
             box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
@@ -526,12 +534,14 @@ class WidgetGenerator(ABC):
 
             def reload_choices():
                 nonlocal choices
+                selected_value = get_selected_value() or value
                 choices = self.evaluate_option_value(choices_src, option=option)
-                populate_dropdown()
-                # The initial set_active_id() will have failed if the value wasn't in the empty
-                # list; try again now that the choices are populated.
-                if value and not dropdown.get_active_id():
-                    dropdown.set_active_id(value)
+                with dropdown.handler_block(dropdown_changed_handler):
+                    populate_dropdown()
+                    # The initial selection may have failed, or gone to 'Custom', if the value
+                    # wasn't in the empty list; try again now that the choices are populated.
+                    if selected_value:
+                        select_value(selected_value)
 
             choices_src.register_reload_callback(reload_choices)
 
