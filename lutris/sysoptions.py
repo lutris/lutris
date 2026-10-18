@@ -26,6 +26,14 @@ def get_resolution_choices() -> list[tuple[str, str]]:
     return resolution_choices
 
 
+def get_gamescope_resolution_choices() -> list[tuple[str, str]]:
+    """Return list of resolutions for gamescope as label, value tuples; 'Auto' passes no
+    resolution, and leaves gamescope to choose.
+    """
+    resolutions = get_display_manager().get_resolutions()
+    return [(_("Auto"), "")] + list(zip(resolutions, resolutions))
+
+
 def get_locale_choices() -> list[tuple[str, str]]:
     """Return list of available locales as label, value tuples
     suitable for inclusion in drop-downs.
@@ -293,13 +301,15 @@ system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
         "option": "gamescope_output_res",
         "type": "choice_with_entry",
         "label": _("Output Resolution"),
-        "choices": get_display_manager().get_resolutions,
+        "choices": get_gamescope_resolution_choices,
+        "default": "",
         "advanced": True,
         "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
         "help": _(
             "Set the resolution used by gamescope.\n"
             "Resizing the gamescope window will update these settings.\n"
+            "<b>Auto:</b> a 1280x720 window, or the screen's resolution when fullscreen\n"
             "\n"
             "<b>Custom Resolutions:</b> (width)x(height)"
         ),
@@ -309,10 +319,16 @@ system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
         "option": "gamescope_game_res",
         "type": "choice_with_entry",
         "label": _("Game Resolution"),
-        "choices": get_display_manager().get_resolutions,
+        "choices": get_gamescope_resolution_choices,
+        "default": "",
         "conditional_on": "gamescope",
         "condition": system.can_find_executable("gamescope"),
-        "help": _("Set the maximum resolution used by the game.\n\n<b>Custom Resolutions:</b> (width)x(height)"),
+        "help": _(
+            "Set the maximum resolution used by the game.\n"
+            "<b>Auto:</b> the same as the output resolution\n"
+            "\n"
+            "<b>Custom Resolutions:</b> (width)x(height)"
+        ),
     },
     {
         "section": _("Gamescope"),
