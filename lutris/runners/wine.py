@@ -160,6 +160,12 @@ def _get_dxvk_warning() -> str | None:
     return None
 
 
+def _get_virtual_desktop_resolution_choices() -> list[tuple[str, str]]:
+    """Return resolutions for the virtual desktop; 'Auto' leaves the size to match the screen."""
+    resolutions = get_display_manager().get_resolutions()
+    return [(_("Auto"), "")] + list(zip(resolutions, resolutions))
+
+
 def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feature: str) -> str | None:
     if os.environ.get("LUTRIS_NO_VKQUERY"):
         return None
@@ -554,8 +560,11 @@ class wine(Runner):
             "visible": _is_pre_proton,
             "conditional_on": "Desktop",
             "advanced": True,
-            "choices": get_display_manager().get_resolutions,
-            "help": _("The size of the virtual desktop in pixels."),
+            "choices": _get_virtual_desktop_resolution_choices,
+            "default": "",
+            "help": _(
+                "The size of the virtual desktop in pixels.\n<b>Auto:</b> the same as the screen's current resolution"
+            ),
         },
         {
             "option": "Dpi",
