@@ -69,16 +69,25 @@ cases, but two situations remain:
 Workaround: click the dialog's title bar once, or click the existing
 window via the taskbar, to give it focus.
 
-### Editable dropdowns in the config dialog look awkward
+### Editable dropdowns now have a "Custom" choice
 
-In a few places — most visibly in the Game Configuration dialog — the
-GTK 3 build used an editable combobox: a dropdown menu that also let
-you type a custom value if none of the suggestions fit. GTK 4 dropped
-that widget entirely, and there is no built-in replacement.
+In a few places — such as the gamescope resolutions, the Wine virtual
+desktop size and the DXVK versions — the GTK 3 build used an editable
+combobox: a dropdown menu that also let you type a custom value if none
+of the suggestions fit. GTK 4 dropped that widget entirely, and there
+is no built-in replacement.
 
-We've worked around it by placing a dropdown and a separate text entry
-side by side: picking from the dropdown copies its value into the
-entry, and the entry still accepts free-form text. It works, but the
-result is visually clunkier than the GTK 3 single-widget version. We
-will tighten this up if a suitable combined widget appears in a future
-GTK release.
+Instead, these dropdowns end with a **Custom** choice. Selecting it
+shows a text entry beside the dropdown, where you can type any value;
+the entry is hidden while one of the regular choices is selected. A
+custom value you have saved is listed in the dropdown as a choice of
+its own the next time you open the dialog.
+
+A GTK 4 dropdown cannot be left with nothing selected, so where a
+setting has no value the dropdown shows a named choice for that:
+**Auto** for the resolutions where gamescope or Lutris picks the size,
+and **None** elsewhere.
+
+This takes an extra click compared to the GTK 3 version when entering
+a custom value. We will revisit it if a suitable combined widget
+appears in a future GTK release.
