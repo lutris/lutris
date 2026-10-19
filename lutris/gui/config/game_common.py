@@ -438,7 +438,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.game.sortname = sortname
         self.game.slug = game_info_box.slug
         self.game.year = year
-        self.game.set_notes(notes)
+        self.game.notes = notes
         if playtime:
             self.game.playtime = playtime
         self.game.is_installed = True

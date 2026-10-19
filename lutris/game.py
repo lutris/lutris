@@ -122,7 +122,7 @@ class Game:
             self.playtime = 0.0
 
         self.discord_id = game_data.get("discord_id")  # Discord App ID for RPC
-        self.notes: str = game_data.get("notes") or ""
+        self._notes: str = game_data.get("notes") or ""
         self.notes_updated_at: int = game_data.get("notes_updated_at") or 0
 
         self._runner = None
@@ -502,10 +502,15 @@ class Game:
         if not self.platform:
             logger.warning("The %s runner didn't provide a platform for %s", self.runner, self)
 
-    def set_notes(self, notes: str) -> None:
+    @property
+    def notes(self) -> str:
+        return self._notes
+
+    @notes.setter
+    def notes(self, value: str) -> None:
         """Set the user's notes, and record when they last changed."""
-        if notes != self.notes:
-            self.notes = notes
+        if value != self._notes:
+            self._notes = value
             self.notes_updated_at = int(time.time())
 
     def save(self, no_signal: bool = False) -> None:

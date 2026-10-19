@@ -93,7 +93,7 @@ class TestGameNotes(DatabaseTester):
     def test_notes_are_saved(self):
         game_id = games_db.add_game(name="LutrisTest", runner="linux")
         game = Game(game_id)
-        game.set_notes("Add /x64 to the arguments")
+        game.notes = "Add /x64 to the arguments"
         game.save()
         saved_game = Game(game_id)
         self.assertEqual(saved_game.notes, "Add /x64 to the arguments")
@@ -101,16 +101,16 @@ class TestGameNotes(DatabaseTester):
 
     def test_changing_notes_updates_timestamp(self):
         game = Game(games_db.add_game(name="LutrisTest", runner="linux"))
-        game.set_notes("First note")
+        game.notes = "First note"
         game.notes_updated_at = 1
-        game.set_notes("Second note")
+        game.notes = "Second note"
         self.assertGreater(game.notes_updated_at, 1)
 
     def test_unchanged_notes_keep_timestamp(self):
         game = Game(games_db.add_game(name="LutrisTest", runner="linux"))
-        game.set_notes("Same note")
+        game.notes = "Same note"
         game.notes_updated_at = 1
-        game.set_notes("Same note")
+        game.notes = "Same note"
         self.assertEqual(game.notes_updated_at, 1)
 
 
