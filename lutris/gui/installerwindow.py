@@ -87,7 +87,6 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.batch_header_markup = ""
         self.current_batch_item_name = ""
         self.last_batch_game_id = None
-        self._single_item_error_reporter = None
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -240,10 +239,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def on_cancel_clicked(self, _button=None):
         """Ask a confirmation before cancelling the installation, if it has started."""
-        self.install_queue = []
-        self.batch_mode = False
 
         def on_cancelled():
+            self.reset_batch()
             if self.interpreter:
                 self.interpreter.cleanup()  # still remove temporary downloads in any case
 
@@ -281,6 +279,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                 logger.debug("User aborted installation cancellation")
                 return
 
+            # Leave batch mode before reverting, so a revert error isn't offered as a skippable DLC failure
+            self.reset_batch()
             self.installer_files_box.stop_all()
             if self.interpreter:
                 self.load_spinner_page(_("Cancelling installation…"), cancellable=False)
@@ -305,9 +305,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self._handle_callback_error(error)
 
     def _handle_callback_error(self, error):
-        if self.batch_mode:
-            self.error_reporter(error)
-        elif self.install_in_progress:
+        if self.batch_mode or self.install_in_progress:
             self.load_error_page(error)
         else:
             display_error(error, parent=self)
@@ -468,8 +466,6 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.batch_completed = 0
         self.batch_failed = []
         self.batch_mode = True
-        self._single_item_error_reporter = self.error_reporter
-        self.error_reporter = self.on_batch_item_error
         self.start_next_queued_install()
 
     def start_next_queued_install(self):
@@ -490,7 +486,6 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.start_next_queued_install()
             return
         self.batch_mode = False
-        self.error_reporter = self._single_item_error_reporter
         if self.batch_failed:
             status = _("Installed %(done)d of %(total)d DLC.\nFailed: %(names)s") % {
                 "done": self.batch_total - len(self.batch_failed),
@@ -501,8 +496,13 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             status = _("Installed %d DLC.") % self.batch_total
         self.load_finish_install_page(self.last_batch_game_id, status)
 
+    def reset_batch(self):
+        """Drop any remaining queued DLC and leave batch mode."""
+        self.install_queue = []
+        self.batch_mode = False
+
     def on_batch_item_error(self, error):
-        """error_reporter used while a DLC batch is running; offers to skip the failed
+        """Called by load_error_page while a DLC batch is running; offers to skip the failed
         DLC and continue with the rest, or abort the remaining queue."""
         self.batch_failed.append(self.current_batch_item_name)
         dlg = QuestionDialog(
@@ -518,9 +518,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                 self.interpreter.cleanup()
             self.advance_batch_queue()
         else:
-            self.install_queue = []
-            self.batch_mode = False
-            self.error_reporter = self._single_item_error_reporter
+            self.reset_batch()
             self.load_error_page(error)
 
     def on_installer_selected(self, _widget, installer_version):
@@ -814,7 +812,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         logger.debug("Game files prepared.")
         self.installer_files_box.load_installer(self.interpreter.installer)
-        if self.batch_mode:
+        # Only skip the files page when nothing needs the user's input (e.g. a user-provided file)
+        if self.batch_mode and self.installer_files_box.is_ready:
             self.on_files_confirmed(None)
         else:
             self.stack.navigate_to_page(self.present_installer_files_page)
@@ -1063,6 +1062,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # and isn't recoverable. Used by the installer script.
 
     def load_error_page(self, error: BaseException) -> None:
+        if self.batch_mode:
+            self.on_batch_item_error(error)
+            return
         self.stack.navigate_to_page(lambda *x: self.present_error_page(error))
         self.stack.set_back_allowed(False)
         self.cancel_button.grab_focus()
