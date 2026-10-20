@@ -502,7 +502,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.batch_mode = False
 
     def on_batch_item_error(self, error):
-        """Called by load_error_page while a DLC batch is running; offers to skip the failed
+        """Called by load_error_page (or the log page) while a DLC batch is running; offers to skip the failed
         DLC and continue with the rest, or abort the remaining queue."""
         self.batch_failed.append(self.current_batch_item_name)
         dlg = QuestionDialog(
@@ -935,7 +935,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.error_reporter = saved_reporter
 
         def on_error(error):
-            self.set_status(gtk_safe(error))
+            # A failed command in a DLC batch gets the same skip/abort choice as on any other page
+            if self.batch_mode:
+                self.on_batch_item_error(error)
+            else:
+                self.set_status(gtk_safe(error))
 
         saved_reporter = self.error_reporter
         self.error_reporter = on_error
