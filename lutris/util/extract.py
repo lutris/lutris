@@ -286,7 +286,7 @@ def _extract_deb(archive: str, dest: str) -> None:
     """Extract the contents of a deb file to a destination folder"""
     _extract_7zip(archive, dest, archive_type="ar")
     debian_folder = os.path.join(dest, "debian")
-    os.makedirs(debian_folder)
+    os.makedirs(debian_folder, exist_ok=True)
 
     control_file_exts = [".gz", ".xz", ".zst", ""]
     for extension in control_file_exts:
