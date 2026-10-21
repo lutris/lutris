@@ -120,7 +120,8 @@ def connect(username: str, password: str) -> str | bool | None:
     login_url = settings.SITE_URL + "/api/accounts/token"
     credentials = {"username": username, "password": password}
     try:
-        response = requests.post(url=login_url, data=credentials, timeout=10)
+        proxies = http.get_request_proxies(login_url)
+        response = requests.post(url=login_url, data=credentials, timeout=10, proxies=proxies)
         response.raise_for_status()
         json_dict = response.json()
         if "token" in json_dict:
@@ -186,6 +187,7 @@ def get_runners(runner_name: str) -> RunnerDict:
     headers = OrderedDict({"Host": host})
     session = requests.Session()
     session.headers = headers
+    session.proxies = http.get_request_proxies(api_url)
     response = session.get(api_url, headers=headers)
     return cast(RunnerDict, response.json())
 
