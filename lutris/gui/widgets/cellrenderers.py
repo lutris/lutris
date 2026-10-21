@@ -112,6 +112,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self._show_badges = True
         self._platform = None
         self._is_installed = True
+        self._notes = ""
         self.cached_surfaces_new = {}
         self.cached_surfaces_old = {}
         self.cached_surfaces_loaded = 0
@@ -209,6 +210,15 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     @is_installed.setter
     def is_installed(self, value):
         self._is_installed = value
+
+    @GObject.Property(type=str)
+    def notes(self):
+        """These are the user's notes on the game; if there are any, a badge shows it."""
+        return self._notes
+
+    @notes.setter
+    def notes(self, value):
+        self._notes = value
 
     def _get_preferred_size(self):
         paths = self.media_paths
@@ -389,6 +399,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     def _render_badges(self, cr, widget, surface, media_area):
         self.render_platforms(cr, widget, surface, 0, media_area)
+        self.render_notes_badge(cr, widget, surface, 0, media_area)
 
         game_id = self.game_id
         if game_id:
@@ -427,6 +438,28 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
     _platform_icon_paths = {}
 
+    def render_notes_badge(self, cr, widget, surface, surface_x, media_area):
+        """Renders a notepad badge in the upper right corner of the media, if the game has notes."""
+        if self.notes and self.badge_size:
+            icon_info = Gtk.IconTheme.get_default().lookup_icon("accessories-text-editor-symbolic", 32, 0)
+            if icon_info:
+                media_right = surface_x + get_surface_size(surface)[0]
+                self.render_badge(cr, widget, media_right - self.badge_size[0], media_area.y, icon_info.get_filename())
+
+    def render_badge(self, cr, widget, badge_x, badge_y, path):
+        """Renders a single badge, with its upper left corner at badge_x, badge_y."""
+        alpha = self.badge_alpha
+        fore_color = self.badge_fore_color
+        back_color = self.badge_back_color
+
+        cr.rectangle(badge_x, badge_y, self.badge_size[0], self.badge_size[1])
+        cr.set_source_rgba(back_color[0], back_color[1], back_color[2], alpha)
+        cr.fill()
+
+        icon = self._get_cached_surface_by_path(widget, path, size=self.badge_size)
+        cr.set_source_rgba(fore_color[0], fore_color[1], fore_color[2], alpha)
+        cr.mask_surface(icon, badge_x, badge_y)
+
     def render_badge_stack(self, cr, widget, surface, surface_x, icon_paths, media_area):
         """Renders a vertical stack of badges, placed at the edge of the media, just to the left
         of 'media_area.right'. The icons in icon_paths are drawn from top to bottom, and spaced
@@ -434,18 +467,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
 
         badge_width = self.badge_size[0]
         badge_height = self.badge_size[1]
-        alpha = self.badge_alpha
-        fore_color = self.badge_fore_color
-        back_color = self.badge_back_color
-
-        def render_badge(badge_x, badge_y, path):
-            cr.rectangle(badge_x, badge_y, badge_width, badge_height)
-            cr.set_source_rgba(back_color[0], back_color[1], back_color[2], alpha)
-            cr.fill()
-
-            icon = self._get_cached_surface_by_path(widget, path, size=self.badge_size)
-            cr.set_source_rgba(fore_color[0], fore_color[1], fore_color[2], alpha)
-            cr.mask_surface(icon, badge_x, badge_y)
 
         media_right = surface_x + get_surface_size(surface)[0]
 
@@ -456,7 +477,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         y = media_area.y + media_area.height - badge_height - y_offset * (len(icon_paths) - 1)
 
         for icon_path in icon_paths:
-            render_badge(x, y, icon_path)
+            self.render_badge(cr, widget, x, y, icon_path)
             y = y + y_offset
 
     def render_text_badge(self, cr, widget, text, left, bottom):
