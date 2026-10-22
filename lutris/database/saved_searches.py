@@ -1,6 +1,7 @@
 import re
-from dataclasses import dataclass
 from typing import Any
+
+import msgspec
 
 from lutris import settings
 from lutris.database import sql
@@ -9,9 +10,8 @@ from lutris.gui.widgets import NotificationSource
 SAVED_SEARCHES_UPDATED = NotificationSource()
 
 
-@dataclass
-class SavedSearch:
-    saved_search_id: int
+class SavedSearch(msgspec.Struct):
+    saved_search_id: int = msgspec.field(name="id")
     name: str
     search: str
 
@@ -42,7 +42,7 @@ class SavedSearch:
 
 
 def _create_search(row: dict[str, Any]) -> "SavedSearch":
-    return SavedSearch(row["id"], row["name"], row["search"])
+    return msgspec.convert(row, SavedSearch)
 
 
 def strip_saved_search_name(name: str) -> str:

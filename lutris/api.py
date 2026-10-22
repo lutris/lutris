@@ -14,6 +14,7 @@ from datetime import datetime
 from gettext import gettext as _
 from typing import Any, TypeAlias, cast
 
+import msgspec
 import requests
 
 from lutris import settings
@@ -36,6 +37,15 @@ RunnerDict: TypeAlias = dict[str, Any]
 RunnerVersionDict: TypeAlias = dict[str, str | bool]
 RuntimeVersionsDict: TypeAlias = dict[str, Any]
 UserInfoDict: TypeAlias = dict[str, Any]
+
+
+class ApiCredentials(msgspec.Struct, frozen=True):
+    username: str
+    token: str
+
+
+class TokenResponse(msgspec.Struct):
+    token: str
 
 
 def get_time_from_api_date(date_string: str) -> time.struct_time:
@@ -97,7 +107,7 @@ def get_runtime_versions() -> RuntimeVersionsDict:
         return cast(RuntimeVersionsDict, json.load(runtime_file))
 
 
-def read_api_key() -> dict[str, str] | None:
+def read_api_key() -> ApiCredentials | None:
     """Read the API token from disk"""
     if not system.path_exists(API_KEY_FILE_PATH):
         return None
@@ -108,7 +118,7 @@ def read_api_key() -> dict[str, str] | None:
     except ValueError:
         logger.error("Unable to read Lutris token in %s", API_KEY_FILE_PATH)
         return None
-    return {"token": token, "username": username}
+    return ApiCredentials(username=username, token=token)
 
 
 LUTRIS_ACCOUNT_CONNECTED = NotificationSource()
@@ -122,21 +132,22 @@ def connect(username: str, password: str) -> str | bool | None:
     try:
         response = requests.post(url=login_url, data=credentials, timeout=10)
         response.raise_for_status()
-        json_dict = response.json()
-        if "token" in json_dict:
-            token: str = json_dict["token"]
-            with open(API_KEY_FILE_PATH, "w", encoding="utf-8") as token_file:
-                token_file.write("%s:%s" % (username, token))
-            account_info = fetch_user_info()
+        try:
+            token = msgspec.convert(response.json(), TokenResponse).token
+        except msgspec.ValidationError as ex:
+            logger.warning("Unexpected answer from %s: %s", login_url, ex)
+            return None
+        with open(API_KEY_FILE_PATH, "w", encoding="utf-8") as token_file:
+            token_file.write("%s:%s" % (username, token))
+        account_info = fetch_user_info()
 
-            if not account_info:
-                logger.warning("Unable to fetch user info")
-            else:
-                with open(USER_INFO_FILE_PATH, "w", encoding="utf-8") as token_file:
-                    json.dump(account_info, token_file, indent=2)
-            LUTRIS_ACCOUNT_CONNECTED.fire()
-            return token
-        return None
+        if not account_info:
+            logger.warning("Unable to fetch user info")
+        else:
+            with open(USER_INFO_FILE_PATH, "w", encoding="utf-8") as token_file:
+                json.dump(account_info, token_file, indent=2)
+        LUTRIS_ACCOUNT_CONNECTED.fire()
+        return token
     except (
         requests.RequestException,
         requests.ConnectionError,
@@ -162,7 +173,7 @@ def fetch_user_info() -> UserInfoDict | None:
     if not credentials:
         return None
     url = settings.SITE_URL + "/api/users/me"
-    request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
+    request = http.Request(url, headers={"Authorization": "Token " + credentials.token})
     response = request.get()
     return cast(UserInfoDict, response.json)
 
