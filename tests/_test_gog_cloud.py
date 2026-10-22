@@ -139,6 +139,23 @@ class TestGOGCloudStorageClient(unittest.TestCase):
             client_id="test_client_id",
             access_token="test_access_token",
         )
+        # An opener only exists when a proxy is configured; keep these tests on the
+        # plain urlopen() path so they do not depend on the machine's proxy settings.
+        opener_patcher = patch.object(_mod, "get_opener", return_value=None)
+        opener_patcher.start()
+        self.addCleanup(opener_patcher.stop)
+
+    def test_make_request_uses_the_proxy_aware_opener(self):
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"{}"
+        mock_response.getheaders.return_value = []
+        mock_opener = MagicMock()
+        mock_opener.open.return_value = mock_response
+
+        with patch.object(_mod, "get_opener", return_value=mock_opener):
+            self.client._make_request("GET", "/v1/test")
+
+        mock_opener.open.assert_called_once()
 
     def test_make_request_success(self):
         mock_response = MagicMock()

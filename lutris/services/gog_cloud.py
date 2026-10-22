@@ -27,7 +27,7 @@ from gettext import gettext as _
 from pathlib import Path
 from typing import Any
 
-from lutris.util.http import HTTPError, Request
+from lutris.util.http import HTTPError, Request, get_opener
 from lutris.util.log import logger
 
 # GOG Cloud Storage API endpoints
@@ -176,8 +176,12 @@ class GOGCloudStorageClient:
             headers.update(extra_headers)
 
         req = urllib.request.Request(url=url, data=data, headers=headers, method=method)
+        opener = get_opener(url)
         try:
-            response = urllib.request.urlopen(req, timeout=CLOUD_API_TIMEOUT)
+            if opener:
+                response = opener.open(req, timeout=CLOUD_API_TIMEOUT)
+            else:
+                response = urllib.request.urlopen(req, timeout=CLOUD_API_TIMEOUT)
             response_body = response.read()
             response_headers = {k: v for k, v in response.getheaders()}
             response.close()
