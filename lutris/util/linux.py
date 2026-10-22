@@ -482,7 +482,10 @@ class LinuxSystem:  # pylint: disable=too-many-public-methods
         return not self.get_missing_requirement_libs(feature)[0]
 
     def is_vulkan_supported(self) -> bool:
-        return not LINUX_SYSTEM.get_missing_lib_arch("VULKAN") and vkquery.is_vulkan_supported()
+        missing = LINUX_SYSTEM.get_missing_lib_arch("VULKAN")
+        # WoW64-only systems lack 32-bit Vulkan but still run Vulkan games;
+        # only require the 64-bit library so such systems are detected correctly.
+        return "x86_64" not in missing and vkquery.is_vulkan_supported()
 
 
 class SharedLibrary:
