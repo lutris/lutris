@@ -71,12 +71,33 @@ class GOGDownloader(BaseDownloader):
         self._write_queue: queue.Queue = queue.Queue(maxsize=64)
         self._writer_error: Exception | None = None
         self._writer_error_event = threading.Event()
-        # Create a dedicated session with connection pooling sized for our workers
-        self._parallel_session = requests.Session()
+        self._parallel_session = self._build_session()
+
+    def _build_session(self) -> requests.Session:
+        """Return a dedicated session with connection pooling sized for our workers."""
+        session = requests.Session()
         adapter = HTTPAdapter(pool_maxsize=self.num_workers + 2)
-        self._parallel_session.mount("https://", adapter)
-        self._parallel_session.mount("http://", adapter)
-        self._parallel_session.headers["User-Agent"] = "Lutris/%s" % __version__
+        session.mount("https://", adapter)
+        session.mount("http://", adapter)
+        session.headers["User-Agent"] = "Lutris/%s" % __version__
+        return session
+
+    def _release_resources(self) -> None:
+        """Drop the connections our session has pooled.
+
+        What this releases is sockets, not the session object: a finished transfer
+        leaves up to pool_maxsize keep-alive connections parked in the pool, and the
+        downloader outlives its download, since InstallerFile caches the instance for
+        the length of the install. Without this, every completed part of a multi-part
+        GOG game would sit on idle CDN connections until the installer window closed.
+
+        The session is rebuilt rather than closed-and-discarded because this hook also
+        runs on failure, and the retry button restarts this same instance. A fresh
+        session opens nothing until its first request, so keeping the attribute valid
+        costs an allocation and saves a None check at every call site.
+        """
+        self._parallel_session.close()
+        self._parallel_session = self._build_session()
 
     def __repr__(self):
         return "GOG parallel downloader (%d workers) for %s" % (self.num_workers, self.url)
@@ -363,9 +384,10 @@ class GOGDownloader(BaseDownloader):
         try:
             test_headers = dict(headers)
             test_headers["Range"] = "bytes=0-0"
-            resp = self._parallel_session.get(url, headers=test_headers, stream=True, timeout=10, cookies=self.cookies)
-            resp.close()
-            return resp.status_code == 206
+            with self._parallel_session.get(
+                url, headers=test_headers, stream=True, timeout=10, cookies=self.cookies
+            ) as resp:
+                return resp.status_code == 206
         except Exception:
             return False
 
@@ -383,55 +405,58 @@ class GOGDownloader(BaseDownloader):
                 range_headers = dict(headers)
                 range_headers["Range"] = "bytes=%d-%d" % (start, end)
 
-                response = self._parallel_session.get(
+                # Close the stream however we leave this block. Cancelling, a writer
+                # failure and a stall all abandon it part-read, and with a pool only
+                # num_workers + 2 deep, a retried worker would otherwise starve the
+                # ones still running.
+                with self._parallel_session.get(
                     url,
                     headers=range_headers,
                     stream=True,
                     timeout=30,
                     cookies=self.cookies,
-                )
+                ) as response:
+                    if response.status_code not in (200, 206):
+                        raise requests.HTTPError(
+                            "HTTP %d for range %d-%d" % (response.status_code, start, end),
+                            response=response,
+                        )
 
-                if response.status_code not in (200, 206):
-                    raise requests.HTTPError(
-                        "HTTP %d for range %d-%d" % (response.status_code, start, end),
-                        response=response,
-                    )
-
-                # If server returned 200 (ignoring Range), only write our portion
-                if response.status_code == 200:
-                    logger.warning(
-                        "Server ignored Range header, reading full response for range %d-%d",
-                        start,
-                        end,
-                    )
-                    self._write_from_full_response(response, start, end)
-                    return
-
-                # Normal 206 Partial Content response — enqueue for writer.
-                # Each worker keeps its own stall monitor: the shared
-                # instance-level window would be clobbered by sibling
-                # workers feeding their own byte counters into it.
-                stall_monitor = self._new_stall_monitor()
-                stream_bytes = 0
-                current_offset = start
-                range_size = end - start + 1
-
-                for chunk in response.iter_content(chunk_size=self.chunk_size):
-                    if self.stop_request and self.stop_request.is_set():
+                    # If server returned 200 (ignoring Range), only write our portion
+                    if response.status_code == 200:
+                        logger.warning(
+                            "Server ignored Range header, reading full response for range %d-%d",
+                            start,
+                            end,
+                        )
+                        self._write_from_full_response(response, start, end)
                         return
-                    if self._writer_error_event.is_set():
-                        return  # Writer failed, stop downloading
-                    if chunk:
-                        stream_bytes += len(chunk)
-                        # Mark the last chunk of this range so writer knows when to
-                        # record the range as complete
-                        is_last_chunk = stream_bytes >= range_size
-                        range_end_marker = end if is_last_chunk else None
-                        self._write_queue.put((current_offset, chunk, start, range_end_marker))
-                        current_offset += len(chunk)
-                        stall_monitor.check(stream_bytes)
 
-                return  # Success
+                    # Normal 206 Partial Content response — enqueue for writer.
+                    # Each worker keeps its own stall monitor: the shared
+                    # instance-level window would be clobbered by sibling
+                    # workers feeding their own byte counters into it.
+                    stall_monitor = self._new_stall_monitor()
+                    stream_bytes = 0
+                    current_offset = start
+                    range_size = end - start + 1
+
+                    for chunk in response.iter_content(chunk_size=self.chunk_size):
+                        if self.stop_request and self.stop_request.is_set():
+                            return
+                        if self._writer_error_event.is_set():
+                            return  # Writer failed, stop downloading
+                        if chunk:
+                            stream_bytes += len(chunk)
+                            # Mark the last chunk of this range so writer knows when to
+                            # record the range as complete
+                            is_last_chunk = stream_bytes >= range_size
+                            range_end_marker = end if is_last_chunk else None
+                            self._write_queue.put((current_offset, chunk, start, range_end_marker))
+                            current_offset += len(chunk)
+                            stall_monitor.check(stream_bytes)
+
+                    return  # Success
 
             except Exception as ex:
                 if self.stop_request and self.stop_request.is_set():
@@ -502,18 +527,20 @@ class GOGDownloader(BaseDownloader):
 
         Uses the parallel session for connection pooling benefits.
         """
-        response = self._parallel_session.get(url, headers=headers, stream=True, timeout=30, cookies=self.cookies)
-        response.raise_for_status()
-        self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
-        self.progress_event.set()
+        with self._parallel_session.get(
+            url, headers=headers, stream=True, timeout=30, cookies=self.cookies
+        ) as response:
+            response.raise_for_status()
+            self.full_size = int(response.headers.get("Content-Length", "").strip() or 0)
+            self.progress_event.set()
 
-        with open(self.dest, "wb") as f:
-            for chunk in response.iter_content(chunk_size=self.chunk_size):
-                if self.stop_request and self.stop_request.is_set():
-                    break
-                if chunk:
-                    self.downloaded_size += len(chunk)
-                    f.write(chunk)
-                self.progress_event.set()
+            with open(self.dest, "wb") as f:
+                for chunk in response.iter_content(chunk_size=self.chunk_size):
+                    if self.stop_request and self.stop_request.is_set():
+                        break
+                    if chunk:
+                        self.downloaded_size += len(chunk)
+                        f.write(chunk)
+                    self.progress_event.set()
 
         self.on_download_completed()

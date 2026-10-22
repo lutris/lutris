@@ -75,12 +75,13 @@ def read_user_config() -> dict[str, Any] | None:
     return config
 
 
-def get_config_value(config: dict[str, Any], key: str) -> Any:
+def get_config_value(config: dict[str, Any], key: str, warn_if_missing: bool = True) -> Any:
     """Fetch a value from a configuration in a case insensitive way"""
     keymap = {k.lower(): k for k in config.keys()}
-    if key not in keymap:
-        logger.warning("Config key %s not found in %s", key, ", ".join(list(config.keys())))
-        return
+    if key.lower() not in keymap:
+        if warn_if_missing:
+            logger.warning("Config key %s not found in %s", key, ", ".join(list(config.keys())))
+        return None
     return config[keymap[key.lower()]]
 
 
@@ -98,22 +99,30 @@ def get_user_data_dirs() -> tuple[str, list[str]]:
     return "", []
 
 
+def _account_recency(account: dict[str, Any]) -> tuple[int, int]:
+    """Sort key putting the most recently used account first"""
+    most_recent = get_config_value(account, "mostrecent", warn_if_missing=False) == "1"
+    try:
+        timestamp = int(get_config_value(account, "timestamp", warn_if_missing=False) or 0)
+    except (TypeError, ValueError):
+        timestamp = 0
+    return int(most_recent), timestamp
+
+
 def get_steam_users() -> list[dict[str, Any]]:
     """Return a list of available Steam users.
     Most recently used account is 1st in the list."""
-    steam_users = []
     user_config = read_user_config()
     if not user_config or "users" not in user_config:
         return []
-    most_recent = None
+    steam_users = []
     for steam_id, account in user_config["users"].items():
         account["steamid64"] = steam_id
-        if get_config_value(account, "mostrecent") == "1":
-            most_recent = account
-        else:
-            steam_users.append(account)
-    if most_recent:
-        steam_users = [most_recent] + steam_users
+        steam_users.append(account)
+    # Steam stopped writing MostRecent, leaving the accounts in file order and
+    # the wrong one syncing on a multi-account setup. Timestamp is the login
+    # time and is still written, so it decides when MostRecent is absent.
+    steam_users.sort(key=_account_recency, reverse=True)
     return steam_users
 
 
@@ -153,7 +162,8 @@ def get_steam_library(steamid: str) -> list[dict[str, Any]]:
     json_data = response.json()
     response = json_data["response"]
     if not response:
-        logger.info("No games in response of %s", steam_games_url)
+        # Don't log the URL, it contains the Steam API key
+        logger.info("No games returned for SteamID %s, its game details may be private", steamid)
         return []
     if "games" in response:
         games: list[dict[str, Any]] = response["games"]
@@ -199,7 +209,7 @@ def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
                 if len(path) <= 1:
                     return value
                 return get_entry_case_insensitive(library_dict[key], path[1:])
-            raise KeyError(path[0])
+        raise KeyError(path[0])
 
     if not steam_data_dir:
         return None
@@ -208,13 +218,19 @@ def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
         return None
     with open(library_filename, "r", encoding="utf-8") as steam_library_file:
         library = vdf_parse(steam_library_file, {})
-        # The contentstatsid key is unused and causes problems when looking for library paths.
-        library["libraryfolders"].pop("contentstatsid", None)
     try:
-        return dict(get_entry_case_insensitive(library, ["libraryfolders"]))
+        library_folders = get_entry_case_insensitive(library, ["libraryfolders"])
     except KeyError as ex:
         logger.error("Steam libraryfolders %s is empty: %s", library_filename, ex)
         return None
+    if not isinstance(library_folders, dict):
+        logger.error(
+            "Steam libraryfolders %s is not a dictionary: %s", library_filename, type(library_folders).__name__
+        )
+        return None
+    # The contentstatsid key is unused and causes problems when looking for library paths.
+    library_folders.pop("contentstatsid", None)
+    return library_folders
 
 
 def get_steam_config() -> dict[str, Any] | None:
@@ -257,12 +273,16 @@ def get_steamapps_dirs() -> Iterable[str]:
     if library_config:
         paths = []
         for entry in library_config.values():
+            if not isinstance(entry, dict):
+                # Old-format libraryfolders.vdf lists libraries as plain strings.
+                continue
+            path = entry.get("path")
             if "mounted" in entry:
-                if entry.get("path") and entry.get("mounted") == "1":
-                    path = system.fix_path_case(entry.get("path") + "/steamapps")
+                if path and entry.get("mounted") == "1":
+                    path = system.fix_path_case(path + "/steamapps")
                     paths.append(path)
-            else:
-                path = system.fix_path_case(entry.get("path") + "/steamapps")
+            elif path:
+                path = system.fix_path_case(path + "/steamapps")
                 paths.append(path)
         for path in paths:
             if path and os.path.isdir(path):

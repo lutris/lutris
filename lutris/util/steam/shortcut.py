@@ -84,12 +84,15 @@ def is_steam_game(game: "Game") -> bool:
     return game.runner_name == "steam"
 
 
-def create_shortcut(game: "Game", launch_config_name: str, standalone: bool = False) -> None:
+def create_shortcut(game: "Game", launch_config_name: str | None = None, standalone: bool = False) -> None:
     if is_steam_game(game):
         logger.warning("Not updating shortcut for Steam game")
         return None
     logger.info("Creating Steam shortcut for %s", game)
     shortcut_path = get_shortcuts_vdf_path()
+    if not shortcut_path:
+        logger.warning("No Steam user configuration found, not creating a shortcut for %s", game)
+        return None
     if os.path.exists(shortcut_path):
         with open(shortcut_path, "rb") as shortcut_file:
             shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"].values()
@@ -141,7 +144,7 @@ def generate_shortcut_id(game: "Game") -> int:
     return (generate_preliminary_id(game) >> 32) - 0x100000000
 
 
-def generate_shortcut(game: "Game", launch_config_name: str) -> SteamShortcut:
+def generate_shortcut(game: "Game", launch_config_name: str | None) -> SteamShortcut:
     lutris_binary = "lutris"
 
     launch_options = format_installer_url(
@@ -170,7 +173,7 @@ def generate_shortcut(game: "Game", launch_config_name: str) -> SteamShortcut:
     }
 
 
-def generate_standalone_shortcut(game: "Game", launch_config_name: str) -> SteamShortcut:
+def generate_standalone_shortcut(game: "Game", launch_config_name: str | None) -> SteamShortcut:
     lutris_binary = shutil.which("lutris")
 
     launch_options = format_installer_url(

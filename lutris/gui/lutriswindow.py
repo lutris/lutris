@@ -62,7 +62,7 @@ from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.progress_box import ProgressBox, ProgressInfo
 from lutris.gui.widgets.sidebar import LutrisSidebar, SidebarRow
 from lutris.gui.widgets.stock_icon_image import StockIconImage
-from lutris.gui.widgets.utils import load_icon_theme, open_uri
+from lutris.gui.widgets.utils import load_icon_theme, open_uri, set_cursor_by_name
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
@@ -244,15 +244,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         """Applies the 'progress' cursor to this window if Lutris is busy. This does nothing
         if the window has not been realized; it can be created but never shown when Lutris is
         started to install or run a game, and it has no GdkWindow to set a cursor on then."""
-        gdk_window = self.get_window()
-        if not gdk_window:
-            return
-
-        if self._is_busy:
-            display = Gdk.Display.get_default()
-            gdk_window.set_cursor(Gdk.Cursor.new_from_name(display, "progress"))
-        else:
-            gdk_window.set_cursor(None)
+        set_cursor_by_name(self, "progress" if self._is_busy else None)
 
     def _init_actions(self):
         Action = namedtuple("Action", ("callback", "type", "enabled", "default", "accel"))
@@ -307,6 +299,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             ),
             "open-search-filters": Action(self.on_open_search_filters),
             "open-forums": Action(lambda *x: open_uri("https://forums.lutris.net/")),
+            "open-bug-tracker": Action(lambda *x: open_uri(settings.BUG_TRACKER_URL)),
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
             "kill-wine": Action(self.on_kill_wine),
@@ -704,7 +697,6 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         service_id = self.filters.get("service")
         if service_id in services.SERVICES:
             if self.service.online and not self.service.is_authenticated():
-                self.show_empty_label()
                 return []
             return self.get_service_games(service_id)
         if self.filters.get("dynamic_category") in self.dynamic_categories_game_factories:
@@ -852,7 +844,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             # Since get_games_from_filters() seems to be much faster than making a GameStore,
             # we defer the spinner to here, when we know how many games we will show. If there
             # are "many" we show a spinner while the store is built.
-            if len(games) > 512:
+            if not games:
+                self.show_empty_label()
+            elif len(games) > 512:
                 self.show_spinner()
 
             AsyncCall(make_game_store, apply_store, games)
@@ -936,7 +930,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def show_label(self, message):
         """Display a label in the middle of the UI"""
-        self.show_overlay(Gtk.Label(message, visible=True))
+        self.show_overlay(Gtk.Label(label=message, visible=True))
 
     def show_splash(self):
         theme = "dark" if self.application.style_manager.is_dark else "light"

@@ -13,6 +13,7 @@ from lutris.exceptions import MissingExecutableError
 from lutris.monitored_command import RUNNING_COMMANDS
 from lutris.util import cache_single, system
 from lutris.util.log import logger
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
 
@@ -161,17 +162,25 @@ def get_umu_path() -> str:
     raise MissingExecutableError("Install umu to use Proton")
 
 
+def get_proton_wine_files_dir(version: str) -> str | None:
+    """Get the directory holding the Wine files of the specified Proton version; this is
+    the directory containing 'bin', which older builds call 'dist' and newer ones 'files'.
+    Returns None if the version isn't installed or ships no wine executable."""
+    proton_path = get_proton_versions().get(version)
+    if proton_path:
+        for files_dir in ("dist", "files"):
+            files_path = os.path.join(proton_path, files_dir)
+            if os.path.exists(os.path.join(files_path, "bin/wine")):
+                return files_path
+
+    return None
+
+
 def get_proton_wine_path(version: str) -> str:
     """Get the wine path for the specified proton version"""
-    wine_path = get_proton_versions().get(version)
-    if wine_path:
-        wine_path_dist = os.path.join(wine_path, "dist/bin/wine")
-        if os.path.exists(wine_path_dist):
-            return wine_path_dist
-
-        wine_path_files = os.path.join(wine_path, "files/bin/wine")
-        if os.path.exists(wine_path_files):
-            return wine_path_files
+    files_path = get_proton_wine_files_dir(version)
+    if files_path:
+        return os.path.join(files_path, "bin/wine")
 
     raise MissingExecutableError(_("Proton version '%s' is missing its wine executable and can't be used.") % version)
 
@@ -219,7 +228,7 @@ def _iter_proton_locations() -> Generator[str, None, None]:
 
     try:
         steamapp_dirs = get_steamapps_dirs()
-    except:
+    except Exception:
         return  # in case of corrupt or unreadable Steam configuration files!
 
     for path in [os.path.join(p, "common") for p in steamapp_dirs]:
@@ -227,6 +236,33 @@ def _iter_proton_locations() -> Generator[str, None, None]:
 
     for path in [os.path.join(p, "") for p in steamapp_dirs]:
         yield path
+
+
+def get_umu_folders_path(env: dict[str, str]) -> str:
+    """Return where Umu should keep its own folders, or "" to leave it to Umu.
+
+    Umu decides where to download its runtime and Proton builds from
+    XDG_DATA_HOME (HOST_XDG_DATA_HOME under Flatpak), falling back to
+    $HOME/.local/share. Players override those per game to keep save files out
+    of their home directory, which also sends Umu's downloads there: the runtime
+    is fetched again for every game, into directories the game was never meant
+    to own. UMU_FOLDERS_PATH moves Umu's folders back without touching what the
+    game itself sees.
+    """
+    # Umu keys this off "container=flatpak", which the sandbox sets alongside
+    # the /.flatpak-info that LINUX_SYSTEM looks for.
+    data_home_var = "HOST_XDG_DATA_HOME" if LINUX_SYSTEM.is_flatpak() else "XDG_DATA_HOME"
+    overridden = any(var in env and env[var] != os.environ.get(var) for var in (data_home_var, "HOME"))
+    if not overridden:
+        return ""
+
+    lutris_data_home = os.environ.get(data_home_var)
+    if not lutris_data_home:
+        lutris_home = os.environ.get("HOME")
+        if not lutris_home:
+            return ""
+        lutris_data_home = os.path.join(lutris_home, ".local", "share")
+    return lutris_data_home
 
 
 def update_proton_env(wine_path: str, env: dict[str, str], game_id: str = DEFAULT_GAMEID, umu_log: str = "") -> None:
@@ -261,6 +297,11 @@ def update_proton_env(wine_path: str, env: dict[str, str], game_id: str = DEFAUL
             env["PROTON_VERB"] = "runinprefix"  # do *not* re-initialize a running prefix!
         else:
             env["PROTON_VERB"] = "waitforexitandrun"  # does full initialization with proton-fixes
+
+    if "UMU_FOLDERS_PATH" not in env:
+        umu_folders_path = get_umu_folders_path(env)
+        if umu_folders_path:
+            env["UMU_FOLDERS_PATH"] = umu_folders_path
 
     locale = env.get("LC_ALL")
     host_locale = env.get("HOST_LC_ALL")

@@ -70,6 +70,7 @@ def execute_with_error(
     quiet: bool = False,
     shell: bool = False,
     timeout: float | None = None,
+    stderr_file: IO[bytes] | None = None,
 ) -> tuple[str, str]:
     """
     Execute a system command and return its standard output and; standard error in a tuple.
@@ -80,18 +81,29 @@ def execute_with_error(
         cwd (str): Working directory
         quiet (bool): Do not display log messages
         timeout (int): Number of seconds the program is allowed to run, disabled by default
+        stderr_file (IO): Binary file to collect stderr in, instead of a pipe; its content is
+            still returned. Only required for commands that leave a process behind holding the
+            stderr they inherited, since a pipe would not reach EOF until that process exits.
 
     Returns:
         str, str: stdout output and stderr output
     """
-    return _execute(command, env=env, cwd=cwd, capture_stderr=True, quiet=quiet, shell=shell, timeout=timeout)
+    return _execute(
+        command,
+        env=env,
+        cwd=cwd,
+        capture_stderr=stderr_file if stderr_file is not None else True,
+        quiet=quiet,
+        shell=shell,
+        timeout=timeout,
+    )
 
 
 def _execute(
     command: list[str],
     env: dict[str, str] | None = None,
     cwd: str | None = None,
-    capture_stderr: bool = False,
+    capture_stderr: bool | IO[bytes] = False,
     quiet: bool = False,
     shell: bool = False,
     timeout: float | None = None,
@@ -115,14 +127,20 @@ def _execute(
         env = {k: v for k, v in env.items() if v is not None}
         existing_env.update(env)
 
-    # Piping stderr can cause slowness in the programs, use carefully
-    # (especially when using regedit with wine)
+    # A caller can hand us a file to collect stderr in; we read it back below. Otherwise
+    # we pipe it, which is cheaper but not always safe - see execute_with_error().
+    stderr_file = None if isinstance(capture_stderr, bool) else capture_stderr
+    if stderr_file is not None:
+        stderr_dest: IO[bytes] | int = stderr_file
+    else:
+        stderr_dest = subprocess.PIPE if capture_stderr else subprocess.DEVNULL
+
     try:
         with subprocess.Popen(
             command,
             shell=shell,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE if capture_stderr else subprocess.DEVNULL,
+            stderr=stderr_dest,
             env=existing_env,
             cwd=cwd,
             errors="replace",
@@ -132,8 +150,12 @@ def _execute(
         logger.error("Could not run command %s (env: %s): %s", command, env, ex)
         return "", ""
     except subprocess.TimeoutExpired:
-        logger.error("Command %s after %s seconds", command, timeout)
+        logger.error("Command %s timed out after %s seconds", command, timeout)
         return "", ""
+
+    if stderr_file is not None:
+        stderr_file.seek(0)
+        stderr = stderr_file.read().decode("utf-8", errors="replace")
 
     return stdout.strip(), (stderr or "").strip()
 
@@ -220,10 +242,13 @@ def read_process_output(
         return error_result
 
 
-def get_md5_in_zip(filename: str) -> str:
+def get_md5_in_zip(filename: str) -> str | None:
     """Return the md5 hash of a file in a zip"""
     with zipfile.ZipFile(filename, "r") as archive:
-        files = archive.namelist()
+        files = [info.filename for info in archive.infolist() if not info.is_dir()]
+        if not files:
+            logger.warning("No file found in archive %s", filename)
+            return None
         if len(files) > 1:
             logger.warning("More than 1 file in archive %s, reading 1st one: %s", filename, files[0])
         with archive.open(files[0]) as file_in_zip:
@@ -634,11 +659,8 @@ def create_symlink(source: str, destination: str) -> None:
 def reset_library_preloads() -> None:
     """Remove library preloads from environment"""
     for key in ("LD_LIBRARY_PATH", "LD_PRELOAD"):
-        if os.environ.get(key):
-            try:
-                del os.environ[key]
-            except OSError:
-                logger.error("Failed to delete environment variable %s", key)
+        if os.environ.pop(key, None):
+            logger.debug("Removed %s from environment", key)
 
 
 def get_existing_parent(path: str) -> str | None:

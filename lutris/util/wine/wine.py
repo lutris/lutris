@@ -114,9 +114,10 @@ def is_winewayland_available(runner_version: str) -> bool:
             "lib/wine/x86_64-windows/winewayland.drv",
             "lib/wine/i386-windows/winewayland.drv",
         )
-        if not any(os.path.exists(os.path.join(files_dir, winewayland_path)) for winewayland_path in winewayland_paths):
-            return False
+        return any(os.path.exists(os.path.join(files_dir, winewayland_path)) for winewayland_path in winewayland_paths)
 
+    # If there's no file dir to check, we assume Wayland is available- this
+    # happens for GE_PROTON_LATEST.
     return True
 
 
@@ -153,22 +154,15 @@ def list_lutris_wine_versions() -> list[str]:
 def get_installed_wine_versions() -> list[str]:
     """Return the list of Wine versions installed, with no duplicates and in
     the presentation order."""
-    versions: set[str] = {
-        GE_PROTON_LATEST,
-    }
-
-    for v in proton.list_proton_versions():
-        if v not in versions:
-            versions.add(v)
-
-    for v in list_lutris_wine_versions():
-        if v not in versions:
-            versions.add(v)
-
-    for v in list_system_wine_versions():
-        if v not in versions:
-            versions.add(v)
-
+    # A dict, unlike a set, removes duplicates while keeping the order
+    versions = dict.fromkeys(
+        [
+            GE_PROTON_LATEST,
+            *proton.list_proton_versions(),
+            *list_lutris_wine_versions(),
+            *list_system_wine_versions(),
+        ]
+    )
     return list(versions)
 
 
@@ -187,7 +181,7 @@ def get_runner_files_dir_for_version(version: str) -> str | None:
     if version in WINE_PATHS:
         return None
     elif proton.is_proton_version(version):
-        return os.path.join(WINE_DIR, version, "files")
+        return proton.get_proton_wine_files_dir(version)
     else:
         return os.path.join(WINE_DIR, version)
 

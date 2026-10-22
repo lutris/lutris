@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from lutris import settings
 from lutris.services.amazon import AmazonService
 from lutris.services.battlenet import BattleNetService
+from lutris.services.dlsite import DlsiteService
 from lutris.services.dolphin import DolphinService
 from lutris.services.ea_app import EAAppService
 from lutris.services.egs import EpicGamesStoreService
@@ -46,6 +47,7 @@ def get_services() -> dict[str, "type[BaseService]"]:
         "ubisoft": UbisoftConnectService,
         "amazon": AmazonService,
         "flathub": FlathubService,
+        "dlsite": DlsiteService,
     }
     _services["battlenet"] = BattleNetService
     if not LINUX_SYSTEM.is_flatpak():

@@ -1,6 +1,7 @@
 """Lutris installer class"""
 
 import json
+import re
 from functools import cached_property
 from gettext import gettext as _
 from pathlib import Path
@@ -9,7 +10,7 @@ import requests
 
 from lutris.api import get_game_details
 from lutris.config import LutrisConfig, write_game_config
-from lutris.database.games import add_or_update, get_game_by_field
+from lutris.database.games import add_or_update, get_game_by_field, get_games
 from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, ENTRY_POINT_KEYS
 from lutris.installer.errors import ScriptingError
@@ -20,6 +21,9 @@ from lutris.util.game_finder import find_linux_game_executable, find_windows_gam
 from lutris.util.log import logger
 from lutris.util.moddb import ModDB, is_moddb_url
 from lutris.util.system import fix_path_case
+
+# Matches the $GAMEDIR (or ${GAMEDIR}) variable that expands to the install directory
+GAMEDIR_VARIABLE = re.compile(r"\$(GAMEDIR\b|{GAMEDIR})")
 
 
 class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
@@ -124,6 +128,15 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         if existing_game and (self.extends or not existing_game["installed"]):
             return existing_game["id"]
 
+        # The library entry of a service game may have a different slug than the
+        # one lutris.net now gives that game; install into it rather than adding a
+        # second entry that leaves the library one uninstalled.
+        if self.service and self.service_appid:
+            for service_game in get_games(filters={"service": self.service.id, "service_id": self.service_appid}):
+                if not service_game["installed"]:
+                    return service_game["id"]
+        return None
+
     @property
     def creates_game_folder(self):
         """Determines if an install script should create a game folder for the game"""
@@ -143,7 +156,24 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return True
         if "gogdl_setup" in command_names:
             return True
+        if self.uses_gamedir_variable:
+            # The script expects $GAMEDIR to expand to something; without a folder it
+            # would be left unsubstituted and used as a relative path.
+            return True
         return False
+
+    @cached_property
+    def uses_gamedir_variable(self):
+        """True if the script refers to $GAMEDIR anywhere, so that it needs an install directory"""
+
+        def contains_gamedir(value):
+            if isinstance(value, dict):
+                return any(contains_gamedir(v) for v in value.values())
+            if isinstance(value, list):
+                return any(contains_gamedir(v) for v in value)
+            return isinstance(value, str) and bool(GAMEDIR_VARIABLE.search(value))
+
+        return contains_gamedir(self.script)
 
     def get_errors(self):
         """Return potential errors in the script"""

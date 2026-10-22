@@ -2,7 +2,6 @@
 
 import os
 import threading
-import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -11,6 +10,17 @@ from unittest.mock import MagicMock, patch
 from lutris.util.download_progress import DownloadProgress
 from lutris.util.downloader import DEFAULT_CHUNK_SIZE, BaseDownloader
 from lutris.util.gog_downloader import GOGDownloader
+
+
+def response_mock(**attrs):
+    """A stand-in for a streaming requests.Response.
+
+    The downloader consumes responses with ``with``, so ``__enter__`` has to hand
+    back the same object the test configured rather than a fresh auto-mock.
+    """
+    response = MagicMock(**attrs)
+    response.__enter__.return_value = response
+    return response
 
 
 class TestGOGDownloaderInit(TestCase):
@@ -140,7 +150,7 @@ class TestProbeServer(TestCase):
     def test_probe_with_range_support(self):
         dl = GOGDownloader("https://cdn.gog.com/file.bin", "/tmp/test.bin")
 
-        mock_resp = MagicMock()
+        mock_resp = response_mock()
         mock_resp.url = "https://cdn.gog.com/resolved/file.bin"
         mock_resp.headers = {"Content-Length": "104857600", "Accept-Ranges": "bytes"}
         mock_resp.raise_for_status = MagicMock()
@@ -156,12 +166,12 @@ class TestProbeServer(TestCase):
         """Test fallback Range probe when Accept-Ranges header is missing."""
         dl = GOGDownloader("https://cdn.gog.com/file.bin", "/tmp/test.bin")
 
-        mock_head_resp = MagicMock()
+        mock_head_resp = response_mock()
         mock_head_resp.url = "https://cdn.gog.com/file.bin"
         mock_head_resp.headers = {"Content-Length": "50000000"}
         mock_head_resp.raise_for_status = MagicMock()
 
-        mock_get_resp = MagicMock()
+        mock_get_resp = response_mock()
         mock_get_resp.status_code = 206
 
         with patch.object(dl._parallel_session, "head", return_value=mock_head_resp):
@@ -173,7 +183,7 @@ class TestProbeServer(TestCase):
     def test_probe_no_range_support(self):
         dl = GOGDownloader("https://cdn.gog.com/file.bin", "/tmp/test.bin")
 
-        mock_head_resp = MagicMock()
+        mock_head_resp = response_mock()
         mock_head_resp.url = "https://cdn.gog.com/file.bin"
         mock_head_resp.headers = {"Content-Length": "50000000", "Accept-Ranges": "none"}
         mock_head_resp.raise_for_status = MagicMock()
@@ -186,7 +196,7 @@ class TestProbeServer(TestCase):
     def test_probe_no_content_length(self):
         dl = GOGDownloader("https://cdn.gog.com/file.bin", "/tmp/test.bin")
 
-        mock_resp = MagicMock()
+        mock_resp = response_mock()
         mock_resp.url = "https://cdn.gog.com/file.bin"
         mock_resp.headers = {}
         mock_resp.raise_for_status = MagicMock()
@@ -211,12 +221,12 @@ class TestFallbackToSingleStream(TestCase):
 
         test_data = b"Hello, World!"
 
-        mock_head_resp = MagicMock()
+        mock_head_resp = response_mock()
         mock_head_resp.url = "https://cdn.gog.com/file.bin"
         mock_head_resp.headers = {"Content-Length": str(len(test_data)), "Accept-Ranges": "none"}
         mock_head_resp.raise_for_status = MagicMock()
 
-        mock_get_resp = MagicMock()
+        mock_get_resp = response_mock()
         mock_get_resp.headers = {"Content-Length": str(len(test_data))}
         mock_get_resp.raise_for_status = MagicMock()
         mock_get_resp.iter_content = MagicMock(return_value=[test_data])
@@ -240,7 +250,7 @@ class TestFallbackToSingleStream(TestCase):
         small_size = GOGDownloader.MIN_CHUNK_SIZE - 1
         test_data = b"x" * 100
 
-        mock_head_resp = MagicMock()
+        mock_head_resp = response_mock()
         mock_head_resp.url = "https://cdn.gog.com/file.bin"
         mock_head_resp.headers = {
             "Content-Length": str(small_size),
@@ -248,7 +258,7 @@ class TestFallbackToSingleStream(TestCase):
         }
         mock_head_resp.raise_for_status = MagicMock()
 
-        mock_get_resp = MagicMock()
+        mock_get_resp = response_mock()
         mock_get_resp.headers = {"Content-Length": str(len(test_data))}
         mock_get_resp.raise_for_status = MagicMock()
         mock_get_resp.iter_content = MagicMock(return_value=[test_data])
@@ -279,7 +289,7 @@ class TestParallelDownload(TestCase):
         data = data[:file_size]
 
         # Probe returns Range support
-        mock_head_resp = MagicMock()
+        mock_head_resp = response_mock()
         mock_head_resp.url = "https://cdn.gog.com/resolved.bin"
         mock_head_resp.headers = {
             "Content-Length": str(file_size),
@@ -289,7 +299,7 @@ class TestParallelDownload(TestCase):
 
         # Worker responses return the correct byte range
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
-            resp = MagicMock()
+            resp = response_mock()
             range_header = headers.get("Range", "")
             if range_header:
                 parts = range_header.replace("bytes=", "").split("-")
@@ -323,7 +333,7 @@ class TestParallelDownload(TestCase):
         file_size = 4000
         data = b"A" * 1000 + b"B" * 1000 + b"C" * 1000 + b"D" * 1000
 
-        mock_head_resp = MagicMock()
+        mock_head_resp = response_mock()
         mock_head_resp.url = "https://cdn.gog.com/file.bin"
         mock_head_resp.headers = {
             "Content-Length": str(file_size),
@@ -332,7 +342,7 @@ class TestParallelDownload(TestCase):
         mock_head_resp.raise_for_status = MagicMock()
 
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
-            resp = MagicMock()
+            resp = response_mock()
             range_header = headers.get("Range", "")
             parts = range_header.replace("bytes=", "").split("-")
             start, end = int(parts[0]), int(parts[1])
@@ -371,7 +381,7 @@ class TestDownloadRange(TestCase):
             f.truncate(file_size)
 
         chunk_data = b"X" * 500
-        mock_resp = MagicMock()
+        mock_resp = response_mock()
         mock_resp.status_code = 206
         mock_resp.iter_content = MagicMock(return_value=[chunk_data])
 
@@ -399,11 +409,11 @@ class TestDownloadRange(TestCase):
             f.truncate(file_size)
 
         chunk_data = b"Y" * 100
-        mock_resp_fail = MagicMock()
+        mock_resp_fail = response_mock()
         mock_resp_fail.status_code = 500
         mock_resp_fail.iter_content = MagicMock()
 
-        mock_resp_ok = MagicMock()
+        mock_resp_ok = response_mock()
         mock_resp_ok.status_code = 206
         mock_resp_ok.iter_content = MagicMock(return_value=[chunk_data])
 
@@ -427,7 +437,7 @@ class TestDownloadRange(TestCase):
         with open(dest, "wb") as f:
             f.truncate(file_size)
 
-        mock_resp = MagicMock()
+        mock_resp = response_mock()
         mock_resp.status_code = 206
         mock_resp.iter_content = MagicMock(return_value=[b"Z" * 100])
 
@@ -595,7 +605,6 @@ class TestProgressTracking(TestCase):
         dl.full_size = 1000
         dl.downloaded_size = 500
         dl.state = dl.DOWNLOADING
-        dl.last_check_time = time.monotonic() - 1
 
         progress = dl.check_progress()
         assert 0.4 <= progress <= 0.6  # Approximately 50%
@@ -621,7 +630,7 @@ class TestResumeProgressCreation(TestCase):
         file_size = 2000
         data = b"X" * file_size
 
-        mock_head_resp = MagicMock()
+        mock_head_resp = response_mock()
         mock_head_resp.url = "https://cdn.gog.com/file.bin"
         mock_head_resp.headers = {
             "Content-Length": str(file_size),
@@ -630,7 +639,7 @@ class TestResumeProgressCreation(TestCase):
         mock_head_resp.raise_for_status = MagicMock()
 
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
-            resp = MagicMock()
+            resp = response_mock()
             rng = headers.get("Range", "")
             parts = rng.replace("bytes=", "").split("-")
             start, end = int(parts[0]), int(parts[1])
@@ -657,7 +666,7 @@ class TestResumeProgressCreation(TestCase):
         file_size = 2000
         data = b"A" * 1000 + b"B" * 1000
 
-        mock_head_resp = MagicMock()
+        mock_head_resp = response_mock()
         mock_head_resp.url = "https://cdn.gog.com/file.bin"
         mock_head_resp.headers = {
             "Content-Length": str(file_size),
@@ -668,7 +677,7 @@ class TestResumeProgressCreation(TestCase):
         call_count = [0]
 
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
-            resp = MagicMock()
+            resp = response_mock()
             rng = headers.get("Range", "")
             parts = rng.replace("bytes=", "").split("-")
             start, end = int(parts[0]), int(parts[1])
@@ -706,7 +715,7 @@ class TestResumeFromProgress(TestCase):
         self.tmp_path = Path(self.tmp_dir.name)
 
     def _make_head_resp(self, url, file_size):
-        resp = MagicMock()
+        resp = response_mock()
         resp.url = url
         resp.headers = {
             "Content-Length": str(file_size),
@@ -745,7 +754,7 @@ class TestResumeFromProgress(TestCase):
         downloaded_ranges = []
 
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
-            resp = MagicMock()
+            resp = response_mock()
             rng = headers.get("Range", "")
             parts = rng.replace("bytes=", "").split("-")
             start, end = int(parts[0]), int(parts[1])
@@ -793,7 +802,7 @@ class TestResumeFromProgress(TestCase):
         dl.stop_request = threading.Event()
 
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
-            resp = MagicMock()
+            resp = response_mock()
             rng = headers.get("Range", "")
             parts = rng.replace("bytes=", "").split("-")
             start, end = int(parts[0]), int(parts[1])
@@ -832,7 +841,7 @@ class TestResumeFromProgress(TestCase):
         dl.stop_request = threading.Event()
 
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
-            resp = MagicMock()
+            resp = response_mock()
             rng = headers.get("Range", "")
             parts = rng.replace("bytes=", "").split("-")
             start, end = int(parts[0]), int(parts[1])
@@ -865,7 +874,7 @@ class TestResumeFromProgress(TestCase):
         dl.stop_request = threading.Event()
 
         def mock_get(url, headers=None, stream=None, timeout=None, cookies=None):
-            resp = MagicMock()
+            resp = response_mock()
             rng = headers.get("Range", "")
             parts = rng.replace("bytes=", "").split("-")
             start, end = int(parts[0]), int(parts[1])

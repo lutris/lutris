@@ -240,6 +240,9 @@ class AboutDialog(GtkBuilderDialog):
 
     def initialize(self, **kwargs: Any) -> None:
         self.dialog.set_version(settings.VERSION)
+        # The dialog already links lutris.net; reaching the source or the issue
+        # tracker from there took several more clicks (#6820).
+        self.dialog.add_credit_section(_("Source code"), ["GitHub %s" % settings.GITHUB_URL])
 
 
 class NoticeDialog(Gtk.MessageDialog):

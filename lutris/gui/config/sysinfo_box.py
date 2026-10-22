@@ -106,7 +106,7 @@ class SystemBox(BaseConfigBox):
                 grid.attach(header_label, 0, row, 2, 1)
             else:
                 name, text = item
-                name_label = Gtk.Label(name + ":", visible=True, xalign=0, yalign=0, margin_right=30)
+                name_label = Gtk.Label(label=name + ":", visible=True, xalign=0, yalign=0, margin_right=30)
                 grid.attach(name_label, 0, row, 1, 1)
 
                 markup_label = Gtk.Label(visible=True, xalign=0, selectable=True)

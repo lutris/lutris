@@ -17,7 +17,7 @@ try:
 
     # check for AttributeError on newer systems on which the
     # deprecated attributes have been removed
-    GnomeDesktop.RRScreen  # type: ignore
+    GnomeDesktop.RRScreen  # type: ignore  # noqa: B018
 
     LIB_GNOME_DESKTOP_AVAILABLE = True
 except (ValueError, AttributeError):
@@ -319,18 +319,21 @@ def _run_command(*command: str, run_in_background: bool = False) -> subprocess.P
     are you lost little _run_command?
     """
     try:
-        if run_in_background:
-            command = " ".join(command)
+        if not run_in_background:
+            return subprocess.Popen(  # pylint: disable=consider-using-with
+                command,
+                stdin=subprocess.DEVNULL,
+                close_fds=True,
+            )
         return subprocess.Popen(  # pylint: disable=consider-using-with
-            command,
+            " ".join(command),
             stdin=subprocess.DEVNULL,
             close_fds=True,
-            shell=run_in_background,
-            start_new_session=run_in_background,
+            shell=True,
+            start_new_session=True,
         )
     except FileNotFoundError:
-        errorMessage = "FileNotFoundError when running command:", command
-        logger.error(errorMessage)
+        logger.error("FileNotFoundError when running command: %s", command)
 
     return None
 
@@ -352,6 +355,9 @@ def enable_compositing() -> None:
     """Re-enable compositing if the corresponding call to disable_compositing
     disabled it."""
 
+    if not _COMPOSITING_DISABLED_STACK:
+        logger.debug("enable_compositing() called without a matching disable_compositing()")
+        return
     compositing_disabled = _COMPOSITING_DISABLED_STACK.pop()
     if not compositing_disabled:
         return
@@ -371,7 +377,7 @@ class DBusScreenSaverInhibitor:
     requires the Inhibit() and UnInhibit() methods to be exposed."""
 
     def __init__(self) -> None:
-        self.proxy = None
+        self.proxy: Any = None
         self._used_gtk_fallback = False
 
     def set_dbus_iface(self, name: str, path: str, interface: str, bus_type: Gio.BusType = Gio.BusType.SESSION) -> None:
@@ -454,10 +460,17 @@ def _get_suspend_inhibitor() -> DBusScreenSaverInhibitor:
     for name, path, interface in interfaces_to_try:
         try:
             inhibitor.set_dbus_iface(name, path, interface)
-            logger.debug("Using D-Bus screensaver interface: %s", name)
-            return inhibitor
         except GLib.Error as err:
             logger.debug("D-Bus interface %s not available: %s", name, err)
+            continue
+        # Creating a proxy succeeds even when no service owns the name, so
+        # only keep it if something is actually there to answer our calls.
+        if not inhibitor.proxy.get_name_owner():
+            logger.debug("D-Bus interface %s has no owner, skipping it", name)
+            inhibitor.proxy = None
+            continue
+        logger.debug("Using D-Bus screensaver interface: %s", name)
+        return inhibitor
 
     # No D-Bus interface available, will use GTK fallback
     return inhibitor

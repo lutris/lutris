@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from lutris import runtime, settings
 from lutris.api import format_runner_version, normalize_version_architecture
-from lutris.config import LutrisConfig
+from lutris.config import LutrisConfig, is_option_visible
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import (
     EsyncLimitError,
@@ -1097,6 +1097,12 @@ class wine(Runner):
             "WineDesktop": prefix_manager.set_desktop_size,
         }
         for key, path in self.reg_keys.items():
+            # An option the user can't even see, like the virtual desktop in a Proton
+            # configuration, must not do anything - not even clear the keys it would
+            # write, since the prefix may have its own settings there.
+            if not is_option_visible(self.runner_options, key, self.config):
+                logger.debug("Not applying '%s'; it is hidden for this configuration", key)
+                continue
             value = self.runner_config.get(key) or "auto"
             if not value or (value == "auto" and key not in managed_keys):
                 prefix_manager.clear_registry_subkeys(path, key)
@@ -1113,18 +1119,6 @@ class wine(Runner):
                 if key in managed_keys:
                     # Do not pass fallback 'auto' value to managed keys
                     if value == "auto":
-                        value = None
-                    wine_exe = self.get_executable()
-                    if (
-                        value
-                        and key in ("Desktop", "WineDesktop")
-                        and (
-                            proton.is_umu_path(wine_exe)
-                            or proton.is_proton_path(wine_exe)
-                            or "wine-ge" in wine_exe.casefold()
-                        )
-                    ):
-                        logger.warning("Wine Virtual Desktop can't be used with Wine-GE and Proton")
                         value = None
                     managed_keys[key](value)
                     continue

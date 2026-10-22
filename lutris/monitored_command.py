@@ -95,6 +95,18 @@ class MonitoredCommand:
     def stdout(self) -> str:
         return self._stdout.getvalue()
 
+    @property
+    def game_process_has_exited(self) -> bool:
+        """True once the process has exited. Unlike 'is_running', this does not wait for the
+        GLib main loop to notice, so it is accurate even in code that blocks the main loop.
+        The process is left unreaped, for on_stop() to collect as usual."""
+        if not self.game_process or self.game_process.returncode is not None:
+            return True
+        try:
+            return os.waitid(os.P_PID, self.game_process.pid, os.WEXITED | os.WNOHANG | os.WNOWAIT) is not None
+        except ChildProcessError:
+            return True  # already reaped
+
     def get_wrapper_command(self) -> list[str]:
         """Return launch arguments for the wrapper script"""
         # Invoke the wrapper via the current Python explicitly rather than
@@ -196,16 +208,20 @@ class MonitoredCommand:
 
         GLib.child_watch_add(self.game_process.pid, self.on_stop)  # type: ignore
 
-        # make stdout nonblocking.
-        if self.game_process.stdout:
-            fileno = self.game_process.stdout.fileno()
+        stdout = self.game_process.stdout
+        if stdout:
+            # make stdout nonblocking.
+            fileno = stdout.fileno()
             fcntl.fcntl(fileno, fcntl.F_SETFL, fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK)
 
-        self.stdout_monitor = GLib.io_add_watch(
-            self.game_process.stdout,
-            GLib.IO_IN | GLib.IO_HUP,
-            self.on_stdout_output,
-        )
+            # PyGObject accepts a file object here and passes it back to the callback, but the stubs
+            # only allow an IOChannel; they also mistype the condition as an IOChannel.
+            self.stdout_monitor = GLib.io_add_watch(
+                stdout,  # type: ignore[arg-type]
+                GLib.PRIORITY_DEFAULT,
+                GLib.IO_IN | GLib.IO_HUP,  # type: ignore[arg-type]
+                self.on_stdout_output,  # type: ignore[arg-type]
+            )
 
     def log_filter(self, line: str) -> bool:
         """Filter out some message we don't want to show to the user."""
