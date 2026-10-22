@@ -34,7 +34,8 @@ class HumbleSmallIcon(HumbleBundleIcon):
     size = (35, 35)
     can_be_fallback = False
 
-    def get_fallback_media_path(self, services):
+    def get_fallback_media_path(self, services, exists_function=None):
+        """Small icons are never used as fallback media."""
         return None
 
 

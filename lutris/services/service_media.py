@@ -64,6 +64,56 @@ def resolve_media_path(possible_paths: list[MediaPath]) -> MediaPath:
     return possible_paths[0]
 
 
+def media_path_exists(media_path: MediaPath) -> bool:
+    """Returns True if the media file exists and has contents. This is a stand-alone function
+    so that a caller that checks many paths can substitute a memoizing version, since each
+    check costs a couple of file system calls."""
+    return media_path.exists
+
+
+class MediaPaths(list[MediaPath]):
+    """The paths where a game's media may be found, in priority order.
+
+    This is a list, so it can be stored in the game store and handled like one, but it also
+    remembers which of its paths it resolved to. The views re-render the same row over and
+    over, and resolving the media path stats the file system each time, so we cache the
+    resolution and recompute it only when the caller's media cache generation number changes.
+    """
+
+    def __init__(self, paths: Iterable[MediaPath] = ()) -> None:
+        super().__init__(paths)
+        self._resolved_generation = -1
+        self._resolved_media_path: MediaPath | None = None
+
+    def get_resolved(self, generation: int) -> MediaPath | None:
+        """Returns the media path to display for this game, which is resolve_media_path() of
+        this list, but computed at most once per media cache generation.
+
+        Media files are added and removed outside of Lutris, so the cached resolution is
+        discarded whenever the generation number changes; that happens when media is
+        downloaded or replaced."""
+        if generation != self._resolved_generation:
+            self._resolved_media_path = resolve_media_path(self) if self else None
+            self._resolved_generation = generation
+        return self._resolved_media_path
+
+
+_media_instances: dict[type, "ServiceMedia"] = {}
+
+
+def get_media_instance(media_class: type["ServiceMedia"]) -> "ServiceMedia":
+    """Returns the shared instance of a media class, creating it the first time it's needed.
+
+    A ServiceMedia object describes a kind of media and holds no per-game state, but creating
+    one checks- and if necessary creates- its destination directory. The fallback search below
+    needs one of each kind for every game it has to handle, so they are created once instead.
+    """
+    instance = _media_instances.get(media_class)
+    if instance is None:
+        instance = _media_instances[media_class] = media_class()
+    return instance
+
+
 class ServiceMedia:
     """Information about the service's media format"""
 
@@ -89,7 +139,11 @@ class ServiceMedia:
         be found, but they are in a priority order - the first is in the preferred format."""
         return [MediaPath(os.path.join(self.dest_path, pattern % slug), self) for pattern in self.file_patterns]
 
-    def get_fallback_media_path(self, services: Iterable[tuple["BaseService", Callable[[], str]]]) -> MediaPath | None:
+    def get_fallback_media_path(
+        self,
+        services: Iterable[tuple["BaseService", Callable[[], str]]],
+        exists_function: Callable[[MediaPath], bool] | None = None,
+    ) -> MediaPath | None:
         """Returns the media path to use when none of the possible paths (above) actually exist.
         This may be scaled down so it no taller than this media's height.
 
@@ -97,20 +151,34 @@ class ServiceMedia:
         then evaluates the provided callables to obtain slugs, starting with the nearest
         match. As soon as it finds a media that exists, it will return it. If it finds
         none, it returns None.
+
+        The optional exists_function replaces the file system check made on each candidate
+        media; a caller that checks many games at once can pass a memoizing version.
         """
 
-        medias = [(mt(), t[1]) for t in services for mt in t[0].medias.values()]
+        medias = [(get_media_instance(media_class), t[1]) for t in services for media_class in t[0].medias.values()]
+        exists = exists_function or media_path_exists
 
         def similarity(media: tuple[ServiceMedia, Callable[[], str]]) -> int:
             diff = abs(media[0].size[1] - self.size[1])
             return diff if media[0].size[1] >= self.size[1] else diff + 1000
 
+        # A slug function may run a database query, and each one appears once per media class,
+        # so evaluate each of them at most once per search.
+        slugs: dict[int, str | None] = {}
+
+        def get_slug(slug_function: Callable[[], str]) -> str | None:
+            key = id(slug_function)
+            if key not in slugs:
+                slugs[key] = slug_function()
+            return slugs[key]
+
         for media, slug_function in sorted(medias, key=similarity):
             if media.can_be_fallback:
-                slug = slug_function()
+                slug = get_slug(slug_function)
                 if slug:
                     for mp in media.get_possible_media_paths(slug):
-                        if mp.exists:
+                        if exists(mp):
                             return mp.scale_to_fit(self.size)
 
         return None
