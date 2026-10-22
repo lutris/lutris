@@ -77,6 +77,17 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.installation_kind = installation_kind
         self.continue_handler = None
 
+        # DLC batch install state
+        self.dlc_picker = None
+        self.install_queue = []
+        self.batch_mode = False
+        self.batch_total = 0
+        self.batch_completed = 0
+        self.batch_failed = []
+        self.batch_header_markup = ""
+        self.current_batch_item_name = ""
+        self.last_batch_game_id = None
+
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
@@ -104,6 +115,10 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.get_header_bar().set_show_close_button(False)
 
         self.continue_button = self.add_end_button(_("_Continue"))
+        self.install_selected_button = self.add_end_button(_("Install Selected"), self.on_install_selected_clicked)
+        self.install_selected_button.get_style_context().add_class("suggested-action")
+        self.install_selected_button.set_sensitive(False)
+        self.install_selected_button.is_available = lambda: self.installation_kind == InstallationKind.DLC
 
         # The cancel button doubles as 'Close' and 'Abort' depending on the state of the install
         key, mod = Gtk.accelerator_parse("Escape")
@@ -226,6 +241,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         """Ask a confirmation before cancelling the installation, if it has started."""
 
         def on_cancelled():
+            self.reset_batch()
             if self.interpreter:
                 self.interpreter.cleanup()  # still remove temporary downloads in any case
 
@@ -263,6 +279,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                 logger.debug("User aborted installation cancellation")
                 return
 
+            # Leave batch mode before reverting, so a revert error isn't offered as a skippable DLC failure
+            self.reset_batch()
             self.installer_files_box.stop_all()
             if self.interpreter:
                 self.load_spinner_page(_("Cancelling installation…"), cancellable=False)
@@ -287,7 +305,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self._handle_callback_error(error)
 
     def _handle_callback_error(self, error):
-        if self.install_in_progress:
+        if self.batch_mode or self.install_in_progress:
             self.load_error_page(error)
         else:
             display_error(error, parent=self)
@@ -295,6 +313,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
     def set_status(self, markup):
         """Display a short status text."""
+        if self.batch_mode and self.batch_header_markup:
+            markup = f"{self.batch_header_markup}\n{markup}" if markup else self.batch_header_markup
         self.status_label.set_markup(markup)
         self.status_label.set_visible(bool(markup))
 
@@ -382,7 +402,16 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         GLib.idle_add(self.load_input_menu_page, alias, options, preselect, callback)
 
     def report_finished(self, game_id, status):
-        GLib.idle_add(self.load_finish_install_page, game_id, gtk_safe(status))
+        GLib.idle_add(self.on_item_finished, game_id, gtk_safe(status))
+
+    def on_item_finished(self, game_id, status):
+        """Called when a single install (whether standalone or part of a DLC batch) completes."""
+        if self.batch_mode:
+            self.batch_completed += 1
+            self.last_batch_game_id = game_id
+            self.advance_batch_queue()
+        else:
+            self.load_finish_install_page(game_id, status)
 
     # Choose Installer Page
     #
@@ -393,8 +422,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack.navigate_to_page(self.present_choose_installer_page)
 
     def create_choose_installer_page(self):
-        installer_picker = InstallerPicker(self.installers)
+        show_checkboxes = self.installation_kind == InstallationKind.DLC
+        installer_picker = InstallerPicker(self.installers, show_checkboxes=show_checkboxes)
         installer_picker.connect("installer-selected", self.on_installer_selected)
+        if show_checkboxes:
+            installer_picker.connect("selection-changed", self.on_dlc_selection_changed)
+            self.dlc_picker = installer_picker
         return Gtk.ScrolledWindow(
             hexpand=True, vexpand=True, child=installer_picker, shadow_type=Gtk.ShadowType.ETCHED_IN
         )
@@ -405,7 +438,88 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.set_status("")
         self.set_title(_("Install %s") % self.installers[0]["name"])
         self.stack.present_page("choose_installer")
-        self.display_cancel_button(extra_buttons=[self.cache_button])
+        extra_buttons = [self.cache_button]
+        if self.installation_kind == InstallationKind.DLC:
+            extra_buttons.append(self.install_selected_button)
+        self.display_cancel_button(extra_buttons=extra_buttons)
+
+    def on_dlc_selection_changed(self, picker):
+        count = len(picker.get_selected_scripts())
+        self.install_selected_button.set_sensitive(count > 0)
+        self.install_selected_button.set_label(
+            _("Install Selected ({})").format(count) if count else _("Install Selected")
+        )
+
+    # DLC Batch Install
+    #
+    # Installs several DLC installer scripts back to back, reusing the normal
+    # single-script pipeline for each one but skipping pages that would otherwise
+    # require a click per DLC (destination is already skipped for DLC installers
+    # since they extend the base game; extras and file-confirmation are skipped here).
+
+    def on_install_selected_clicked(self, _button):
+        scripts = self.dlc_picker.get_selected_scripts() if self.dlc_picker else []
+        if not scripts:
+            return
+        self.install_queue = scripts
+        self.batch_total = len(scripts)
+        self.batch_completed = 0
+        self.batch_failed = []
+        self.batch_mode = True
+        self.start_next_queued_install()
+
+    def start_next_queued_install(self):
+        script = self.install_queue.pop(0)
+        self.current_batch_item_name = script.get("version") or script.get("name") or ""
+        current = self.batch_completed + 1
+        self.batch_header_markup = _("<small>Installing DLC %(current)d of %(total)d: %(name)s</small>") % {
+            "current": current,
+            "total": self.batch_total,
+            "name": gtk_safe(self.current_batch_item_name),
+        }
+        if hasattr(self, "install_progress_bar"):
+            self.install_progress_bar.hide()
+        self.begin_installer(script)
+
+    def advance_batch_queue(self):
+        if self.install_queue:
+            self.start_next_queued_install()
+            return
+        self.batch_mode = False
+        if self.batch_failed:
+            status = _("Installed %(done)d of %(total)d DLC.\nFailed: %(names)s") % {
+                "done": self.batch_total - len(self.batch_failed),
+                "total": self.batch_total,
+                "names": ", ".join(self.batch_failed),
+            }
+        else:
+            status = _("Installed %d DLC.") % self.batch_total
+        self.load_finish_install_page(self.last_batch_game_id, status)
+
+    def reset_batch(self):
+        """Drop any remaining queued DLC and leave batch mode."""
+        self.install_queue = []
+        self.batch_mode = False
+
+    def on_batch_item_error(self, error):
+        """Called by load_error_page (or the log page) while a DLC batch is running; offers to skip the failed
+        DLC and continue with the rest, or abort the remaining queue."""
+        self.batch_failed.append(self.current_batch_item_name)
+        dlg = QuestionDialog(
+            {
+                "parent": self,
+                "title": _("DLC installation failed"),
+                "question": _('Installing "%s" failed:\n%s\n\nSkip this DLC and continue with the rest?')
+                % (self.current_batch_item_name, error),
+            }
+        )
+        if dlg.result == Gtk.ResponseType.YES:
+            if self.interpreter:
+                self.interpreter.cleanup()
+            self.advance_batch_queue()
+        else:
+            self.reset_batch()
+            self.load_error_page(error)
 
     def on_installer_selected(self, _widget, installer_version):
         """Sets the script interpreter to the correct script then proceed to
@@ -414,11 +528,22 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         If the installed game depends on another one and it's not installed,
         prompt the user to install it and quit this installer.
         """
+        script = None
+        for _script in self.installers:
+            if _script["version"] == installer_version:
+                script = _script
+        self.begin_installer(script)
+
+    def begin_installer(self, script):
+        """Sets the script interpreter to the given script then proceeds to
+        install folder selection. Shared by single-script selection and by
+        each item of a DLC batch install.
+
+        If the installed game depends on another one and it's not installed,
+        prompt the user to install it and quit this installer.
+        """
         try:
-            script = None
-            for _script in self.installers:
-                if _script["version"] == installer_version:
-                    script = _script
+            self.selected_extras = []
             self.interpreter = interpreter.ScriptInterpreter(script, self)
             self.interpreter.connect("runners-installed", self.on_runners_ready)
         except MissingGameDependencyError as ex:
@@ -565,7 +690,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self._handle_callback_error(error)
             return
 
-        if all_extras:
+        if all_extras and not self.batch_mode:
             self.extras_tree_store.clear()
             for extra_source, extras in all_extras.items():
                 parent = self.extras_tree_store.append(None, (None, None, None, extra_source))
@@ -687,7 +812,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         logger.debug("Game files prepared.")
         self.installer_files_box.load_installer(self.interpreter.installer)
-        self.stack.navigate_to_page(self.present_installer_files_page)
+        # Only skip the files page when nothing needs the user's input (e.g. a user-provided file)
+        if self.batch_mode and self.installer_files_box.is_ready:
+            self.on_files_confirmed(None)
+        else:
+            self.stack.navigate_to_page(self.present_installer_files_page)
 
     def create_installer_files_page(self):
         return Gtk.ScrolledWindow(
@@ -806,7 +935,11 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             self.error_reporter = saved_reporter
 
         def on_error(error):
-            self.set_status(gtk_safe(error))
+            # A failed command in a DLC batch gets the same skip/abort choice as on any other page
+            if self.batch_mode:
+                self.on_batch_item_error(error)
+            else:
+                self.set_status(gtk_safe(error))
 
         saved_reporter = self.error_reporter
         self.error_reporter = on_error
@@ -933,6 +1066,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     # and isn't recoverable. Used by the installer script.
 
     def load_error_page(self, error: BaseException) -> None:
+        if self.batch_mode:
+            self.on_batch_item_error(error)
+            return
         self.stack.navigate_to_page(lambda *x: self.present_error_page(error))
         self.stack.set_back_allowed(False)
         self.cancel_button.grab_focus()
@@ -1127,7 +1263,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
 
         self.cancel_button.set_sensitive(cancel_sensitive)
 
-        all_buttons = [self.cache_button, self.source_button, self.continue_button]
+        all_buttons = [self.cache_button, self.source_button, self.continue_button, self.install_selected_button]
 
         for b in all_buttons:
             available = not hasattr(b, "is_available") or b.is_available()
