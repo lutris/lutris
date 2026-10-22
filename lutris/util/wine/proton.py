@@ -198,7 +198,7 @@ def _iter_proton_locations() -> Generator[str, None, None]:
 
     try:
         steamapp_dirs = get_steamapps_dirs()
-    except:
+    except Exception:
         return  # in case of corrupt or unreadable Steam configuration files!
 
     for path in [os.path.join(p, "common") for p in steamapp_dirs]:
