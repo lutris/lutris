@@ -90,6 +90,9 @@ def create_shortcut(game: "Game", launch_config_name: str | None = None, standal
         return None
     logger.info("Creating Steam shortcut for %s", game)
     shortcut_path = get_shortcuts_vdf_path()
+    if not shortcut_path:
+        logger.warning("No Steam user configuration found, not creating a shortcut for %s", game)
+        return None
     if os.path.exists(shortcut_path):
         with open(shortcut_path, "rb") as shortcut_file:
             shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"].values()
