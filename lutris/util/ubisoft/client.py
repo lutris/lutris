@@ -115,7 +115,7 @@ class UbisoftConnectClient:
             try:
                 self._refresh_ticket()
                 self._service.store_credentials(self.get_credentials())
-            except:
+            except Exception:
                 self._refresh_remember_me()
                 self._refresh_ticket()
                 self._service.store_credentials(self.get_credentials())

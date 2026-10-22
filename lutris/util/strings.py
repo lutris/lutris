@@ -389,16 +389,19 @@ def human_size(size: float) -> str:
 
 # inverse of human_size converts a human readable size to bytes
 def computer_size(size: str) -> int:
-    """Converts a human readable size to bytes"""
+    """Converts a human readable size to bytes.
+
+    A size without a recognized unit suffix is interpreted as bytes.
+    """
     units = ("bytes", "kb", "mb", "gb", "tb", "pb")
     unit_index = 0
     size = size.strip()
     size = size.casefold()
-    for unit in units:
+    for index, unit in enumerate(units):
         if size.endswith(unit):
             size = size[: -len(unit)].strip()
+            unit_index = index
             break
-        unit_index += 1
     try:
         return int(float(size) * (1024**unit_index))
     except ValueError:

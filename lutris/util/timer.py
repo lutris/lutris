@@ -8,8 +8,8 @@ class Timer:
     """Simple Timer class to time code"""
 
     def __init__(self) -> None:
-        self._start = None
-        self._end = None
+        self._start: float | None = None
+        self._end: float | None = None
         self.finished = False
 
     def start(self) -> None:
@@ -24,14 +24,12 @@ class Timer:
         self.finished = True
 
     @property
-    def duration(self) -> int:
+    def duration(self) -> float:
         """Return the total duration of the timer"""
-        if not self._start:
-            return 0
+        if self._start is None:
+            return 0.0
 
-        if not self.finished:
-            _duration = time.monotonic() - self._start
-        else:
-            _duration = self._end - self._start
+        if not self.finished or self._end is None:
+            return time.monotonic() - self._start
 
-        return _duration
+        return self._end - self._start
