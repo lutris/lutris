@@ -682,6 +682,11 @@ class Game:
             return ""
         game_config = self.config.game_config
 
+        # Flatpak engines have an application ID instead of a local executable.
+        # Track their external game data directory, not the Flatpak deployment.
+        if self.runner_name == "flatpak":
+            return os.path.expanduser(self.directory) if self.directory else ""
+
         # Skip MAME roms referenced by their ID
         if self.runner_name == "mame":
             if "main_file" in game_config and "." not in game_config["main_file"]:
