@@ -52,6 +52,13 @@ class InterfacePreferencesBox(BaseConfigBox):
             "type": "bool",
         },
         {
+            "option": "show_edit_yaml",
+            "label": _("Show “Edit YAML file” in the game context menu"),
+            "type": "bool",
+            "default": False,
+            "help": _("Open the game configuration in your default editor from the right-click menu."),
+        },
+        {
             "option": "preferred_theme",
             "type": "choice",
             "label": _("Theme"),
