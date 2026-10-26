@@ -12,6 +12,7 @@ from ssl import CertificateError
 from typing import TYPE_CHECKING, Any
 
 import certifi
+from gi.repository import Gio, GLib
 
 from lutris.settings import PROJECT, SITE_URL, VERSION, read_setting
 from lutris.util import system
@@ -30,6 +31,70 @@ def _create_ssl_context() -> ssl.SSLContext:
 
 
 ssl._create_default_https_context = _create_ssl_context
+
+
+def get_system_proxy(url: str) -> str | None:
+    """Return the proxy URI the desktop environment would use for 'url', if any.
+
+    GLib's proxy resolver goes through libproxy when it is installed, which reads the
+    KDE and GNOME proxy settings as well as PAC and WPAD configuration. Without
+    libproxy it only reports the proxy environment variables, which urllib already
+    honours by itself; those are left alone so that 'no_proxy' keeps its meaning.
+    """
+    if urllib.request.getproxies():
+        return None
+
+    resolver = Gio.ProxyResolver.get_default()
+    if not resolver:
+        return None
+
+    try:
+        proxies = resolver.lookup(url, None)
+    except GLib.Error as ex:
+        logger.debug("Could not resolve a proxy for %s: %s", url, ex)
+        return None
+
+    for proxy in proxies or []:
+        if not proxy or proxy == "direct://":
+            continue
+        scheme = urllib.parse.urlparse(proxy).scheme
+        if scheme.startswith("socks"):
+            # urllib needs PySocks for SOCKS proxies, which Lutris does not depend on.
+            logger.debug("Ignoring %s proxy %s for %s", scheme, proxy, url)
+            continue
+        return proxy
+    return None
+
+
+def get_proxy_handler(url: str) -> urllib.request.ProxyHandler | None:
+    """Return a urllib proxy handler for 'url', honouring the desktop proxy settings."""
+    proxy = get_system_proxy(url)
+    if not proxy:
+        return None
+    scheme = urllib.parse.urlparse(url).scheme or "https"
+    logger.debug("Using proxy %s for %s", proxy, url)
+    return urllib.request.ProxyHandler({scheme: proxy})
+
+
+def get_opener(url: str, *handlers: urllib.request.BaseHandler) -> urllib.request.OpenerDirector | None:
+    """Return an url opener that honours the desktop proxy settings for 'url'.
+
+    Returns None when there is nothing to add to urllib's default opener.
+    """
+    proxy_handler = get_proxy_handler(url)
+    if proxy_handler:
+        handlers = (*handlers, proxy_handler)
+    if not handlers:
+        return None
+    return urllib.request.build_opener(*handlers)
+
+
+def get_request_proxies(url: str) -> dict[str, str]:
+    """Return a 'proxies' mapping for requests, from the desktop proxy settings."""
+    proxy = get_system_proxy(url)
+    if not proxy:
+        return {}
+    return {"http": proxy, "https": proxy}
 
 
 class HTTPError(Exception):
@@ -71,11 +136,8 @@ class Request:
         if not isinstance(headers, dict):
             raise TypeError("HTTP headers needs to be a dict ({})".format(headers))
         self.headers.update(headers)
-        if cookies:
-            cookie_processor = urllib.request.HTTPCookieProcessor(cookies)
-            self.opener = urllib.request.build_opener(cookie_processor)
-        else:
-            self.opener = None
+        handlers = (urllib.request.HTTPCookieProcessor(cookies),) if cookies else ()
+        self.opener = get_opener(self.url, *handlers)
 
     @staticmethod
     def _clean_url(url: str) -> str:

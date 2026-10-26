@@ -11,6 +11,7 @@ import time
 import urllib
 import uuid
 from collections import defaultdict
+from datetime import datetime, timezone
 from gettext import gettext as _
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse
@@ -718,6 +719,24 @@ class AmazonService(OnlineService):
                 "installer": installer,
             },
         }
+
+    def get_game_release_date(self, db_game: dict) -> str:
+        """Return game release date in YYYY-MM-DD format"""
+        details = db_game.get("details")
+        if details:
+            try:
+                product = json.loads(details).get("product", {})
+                product_details = product.get("productDetail", {})
+                details_data = product_details.get("details", {})
+                release_date = details_data.get("releaseDate")
+                if release_date is not None and isinstance(release_date, str):
+                    # Amazon returns ISO 8601 format: "2017-04-13T00:00:00Z"
+                    # Parse and normalize to UTC date
+                    release_datetime = datetime.fromisoformat(release_date.replace("Z", "+00:00"))
+                    return release_datetime.astimezone(timezone.utc).date().isoformat()
+            except (KeyError, AttributeError):
+                pass
+        return ""
 
     def get_installed_runner_name(self, db_game):
         return self.runner
