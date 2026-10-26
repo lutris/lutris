@@ -17,6 +17,7 @@ from gi.repository import WebKit2  # type: ignore[attr-defined]
 
 from lutris.config import LutrisConfig
 from lutris.gui.dialogs import ModalDialog
+from lutris.util.http import get_system_proxy
 from lutris.util.log import logger
 
 
@@ -54,7 +55,7 @@ class WebConnectDialog(ModalDialog):
         )
         self.context.set_preferred_languages(webview_locales)
 
-        proxy_uri = os.environ.get("http_proxy")
+        proxy_uri = os.environ.get("http_proxy") or get_system_proxy(service.login_url)
         if proxy_uri:
             proxy = WebKit2.NetworkProxySettings.new(proxy_uri)
             self.context.set_network_proxy_settings(WebKit2.NetworkProxyMode.CUSTOM, proxy)
