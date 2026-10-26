@@ -509,7 +509,8 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             {
                 "parent": self,
                 "title": _("DLC installation failed"),
-                "question": _('Installing "%(name)s" failed:\n%(error)s\n\nSkip this DLC and continue with the rest?') % {
+                "question": _('Installing "%(name)s" failed:\n%(error)s\n\nSkip this DLC and continue with the rest?')
+                % {
                     "name": self.current_batch_item_name,
                     "error": error,
                 },
