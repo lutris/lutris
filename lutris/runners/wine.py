@@ -8,7 +8,7 @@ from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
 
 from lutris import runtime, settings
-from lutris.api import format_runner_version, normalize_version_architecture
+from lutris.api import normalize_version_architecture
 from lutris.config import LutrisConfig, is_option_visible
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import (
@@ -891,7 +891,7 @@ class wine(Runner):
 
     def is_installed_for(self, interpreter):
         try:
-            version = self.get_installer_runner_version(interpreter.installer, use_api=True)
+            version = self.get_installer_runner_version(interpreter.installer, use_default=True)
         except MisconfigurationError:
             return False
         # Proton versions (including the 'ge-proton' sentinel) are managed by umu and
@@ -917,7 +917,7 @@ class wine(Runner):
         super().install(install_ui_delegate, version=version, callback=callback)
 
     def get_installer_runner_version(
-        self, installer, use_runner_config: bool = True, use_api: bool = False
+        self, installer, use_runner_config: bool = True, use_default: bool = False
     ) -> str | None:
         # If a version is specified in the script choose this one
         version = None
@@ -944,12 +944,12 @@ class wine(Runner):
             except UnspecifiedVersionError:
                 pass  # fall back to the API in this case
 
-        if not version and use_api:
-            # Try to obtain the default wine version from the Lutris API.
-            default_version_info = self.get_runner_version()
-            if default_version_info and "version" in default_version_info:
-                logger.debug("Default wine version is %s", default_version_info["version"])
-                version = format_runner_version(default_version_info)
+        if not version and use_default:
+            # Fall back to Lutris' own default (GE-Proton through umu), not the API's
+            # latest Wine build: the API has no notion of a default version, so asking it
+            # would download whichever build was uploaded last, and nothing would use it.
+            version = get_default_wine_version()
+            logger.debug("No Wine version specified, using the default: %s", version)
 
         return version
 
