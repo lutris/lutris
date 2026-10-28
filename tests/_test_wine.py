@@ -37,3 +37,32 @@ class TestDxvkVersionWarning(TestCase):
             patch.object(wine.vkquery, "get_vulkan_api_version", return_value=None),
         ):
             self.assertIsNone(wine._get_dxvk_version_warning("dxvk_version", config))
+
+
+class TestInstallerRunnerVersion(TestCase):
+    """A fresh install with no Wine version anywhere must use the umu default and
+    never ask the API, whose 'latest' build would be downloaded for nothing."""
+
+    def get_installer(self, script):
+        return SimpleNamespace(runner="wine", script=script, requires=None)
+
+    @patch.object(wine.wine, "get_runner_version_and_config", side_effect=wine.UnspecifiedVersionError("unset"))
+    def test_unspecified_version_uses_default(self, _get_config):
+        runner = wine.wine()
+        with patch.object(runner, "get_runner_version") as get_runner_version:
+            version = runner.get_installer_runner_version(self.get_installer({}), use_default=True)
+        self.assertEqual(version, wine.get_default_wine_version())
+        get_runner_version.assert_not_called()
+
+    @patch.object(wine.wine, "get_runner_version_and_config", side_effect=wine.UnspecifiedVersionError("unset"))
+    def test_unspecified_version_needs_no_runner_install(self, _get_config):
+        runner = wine.wine()
+        interpreter = SimpleNamespace(installer=self.get_installer({}))
+        with patch.object(runner, "get_runner_version") as get_runner_version:
+            self.assertTrue(runner.is_installed_for(interpreter))
+        get_runner_version.assert_not_called()
+
+    def test_script_version_is_kept(self):
+        runner = wine.wine()
+        installer = self.get_installer({"wine": {"version": "wine-ge-8-26-x86_64"}})
+        self.assertEqual(runner.get_installer_runner_version(installer, use_default=True), "wine-ge-8-26-x86_64")
