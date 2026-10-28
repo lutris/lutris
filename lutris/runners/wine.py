@@ -22,6 +22,7 @@ from lutris.exceptions import (
 )
 from lutris.game import Game
 from lutris.gui.dialogs import FileDialog
+from lutris.runners import RunnerInstallationError
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix,
     delete_registry_key,
@@ -39,6 +40,7 @@ from lutris.runners.runner import RunDataDict, Runner
 from lutris.util import system
 from lutris.util.display import DISPLAY_MANAGER, get_default_dpi, is_display_x11
 from lutris.util.graphics import drivers, vkquery
+from lutris.util.http import HTTPError
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.process import Process
@@ -78,7 +80,13 @@ def is_umu_managed_version(version: str | None) -> bool:
     """True if this Wine 'version' is actually launched through umu: the 'ge-proton'
     sentinel or any Proton build. umu fetches Proton on demand, so there is no Wine
     runner build for Lutris to download or install for these versions."""
-    return version == GE_PROTON_LATEST or proton.is_proton_version(version)
+    return version == GE_PROTON_LATEST or proton.is_proton_version(version) or proton.is_ge_proton_release(version)
+
+
+def is_missing_ge_proton_release(version: str | None) -> bool:
+    """True if the version pins a GE-Proton release that isn't installed. umu only
+    downloads the latest GE-Proton, so Lutris has to download pinned releases itself."""
+    return proton.is_ge_proton_release(version) and not proton.is_proton_version(version)
 
 
 def _is_proton_config(config: LutrisConfig) -> bool:
@@ -894,6 +902,8 @@ class wine(Runner):
             version = self.get_installer_runner_version(interpreter.installer, use_default=True)
         except MisconfigurationError:
             return False
+        if is_missing_ge_proton_release(version):
+            return False
         # Proton versions (including the 'ge-proton' sentinel) are managed by umu and
         # fetched on demand at launch; there is no Wine runner build to download, so the
         # installer never needs to install one for them.
@@ -905,6 +915,9 @@ class wine(Runner):
             return False
 
     def install(self, install_ui_delegate, version=None, callback=None):
+        if is_missing_ge_proton_release(version):
+            self.install_ge_proton(install_ui_delegate, version, callback=callback)
+            return
         # umu manages Proton on demand; these versions have no downloadable Wine build,
         # so "installing" one is a no-op. Skipping here keeps the installer flow, the
         # "install runner?" dialog, and CLI installs from failing with a spurious
@@ -915,6 +928,36 @@ class wine(Runner):
                 callback()
             return
         super().install(install_ui_delegate, version=version, callback=callback)
+
+    def install_ge_proton(self, install_ui_delegate, version: str, callback=None) -> None:
+        """Download a GE-Proton release from GitHub into compatibilitytools.d. GE-Proton
+        builds are not served by the Lutris API, and the runner's own folder only holds
+        the Wine builds that are."""
+        try:
+            urls = proton.get_ge_proton_release_urls(version)
+        except (HTTPError, ValueError) as ex:
+            raise RunnerInstallationError(_("Failed to retrieve %s information: %s") % (version, ex)) from ex
+        if not urls:
+            raise RunnerInstallationError(_("%s has no build for the %s architecture.") % (version, LINUX_SYSTEM.arch))
+        archive_url, checksum_url = urls
+        archive = os.path.join(settings.CACHE_DIR, os.path.basename(archive_url))
+        logger.info("Downloading %s from %s", version, archive_url)
+        if not install_ui_delegate.download_install_file(archive_url, archive):
+            logger.info("Download canceled by the user.")
+            return
+
+        try:
+            expected_checksum = proton.get_ge_proton_checksum(checksum_url)
+        except HTTPError as ex:
+            raise RunnerInstallationError(_("Failed to retrieve the checksum of %s: %s") % (version, ex)) from ex
+        if not expected_checksum or system.get_file_checksum(archive, "sha512") != expected_checksum:
+            os.remove(archive)
+            raise RunnerInstallationError(_("The %s download is corrupt; its checksum does not match.") % version)
+
+        compat_dir = proton.get_steam_compat_dir()
+        os.makedirs(compat_dir, exist_ok=True)
+        logger.info("Installing %s in %s", version, compat_dir)
+        self.extract(archive=archive, dest=compat_dir, merge_single=False, callback=callback)
 
     def get_installer_runner_version(
         self, installer, use_runner_config: bool = True, use_default: bool = False
