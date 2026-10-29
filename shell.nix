@@ -60,6 +60,10 @@ pkgs.mkShell {
     export GIO_EXTRA_MODULES="${pkgs.glib-networking}/lib/gio/modules''${GIO_EXTRA_MODULES:+:$GIO_EXTRA_MODULES}"
     export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.file ]}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
+    # nix-shell points these at a per-shell directory that the Proton/umu
+    # container can't see, which breaks winetricks
+    export TMPDIR=/tmp TMP=/tmp TEMP=/tmp TEMPDIR=/tmp
+
     # pinned ruff/mypy-baseline/pygobject-stubs from `make dev` go in a venv
     # that still sees the Nix-provided PyGObject
     if [ ! -d .venv ]; then
