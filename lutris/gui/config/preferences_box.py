@@ -112,8 +112,8 @@ class PreferencesWidgetGenerator(WidgetGenerator):
         return box
 
     def build_option_widget(
-        self, option: dict[str, Any], widget: Gtk.Widget | None, no_label: bool = False, expand: bool = False
-    ) -> Gtk.Widget | None:
+        self, option: dict[str, Any], widget: Gtk.Widget, no_label: bool = False, expand: bool = False
+    ) -> Gtk.Widget:
         if no_label:
             return super().build_option_widget(option, widget, no_label=no_label, expand=expand)
 
