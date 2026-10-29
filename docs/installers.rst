@@ -515,6 +515,10 @@ You can optionally specify the archive's type with the ``format`` option.
 This is useful if the archive's file extension does not match what it should
 be. Accepted values for ``format`` are: tgz, tar, zip, 7z, rar, txz, bz2, gzip, deb, exe and gog(innoextract), as well as all other formats supported by 7zip.
 
+If the archive contains nothing but another archive (for example a zip wrapped
+in a tar.gz), set ``nested: true`` to extract the inner archive in the same step.
+By default the inner archive is left as-is so a later ``extract`` can handle it.
+
 Example::
 
     - extract:
