@@ -372,7 +372,8 @@ def wineexec(
         winetricks_wine (str): path to the wine version used by winetricks
         blocking (bool): if true, do not run the process in a thread
         config (LutrisConfig): LutrisConfig object for the process context
-        watch (list): list of process names to monitor (even when in a ignore list)
+        include_processes (list or str): list of process names to monitor (even when in an ignore list)
+        exclude_processes (list or str): list of process names that should not be monitored
         runner (runner): the wine runner that carries the configuration to use
 
     Returns:
