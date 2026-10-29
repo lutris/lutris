@@ -12,6 +12,7 @@ from lutris.exceptions import UnavailableGameError
 from lutris.gui.dialogs import HumbleBundleCookiesDialog, QuestionDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
+from lutris.runners import get_runner_human_name
 from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -271,11 +272,29 @@ class HumbleBundleService(OnlineService):
                 return True
 
     def generate_installer(self, db_game):
+        """Return the default installer, preferring the Linux build"""
+        installers = self.generate_installers(db_game)
+        return installers[0] if installers else {}
+
+    def generate_installers(self, db_game):
+        """Return an installer for each platform the game has downloads for"""
         details = json.loads(db_game["details"])
-        platforms = [download["platform"] for download in details["downloads"]]
+        installers = []
+        for platform, runner in (("linux", "linux"), ("windows", "wine")):
+            if self.platform_has_downloads(details["downloads"], platform):
+                installers.append(self._generate_installer(runner, db_game))
+        if not installers:
+            platforms = [download["platform"] for download in details["downloads"]]
+            logger.warning("Unsupported platforms: %s", platforms)
+        if len(installers) > 1:
+            for installer in installers:
+                installer["version"] += " " + (get_runner_human_name(installer["runner"]) or installer["runner"])
+        return installers
+
+    def _generate_installer(self, runner, db_game):
+        details = json.loads(db_game["details"])
         system_config = {}
-        if "linux" in platforms and self.platform_has_downloads(details["downloads"], "linux"):
-            runner = "linux"
+        if runner == "linux":
             game_config = {"exe": AUTO_ELF_EXE}
             filename = self.get_filename_for_platform(details["downloads"], "linux")
             if filename.lower().endswith(".sh"):
@@ -301,8 +320,7 @@ class HumbleBundleService(OnlineService):
             else:
                 script = [{"extract": {"file": "humblegame"}}]
                 system_config = {"gamemode": "false"}  # Unity games crash with gamemode
-        elif "windows" in platforms:
-            runner = "wine"
+        else:
             game_config = {"exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"}
             filename = self.get_filename_for_platform(details["downloads"], "windows")
             if filename.lower().endswith(".zip"):
@@ -312,9 +330,6 @@ class HumbleBundleService(OnlineService):
                 ]
             else:
                 script = [{"task": {"name": "wineexec", "executable": "humblegame"}}]
-        else:
-            logger.warning("Unsupported platforms: %s", platforms)
-            return {}
         return {
             "name": db_game["name"],
             "version": "Humble Bundle",

@@ -343,7 +343,7 @@ def get_game_api_page(game_slugs: Collection[str] | None, page: int | str = 1) -
     """Read a single page of games from the API and return the response
 
     Args:
-        game_ids (list): list of game slugs
+        game_slugs (list): list of game slugs
         page (str): Page of results to get
     """
     url = settings.SITE_URL + "/api/games"

@@ -213,8 +213,11 @@ class CommandsMixin:
             self.interpreter_ui_delegate.report_status(msg)
             merge_single = "nomerge" not in data
             extractor = data.get("format")
+            extract_nested = bool(data.get("nested"))
             logger.debug("extracting file %s to %s", filename, dest_path)
-            self._killable_process(extract.extract_archive, filename, dest_path, merge_single, extractor)
+            self._killable_process(
+                extract.extract_archive, filename, dest_path, merge_single, extractor, extract_nested
+            )
         logger.debug("Extract done")
 
     def input_menu(self, data):
@@ -1023,7 +1026,7 @@ class CommandsMixin:
         file_path = self._get_file_path(file_id)
 
         # Extract the archive (e.g. tar.gz wrapper)
-        self._killable_process(extract.extract_archive, file_path, dst, True)
+        self._killable_process(extract.extract_archive, file_path, dst, True, extract_nested=True)
 
         # Check if any extracted .exe is an installer
         for entry in os.listdir(dst):
