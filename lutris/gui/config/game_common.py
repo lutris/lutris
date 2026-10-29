@@ -428,6 +428,9 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if playtime_text and playtime_text != self.game.formatted_playtime:
             playtime = parse_playtime(playtime_text)
 
+        notes_buffer = game_info_box.notes_textview.get_buffer()
+        notes = notes_buffer.get_text(notes_buffer.get_start_iter(), notes_buffer.get_end_iter(), True)
+
         if not self.lutris_config.game_config_id:
             self.lutris_config.game_config_id = make_game_config_id(game_info_box.slug)
 
@@ -435,6 +438,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         self.game.sortname = sortname
         self.game.slug = game_info_box.slug
         self.game.year = year
+        self.game.notes = notes
         if playtime:
             self.game.playtime = playtime
         self.game.is_installed = True
