@@ -23,6 +23,13 @@ let
     nose2
     pip
   ]);
+
+  # Runs the checkout inside steam-run so downloaded runners (Wine, Proton...)
+  # find their libraries. steam-run puts its own python3 first in PATH and
+  # drops GIO_EXTRA_MODULES (no TLS without glib-networking), so pass both in.
+  lutris-steam-run = pkgs.writeShellScriptBin "lutris-steam-run" ''
+    exec steam-run env GIO_EXTRA_MODULES="$GIO_EXTRA_MODULES" "$(command -v python)" ./bin/lutris "$@"
+  '';
 in
 pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
@@ -35,6 +42,7 @@ pkgs.mkShell {
 
   buildInputs = with pkgs; [
     python
+    lutris-steam-run
     gtk3
     webkitgtk_4_1
     libnotify
