@@ -252,12 +252,13 @@ class InstallerFile:
         )
 
     def check_hash(self):
-        """Checks the checksum of `file` and compare it to `value`
+        """Check the checksum of `self.dest_file` against `self.checksum`
 
-        Args:
-            checksum (str): The checksum to look for (type:hash)
-            dest_file (str): The path to the destination file
-            dest_file_uri (str): The uri for the destination file
+        `self.checksum` has the format `type:hash`. Nothing is checked if the file has no
+        checksum or no destination file.
+
+        Raises:
+            ScriptingError: if the checksum is not in the `type:hash` format or does not match
         """
         if not self.checksum or not self.dest_file:
             return
