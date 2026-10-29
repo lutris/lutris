@@ -99,8 +99,15 @@ outside a virtualenv.
 
 The shell is enough to work on the client and run the test suite, but the
 runners Lutris downloads (Wine, Proton, ...) are generic Linux binaries that
-won't run on NixOS as-is. To launch games from your checkout, enable
-`programs.nix-ld` with the common libraries, or run Lutris through `steam-run`.
+won't run on NixOS as-is. To launch games from your checkout, install
+`steam-run` (it's unfree; `programs.steam.enable = true;` also provides it)
+and start Lutris from the repository root with the helper the shell provides:
+
+    lutris-steam-run -d
+
+Plain `steam-run ./bin/lutris` doesn't work: inside it, `python3` resolves to
+steam-run's own interpreter (no PyGObject), and `GIO_EXTRA_MODULES` is dropped,
+which disables TLS in Lutris and its web views.
 
 When adding a dependency, add it to `shell.nix` as well.
 
