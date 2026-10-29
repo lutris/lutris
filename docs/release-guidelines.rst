@@ -7,6 +7,11 @@ targets from the repository root, e.g. ``make -f packaging/Makefile build-source
 Preparation
 -----------
 - Write changelog
+- Run the end-to-end smoke test: ``utils/release-smoke-test.sh`` (it covers a
+  fresh install and an upgrade of an existing one, then prints the manual GUI
+  list to go through before tagging)
+- Walk through the manual GUI items on a fresh profile and on your own profile;
+  the step-by-step procedure is in ``docs/manual-gui-checklist.rst``
 - Create git tag: ``git tag vX.Y.Z``
 
 GitHub Release
