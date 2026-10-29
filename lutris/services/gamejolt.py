@@ -291,7 +291,7 @@ class GameJoltService(OnlineService):
         if runner == "linux":
             game_config = {"exe": AUTO_ELF_EXE}
             script = [
-                {"extract": {"file": "gamejoltbuild", "dst": "$CACHE"}},
+                {"extract": {"file": "gamejoltbuild", "dst": "$CACHE", "nested": True}},
                 {"merge": {"src": "$CACHE", "dst": "$GAMEDIR"}},
             ]
         elif runner == "wine":

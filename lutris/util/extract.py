@@ -17,7 +17,9 @@ class ExtractError(Exception):
     """Exception raised when and archive fails to extract"""
 
 
-def extract_archive(path: str, to_directory: str = ".", merge_single: bool = True, extractor=None) -> tuple[str, str]:
+def extract_archive(
+    path: str, to_directory: str = ".", merge_single: bool = True, extractor=None, extract_nested: bool = False
+) -> tuple[str, str]:
     """Extract an archive to a destination directory.
 
     Args:
@@ -26,11 +28,13 @@ def extract_archive(path: str, to_directory: str = ".", merge_single: bool = Tru
             in this directory (not in a subdirectory), unless merge_single is False.
         merge_single: When True and the archive contains a single top-level directory,
             that directory's contents are merged into to_directory instead of creating
-            a nested folder. When True and the archive contains a single file that is
-            itself an archive, it is automatically extracted recursively. Set to False
-            to extract the archive structure as-is.
+            a nested folder. Set to False to extract the archive structure as-is.
         extractor: Force a specific extractor (e.g. "tgz", "7zip", "gog"). When None,
             the extractor is guessed from the file extension.
+        extract_nested: When True and merge_single is True, an archive containing a
+            single file that is itself an archive is extracted recursively. Off by
+            default because installer scripts often extract such an inner file in
+            a later step (e.g. a MojoSetup installer inside a Humble zip).
 
     Returns:
         A tuple of (archive_path, to_directory).
@@ -57,20 +61,11 @@ def extract_archive(path: str, to_directory: str = ".", merge_single: bool = Tru
     if os.path.isfile(temp_path):
         # If extraction produced a single file that is itself an archive
         # (e.g. tar.gz-wrapped zip from GameJolt), extract it recursively.
-        inner_extractor = _guess_extractor(temp_path)
-        # These aren't real archives — extracting them just copies the file,
-        # so treating them as nested archives would cause infinite recursion.
-        if inner_extractor in ("exe", "AppImage"):
-            inner_extractor = None
-        if inner_extractor is None:
-            if tarfile.is_tarfile(temp_path):
-                inner_extractor = "tar"
-            elif zipfile.is_zipfile(temp_path):
-                inner_extractor = "auto"
+        inner_extractor = _get_nested_extractor(temp_path) if extract_nested else None
         if inner_extractor:
             logger.debug("Nested archive detected (%s), extracting inner layer", inner_extractor)
             try:
-                return extract_archive(temp_path, to_directory, merge_single, inner_extractor)
+                return extract_archive(temp_path, to_directory, merge_single, inner_extractor, extract_nested)
             finally:
                 system.delete_folder(temp_dir)
 
@@ -109,6 +104,21 @@ def extract_archive(path: str, to_directory: str = ".", merge_single: bool = Tru
         system.delete_folder(temp_dir)
     logger.debug("Finished extracting %s to %s", path, to_directory)
     return path, to_directory
+
+
+def _get_nested_extractor(path):
+    """Return the extractor for a file found alone inside an archive, if it is one."""
+    extractor = _guess_extractor(path)
+    # These aren't real archives — extracting them just copies the file,
+    # so treating them as nested archives would cause infinite recursion.
+    if extractor in ("exe", "AppImage"):
+        extractor = None
+    if extractor is None:
+        if tarfile.is_tarfile(path):
+            extractor = "tar"
+        elif zipfile.is_zipfile(path):
+            extractor = "auto"
+    return extractor
 
 
 def _guess_extractor(path):
