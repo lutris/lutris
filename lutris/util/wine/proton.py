@@ -11,6 +11,7 @@ from lutris import settings
 from lutris.exceptions import MissingExecutableError
 from lutris.monitored_command import RUNNING_COMMANDS
 from lutris.util import cache_single, system
+from lutris.util.http import Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
@@ -19,6 +20,12 @@ if TYPE_CHECKING:
     from lutris.game import Game
 
 DEFAULT_GAMEID = "umu-default"
+
+GE_PROTON_RELEASE_URL = "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/tags/%s"
+
+# A GE-Proton release tag such as 'GE-Proton11-7'; unlike the lower-case 'ge-proton'
+# sentinel, this pins one specific build.
+_GE_PROTON_TAG_RE = re.compile(r"^GE-Proton\d+-\d+$")
 
 # Matches a umu log line such as
 #   [umu.umu_proton:348] INFO: Downloading GE-Proton10-34.tar.gz...
@@ -65,7 +72,27 @@ def is_proton_version(version: str | None) -> bool:
     """True if the version indicated specifies a Proton version of Wine; these
     require special handling. This does not recognize the special 'ge-proton' version
     found in configurations; this must be specially  handled elsewhere."""
-    return version in get_proton_versions()
+    return find_proton_version(version) is not None
+
+
+def find_proton_version(version: str | None) -> str | None:
+    """Return the name under which a Proton version is installed, or None if it isn't.
+
+    GE-Proton 11 and later install into '<tag>-<arch>' folders, but GE-Proton versions
+    are normalized to the bare release tag, so the version matches either name."""
+    if not version:
+        return None
+    proton_versions = get_proton_versions()
+    for candidate in (version, "%s-%s" % (version, LINUX_SYSTEM.arch)):
+        if candidate in proton_versions:
+            return candidate
+    return None
+
+
+def is_ge_proton_release(version: str | None) -> bool:
+    """True if the version is a GE-Proton release tag, which can be downloaded from
+    GitHub when it isn't installed. This excludes the 'ge-proton' sentinel."""
+    return bool(version and _GE_PROTON_TAG_RE.match(version))
 
 
 def is_umu_path(path: str | None) -> bool:
@@ -136,7 +163,8 @@ def get_proton_wine_files_dir(version: str) -> str | None:
     """Get the directory holding the Wine files of the specified Proton version; this is
     the directory containing 'bin', which older builds call 'dist' and newer ones 'files'.
     Returns None if the version isn't installed or ships no wine executable."""
-    proton_path = get_proton_versions().get(version)
+    installed_version = find_proton_version(version)
+    proton_path = get_proton_versions()[installed_version] if installed_version else None
     if proton_path:
         for files_dir in ("dist", "files"):
             files_path = os.path.join(proton_path, files_dir)
@@ -195,6 +223,7 @@ def get_proton_versions() -> dict[str, str]:
 def _iter_proton_locations() -> Generator[str, None, None]:
     """Iterate through all potential Proton locations"""
     yield settings.WINE_DIR
+    yield get_steam_compat_dir()
 
     try:
         steamapp_dirs = get_steamapps_dirs()
@@ -206,6 +235,41 @@ def _iter_proton_locations() -> Generator[str, None, None]:
 
     for path in [os.path.join(p, "") for p in steamapp_dirs]:
         yield path
+
+
+def get_steam_compat_dir() -> str:
+    """Return the compatibilitytools.d folder where Steam and umu keep Proton builds;
+    this is where Lutris installs the GE-Proton releases it downloads. Like umu, this
+    follows the host's data folder when running as a Flatpak."""
+    data_home_var = "HOST_XDG_DATA_HOME" if LINUX_SYSTEM.is_flatpak() else "XDG_DATA_HOME"
+    data_home = os.environ.get(data_home_var) or os.path.expanduser("~/.local/share")
+    return os.path.join(data_home, "Steam", "compatibilitytools.d")
+
+
+def get_ge_proton_release_urls(tag: str) -> tuple[str, str] | None:
+    """Return the URLs of the archive and SHA-512 checksum of a GE-Proton release for
+    this system's architecture, or None if the release has no build for it.
+
+    GE-Proton 11 and later name their builds '<tag>-<arch>.tar.gz'; older releases
+    only shipped an x86_64 build named '<tag>.tar.gz'."""
+    release = Request(GE_PROTON_RELEASE_URL % tag).get().json
+    assets = {asset["name"]: asset["browser_download_url"] for asset in release.get("assets", [])}
+    build_names = ["%s-%s" % (tag, LINUX_SYSTEM.arch)]
+    if LINUX_SYSTEM.arch == "x86_64":
+        build_names.append(tag)
+    for build_name in build_names:
+        archive_url = assets.get(build_name + ".tar.gz")
+        checksum_url = assets.get(build_name + ".sha512sum")
+        if archive_url and checksum_url:
+            return archive_url, checksum_url
+    return None
+
+
+def get_ge_proton_checksum(checksum_url: str) -> str:
+    """Return the SHA-512 digest from a GE-Proton '.sha512sum' file, which is in
+    sha512sum's '<digest>  <file name>' format, or "" if the file is empty."""
+    fields = Request(checksum_url).get().text.split()
+    return fields[0] if fields else ""
 
 
 def get_umu_folders_path(env: dict[str, str]) -> str:
