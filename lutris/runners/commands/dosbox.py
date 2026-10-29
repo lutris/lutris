@@ -6,10 +6,12 @@ import os
 # Lutris Modules
 from lutris import runtime
 from lutris.runners import import_runner
+from lutris.runners.commands import register_runner_task
 from lutris.util import system
 from lutris.util.log import logger
 
 
+@register_runner_task
 def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, working_dir=None):
     """Execute Dosbox with given config_file."""
     if config_file:
@@ -40,6 +42,7 @@ def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, wo
     system.execute(command, cwd=working_dir, env=runtime.get_env())
 
 
+@register_runner_task
 def makeconfig(path, drives, commands):
     system.create_folder(os.path.dirname(path))
     with open(path, "w", encoding="utf-8") as config_file:
