@@ -101,13 +101,7 @@
 /* Theme-aware: only @theme_* variables with alpha()/shade()/mix(), so light and
    dark system themes keep working. No hardcoded surfaces. */
 
-/* Header search as a pill */
-headerbar entry.search {
-  border-radius: 999px;
-  padding: 4px 14px;
-}
-
-/* Filter toggle detached from the search pill, stock look otherwise */
+/* Filter button keeps its normal spacing next to the search entry */
 #search_filters_button {
   margin-left: 10px;
 }
