@@ -45,79 +45,6 @@ def rounded_rectangle_path(cr, x, y, width, height, radius):
     cr.close_path()
 
 
-class GridViewCellRendererText(Gtk.CellRendererText):
-    """CellRendererText adjusted for grid view display, removes extra padding
-    and caches cell metrics for improved resize performance."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.props.alignment = Pango.Alignment.CENTER
-        self.props.wrap_mode = Pango.WrapMode.WORD
-        self.props.xalign = 0.5
-        self.props.yalign = 0
-        self.props.ypad = 4
-        self.fixed_width = None
-        self.cached_height = {}
-        self.cached_width = {}
-
-    def set_width(self, width):
-        self.fixed_width = width
-        self.props.wrap_width = width
-        self.clear_caches()
-
-    def clear_caches(self):
-        self.cached_height.clear()
-        self.cached_width.clear()
-
-    def do_get_preferred_width(self, widget):
-        text = self.props.text  # pylint:disable=no-member
-        if self.fixed_width and text in self.cached_width:
-            return self.cached_width[text]
-
-        width = Gtk.CellRendererText.do_get_preferred_width(self, widget)
-
-        if self.fixed_width:
-            self.cached_width[text] = width
-
-        return width
-
-    def do_get_preferred_width_for_height(self, widget, width):
-        text = self.props.text  # pylint:disable=no-member
-        if self.fixed_width and text in self.cached_width:
-            return self.cached_width[text]
-
-        width = Gtk.CellRendererText.do_get_preferred_width_for_height(self, widget, width)
-
-        if self.fixed_width:
-            self.cached_width[text] = width
-
-        return width
-
-    def do_get_preferred_height(self, widget):
-        text = self.props.text  # pylint:disable=no-member
-        if self.fixed_width and text in self.cached_height:
-            return self.cached_height[text]
-
-        height = Gtk.CellRendererText.do_get_preferred_height(self, widget)
-
-        if self.fixed_width:
-            self.cached_height[text] = height
-
-        return height
-
-    def do_get_preferred_height_for_width(self, widget, width):
-        text = self.props.text  # pylint:disable=no-member
-        if self.fixed_width and text in self.cached_height:
-            return self.cached_height[text]
-
-        height = Gtk.CellRendererText.do_get_preferred_height_for_width(self, widget, width)
-
-        if self.fixed_width:
-            self.cached_height[text] = height
-
-        return height
-
-
 class GridViewCellRendererImage(Gtk.CellRenderer):
     """A pixbuf cell renderer that takes not the pixbuf but a path to an image file;
     it loads that image only when rendering. It also has properties for its width
@@ -169,11 +96,6 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
     def is_library_view(self):
         """Returns True if this is rendering for the library view (not a service view)"""
         return self.service is None
-
-    def set_expected_size(self, width, height):
-        """Sets the expected dimensions for library view based on the selected zoom level"""
-        self._expected_width = width
-        self._expected_height = height
 
     @GObject.Property(type=str)
     def game_id(self):

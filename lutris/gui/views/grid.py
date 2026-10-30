@@ -32,25 +32,6 @@ UNINSTALLED_OPACITY = 0.4
 PIXBUF_CACHE_SIZE = 300
 
 
-def rounded_pixbuf(pixbuf, radius):
-    """Returns a copy of a pixbuf with rounded corners."""
-    width, height = pixbuf.get_width(), pixbuf.get_height()
-    radius = max(0, min(radius, width / 2, height / 2))
-    surface = Gdk.cairo_surface_create_from_pixbuf(pixbuf, 1, None)
-    target = cairo.ImageSurface(cairo.FORMAT_ARGB32, width, height)
-    context = cairo.Context(target)
-    context.new_sub_path()
-    context.arc(width - radius, radius, radius, -1.5708, 0)
-    context.arc(width - radius, height - radius, radius, 0, 1.5708)
-    context.arc(radius, height - radius, radius, 1.5708, 3.1416)
-    context.arc(radius, radius, radius, 3.1416, 4.7124)
-    context.close_path()
-    context.clip()
-    context.set_source_surface(surface, 0, 0)
-    context.paint()
-    return Gdk.pixbuf_get_from_surface(target, 0, 0, width, height)
-
-
 class _CardPulseAdapter:
     """Presents widget cards through the inset protocol that
     GameView.on_game_start expects from an image renderer."""
