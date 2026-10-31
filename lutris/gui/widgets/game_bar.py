@@ -2,9 +2,10 @@ from datetime import datetime
 from gettext import gettext as _
 from typing import TYPE_CHECKING
 
-from gi.repository import Gtk, Pango
+from gi.repository import GObject, Gtk, Pango
 
 from lutris import runners, services
+from lutris.database.categories import is_reserved_category
 from lutris.database.games import get_game_for_service
 from lutris.game import GAME_INSTALLED, GAME_START, GAME_STARTED, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.game_actions import get_game_actions
@@ -17,6 +18,10 @@ if TYPE_CHECKING:
 
 
 class GameBar(Gtk.Box):
+    __gsignals__ = {
+        "category-selected": (GObject.SIGNAL_RUN_FIRST, None, (str,)),
+    }
+
     def __init__(self, db_game: dict, application: "LutrisApplication", window: "LutrisWindow"):
         """Create the game bar with a database row; db_game may be a DbGameDict
         from the games DB or a DBServiceGame from the service games DB."""
@@ -92,6 +97,9 @@ class GameBar(Gtk.Box):
             hbox.pack_start(self.get_last_played_label(), False, False, 0)
         if self.game.playtime:
             hbox.pack_start(self.get_playtime_label(), False, False, 0)
+        visible_categories = [c for c in self.game.get_categories() if not is_reserved_category(c)]
+        if visible_categories:
+            hbox.pack_start(self.get_categories_label(visible_categories), False, False, 0)
         hbox.show_all()
 
     @staticmethod
@@ -188,6 +196,29 @@ class GameBar(Gtk.Box):
         playtime_label.set_alignment(0, 0.5)
         playtime_label.set_markup(_("Time played:\n<b>%s</b>") % self.game.formatted_playtime)
         return playtime_label
+
+    def get_categories_label(self, categories):
+        """Return a label showing categories as clickable links that navigate the sidebar"""
+        label = Gtk.Label(visible=True, ellipsize=Pango.EllipsizeMode.END)
+        label.set_size_request(120, -1)
+        label.set_alignment(0, 0.5)
+        sorted_cats = sorted(categories)
+        links = ", ".join('<a href="%s">%s</a>' % (gtk_safe(c), gtk_safe(c)) for c in sorted_cats)
+        label.set_markup(_("Categories:\n<b>%s</b>") % links)
+        label.connect("activate-link", self.on_category_link_clicked)
+        # Gtk.Label internally resets has-tooltip during layout via the undocumented
+        # gtk_label_ensure_has_tooltip(), which sets it based solely on whether any
+        # <a> tag has a title attribute. This silently overrides set_tooltip_text().
+        # The EventBox is unaffected and reliably shows the full category list,
+        # including any names hidden by ellipsization.
+        wrapper = Gtk.EventBox(visible=True)
+        wrapper.set_tooltip_text(", ".join(sorted_cats))
+        wrapper.add(label)
+        return wrapper
+
+    def on_category_link_clicked(self, _label, uri):
+        self.emit("category-selected", uri)
+        return True
 
     def get_last_played_label(self):
         """Return the label containing the last played info"""
