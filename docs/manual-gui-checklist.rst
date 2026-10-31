@@ -1,43 +1,46 @@
 Manual GUI checklist
 ====================
 
-The automated release smoke test (``utils/release-smoke-test.sh``) covers
-everything that can be driven from the command line. This page covers the part
-that still has to be clicked: the ten items the script prints when it finishes,
-and how to open the client with the profiles the script prepared.
+The automated smoke test (``utils/release-smoke-test.sh``) covers everything that
+can be driven from the command line. This page is the part that still has to be
+clicked, and it is kept short on purpose:
 
-Budget about ten minutes for the two test profiles, plus the same items again on
-your own profile for the full "existing install" coverage.
+- **Part A** — about 10 minutes, in the sandbox, on a profile that has never been
+  opened. This is the "fresh install" pass.
+- **Part B** — about 15 minutes, on your own profile after a backup. This is the
+  "existing install" pass.
+
+Items whose area the release cannot touch may be skipped, but say which ones in
+the release pull request. The item numbers are stable, so reports stay comparable
+between releases.
 
 Prerequisites
 -------------
 
 - A desktop session (X11 or Wayland). The GUI items cannot be done headless.
-- The repository checked out with its dependencies installed; see
-  ``CONTRIBUTING.md``. Activate the virtualenv first, the commands below use the
-  same interpreter as the script.
-- A normal user account. Lutris refuses to start as root.
-- **No Lutris instance running.** Lutris is a single-instance application
-  (``net.lutris.Lutris`` on the session bus), so a second client only raises the
-  one that is already running instead of doing what you asked. Close your own
-  Lutris, including the version in the tray, before you start.
-- Optional, for item 8: at least one game service (Steam, GOG, Epic, ...)
-  installed and logged in on the machine.
+- The checkout with its dependencies installed; see ``CONTRIBUTING.md``. Activate
+  the virtualenv first, the commands below use the same interpreter as the script.
+- A normal user account; Lutris refuses to start as root.
+- Part A does not care whether your own Lutris is running: the script and the
+  ``launch()`` helper below use a private D-Bus session, so nothing reaches the
+  instance on your desktop. Part B uses your own profile, so use one client at a
+  time there.
+- Optional, for item 8: a game service (Steam, GOG, Epic, ...) installed and
+  logged in on the machine.
 
 Step 1 - Run the automated part and keep the sandbox
 ----------------------------------------------------
 
-The profiles used by the GUI pass are built by the script, inside a temporary
-directory that it deletes on exit. Pass ``--keep`` so it survives::
+The profiles used below are built by the script, inside a temporary directory that
+it deletes on exit. Pass ``--keep`` so it survives::
 
     ./utils/release-smoke-test.sh --keep
 
-When it finishes, the script prints the sandbox path and a ``launch()`` shell
-function that opens the client with each test profile. Keep that terminal
-around; every profile below lives inside ``$SMOKE``.
+When it finishes, the script prints the sandbox path and a ``launch()`` function
+that opens the client with each profile. Keep that terminal.
 
-If a check fails, treat it as a release blocker and report it before spending
-time on the GUI pass. The stdout/stderr of every check is kept in the sandbox.
+Do not start the GUI pass after a failed automated check: fix that first, the GUI
+checks will not tell you anything new about it.
 
 Step 2 - What is inside the sandbox
 -----------------------------------
@@ -45,45 +48,30 @@ Step 2 - What is inside the sandbox
 ::
 
     $SMOKE/
-      fresh/
-        home/                          HOME of the first-run profile
-          .local/share/lutris/         pga.db, lutris.conf, games/, runners/
-          .cache/lutris/               lutris.log, installer/, shaders/, tmp/
-        games/smoke-fresh-game/        seeded test game (fake-game.sh)
-        logs/                          stdout and stderr of every check
-      existing/
-        home/                          HOME of the upgraded profile
-        games/legacy-emulator/         seeded game with a pre-"platform" config
-        games/smoke-existing-game/     seeded game added before the upgrade
-      clone/                           only with --existing-profile
+      first-run/                 used by Part A
+        home/                    empty HOME: a genuine first start
+        games/                   fake-game.sh and sleepy.sh, the test executables
+      fresh/                     automated scenario: first start, one seeded game
+        home/  games/  logs/
+      existing/                  automated scenario: upgraded, two seeded games
+      clone/                     only with --existing-profile
 
-Things worth knowing before you start clicking:
+``first-run``
+    Never opened by the automated checks. Part A runs here, so item 1 really is a
+    first start: empty library, runtime download, default services.
 
-- Settings live in ``$SMOKE/<profile>/home/.local/share/lutris/lutris.conf``.
-  ``~/.config/lutris`` is the deprecated location and is not used.
-- The seeded games are two-line shell scripts (``fake-game.sh``) that write a
-  ``launched.marker`` file and exit immediately. That is deliberate: it makes
-  the launch checks work without a download, a Wine prefix or a GPU.
+``fresh``, ``existing``, ``clone``
+    Built and used by the automated checks. They are kept so you can look at what
+    a check saw, and are not part of the manual pass.
 
-The three profiles and the items that use them:
+Settings live in ``$SMOKE/<profile>/home/.local/share/lutris/lutris.conf``;
+``~/.config/lutris`` is the deprecated location and is not used by these profiles.
 
-``fresh``
-    A machine where Lutris never ran. Items 1, 3, 4, 5, 6, 7 and 10.
+Step 3 - Open a sandbox profile
+-------------------------------
 
-``existing``
-    An upgrade: a library, old game configs and an old ``migration_version``.
-    Items 2, 4, 8, 9 and 10.
-
-``clone``
-    A copy of your real profile, only created with ``--existing-profile``.
-    Optional, items 2 and 9.
-
-Step 3 - Open a test profile
-----------------------------
-
-Never launch ``bin/lutris`` bare for these checks: that opens your real profile.
-Point ``HOME`` and the XDG directories at the sandbox instead. The script prints
-this snippet, ready to paste (``$REPO`` is your checkout)::
+Never launch ``bin/lutris`` bare for Part A: that opens your real profile. The
+script prints this snippet, ready to paste (``$REPO`` is your checkout)::
 
     SMOKE=/tmp/lutris-smoke.XXXXXXXX
     REPO=/path/to/lutris                 # your checkout
@@ -93,240 +81,249 @@ this snippet, ready to paste (``$REPO`` is your checkout)::
             XDG_CONFIG_HOME="$SMOKE/$1/home/.config" \
             XDG_CACHE_HOME="$SMOKE/$1/home/.cache" \
             LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1 \
-            "$REPO/.venv/bin/python" "$REPO/bin/lutris" -d
+            dbus-run-session -- "$REPO/.venv/bin/python" "$REPO/bin/lutris" -d
     }
 
-    launch fresh
-    # ... do the fresh-profile items, then quit the client with Ctrl+Q ...
-    launch existing
+    launch first-run
 
 Notes:
 
+- ``dbus-run-session`` is not optional. Only ``--version`` is answered by the
+  process you start; every other command line goes over D-Bus to the primary
+  instance of ``net.lutris.Lutris``, whichever profile it happens to use. The
+  private session is what keeps Part A out of your own library.
 - Drop ``-d`` to see the client the way a normal user would; keep it while
   testing, it is what makes a failure diagnosable.
-- ``LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1`` is required because ``bin/lutris``
-  removes ``/home`` entries from ``sys.path`` unless it is set, which would hide
-  the virtualenv.
-- Quit the client before opening another profile, see the single-instance note
-  above.
-- The log of the running profile is
-  ``$SMOKE/<profile>/home/.cache/lutris/lutris.log``.
-- Start over with: ``rm -rf $SMOKE`` and re-run the script with ``--keep``; it
-  prints a new path.
+- The log of that client is
+  ``$SMOKE/first-run/home/.cache/lutris/lutris.log``.
+- Start over with: ``rm -rf $SMOKE`` and re-run the script with ``--keep``.
 
-Step 4 - The checklist
-----------------------
+Part A - a genuine first run (sandbox, ~10 minutes)
+---------------------------------------------------
 
-Each item lists what to do, what a pass looks like, and what to attach if it
-fails. Work through the items for one profile, then the other.
+Items 1, 3, 4, 5, 6 and 10. All of this happens on ``first-run``, which has never
+been opened, so anything unexpected is a real finding.
 
-Item 1 - First start (``fresh``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Item 1 - First start
+~~~~~~~~~~~~~~~~~~~~
 
-**Do:** ``launch fresh``.
+**Do:** ``launch first-run``.
 
-**Pass:** the window opens within a few seconds. The header bar has a search
-entry ("Search games"), an "Add Game" button, a view toggle and the main menu.
-The sidebar shows **Library** (Games, Recent, Favorites, Uncategorized, Hidden,
+**Pass:** the window opens within a few seconds. The header bar has a search entry
+("Search games"), an "Add Game" button, a view toggle and the main menu. The
+sidebar shows **Library** (Games, Recent, Favorites, Uncategorized, Hidden,
 Missing, Running) followed by **Categories**, **Sources**, **Runners** and
-**Platforms**. The library shows the seeded "Smoke Fresh Game". No error dialog,
-no "Do not run Lutris as root" notice, and nothing about a missing database.
+**Platforms**. The library is empty. Lutris starts fetching its runtime/DXVK
+components, which is normal on a first run. No error dialog.
 
-**If it fails:** attach ``$SMOKE/fresh/home/.cache/lutris/lutris.log`` and the
+Anything already in this library means a profile was reused, not a first start.
+
+**If it fails:** attach ``$SMOKE/first-run/home/.cache/lutris/lutris.log`` and the
 console output of the launch.
 
-Item 2 - Library rendering (``existing``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Item 3 - Add a locally installed game
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Do:** ``launch existing``, then:
+**Do:** "Add Game" → **Add locally installed game** → **Continue**. Name it
+``GUI Smoke Test``, set **Runner** to ``Linux``, open the **Game options** tab and
+set **Executable** to ``$SMOKE/first-run/games/sleepy.sh``, then **Save**. Reopen
+the game with right-click → **Configure** → **Game options**, set **Arguments** to
+``--smoke`` and save again.
 
-- type ``smoke`` in the "Search games" entry, then clear it;
-- switch the view with the "Toggle View" button;
-- click **Recent** and **Games** in the sidebar;
-- right-click a game → **Categories**, add a category, save.
+**Pass:** the dialog closes and the game appears in the library. After quitting and
+running ``launch first-run`` again it is still there, and the arguments are still
+set — which is the game-level option check::
 
-**Pass:** both seeded games are listed ("Smoke Existing Game" and "Legacy
-Emulator Game"); the search narrows the library and clearing it restores it; the
-list and grid views both render the covers (or placeholders) without crashing;
-the sidebar counts match the library; the category is kept after saving.
+    grep args "$SMOKE"/first-run/home/.local/share/lutris/games/*.yml
 
-**If it fails:** note which entry is missing or misrendered, and which action
-triggered it.
+``sleepy.sh`` is a two-line script that sleeps for 30 seconds; item 4 needs a game
+that stays running for a moment.
 
-Item 3 - Add a locally installed game (``fresh``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Item 4 - Play from the GUI and stop
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Do:** click "Add Game" → in the "Add games to Lutris" dialog pick **Add
-locally installed game** → **Continue**. Name it ``GUI Smoke Test``, set
-**Runner** to ``Linux``, open the **Game options** tab and set **Executable** to
-``$SMOKE/fresh/games/smoke-fresh-game/fake-game.sh``, then **Save**.
-
-**Pass:** the game dialog closes, the new game appears in the library, and it is
-still there after quitting and running ``launch fresh`` again.
-
-**On disk:** a new ``$SMOKE/fresh/home/.local/share/lutris/games/<slug>-<ts>.yml``
-and a row in ``pga.db``. Deleting the game from the context menu (**Remove**)
-removes both.
-
-Item 4 - Play from the GUI, then stop (both profiles)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Do:** the seeded games exit immediately, so for this item point the game at
-something that stays alive, then play it from the GUI::
-
-    printf '#!/bin/sh\nsleep 30\n' > "$SMOKE/fresh/games/sleepy.sh"
-    chmod +x "$SMOKE/fresh/games/sleepy.sh"
-
-Then right-click the game → **Configure** → **Game options** → **Executable** →
-``sleepy.sh`` → **Save**. Double-click the game to play it.
+**Do:** double-click the game.
 
 **Pass:** the game starts, the sidebar's **Running** entry lists it, the running
 game window opens on double-click, **Show logs** shows the process output, and
-**Stop** ends it. After it exits, the playtime and last-played values are updated
-(the **Recent** ordering reflects it).
+**Stop** ends it. Once it exits, the playtime and last-played values are updated,
+which shows in the **Recent** ordering.
 
 **If it fails:** right-click → **Show logs** and attach that plus
-``$SMOKE/<profile>/home/.cache/lutris/lutris.log``.
+``$SMOKE/first-run/home/.cache/lutris/lutris.log``.
 
-Item 5 - Preferences persist (``fresh``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Item 5 - Preferences persist
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Do:** main menu → **Preferences** ("Lutris settings"). The sidebar has
-Interface, Runners, Sources, Accounts, Updates, System, Storage and Global
-options. In **Interface** change **Theme** to Dark (or toggle **Hide text under
-icons**), close the dialog, quit the client and run ``launch fresh`` again.
+**Do:** main menu → **Preferences** ("Lutris settings"); the sidebar has Interface,
+Runners, Sources, Accounts, Updates, System, Storage and Global options. Under
+**Interface** set **Theme** to Dark, close the dialog, quit the client with Ctrl+Q
+and run ``launch first-run`` again.
 
-**Pass:** the change is visible immediately, still applied after the restart,
-and written to ``$SMOKE/fresh/home/.local/share/lutris/lutris.conf``. Switching
-the theme back to System Default also works.
+**Pass:** the theme is applied immediately and still applied after the restart, and
+it is recorded in ``$SMOKE/first-run/home/.local/share/lutris/lutris.conf``.
+Switching back to System Default also works.
 
-Item 6 - Runner configuration (``fresh``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Item 6 - Runner configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Do:** in the sidebar open **Runners**, double-click **Linux** (or right-click →
-**Configure**). Change **Arguments** to something visible, **Save**, then reopen
-the dialog.
+**Do:** in the sidebar open **Runners**, then right-click **Wine** → **Configure**.
+(Double-clicking a runner row only filters the list; the configuration dialog is in
+the context menu.) Untick **Enable DXVK** and save.
 
-**Pass:** the dialog reopens with the new value, the reset button next to the
-option restores the default, and the value is stored in
-``$SMOKE/fresh/home/.local/share/lutris/runners/linux.yml``.
+**Pass:** the value is written to the runner configuration and survives reopening
+the dialog; the reset button next to the option restores the default::
 
-Item 7 - Install from the website (``fresh``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    cat "$SMOKE"/first-run/home/.local/share/lutris/runners/wine.yml
 
-**Do:** "Add Game" → **Search the Lutris website for installers** → search for a
-small free game (Teeworlds works well) → **Install**, then follow the installer
-through to the end.
+The file should contain ``wine:`` and ``dxvk: false``. The Linux runner has no
+runner-level options (its Arguments field is a *game* option, covered by item 3),
+so this item uses Wine.
 
-**Pass:** the installer window opens and shows the steps, the download and
-install complete without errors, the game appears in the library with its banner
-and cover, and **Play** works. Cancelling a second install half-way leaves no
-broken entry behind.
-
-**Offline machine:** skip this item and say so in the report; the automated
-checks already cover the installer parser.
-
-Item 8 - Service sync (``existing``)
+Item 10 - Restart and clean shutdown
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Do:** **Preferences → Sources** (or sidebar → **Sources** → the service), then
-**Connect**/**Reload** for the service installed on this machine. Start one
-installed service game, then **Reload** again.
-
-**Pass:** the service game list fills in, **Run** launches an installed game, a
-second **Reload** does not duplicate entries, **Disconnect** clears them, and the
-CLI agrees with the GUI::
-
-    env HOME="$SMOKE/existing/home" \
-        XDG_DATA_HOME="$SMOKE/existing/home/.local/share" \
-        XDG_CONFIG_HOME="$SMOKE/existing/home/.config" \
-        XDG_CACHE_HOME="$SMOKE/existing/home/.cache" \
-        LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1 \
-        "$REPO/.venv/bin/python" "$REPO/bin/lutris" --list-all-service-games
-
-Item 9 - Shortcuts (``existing``)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Do:** right-click a game → **Create desktop shortcut**, then **Create
-application menu shortcut**.
-
-**Pass:** both files appear and parse::
-
-    ls "$SMOKE/existing/home/Desktop"
-    ls "$SMOKE/existing/home/.local/share/applications"
-
-Each ``.desktop`` file should contain a ``lutris:rungameid/<id>`` URL. Delete
-them again with the matching **Delete desktop shortcut** / **Delete application
-menu shortcut** entries and check that the files are gone.
-
-Item 10 - Restart and clean shutdown (both profiles)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Do:** quit with Ctrl+Q, relaunch the same profile, then check the profile from
 the command line::
 
-    grep -i traceback "$SMOKE"/*/home/.cache/lutris/lutris.log
+    grep -i traceback "$SMOKE"/first-run/home/.cache/lutris/lutris.log
     python3 -c 'import sqlite3, sys; print(sqlite3.connect(sys.argv[1]).execute("pragma integrity_check").fetchone()[0])' \
-        "$SMOKE/fresh/home/.local/share/lutris/pga.db"
+        "$SMOKE/first-run/home/.local/share/lutris/pga.db"
 
-**Pass:** the client closes without a crash dialog, reopens with the same
-library, the ``grep`` finds nothing, and ``pragma integrity_check`` prints
-``ok`` for every tested profile.
+**Pass:** the client reopens with the same library and settings, the ``grep`` finds
+nothing, and ``pragma integrity_check`` prints ``ok``.
 
-Step 5 - Repeat the relevant items on your own profile
-------------------------------------------------------
+That is the end of Part A. Tear down this client (Ctrl+Q) before starting Part B.
 
-The "existing install" case that matters most is a real one. Back the library up
-first, then repeat items 2, 4, 6, 8, 9 and 10 against your own installation::
+Part B - your own install (own profile, ~15 minutes)
+----------------------------------------------------
 
-    cp -a "$HOME/.local/share/lutris/pga.db" "$HOME/.local/share/lutris/pga.db.bak"
+Items 2, 7, 8 and 9. This is the "existing install" pass, and it is the only place
+where services and a real library can be exercised.
+
+Step B1 - Back up the whole profile
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The migrations rewrite ``lutris.conf`` and ``games/*.yml``, and
+``migration_version`` never goes back down, so going back to the installed release
+means restoring all of it, not just the database. Skip the runner and runtime
+downloads, which are large and untouched::
+
+    tar -C ~/.local/share --exclude='lutris/runners/*' --exclude='lutris/runtime/*' \
+        -cJf ~/lutris-profile-backup.tar.xz lutris
+    [ -d ~/.config/lutris ] && tar -C ~/.config -cJf ~/lutris-config-backup.tar.xz lutris
+
+Step B2 - Open your profile
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
     ./bin/lutris -d
 
-Without the sandbox environment variables this opens your real profile, and the
-first launch runs any pending migrations once. Note in the report anything that
-looks migrated, renamed or missing compared to what you had before.
+No environment variables this time: this is your real profile. The first launch of
+a new build runs any pending migrations once, which is what the backup above is for.
 
-Step 6 - Tear down
+Item 2 - Library rendering
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Do:** in your own library, type something into "Search games" and clear it;
+switch views with "Toggle View"; click **Recent**, **Games**, and a category;
+right-click a game → **Categories**, add a category, save.
+
+**Pass:** the library renders with its banners and cover art, scrolling is smooth,
+search narrows and restores the list, both views work, the sidebar counts match,
+and the category survives a restart.
+
+**If it fails:** note which entry is missing or misrendered and what triggered it.
+
+Item 7 - Install from the website (only if the release can affect installers)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Do:** "Add Game" → **Search the Lutris website for installers** → pick any small
+installer that works today, install it end to end, then remove it.
+
+**Pass:** the installer window opens and shows its steps, the download and install
+finish, the game appears with its media and **Play** works.
+
+**If it fails:** run the same installer with the previous release before calling it
+a blocker. A broken installer on lutris.net or a dead mirror is not a client
+regression.
+
+**Skip it** with a note when the release does not touch the installer, download or
+media code.
+
+Item 8 - Service sync (only if the release can affect services)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Do:** **Preferences → Sources** (or sidebar → **Sources** → the service),
+**Connect**/**Reload** a service installed on this machine, start one installed
+service game, then **Reload** again.
+
+**Pass:** the service game list fills in, **Run** launches a game, a second
+**Reload** does not duplicate entries, and **Disconnect** clears them. The command
+line agrees, on your real profile::
+
+    ./bin/lutris --list-all-service-games
+
+**Skip it** with a note when the release does not touch service code. It cannot be
+done in the sandbox: Steam is looked up under ``~/.steam`` and the other services
+need a login inside the sandbox.
+
+Item 9 - Shortcuts, then revert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Do:** right-click a game → **Create desktop shortcut**, then **Create application
+menu shortcut**.
+
+**Pass:** both files exist and contain a ``lutris:rungameid/`` URL::
+
+    ls ~/Desktop
+    ls ~/.local/share/applications
+
+**Revert:** use the matching **Delete desktop shortcut** and **Delete application
+menu shortcut** entries. These are real files in your profile, so do not leave them
+behind.
+
+Step B3 - Restore if something looks wrong
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Quit the client, then restore whichever backup you took::
+
+    tar -C ~/.local/share -xJf ~/lutris-profile-backup.tar.xz
+    [ -f ~/lutris-config-backup.tar.xz ] && tar -C ~/.config -xJf ~/lutris-config-backup.tar.xz
+
+Step 4 - Tear down
 ------------------
 
 ::
 
     rm -rf "$SMOKE"
-
-Shortcuts created inside the sandbox disappear with it. Shortcuts created on your
-real profile in Step 5 must be deleted from the client (right-click → **Delete
-desktop shortcut** / **Delete application menu shortcut**).
+    rm -f ~/lutris-profile-backup.tar.xz ~/lutris-config-backup.tar.xz
 
 Reporting the result
 --------------------
 
-Paste this into the release pull request or issue::
+Paste this into the release pull request or issue, with the counts from your run::
 
     Release smoke test - <version> (<date>)
 
-    Automated    : utils/release-smoke-test.sh -> 53 passed, 0 failed, 0 skipped
-    GUI fresh    : 1 ok  3 ok  4 ok  5 ok  6 ok  7 skipped (offline)  10 ok
-    GUI existing : 2 ok  4 ok  8 ok  9 ok  10 ok
-    Own profile  : 2 ok  4 ok  6 ok  8 ok  9 ok  10 ok
+    Automated : utils/release-smoke-test.sh -> <N> passed, <M> failed, <K> skipped
+    Part A (sandbox, first run) : 1 ok  3 ok  4 ok  5 ok  6 ok  10 ok
+    Part B (own profile)        : 2 ok  9 ok   7 skipped (no installer changes)
+                                               8 skipped (no service changes)
 
     Notes: ...
 
 Troubleshooting
 ---------------
 
-- "display checks will be skipped" in the script: there is no session. Run it
+- "display checks will be skipped" from the script: there is no session. Run it
   from your desktop, or with ``xvfb-run -a utils/release-smoke-test.sh``.
-- "a Lutris instance is already running": close the client, including the tray
-  instance, and re-run. This is the single-instance application ID.
+- "the client shows my own library during Part A": the environment variables were
+  not applied, or ``launch`` was not used. Check that ``$SMOKE`` is set.
 - A game does not start: right-click → **Show logs**. The exact command line is
   there, and ``$SMOKE/<profile>/home/.cache/lutris/lutris.log`` has the rest.
-- "Creating launcher: unable to find directory for .desktop files": the profile
-  has no XDG desktop directory (``~/.config/user-dirs.dirs`` inside the sandbox
-  has it disabled). That is an environment problem, not a Lutris bug; skip the
-  desktop shortcut half of item 9 and say so in the report.
-- The client opens your real library instead of the test profile: the
-  environment variables were not applied. Check that ``$SMOKE`` is set and that
-  you used ``launch``, not ``bin/lutris``.
-- Settings seem not to persist: confirm you are looking at
-  ``.local/share/lutris/lutris.conf`` and not at ``~/.config/lutris`` (the
-  deprecated location, unused by these profiles).
+- "Creating launcher: unable to find directory for .desktop files": the XDG desktop
+  directory is disabled in that profile. Skip the desktop half of item 9 and say so.
+- Settings seem not to persist: look at ``.local/share/lutris/lutris.conf``, not at
+  ``~/.config/lutris`` (the deprecated location, unused by these profiles).
