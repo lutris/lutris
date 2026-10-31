@@ -131,6 +131,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.maximized = settings.read_setting("maximized") == "True"
         self.service = None
         self.search_timer_task = COMPLETED_IDLE_TASK
+        self._store_update_task = COMPLETED_IDLE_TASK
         self.filters = self.load_filters()
         self.game_search = None
         self.set_service(self.filters.get("service"))
@@ -598,7 +599,23 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         return self.apply_view_sort(self.filter_games(games))
 
     def update_missing_games_sidebar_row(self) -> None:
-        missing_games = self.get_missing_games()
+        """Updates the sidebar row that leads to the missing games, if there are any. The
+        database lookup runs on a worker thread; filtering and sorting stays here, since they
+        read the state of the window."""
+        missing_ids = set(MISSING_GAMES.missing_game_ids)
+        if not missing_ids:
+            self._apply_missing_games([])
+            return
+
+        AsyncCall(games_db.get_games_by_ids, self._on_missing_games_loaded, missing_ids, callback_target=self)
+
+    def _on_missing_games_loaded(self, games, error) -> None:
+        if error:
+            raise error  # bounce any error against the backstop
+
+        self._apply_missing_games(self.apply_view_sort(self.filter_games(games or [])))
+
+    def _apply_missing_games(self, missing_games) -> None:
         if missing_games:
             self.sidebar.missing_row.show()
             if self.selected_category == ("dynamic_category", "missing"):
@@ -763,12 +780,16 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def update_revealer(self, games=None):
         if games is not None:  # games can be an empty list!
-            if self.game_bar:
-                self.game_bar.destroy()
             if len(games) == 1 and games[0]:
-                self.game_bar = GameBar(games[0], self.application, self)
-                self.revealer_box.pack_start(self.game_bar, True, True, 0)
-            else:
+                if self.game_bar:
+                    # Reuse the game bar; building one loads the game and its actions.
+                    self.game_bar.set_game(games[0])
+                else:
+                    self.game_bar = GameBar(games[0], self.application, self)
+                    self.revealer_box.pack_start(self.game_bar, True, True, 0)
+            elif self.game_bar:
+                self.revealer_box.remove(self.game_bar)
+                self.game_bar.destroy()
                 self.game_bar = None
         elif self.game_bar:
             # The game bar can't be destroyed here because the game gets unselected on Wayland
@@ -823,6 +844,14 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.update_store()
 
     def update_store(self) -> None:
+        """Rebuilds the game store from the current filters and view settings. Requests that
+        arrive in the same main loop iteration are coalesced, so that changing several
+        settings at once rebuilds the store only once."""
+        if not self._store_update_task.is_completed():
+            return
+        self._store_update_task = schedule_at_idle(self._rebuild_store)
+
+    def _rebuild_store(self) -> None:
         service_id = self.filters.get("service")
         service = self.service
         service_media = self.service_media
@@ -1273,6 +1302,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
                 # it is safe to close it here, it will be reopened automatically.
                 if self.game_bar:
                     self.game_bar.destroy()  # for gridview only
+                    self.game_bar = None
             self.current_view.set_cursor(Gtk.TreePath("0"), None, False)  # needed for both view types
             self.current_view.grab_focus()
 
