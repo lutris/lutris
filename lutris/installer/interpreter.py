@@ -58,6 +58,15 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             does so, the callback is invoked. The method returns immediately, however."""
             raise NotImplementedError()
 
+        def prompt_for_external_path(self, command_name, path, target_path):
+            """Called from a background thread to ask whether a command may write
+            outside the game directory.  Blocks the calling thread until the user
+            responds. Returns True to allow, False to deny.
+
+            The default implementation denies unconditionally; InstallerWindow
+            overrides this to show a dialog."""
+            return False
+
         def report_progress(self, fraction, text=""):
             """Called to report numeric progress (0.0 to 1.0) during installation.
             If fraction is None, hides the progress bar."""
