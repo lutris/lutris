@@ -45,11 +45,13 @@ ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128"
 
 DB_PATH = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
 
-TEST_TEMP_DIR = TemporaryDirectory()
 test_modules = ["unittest", "nosetests", "nose2", "nose", "pytest"]
 for test_module in test_modules:
     if test_module in sys.modules.keys():
-        DB_PATH = os.path.join(TEST_TEMP_DIR.name, "pga.db")
+        # This must be a module attribute: the directory is deleted when the
+        # TemporaryDirectory is garbage collected, so it has to live as long as DB_PATH.
+        _TEST_TEMP_DIR = TemporaryDirectory()
+        DB_PATH = os.path.join(_TEST_TEMP_DIR.name, "pga.db")
         break
 
 
