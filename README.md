@@ -2,8 +2,8 @@
 
 **Open-source gaming platform for Linux.** All your games, from all eras and all platforms, in one library.
 
-[![Liberapay](https://img.shields.io/liberapay/receives/Lutris.svg?logo=liberapay)](https://liberapay.com/Lutris/)
 [![Patreon](https://img.shields.io/badge/dynamic/json?color=%23ff424d&label=Patreon&query=data.attributes.patron_count&suffix=%20Patreons&url=https%3A%2F%2Fwww.patreon.com%2Fapi%2Fcampaigns%2F556103&style=flat&logo=patreon)](https://www.patreon.com/lutris)
+[![Liberapay](https://img.shields.io/liberapay/receives/Lutris.svg?logo=liberapay)](https://liberapay.com/Lutris/)
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/chat-Discord-5865F2)](https://discordapp.com/invite/Pnt5CuY)
 
