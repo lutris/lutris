@@ -169,7 +169,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.navigate_to_page(self.present_inital_page)
 
     def create_initial_page(self):
-        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
+        frame = Gtk.Frame(shadow_type=Gtk.ShadowType.NONE)
         listbox = Gtk.ListBox()
         listbox.set_activate_on_single_click(True)
         for icon, next_icon, text, subtext, callback_name in self.sections:
@@ -204,7 +204,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.navigate_to_page(self.present_search_installers_page)
 
     def create_search_installers_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, no_show_all=True, spacing=6, visible=True)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, no_show_all=True, spacing=12, visible=True)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
         self.search_entry = Gtk.SearchEntry(visible=True)
         hbox.pack_start(self.search_entry, True, True, 0)
@@ -226,7 +226,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.search_explanation_label = self._get_explanation_label(explanation)
         vbox.add(self.search_explanation_label)
 
-        self.search_frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
+        self.search_frame = Gtk.Frame(shadow_type=Gtk.ShadowType.NONE)
         self.search_listbox = Gtk.ListBox(visible=True)
         self.search_listbox.connect("row-activated", self._on_game_selected)
         scroll = Gtk.ScrolledWindow(visible=True)
@@ -308,7 +308,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.install_from_setup_game_name_entry.set_hexpand(True)
         self.install_from_setup_game_slug_entry.set_hexpand(True)
 
-        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        grid = Gtk.Grid(row_spacing=12, column_spacing=12)
         grid.set_column_homogeneous(False)
         grid.attach(name_label, 0, 0, 1, 1)
         grid.attach(self.install_from_setup_game_name_entry, 1, 0, 1, 1)
@@ -436,7 +436,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.navigate_to_page(self.present_install_from_script_page)
 
     def create_install_from_script_page(self):
-        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        grid = Gtk.Grid(row_spacing=12, column_spacing=12)
         label = self._get_label(_("Script file"))
         grid.attach(label, 0, 0, 1, 1)
         grid.attach(self.install_script_file_chooser, 1, 0, 1, 1)
@@ -477,7 +477,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.navigate_to_page(self.present_import_rom_page)
 
     def create_import_rom_page(self):
-        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        grid = Gtk.Grid(row_spacing=12, column_spacing=12)
         label = self._get_label(_("ROM file"))
         grid.attach(label, 0, 0, 1, 1)
         grid.attach(self.import_rom_file_chooser, 1, 0, 1, 1)
@@ -520,7 +520,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.stack.navigate_to_page(self.present_import_playtron_page)
 
     def create_import_playtron_page(self):
-        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
+        grid = Gtk.Grid(row_spacing=12, column_spacing=12)
         grid.set_valign(Gtk.Align.START)
 
         explanation = _("Import games installed via Playtron GameOS.")
