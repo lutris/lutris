@@ -23,9 +23,12 @@
 
 set -uo pipefail
 
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SCRIPT_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")
+SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
 LUTRIS_ENTRY="$REPO_ROOT/bin/lutris"
+
+ORIG_ARGS=("$@")
 
 TIMEOUT=240
 KEEP=0
@@ -45,21 +48,33 @@ Usage: utils/release-smoke-test.sh [options]
                                    into the sandbox and check that it still loads
   --keep                           keep the sandbox directory and print its path
   --no-gui                         skip the "window stays up" check
-  --with-exec                      also check `lutris -e` (known to hang in 0.5.23)
+  --with-exec                      also check `lutris -e`, which hangs today; see
+                                   https://github.com/lutris/lutris/issues/6997
   --timeout SECONDS                per-command timeout (default: 240)
   -h, --help                       this text
+
+Every command runs on a private D-Bus session, so a Lutris instance running on the
+machine can neither receive nor answer them.
 
 Exit status: 0 if all checks passed, 1 otherwise.
 EOF
 }
 
+need_value() { # <option> <remaining-argument-count>
+    if [ "${2:-0}" -lt 2 ] || [ -z "${3:-}" ]; then
+        echo "error: $1 needs a value" >&2
+        usage >&2
+        exit 2
+    fi
+}
+
 while [ $# -gt 0 ]; do
     case "$1" in
-        --scenario) SCENARIO="${2:-}"; shift 2 ;;
+        --scenario) need_value "$1" $# "${2:-}"; SCENARIO="$2"; shift 2 ;;
         --scenario=*) SCENARIO="${1#*=}"; shift ;;
-        --existing-profile) EXISTING_PROFILE="${2:-}"; shift 2 ;;
+        --existing-profile) need_value "$1" $# "${2:-}"; EXISTING_PROFILE="$2"; shift 2 ;;
         --existing-profile=*) EXISTING_PROFILE="${1#*=}"; shift ;;
-        --timeout) TIMEOUT="${2:-}"; shift 2 ;;
+        --timeout) need_value "$1" $# "${2:-}"; TIMEOUT="$2"; shift 2 ;;
         --timeout=*) TIMEOUT="${1#*=}"; shift ;;
         --keep) KEEP=1; shift ;;
         --no-gui) RUN_GUI=0; shift ;;
@@ -74,9 +89,27 @@ case "$SCENARIO" in
     *) echo "error: --scenario must be fresh, existing or both" >&2; exit 2 ;;
 esac
 
+case "$TIMEOUT" in
+    ''|*[!0-9]*) echo "error: --timeout needs a number of seconds" >&2; exit 2 ;;
+esac
+
 if [ "$(id -u)" -eq 0 ]; then
     echo "error: run the smoke test as a normal user (Lutris refuses to run as root)" >&2
     exit 2
+fi
+
+# Only --version is answered by the invoking process (do_handle_local_options); every
+# other command line is forwarded to the primary instance of net.lutris.Lutris, and
+# redirecting HOME and the XDG directories does not change that. So a Lutris instance
+# of the machine would receive our --import and run our games against the real library.
+# Re-running the whole script on a private session bus keeps every command inside it.
+if [ -z "${LUTRIS_SMOKE_SESSION:-}" ]; then
+    if ! command -v dbus-run-session >/dev/null 2>&1; then
+        echo "error: dbus-run-session not found (it is part of the dbus package)" >&2
+        exit 2
+    fi
+    exec env LUTRIS_SMOKE_SESSION=1 dbus-run-session -- "$SCRIPT_PATH" \
+        "${ORIG_ARGS[@]+"${ORIG_ARGS[@]}"}"
 fi
 
 # ---------------------------------------------------------------------------
@@ -200,6 +233,28 @@ profile_reset() { # <scenario-name>
     P_DB="$P_DATA/pga.db"
 }
 
+# The manual GUI pass needs one profile that has never been opened, otherwise item 1 of
+# the checklist cannot see a real first start: empty library, first runtime download,
+# default services. Nothing in the automated checks touches this profile, and the helper
+# scripts live next to it rather than inside it.
+prepare_first_run_profile() {
+    local root="$SANDBOX/first-run"
+    mkdir -p "$root/home" "$root/games"
+
+    cat > "$root/games/fake-game.sh" <<'EOF'
+#!/bin/sh
+echo "fake game running"
+printf '%s\n' "$(date +%s)" > "$(dirname "$0")/launched.marker"
+EOF
+    cat > "$root/games/sleepy.sh" <<'EOF'
+#!/bin/sh
+echo "fake sleepy game running"
+printf '%s\n' "$(date +%s)" > "$(dirname "$0")/launched.marker"
+sleep 30
+EOF
+    chmod +x "$root/games/fake-game.sh" "$root/games/sleepy.sh"
+}
+
 # Run the real entry point in the current profile.
 # stdout -> $1, stderr -> $1.stderr, exit status -> $RC
 lutris_run() {
@@ -278,6 +333,9 @@ PY
 
 # Recreate the profile an upgrading user has: an old migration_version, a custom
 # setting that must survive, and a runner config still using the pre-platform key.
+# A value of 18 means only the newest migration runs, which keeps the check offline
+# (migration 17 calls the lutris.net API). Broader upgrade coverage comes from
+# --existing-profile, which migrates a copy of a real profile.
 seed_legacy_profile() {
     mkdir -p "$P_DATA/games"
     cat > "$P_CONF" <<EOF
@@ -369,13 +427,6 @@ check_logs_clean() { # <scenario>
     fi
 }
 
-client_running() {
-    # Lutris is a single-instance application (net.lutris.Lutris on the session
-    # bus), so a second client would just raise the running one instead of
-    # executing the command line we asked for.
-    pgrep -f "$LUTRIS_ENTRY" >/dev/null 2>&1
-}
-
 launch_and_check() { # <scenario> <slug> <label>
     local scenario="$1" slug="$2" label="$3"
     local marker="$P_GAMES/$slug/launched.marker"
@@ -383,12 +434,6 @@ launch_and_check() { # <scenario> <slug> <label>
     if [ "$HAVE_DISPLAY" -eq 0 ]; then
         skip "$scenario/$label: game launches and the client exits" \
             "no display (try: xvfb-run -a utils/release-smoke-test.sh)"
-        return
-    fi
-
-    if client_running; then
-        skip "$scenario/$label: game launches and the client exits" \
-            "a Lutris instance is already running; close it and re-run"
         return
     fi
 
@@ -430,19 +475,21 @@ scenario_fresh() {
         "$out" "migration_version = $EXPECTED_MIGRATION_VERSION"
     expect_contains "F5 settings: default services enabled" "$out" "[services]"
 
-    # F6 - runners
+    # F6 - runners. The expected number of JSON runners is read from the checkout, so
+    # adding, removing or renaming one does not break the release run.
     lutris_run "$P_LOGS/runners" --list-runners
     out=$(cat "$P_LOGS/runners" 2>/dev/null || true)
     expect_eq "F6 runners: '--list-runners' exits 0" 0 "$RC"
     expect_contains "F6 runners: built-in 'linux' runner listed" "$out" "linux"
     expect_contains "F6 runners: built-in 'wine' runner listed" "$out" "wine"
-    expect_contains "F6 runners: JSON runners loaded" "$out" "vita3k"
-    local runner_count=0
+    local json_runners runner_count
+    json_runners=$(find "$REPO_ROOT/share/lutris/json" -maxdepth 1 -name '*.json' 2>/dev/null | wc -l | tr -d ' ')
     runner_count=$(grep -c . "$P_LOGS/runners" 2>/dev/null || true)
-    if [ "${runner_count:-0}" -ge 40 ]; then
-        ok "F6 runners: at least 40 runners available"
+    if [ "${runner_count:-0}" -ge "${json_runners:-0}" ]; then
+        ok "F6 runners: the ${json_runners:-0} JSON runners are loaded"
     else
-        fail "F6 runners: at least 40 runners available" "got ${runner_count:-0}"
+        fail "F6 runners: the ${json_runners:-0} JSON runners are loaded" \
+            "only ${runner_count:-0} runner names were listed"
     fi
 
     # F7 - add a game, it shows up in the library
@@ -496,10 +543,6 @@ scenario_fresh() {
     # F14 - the window starts and stays up
     if [ "$RUN_GUI" -eq 0 ] || [ "$HAVE_DISPLAY" -eq 0 ]; then
         skip "F14 gui: window starts and stays up" "no display or --no-gui"
-        return
-    fi
-    if client_running; then
-        skip "F14 gui: window starts and stays up" "a Lutris instance is already running; close it and re-run"
         return
     fi
     ( cd "$P_WORK" && timeout --signal=TERM 15 "${DISP[@]+"${DISP[@]}"}" \
@@ -591,16 +634,68 @@ scenario_cloned_profile() {
         fail "clone: source profile exists" "no such directory: $EXISTING_PROFILE"
         return
     fi
+    if [ ! -f "$EXISTING_PROFILE/pga.db" ]; then
+        fail "clone: source profile has a database" "no pga.db in $EXISTING_PROFILE"
+        return
+    fi
 
     profile_reset clone
-    mkdir -p "$P_DATA"
-    local item before
-    for item in pga.db lutris.conf games runners; do
-        if [ -e "$EXISTING_PROFILE/$item" ]; then
-            cp -a "$EXISTING_PROFILE/$item" "$P_DATA/" || fail "clone: copy $item"
-        fi
-    done
+    mkdir -p "$P_DATA/games" "$P_DATA/runners"
 
+    local source_db_sum
+    source_db_sum=$(cksum "$EXISTING_PROFILE/pga.db" | cut -d' ' -f1)
+
+    cp -a "$EXISTING_PROFILE/pga.db" "$P_DATA/" || fail "clone: copy pga.db"
+    if [ -d "$EXISTING_PROFILE/games" ]; then
+        cp -a "$EXISTING_PROFILE/games/." "$P_DATA/games/" || fail "clone: copy games/"
+    fi
+    # Only the runner .yml files: runners/ also holds the downloaded Wine and Proton
+    # builds, which are gigabytes and irrelevant to this check.
+    if [ -d "$EXISTING_PROFILE/runners" ]; then
+        find "$EXISTING_PROFILE/runners" -maxdepth 1 -name '*.yml' \
+            -exec cp -a {} "$P_DATA/runners/" \; 2>/dev/null
+    fi
+
+    # Older profiles keep lutris.conf and games/ in ~/.config/lutris; CONFIG_DIR only
+    # falls back to the data directory when that folder does not exist.
+    local legacy_config source_conf=""
+    legacy_config="$(cd "$EXISTING_PROFILE/../.." 2>/dev/null && pwd)/config/lutris"
+    if [ -f "$EXISTING_PROFILE/lutris.conf" ]; then
+        source_conf="$EXISTING_PROFILE/lutris.conf"
+    elif [ -f "$legacy_config/lutris.conf" ]; then
+        source_conf="$legacy_config/lutris.conf"
+        if [ -d "$legacy_config/games" ]; then
+            cp -a "$legacy_config/games/." "$P_DATA/games/" || fail "clone: copy legacy games/"
+        fi
+    fi
+
+    # A copied lutris.conf may redirect the database or the directories to the real ones
+    # (lutris/settings.py and lutris/cache.py), which would make the sandboxed client
+    # open, and migrate, the user's library. Drop those keys from the copy.
+    if [ -n "$source_conf" ]; then
+        "$PY" - "$source_conf" "$P_CONF" <<'PY'
+import configparser
+import sys
+
+source, destination = sys.argv[1:3]
+REDIRECTING_KEYS = ("pga_path", "cache_dir", "runner_dir", "runtime_dir", "pga_cache_path")
+
+parser = configparser.ConfigParser(interpolation=None)
+parser.read(source)
+if parser.has_section("lutris"):
+    for key in REDIRECTING_KEYS:
+        if parser.has_option("lutris", key):
+            print(
+                "  info: dropped '%s = %s' from the copied lutris.conf" % (key, parser.get("lutris", key)),
+                file=sys.stderr,
+            )
+            parser.remove_option("lutris", key)
+with open(destination, "w", encoding="utf-8") as conf_file:
+    parser.write(conf_file)
+PY
+    fi
+
+    local before
     before=$(db_query "select count(*) from games" 2>/dev/null || echo "")
     ok "clone: profile copied ($before games)"
 
@@ -611,6 +706,8 @@ scenario_cloned_profile() {
     expect_eq "clone: integrity_check" "ok" "$(db_query 'pragma integrity_check')"
     expect_contains "clone: migration_version current" \
         "$(cat "$P_CONF" 2>/dev/null || true)" "migration_version = $EXPECTED_MIGRATION_VERSION"
+    expect_eq "clone: the source database was not modified" \
+        "$source_db_sum" "$(cksum "$EXISTING_PROFILE/pga.db" | cut -d' ' -f1)"
     check_logs_clean "clone"
 }
 
@@ -627,7 +724,7 @@ print_profile_launchers() {
 
     cat <<EOF
 
-To do the GUI pass, open the client with one of the test profiles:
+To do the GUI pass, open the client with one of the profiles:
 
   SMOKE=$SANDBOX
   launch() {
@@ -636,10 +733,11 @@ To do the GUI pass, open the client with one of the test profiles:
           XDG_CONFIG_HOME="\$SMOKE/\$1/home/.config" \\
           XDG_CACHE_HOME="\$SMOKE/\$1/home/.cache" \\
           LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1 \\
-          $PY $LUTRIS_ENTRY -d
+          dbus-run-session -- $PY $LUTRIS_ENTRY -d
   }
-  launch fresh      # first-run profile (empty library + one seeded game)
-  launch existing   # upgraded profile (two seeded games)
+  launch first-run  # never opened: item 1 needs a real first start
+  launch fresh      # automated profile: one seeded game
+  launch existing   # automated profile: upgraded, two seeded games
 EOF
 
     if [ -n "$EXISTING_PROFILE" ]; then
@@ -648,7 +746,9 @@ EOF
 
     cat <<EOF
 
-Quit the client before opening another profile: Lutris is single-instance.
+Quit the client before opening another profile: Lutris is single-instance, and the
+private bus above only belongs to that one client.
+Test games: \$SMOKE/first-run/games/{fake-game.sh,sleepy.sh}
 Step-by-step checklist: docs/manual-gui-checklist.rst
 EOF
 }
@@ -666,6 +766,10 @@ if [ "$HAVE_DISPLAY" -eq 1 ]; then
     printf '  display    : yes\n'
 else
     printf '  display    : no (display checks will be skipped)\n'
+fi
+
+if [ "$KEEP" -eq 1 ]; then
+    prepare_first_run_profile
 fi
 
 if [ "$SCENARIO" = "both" ] || [ "$SCENARIO" = "fresh" ]; then
@@ -692,21 +796,14 @@ fi
 
 cat <<'EOF'
 
-Automated checks passed. Now do the manual GUI pass, on a fresh profile and on
-your own profile:
+Automated checks passed. Next is the manual GUI pass. The checklist lives in one
+place only, docs/manual-gui-checklist.rst:
 
-  1. window opens, empty library, no error dialog          (fresh)
-  2. library, banners/coverart, search and categories      (existing)
-  3. Add locally installed game (Linux runner) from the GUI
-  4. Play from the GUI, stop the game, playtime updated
-  5. Preferences: change something, restart, still applied
-  6. Runner configuration writes data/lutris/runners/<runner>.yml
-  7. "Install" button on lutris.net completes an install
-  8. service sync for the services present on this machine
-  9. export/import and "Create desktop shortcut" from the context menu
- 10. quit and restart: no crash, library unchanged
+  part A  ~10 min, sandbox, genuinely first run   items 1, 3, 4, 5, 6, 10
+  part B  ~15 min, your own profile, after a backup  items 2, 7, 8, 9
 
-Step-by-step instructions: docs/manual-gui-checklist.rst
+Items 7 and 8 may be skipped with a note when the release cannot affect the
+installer or the services, and that note belongs in the release PR.
 EOF
 
 print_profile_launchers
