@@ -23,12 +23,6 @@ interface, so you don't have to configure each one by hand.
 - **Per-game configuration**: game-specific options that override the runner and system defaults
 - **Optional lutris.net account**: fetch your library from the website and sync your Steam library
 
-<!-- SCREENSHOT 2/4: sidebar with connected services (GOG / Steam / Humble) -->
-<!-- ![Connected services](docs/screenshots/services.png) -->
-
-<!-- SCREENSHOT 3/4: game configuration window (runner options) -->
-<!-- ![Game configuration](docs/screenshots/configuration.png) -->
-
 ## Installation
 
 Lutris is available in most distribution repositories, and as a Flatpak:
@@ -51,9 +45,6 @@ Lutris installations are fully automated through scripts, which can be written
 in either JSON or YAML.
 The scripting syntax is described in [docs/installers.rst](docs/installers.rst),
 and is also available online at [lutris.net](https://lutris.net).
-
-<!-- SCREENSHOT 4/4: an installer running (the install dialog with progress) -->
-<!-- ![Lutris installer](docs/screenshots/install.png) -->
 
 ## Game library
 
