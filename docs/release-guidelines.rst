@@ -7,6 +7,12 @@ targets from the repository root, e.g. ``make -f packaging/Makefile build-source
 Preparation
 -----------
 - Write changelog
+- Run ``utils/release-smoke-test.sh``. It has to pass before tagging: one command,
+  about a minute, covering startup, the migrations and launching a game.
+- Recommended, when there is time: part A of ``docs/manual-gui-checklist.rst``
+  (about 10 minutes, sandbox, a genuine first start).
+- Only when the release touches installers, services or the library views: part B
+  of the same checklist (about 15 minutes, your own profile after a backup).
 - Create git tag: ``git tag vX.Y.Z``
 
 GitHub Release
