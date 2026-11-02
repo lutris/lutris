@@ -26,6 +26,20 @@ from lutris.util.log import logger
 from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
 
 
+def normalize_accepted_return_code(return_code: object) -> str:
+    """Return a script's 'return_code' as an exit code. Before 0.5.23, lutris-wrapper reported raw
+    wait statuses (exit code * 256), so scripts on lutris.net use 'return_code: 256' to accept
+    exit code 1; in 2026 every non-zero value there was such a multiple. Real exit codes are below
+    256, so a non-zero multiple of 256 can only be one of these legacy values."""
+    try:
+        code = int(str(return_code))
+    except ValueError:
+        return str(return_code)
+    if code and code % 256 == 0:
+        code //= 256
+    return str(code)
+
+
 class CommandsMixin:
     """The directives for the `installer:` part of the install script."""
 
@@ -463,7 +477,7 @@ class CommandsMixin:
     def _monitor_task(self, command):
         if not command.is_running:
             logger.debug("Return code: %s", command.return_code)
-            if command.return_code not in (str(command.accepted_return_code), "0"):
+            if command.return_code not in (normalize_accepted_return_code(command.accepted_return_code), "0"):
                 raise ScriptingError(_("Command exited with code %s") % command.return_code)
 
             self._iter_commands()
