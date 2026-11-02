@@ -2,17 +2,17 @@ Manual GUI checklist
 ====================
 
 The automated smoke test (``utils/release-smoke-test.sh``) covers everything that
-can be driven from the command line. This page is the part that still has to be
-clicked, and it is kept short on purpose:
+can be driven from the command line, and it is the part the release process
+requires. This page covers what still has to be clicked.
 
-- **Part A** — about 10 minutes, in the sandbox, on a profile that has never been
-  opened. This is the "fresh install" pass.
-- **Part B** — about 15 minutes, on your own profile after a backup. This is the
-  "existing install" pass.
+Part A takes about 10 minutes in the sandbox, on a profile that has never been
+opened. That is the "fresh install" pass. Part B takes about 15 minutes on your own
+profile after a backup, and is the "existing install" pass.
 
-Items whose area the release cannot touch may be skipped, but say which ones in
-the release pull request. The item numbers are stable, so reports stay comparable
-between releases.
+Part A is worth doing before a release when there is time. Part B only applies when
+the release touches installers, services or the library views; if you skip it, say
+so in the release pull request. The item numbers stay the same between releases, so
+old reports remain comparable.
 
 Prerequisites
 -------------
@@ -218,10 +218,12 @@ Step B2 - Open your profile
 
 ::
 
-    ./bin/lutris -d
+    LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1 ./bin/lutris -d
 
-No environment variables this time: this is your real profile. The first launch of
-a new build runs any pending migrations once, which is what the backup above is for.
+No HOME or XDG overrides this time: this is your real profile. The first launch of a
+new build runs any pending migrations once, which is what the backup above is for.
+``LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1`` is needed when the virtualenv lives under
+your home directory, otherwise ``bin/lutris`` drops it from ``sys.path``.
 
 Item 2 - Library rendering
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -291,6 +293,10 @@ Quit the client, then restore whichever backup you took::
 
     tar -C ~/.local/share -xJf ~/lutris-profile-backup.tar.xz
     [ -f ~/lutris-config-backup.tar.xz ] && tar -C ~/.config -xJf ~/lutris-config-backup.tar.xz
+
+This puts the backed-up files back and leaves files created since the backup in
+place, such as a ``games/*.yml`` for something added during the pass. That is
+harmless because ``pga.db`` is restored too, so no game refers to them.
 
 Step 4 - Tear down
 ------------------
