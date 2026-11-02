@@ -29,7 +29,8 @@ dependencies = [
     "PyGObject",
     "pypresence",
     "protobuf",
-    "moddb"
+    "moddb",
+    "msgspec"
 ]
 
 [project.urls]

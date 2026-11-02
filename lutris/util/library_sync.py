@@ -55,7 +55,7 @@ class LibrarySyncer:
             url,
             headers={
                 "Content-Type": "application/json",
-                "Authorization": "Token " + credentials["token"],
+                "Authorization": "Token " + credentials.token,
             },
         )
 
