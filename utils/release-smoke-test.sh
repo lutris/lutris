@@ -93,6 +93,11 @@ case "$TIMEOUT" in
     ''|*[!0-9]*) echo "error: --timeout needs a number of seconds" >&2; exit 2 ;;
 esac
 
+if [ "$TIMEOUT" -le 0 ]; then
+    echo "error: --timeout must be at least 1 second ('timeout 0' would mean no limit)" >&2
+    exit 2
+fi
+
 if [ "$(id -u)" -eq 0 ]; then
     echo "error: run the smoke test as a normal user (Lutris refuses to run as root)" >&2
     exit 2
@@ -475,21 +480,24 @@ scenario_fresh() {
         "$out" "migration_version = $EXPECTED_MIGRATION_VERSION"
     expect_contains "F5 settings: default services enabled" "$out" "[services]"
 
-    # F6 - runners. The expected number of JSON runners is read from the checkout, so
-    # adding, removing or renaming one does not break the release run.
+    # F6 - runners. Every JSON runner in the checkout has to appear by name, so a
+    # loader regression fails here while adding or removing a runner does not.
     lutris_run "$P_LOGS/runners" --list-runners
     out=$(cat "$P_LOGS/runners" 2>/dev/null || true)
     expect_eq "F6 runners: '--list-runners' exits 0" 0 "$RC"
     expect_contains "F6 runners: built-in 'linux' runner listed" "$out" "linux"
     expect_contains "F6 runners: built-in 'wine' runner listed" "$out" "wine"
-    local json_runners runner_count
-    json_runners=$(find "$REPO_ROOT/share/lutris/json" -maxdepth 1 -name '*.json' 2>/dev/null | wc -l | tr -d ' ')
-    runner_count=$(grep -c . "$P_LOGS/runners" 2>/dev/null || true)
-    if [ "${runner_count:-0}" -ge "${json_runners:-0}" ]; then
-        ok "F6 runners: the ${json_runners:-0} JSON runners are loaded"
+    local json name json_count=0 missing=()
+    for json in "$REPO_ROOT"/share/lutris/json/*.json; do
+        [ -e "$json" ] || continue
+        json_count=$((json_count + 1))
+        name=$(basename "$json" .json)
+        grep -qx "$name" "$P_LOGS/runners" || missing+=("$name")
+    done
+    if [ ${#missing[@]} -eq 0 ]; then
+        ok "F6 runners: all $json_count JSON runners are listed"
     else
-        fail "F6 runners: the ${json_runners:-0} JSON runners are loaded" \
-            "only ${runner_count:-0} runner names were listed"
+        fail "F6 runners: all $json_count JSON runners are listed" "missing: ${missing[*]}"
     fi
 
     # F7 - add a game, it shows up in the library
@@ -646,27 +654,29 @@ scenario_cloned_profile() {
     source_db_sum=$(cksum "$EXISTING_PROFILE/pga.db" | cut -d' ' -f1)
 
     cp -a "$EXISTING_PROFILE/pga.db" "$P_DATA/" || fail "clone: copy pga.db"
-    if [ -d "$EXISTING_PROFILE/games" ]; then
-        cp -a "$EXISTING_PROFILE/games/." "$P_DATA/games/" || fail "clone: copy games/"
+
+    # lutris.conf, games/ and runners/ live in ~/.config/lutris when that folder exists,
+    # and in the data directory when it does not (settings.py: CONFIG_DIR). When both
+    # exist the config folder wins, which is what the client does as well.
+    local config_source="$EXISTING_PROFILE"
+    local legacy_config="$EXISTING_PROFILE/../../../.config/lutris"
+    if [ -d "$legacy_config" ]; then
+        config_source="$(cd "$legacy_config" && pwd)"
+        printf '  info: using the ~/.config/lutris layout of this profile\n' >&2
     fi
-    # Only the runner .yml files: runners/ also holds the downloaded Wine and Proton
-    # builds, which are gigabytes and irrelevant to this check.
-    if [ -d "$EXISTING_PROFILE/runners" ]; then
-        find "$EXISTING_PROFILE/runners" -maxdepth 1 -name '*.yml' \
+    if [ -d "$config_source/games" ]; then
+        cp -a "$config_source/games/." "$P_DATA/games/" || fail "clone: copy games/"
+    fi
+    # Runner .yml files only: the data directory also holds the downloaded Wine and
+    # Proton builds, which are gigabytes and irrelevant to this check.
+    if [ -d "$config_source/runners" ]; then
+        find "$config_source/runners" -maxdepth 1 -name '*.yml' \
             -exec cp -a {} "$P_DATA/runners/" \; 2>/dev/null
     fi
 
-    # Older profiles keep lutris.conf and games/ in ~/.config/lutris; CONFIG_DIR only
-    # falls back to the data directory when that folder does not exist.
-    local legacy_config source_conf=""
-    legacy_config="$(cd "$EXISTING_PROFILE/../.." 2>/dev/null && pwd)/config/lutris"
-    if [ -f "$EXISTING_PROFILE/lutris.conf" ]; then
-        source_conf="$EXISTING_PROFILE/lutris.conf"
-    elif [ -f "$legacy_config/lutris.conf" ]; then
-        source_conf="$legacy_config/lutris.conf"
-        if [ -d "$legacy_config/games" ]; then
-            cp -a "$legacy_config/games/." "$P_DATA/games/" || fail "clone: copy legacy games/"
-        fi
+    local source_conf=""
+    if [ -f "$config_source/lutris.conf" ]; then
+        source_conf="$config_source/lutris.conf"
     fi
 
     # A copied lutris.conf may redirect the database or the directories to the real ones
@@ -796,14 +806,16 @@ fi
 
 cat <<'EOF'
 
-Automated checks passed. Next is the manual GUI pass. The checklist lives in one
-place only, docs/manual-gui-checklist.rst:
+For the release process (docs/release-guidelines.rst):
 
-  part A  ~10 min, sandbox, genuinely first run   items 1, 3, 4, 5, 6, 10
-  part B  ~15 min, your own profile, after a backup  items 2, 7, 8, 9
+  required       this script passing
+  recommended    part A of docs/manual-gui-checklist.rst
+                 about 10 min, sandbox, items 1, 3, 4, 5, 6, 10
+  when affected  part B of docs/manual-gui-checklist.rst
+                 only when the release touches installers, services or library
+                 views; about 15 min, own profile after a backup, items 2, 7, 8, 9
 
-Items 7 and 8 may be skipped with a note when the release cannot affect the
-installer or the services, and that note belongs in the release PR.
+If part B does not apply, say so in the release pull request.
 EOF
 
 print_profile_launchers
