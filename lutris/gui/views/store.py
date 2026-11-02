@@ -23,6 +23,7 @@ from . import (
     COL_LASTPLAYED_TEXT,
     COL_MEDIA_PATHS,
     COL_NAME,
+    COL_NOTES,
     COL_PLATFORM,
     COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
@@ -98,6 +99,7 @@ class GameStore(GObject.Object):
             str,
             float,
             str,
+            str,
         )
 
     def get_path_by_id(self, game_id):
@@ -154,6 +156,7 @@ class GameStore(GObject.Object):
         new_values[COL_INSTALLED_AT_TEXT] = store_item.installed_at_text
         new_values[COL_PLAYTIME] = store_item.playtime
         new_values[COL_PLAYTIME_TEXT] = store_item.playtime_text
+        new_values[COL_NOTES] = store_item.notes
 
         changed_indices = set()
         for idx, value in new_values.items():
@@ -193,6 +196,7 @@ class GameStore(GObject.Object):
                 store_item.installed_at_text,
                 store_item.playtime,
                 store_item.playtime_text,
+                store_item.notes,
             )
         )
         self._rows_by_id[store_item.id] = Gtk.TreeRowReference(self.store, self.store.get_path(tree_iter))

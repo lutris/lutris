@@ -4,7 +4,7 @@
 from gi.repository import Gtk
 
 from lutris import settings
-from lutris.gui.views import COL_ID, COL_INSTALLED, COL_MEDIA_PATHS, COL_NAME, COL_PLATFORM
+from lutris.gui.views import COL_ID, COL_INSTALLED, COL_MEDIA_PATHS, COL_NAME, COL_NOTES, COL_PLATFORM
 from lutris.gui.views.base import GameView
 from lutris.gui.widgets.cellrenderers import GridViewCellRendererImage, GridViewCellRendererText
 from lutris.util.log import logger
@@ -44,6 +44,8 @@ class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
         self.connect("item-activated", self.on_item_activated)
         self.connect("selection-changed", self.on_selection_changed)
         self.connect("style-updated", self.on_style_updated)
+        self.connect("query-tooltip", self.on_query_tooltip)
+        self.set_has_tooltip(True)
 
     def set_game_store(self, game_store):
         super().set_game_store(game_store)
@@ -76,6 +78,7 @@ class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
             self.add_attribute(self.image_renderer, "media_paths", COL_MEDIA_PATHS)
             self.add_attribute(self.image_renderer, "platform", COL_PLATFORM)
             self.add_attribute(self.image_renderer, "is_installed", COL_INSTALLED)
+            self.add_attribute(self.image_renderer, "notes", COL_NOTES)
 
     def get_path_at(self, x, y):
         return self.get_path_at_pos(x, y)
@@ -112,6 +115,20 @@ class GameGridView(Gtk.IconView, GameView):  # type:ignore[misc]
         """Handles selection changes"""
         selected_items = self.get_selected()
         self.emit("game-selected", selected_items)
+
+    def on_query_tooltip(self, _widget, x, y, keyboard_mode, tooltip):
+        """Shows the notes of the game under the pointer, along with its notes badge"""
+        if not self.show_badges:
+            return False
+        has_item, _x, _y, model, path, iterator = self.get_tooltip_context(x, y, keyboard_mode)
+        if not has_item:
+            return False
+        notes = model.get_value(iterator, COL_NOTES)
+        if not notes:
+            return False
+        tooltip.set_text(notes)
+        self.set_tooltip_item(tooltip, path)
+        return True
 
     def on_style_updated(self, widget):
         if self.text_renderer:
