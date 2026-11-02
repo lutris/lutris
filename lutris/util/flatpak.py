@@ -1,3 +1,4 @@
+import os
 import shutil
 from gettext import gettext as _
 
@@ -7,13 +8,44 @@ from lutris.util.log import logger
 from lutris.util.system import read_process_output
 
 
+def is_sandboxed() -> bool:
+    return os.path.exists("/.flatpak-info") or bool(os.environ.get("FLATPAK_ID"))
+
+
+def is_game_data_directory(path: str, system_config: dict[str, str]) -> bool:
+    """Allow trashing external game data, never Flatpak deployments or app data."""
+    from lutris.util.system import is_removeable
+
+    if not path:
+        return False
+    directory = os.path.abspath(os.path.expanduser(path))
+    resolved = os.path.realpath(directory)
+    if not is_removeable(directory, system_config) or not is_removeable(resolved, system_config):
+        return False
+    home = os.path.expanduser("~")
+    protected = (
+        os.path.join(home, ".local", "share", "flatpak"),
+        os.path.join(
+            os.environ.get("XDG_DATA_HOME") or os.path.join(home, ".local", "share"),
+            "flatpak",
+        ),
+        os.path.join(home, ".var", "app"),
+        "/var/lib/flatpak",
+    )
+    for root in protected:
+        root = os.path.realpath(root)
+        if os.path.commonpath((resolved, root)) in (resolved, root):
+            return False
+    return True
+
+
 @cache_single
 def get_executable() -> str | None:
     """Return the executable used to access Flatpak. None if Flatpak is not installed.
 
     In the case where Lutris is a Flatpak, we use flatpak-spawn.
     """
-    return shutil.which("flatpak-spawn") or shutil.which("flatpak")
+    return shutil.which("flatpak-spawn") if is_sandboxed() else shutil.which("flatpak")
 
 
 def is_installed() -> bool:
@@ -31,12 +63,14 @@ def get_command() -> list[str]:
     return [exe]
 
 
-@cache_single
 def get_installed_apps() -> list[dict[str, str]]:
     if not is_installed():
         return []
 
-    command = get_command() + ["list", "--columns=name,application,version,branch,arch,origin,installation"]
+    command = get_command() + [
+        "list",
+        "--columns=name,application,version,branch,arch,origin,installation",
+    ]
     package_list = read_process_output(command)
     packages = []
     for package in package_list.split("\n"):
@@ -71,7 +105,10 @@ def is_app_installed(appid: str | None) -> bool:
 
 
 def get_run_command(
-    appid: str, arch: str | None = None, fcommand: str | None = None, branch: str | None = None
+    appid: str,
+    arch: str | None = None,
+    fcommand: str | None = None,
+    branch: str | None = None,
 ) -> list[str]:
     """Return command to launch a Flatpak app"""
     command = get_bare_run_command(arch, fcommand, branch)
@@ -79,12 +116,19 @@ def get_run_command(
     return command
 
 
-def get_bare_run_command(arch: str | None = None, fcommand: str | None = None, branch: str | None = None) -> list[str]:
+def get_bare_run_command(
+    arch: str | None = None,
+    fcommand: str | None = None,
+    branch: str | None = None,
+    installation: str | None = None,
+) -> list[str]:
     """Return command to launch a Flatpak app, without the app-id at the end;
     this is the 'command' of the flatpak runner itself, and a program's
     appid must be appended to it."""
     command = get_command()
     command.append("run")
+    if installation in ("user", "system"):
+        command.append(f"--{installation}")
     if arch:
         command.append(f"--arch={arch}")
     if fcommand:

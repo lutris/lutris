@@ -1179,7 +1179,6 @@ msgstr ""
 "配置文件将被复制，但游戏文件<b>不会被复制</b>。\n"
 "请输入副本的新名称："
 
-
 #: lutris/game_actions.py:415
 msgid "Duplicate game?"
 msgstr "复制游戏"
@@ -1352,7 +1351,6 @@ msgstr "未找到任何结果"
 msgid "Showing <b>%d</b> result"
 msgid_plural "Showing <b>%d</b> results"
 msgstr[0] "显示 <b>%d</b> 条结果"
-
 
 #: lutris/gui/addgameswindow.py:277
 #, python-format
@@ -1531,7 +1529,6 @@ msgstr "未发现可导入的新游戏。"
 msgid "Successfully imported %d game."
 msgid_plural "Successfully imported %d games."
 msgstr[0] "成功导入 %d 款游戏。"
-
 
 #: lutris/gui/addgameswindow.py:575 lutris/gui/installerwindow.py:1117
 msgid "_Close"
@@ -1931,7 +1928,6 @@ msgid ""
 "This will permanently destroy the saved search, but the games themselves "
 "will not be deleted."
 msgstr "此操作将永久删除保存的搜索项，但游戏本身不会被删除。"
-
 
 #: lutris/gui/config/game_common.py:30
 msgid "Select a runner in the Game Info tab"
@@ -2856,7 +2852,6 @@ msgstr "%s 版本管理器"
 msgid "View %d game"
 msgid_plural "View %d games"
 msgstr[0] "查看 %d 款游戏"
-
 
 #: lutris/gui/dialogs/runner_install.py:280
 #: lutris/gui/dialogs/uninstall_dialog.py:233
@@ -3856,7 +3851,6 @@ msgid ""
 msgstr ""
 "“%s”必须由您拥有，并具有完全的所有者权限。拒绝在此处创建配置目录。"
 
-
 #: lutris/runners/commands/wine.py:163
 msgid ""
 "Can't create the prefix on a file system that does not support Linux "
@@ -4012,7 +4006,6 @@ msgid ""
 "Instead of auto detecting the encoding or using the one in RPG_RT.ini, the "
 "specified encoding is used."
 msgstr "使用指定的编码，而非自动检测或 RPG_RT.ini 中的编码。"
-
 
 #: lutris/runners/easyrpg.py:36 lutris/runners/easyrpg.py:61
 #: lutris/runners/easyrpg.py:220 lutris/runners/easyrpg.py:239
@@ -4463,7 +4456,6 @@ msgstr "启用垂直同步"
 #: lutris/runners/easyrpg.py:347
 msgid "Switch off to disable VSync and use the FPS limit."
 msgstr "关闭以禁用垂直同步并使用帧率限制。"
-
 
 #: lutris/runners/easyrpg.py:354
 msgid "FPS limit"
@@ -6776,7 +6768,6 @@ msgid ""
 "located in ux0:/app/&lt;title-id&gt;."
 msgstr ""
 "已安装应用的标题 ID，例如“PCSG00042”。用户安装的应用位于 ux0:/app/&lt;标题 ID&gt;。"
-
 
 #: lutris/runners/vita3k.py:44
 msgid "Start the emulator in fullscreen mode."
@@ -9730,3 +9721,126 @@ msgstr "必须指定 Wine 版本。"
 #~ "并为新功能（如云存储或电视上的全屏界面）提供资金！\n"
 #~ "<a href='https://lutris.net/donate'>支持我们！https://lutris.net/donate</"
 #~ "a>"
+
+#: lutris/installer/errors.py
+msgid "Flatpak is required"
+msgstr "需要 Flatpak"
+
+#: lutris/installer/errors.py
+msgid "To install this game, install the Flatpak package using your distribution's package manager, then restart the installation in Lutris."
+msgstr "要安装此游戏，请使用发行版的软件包管理器安装 Flatpak 软件包，然后在 Lutris 中重新开始安装。"
+
+#: lutris/installer/errors.py
+msgid "Flatpak is inaccessible"
+msgstr "无法访问 Flatpak"
+
+#: lutris/installer/errors.py
+msgid "Lutris cannot access Flatpak on your computer. For Lutris Flatpak, check that flatpak-spawn is available and access to org.freedesktop.Flatpak is allowed."
+msgstr "Lutris 无法访问此计算机上的 Flatpak。如果使用 Lutris Flatpak，请检查 flatpak-spawn 是否可用，以及是否允许访问 org.freedesktop.Flatpak。"
+
+#: lutris/util/flatpak_install.py
+msgid "Add the Flathub repository to your user Flatpak installation?"
+msgstr "将 Flathub 仓库添加到用户级 Flatpak 安装吗？"
+
+#: lutris/util/flatpak_install.py
+msgid "Adding the Flatpak repository was cancelled."
+msgstr "已取消添加 Flatpak 仓库。"
+
+#: lutris/util/flatpak_install.py
+msgid "Install this Flatpak reference? It may add user repositories and download runtimes."
+msgstr "安装此 Flatpak 引用吗？它可能添加用户仓库并下载运行时。"
+
+#: lutris/util/flatpak_install.py
+msgid "Flatpak installation was cancelled."
+msgstr "已取消 Flatpak 安装。"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall the selected user Flatpak applications? They may also be used outside Lutris. Personal data will be kept."
+msgstr "卸载选定的用户级 Flatpak 应用吗？这些应用也可能在 Lutris 之外使用。个人数据将被保留。"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall Flatpak applications?"
+msgstr "卸载 Flatpak 应用吗？"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall Flatpak application"
+msgstr "卸载 Flatpak 应用"
+
+#: lutris/installer/commands.py
+msgid "Flatpak installation"
+msgstr "Flatpak 安装"
+
+#: lutris/runners/commands/flatpak.py
+#, python-format
+msgid "Installing Flatpak application: %s"
+msgstr "正在安装 Flatpak 应用：%s"
+
+#: lutris/runners/commands/flatpak.py
+msgid "Flatpak installation failed."
+msgstr "Flatpak 安装失败。"
+
+#: lutris/runners/commands/flatpak.py
+msgid "Unable to start Flatpak installation."
+msgstr "无法开始 Flatpak 安装。"
+
+#: lutris/runners/commands/flatpak.py
+msgid "Flatpak completed, but the requested application is not installed."
+msgstr "Flatpak 已完成，但所需应用尚未安装。"
+
+#: lutris/runners/flatpak.py
+msgid "Only user Flatpak applications can be uninstalled from Lutris."
+msgstr "只能从 Lutris 卸载用户级 Flatpak 应用。"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak application ID: %s"
+msgstr "无效的 Flatpak 应用 ID：%s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak %s"
+msgstr "无效的 Flatpak 参数：%s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Unexpected Flatpak application reference: %s"
+msgstr "意外的 Flatpak 应用引用：%s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Flatpak repository '%s' is not configured for this user."
+msgstr "尚未为此用户配置 Flatpak 仓库“%s”。"
+
+#: lutris/util/flatpak_install.py
+msgid "Select a downloaded .flatpak or .flatpakref file."
+msgstr "请选择已下载的 .flatpak 或 .flatpakref 文件。"
+
+#: lutris/util/flatpak_install.py
+msgid "Application not found in the Flatpak repository."
+msgstr "在 Flatpak 仓库中找不到应用。"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Unable to run Flatpak on the host: %s"
+msgstr "无法在宿主系统上运行 Flatpak：%s"
+
+#: lutris/util/flatpak_install.py
+msgid "The Flatpak reference does not match the application ID."
+msgstr "Flatpak 引用与应用 ID 不匹配。"
+
+#: lutris/util/flatpak_install.py
+msgid "A Flatpak runtime cannot be installed as a game."
+msgstr "Flatpak 运行时不能作为游戏安装。"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak reference: %s"
+msgstr "无效的 Flatpak 引用：%s"
+
+#: lutris/util/flatpak_install.py
+msgid "Flatpak installed a different architecture or branch than requested."
+msgstr "Flatpak 安装了与请求不同的架构或分支。"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "The game configuration is unavailable."
+msgstr "游戏配置不可用。"

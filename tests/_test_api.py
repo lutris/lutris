@@ -68,3 +68,48 @@ class TestApi(unittest.TestCase):
 
         version_info = api.get_default_runner_version_info("wine", "bogus-version")
         self.assertIsNone(version_info)
+
+
+class TestFlatpakInstallerAPI(unittest.TestCase):
+    """Verify the published website payload is consumable by Lutris."""
+
+    @patch("lutris.api.http.Request")
+    def test_yuno_published_installer_is_normalized(self, request_class):
+        script = {
+            "files": [
+                {"engine": "https://example.org/ai5-sdl2.flatpak"},
+                {"font": {"url": "https://example.org/MS%20PGothic.ttf", "filename": "MS PGothic.ttf"}},
+                {"data": "https://example.org/YUNO.7z"},
+            ],
+            "game": {"appid": "technology.haniwa.ai5-sdl2", "args": '--font "MS PGothic.ttf"'},
+            "installer": [
+                {"task": {"name": "install_flatpak", "file": "engine"}},
+                {"extract": {"file": "data", "dst": "$GAMEDIR"}},
+                {"copy": {"src": "font", "dst": "$GAMEDIR"}},
+            ],
+        }
+        request_class.return_value.json = {
+            "results": [
+                {
+                    "id": 42,
+                    "runner": "flatpak",
+                    "version": "YUNO Flatpak",
+                    "name": "YUNO",
+                    "slug": "yuno-flatpak",
+                    "game_slug": "yuno",
+                    "script": script,
+                }
+            ]
+        }
+
+        installers = api.get_game_installers("yuno")
+        request_class.return_value.get.assert_called_once_with()
+        self.assertEqual(len(installers), 1)
+        installer = installers[0]
+        self.assertEqual(installer["runner"], "flatpak")
+        self.assertEqual(installer["script"]["game"]["appid"], "technology.haniwa.ai5-sdl2")
+        self.assertEqual(
+            [next(iter(step)) for step in installer["script"]["installer"]],
+            ["task", "extract", "copy"],
+        )
+        self.assertEqual(installer["script"]["installer"][0]["task"]["file"], "engine")

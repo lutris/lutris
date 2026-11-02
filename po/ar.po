@@ -6050,3 +6050,126 @@ msgid ""
 msgstr ""
 "لا يدعم إصدار واين المحدَّد إف‌سنك.\n"
 "بدِّل لإصدار يدعم إف‌سنك."
+
+#: lutris/installer/errors.py
+msgid "Flatpak is required"
+msgstr "يلزم تثبيت Flatpak"
+
+#: lutris/installer/errors.py
+msgid "To install this game, install the Flatpak package using your distribution's package manager, then restart the installation in Lutris."
+msgstr "لتثبيت هذه اللعبة، ثبّت حزمة Flatpak باستخدام مدير الحزم في توزيعتك، ثم أعد بدء التثبيت في Lutris."
+
+#: lutris/installer/errors.py
+msgid "Flatpak is inaccessible"
+msgstr "يتعذر الوصول إلى Flatpak"
+
+#: lutris/installer/errors.py
+msgid "Lutris cannot access Flatpak on your computer. For Lutris Flatpak, check that flatpak-spawn is available and access to org.freedesktop.Flatpak is allowed."
+msgstr "لا يستطيع Lutris الوصول إلى Flatpak على جهازك. عند استخدام Lutris Flatpak، تحقق من توفر flatpak-spawn والسماح بالوصول إلى org.freedesktop.Flatpak."
+
+#: lutris/util/flatpak_install.py
+msgid "Add the Flathub repository to your user Flatpak installation?"
+msgstr "هل تريد إضافة مستودع Flathub إلى تثبيت Flatpak الخاص بالمستخدم؟"
+
+#: lutris/util/flatpak_install.py
+msgid "Adding the Flatpak repository was cancelled."
+msgstr "أُلغيت إضافة مستودع Flatpak."
+
+#: lutris/util/flatpak_install.py
+msgid "Install this Flatpak reference? It may add user repositories and download runtimes."
+msgstr "هل تريد تثبيت مرجع Flatpak هذا؟ قد يضيف مستودعات للمستخدم وينزّل بيئات تشغيل."
+
+#: lutris/util/flatpak_install.py
+msgid "Flatpak installation was cancelled."
+msgstr "أُلغي تثبيت Flatpak."
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall the selected user Flatpak applications? They may also be used outside Lutris. Personal data will be kept."
+msgstr "هل تريد إزالة تطبيقات Flatpak المحددة الخاصة بالمستخدم؟ قد تُستخدم أيضًا خارج Lutris. ستُحفظ البيانات الشخصية."
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall Flatpak applications?"
+msgstr "هل تريد إزالة تطبيقات Flatpak؟"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall Flatpak application"
+msgstr "إزالة تطبيق Flatpak"
+
+#: lutris/installer/commands.py
+msgid "Flatpak installation"
+msgstr "تثبيت Flatpak"
+
+#: lutris/runners/commands/flatpak.py
+#, python-format
+msgid "Installing Flatpak application: %s"
+msgstr "جارٍ تثبيت تطبيق Flatpak: %s"
+
+#: lutris/runners/commands/flatpak.py
+msgid "Flatpak installation failed."
+msgstr "فشل تثبيت Flatpak."
+
+#: lutris/runners/commands/flatpak.py
+msgid "Unable to start Flatpak installation."
+msgstr "تعذر بدء تثبيت Flatpak."
+
+#: lutris/runners/commands/flatpak.py
+msgid "Flatpak completed, but the requested application is not installed."
+msgstr "انتهى Flatpak، لكن التطبيق المطلوب غير مثبت."
+
+#: lutris/runners/flatpak.py
+msgid "Only user Flatpak applications can be uninstalled from Lutris."
+msgstr "يمكن إزالة تطبيقات Flatpak الخاصة بالمستخدم فقط من Lutris."
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak application ID: %s"
+msgstr "معرّف تطبيق Flatpak غير صالح: %s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak %s"
+msgstr "معامل Flatpak غير صالح: %s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Unexpected Flatpak application reference: %s"
+msgstr "مرجع تطبيق Flatpak غير متوقع: %s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Flatpak repository '%s' is not configured for this user."
+msgstr "مستودع Flatpak «%s» غير مُعدّ لهذا المستخدم."
+
+#: lutris/util/flatpak_install.py
+msgid "Select a downloaded .flatpak or .flatpakref file."
+msgstr "اختر ملف .flatpak أو .flatpakref تم تنزيله."
+
+#: lutris/util/flatpak_install.py
+msgid "Application not found in the Flatpak repository."
+msgstr "لم يُعثر على التطبيق في مستودع Flatpak."
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Unable to run Flatpak on the host: %s"
+msgstr "تعذر تشغيل Flatpak على النظام المضيف: %s"
+
+#: lutris/util/flatpak_install.py
+msgid "The Flatpak reference does not match the application ID."
+msgstr "مرجع Flatpak لا يطابق معرّف التطبيق."
+
+#: lutris/util/flatpak_install.py
+msgid "A Flatpak runtime cannot be installed as a game."
+msgstr "لا يمكن تثبيت بيئة تشغيل Flatpak كلعبة."
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak reference: %s"
+msgstr "مرجع Flatpak غير صالح: %s"
+
+#: lutris/util/flatpak_install.py
+msgid "Flatpak installed a different architecture or branch than requested."
+msgstr "ثبّت Flatpak معمارية أو فرعًا مختلفًا عن المطلوب."
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "The game configuration is unavailable."
+msgstr "إعدادات اللعبة غير متاحة."

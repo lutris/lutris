@@ -8245,3 +8245,126 @@ msgstr "Proton 版本「%s」缺少其 wine 可執行檔案，無法使用。"
 #: lutris/util/wine/wine.py:192
 msgid "The Wine version must be specified."
 msgstr "必須指定 Wine 版本。"
+
+#: lutris/installer/errors.py
+msgid "Flatpak is required"
+msgstr "需要 Flatpak"
+
+#: lutris/installer/errors.py
+msgid "To install this game, install the Flatpak package using your distribution's package manager, then restart the installation in Lutris."
+msgstr "若要安裝此遊戲，請使用發行版的套件管理員安裝 Flatpak 套件，然後在 Lutris 中重新開始安裝。"
+
+#: lutris/installer/errors.py
+msgid "Flatpak is inaccessible"
+msgstr "無法存取 Flatpak"
+
+#: lutris/installer/errors.py
+msgid "Lutris cannot access Flatpak on your computer. For Lutris Flatpak, check that flatpak-spawn is available and access to org.freedesktop.Flatpak is allowed."
+msgstr "Lutris 無法存取此電腦上的 Flatpak。如果使用 Lutris Flatpak，請確認 flatpak-spawn 可用，且允許存取 org.freedesktop.Flatpak。"
+
+#: lutris/util/flatpak_install.py
+msgid "Add the Flathub repository to your user Flatpak installation?"
+msgstr "將 Flathub 軟體庫新增至使用者層級的 Flatpak 安裝嗎？"
+
+#: lutris/util/flatpak_install.py
+msgid "Adding the Flatpak repository was cancelled."
+msgstr "已取消新增 Flatpak 軟體庫。"
+
+#: lutris/util/flatpak_install.py
+msgid "Install this Flatpak reference? It may add user repositories and download runtimes."
+msgstr "安裝此 Flatpak 參照嗎？它可能新增使用者軟體庫並下載執行環境。"
+
+#: lutris/util/flatpak_install.py
+msgid "Flatpak installation was cancelled."
+msgstr "已取消 Flatpak 安裝。"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall the selected user Flatpak applications? They may also be used outside Lutris. Personal data will be kept."
+msgstr "解除安裝選取的使用者層級 Flatpak 應用程式嗎？這些應用程式也可能在 Lutris 之外使用。個人資料將會保留。"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall Flatpak applications?"
+msgstr "解除安裝 Flatpak 應用程式嗎？"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall Flatpak application"
+msgstr "解除安裝 Flatpak 應用程式"
+
+#: lutris/installer/commands.py
+msgid "Flatpak installation"
+msgstr "Flatpak 安裝"
+
+#: lutris/runners/commands/flatpak.py
+#, python-format
+msgid "Installing Flatpak application: %s"
+msgstr "正在安裝 Flatpak 應用程式：%s"
+
+#: lutris/runners/commands/flatpak.py
+msgid "Flatpak installation failed."
+msgstr "Flatpak 安裝失敗。"
+
+#: lutris/runners/commands/flatpak.py
+msgid "Unable to start Flatpak installation."
+msgstr "無法開始 Flatpak 安裝。"
+
+#: lutris/runners/commands/flatpak.py
+msgid "Flatpak completed, but the requested application is not installed."
+msgstr "Flatpak 已完成，但要求的應用程式尚未安裝。"
+
+#: lutris/runners/flatpak.py
+msgid "Only user Flatpak applications can be uninstalled from Lutris."
+msgstr "只能從 Lutris 解除安裝使用者層級的 Flatpak 應用程式。"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak application ID: %s"
+msgstr "無效的 Flatpak 應用程式 ID：%s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak %s"
+msgstr "無效的 Flatpak 參數：%s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Unexpected Flatpak application reference: %s"
+msgstr "非預期的 Flatpak 應用程式參照：%s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Flatpak repository '%s' is not configured for this user."
+msgstr "尚未為此使用者設定 Flatpak 軟體庫「%s」。"
+
+#: lutris/util/flatpak_install.py
+msgid "Select a downloaded .flatpak or .flatpakref file."
+msgstr "請選取已下載的 .flatpak 或 .flatpakref 檔案。"
+
+#: lutris/util/flatpak_install.py
+msgid "Application not found in the Flatpak repository."
+msgstr "在 Flatpak 軟體庫中找不到應用程式。"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Unable to run Flatpak on the host: %s"
+msgstr "無法在主機系統上執行 Flatpak：%s"
+
+#: lutris/util/flatpak_install.py
+msgid "The Flatpak reference does not match the application ID."
+msgstr "Flatpak 參照與應用程式 ID 不相符。"
+
+#: lutris/util/flatpak_install.py
+msgid "A Flatpak runtime cannot be installed as a game."
+msgstr "Flatpak 執行環境不能作為遊戲安裝。"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak reference: %s"
+msgstr "無效的 Flatpak 參照：%s"
+
+#: lutris/util/flatpak_install.py
+msgid "Flatpak installed a different architecture or branch than requested."
+msgstr "Flatpak 安裝了與要求不同的架構或分支。"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "The game configuration is unavailable."
+msgstr "遊戲設定無法使用。"

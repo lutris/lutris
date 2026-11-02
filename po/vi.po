@@ -7302,3 +7302,126 @@ msgstr "Phiên bản proton '%s' thiếu khả năng thực thi Wine và không 
 #: lutris/util/wine/wine.py:176
 msgid "The Wine version must be specified."
 msgstr "Phiên bản Wine phải được chỉ định."
+
+#: lutris/installer/errors.py
+msgid "Flatpak is required"
+msgstr "Cần có Flatpak"
+
+#: lutris/installer/errors.py
+msgid "To install this game, install the Flatpak package using your distribution's package manager, then restart the installation in Lutris."
+msgstr "Để cài đặt trò chơi này, hãy cài gói Flatpak bằng trình quản lý gói của bản phân phối rồi bắt đầu lại quá trình cài đặt trong Lutris."
+
+#: lutris/installer/errors.py
+msgid "Flatpak is inaccessible"
+msgstr "Không thể truy cập Flatpak"
+
+#: lutris/installer/errors.py
+msgid "Lutris cannot access Flatpak on your computer. For Lutris Flatpak, check that flatpak-spawn is available and access to org.freedesktop.Flatpak is allowed."
+msgstr "Lutris không thể truy cập Flatpak trên máy tính của bạn. Với Lutris Flatpak, hãy kiểm tra rằng flatpak-spawn có sẵn và quyền truy cập org.freedesktop.Flatpak được cho phép."
+
+#: lutris/util/flatpak_install.py
+msgid "Add the Flathub repository to your user Flatpak installation?"
+msgstr "Thêm kho Flathub vào bản cài đặt Flatpak của người dùng?"
+
+#: lutris/util/flatpak_install.py
+msgid "Adding the Flatpak repository was cancelled."
+msgstr "Việc thêm kho Flatpak đã bị hủy."
+
+#: lutris/util/flatpak_install.py
+msgid "Install this Flatpak reference? It may add user repositories and download runtimes."
+msgstr "Cài đặt tham chiếu Flatpak này? Nó có thể thêm kho của người dùng và tải xuống môi trường chạy."
+
+#: lutris/util/flatpak_install.py
+msgid "Flatpak installation was cancelled."
+msgstr "Quá trình cài đặt Flatpak đã bị hủy."
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall the selected user Flatpak applications? They may also be used outside Lutris. Personal data will be kept."
+msgstr "Gỡ cài đặt các ứng dụng Flatpak của người dùng đã chọn? Chúng có thể được dùng bên ngoài Lutris. Dữ liệu cá nhân sẽ được giữ lại."
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall Flatpak applications?"
+msgstr "Gỡ cài đặt các ứng dụng Flatpak?"
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "Uninstall Flatpak application"
+msgstr "Gỡ cài đặt ứng dụng Flatpak"
+
+#: lutris/installer/commands.py
+msgid "Flatpak installation"
+msgstr "Cài đặt Flatpak"
+
+#: lutris/runners/commands/flatpak.py
+#, python-format
+msgid "Installing Flatpak application: %s"
+msgstr "Đang cài đặt ứng dụng Flatpak: %s"
+
+#: lutris/runners/commands/flatpak.py
+msgid "Flatpak installation failed."
+msgstr "Cài đặt Flatpak thất bại."
+
+#: lutris/runners/commands/flatpak.py
+msgid "Unable to start Flatpak installation."
+msgstr "Không thể bắt đầu cài đặt Flatpak."
+
+#: lutris/runners/commands/flatpak.py
+msgid "Flatpak completed, but the requested application is not installed."
+msgstr "Flatpak đã hoàn tất nhưng ứng dụng được yêu cầu chưa được cài đặt."
+
+#: lutris/runners/flatpak.py
+msgid "Only user Flatpak applications can be uninstalled from Lutris."
+msgstr "Chỉ có thể gỡ các ứng dụng Flatpak của người dùng từ Lutris."
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak application ID: %s"
+msgstr "ID ứng dụng Flatpak không hợp lệ: %s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak %s"
+msgstr "Tham số Flatpak không hợp lệ: %s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Unexpected Flatpak application reference: %s"
+msgstr "Tham chiếu ứng dụng Flatpak không mong đợi: %s"
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Flatpak repository '%s' is not configured for this user."
+msgstr "Kho Flatpak “%s” chưa được cấu hình cho người dùng này."
+
+#: lutris/util/flatpak_install.py
+msgid "Select a downloaded .flatpak or .flatpakref file."
+msgstr "Chọn một tệp .flatpak hoặc .flatpakref đã tải xuống."
+
+#: lutris/util/flatpak_install.py
+msgid "Application not found in the Flatpak repository."
+msgstr "Không tìm thấy ứng dụng trong kho Flatpak."
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Unable to run Flatpak on the host: %s"
+msgstr "Không thể chạy Flatpak trên hệ thống chủ: %s"
+
+#: lutris/util/flatpak_install.py
+msgid "The Flatpak reference does not match the application ID."
+msgstr "Tham chiếu Flatpak không khớp với ID ứng dụng."
+
+#: lutris/util/flatpak_install.py
+msgid "A Flatpak runtime cannot be installed as a game."
+msgstr "Không thể cài đặt môi trường chạy Flatpak như một trò chơi."
+
+#: lutris/util/flatpak_install.py
+#, python-format
+msgid "Invalid Flatpak reference: %s"
+msgstr "Tham chiếu Flatpak không hợp lệ: %s"
+
+#: lutris/util/flatpak_install.py
+msgid "Flatpak installed a different architecture or branch than requested."
+msgstr "Flatpak đã cài đặt kiến trúc hoặc nhánh khác với yêu cầu."
+
+#: lutris/gui/dialogs/uninstall_dialog.py
+msgid "The game configuration is unavailable."
+msgstr "Cấu hình trò chơi không khả dụng."
