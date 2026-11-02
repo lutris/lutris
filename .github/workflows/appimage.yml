@@ -1,0 +1,51 @@
+name: Build AppImage
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/appimage.yml"
+      - "utils/appimage/**"
+      - "Makefile"
+      - "pyproject.toml"
+      - "setup.py"
+      - "lutris/**"
+      - "bin/**"
+      - "share/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  appimage:
+    name: AppImage (x86_64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v6
+
+      - name: Build AppImage
+        run: make appimage
+
+      - name: Verify build output
+        shell: bash
+        run: |
+          shopt -s nullglob
+          files=(dist/Lutris-*-x86_64.AppImage)
+          if (( ${#files[@]} != 1 )); then
+            echo "Expected exactly one AppImage, found ${#files[@]}" >&2
+            exit 1
+          fi
+          test -s "${files[0]}"
+          file "${files[0]}"
+          # Run the packaged application without requiring FUSE on the runner.
+          APPIMAGE_EXTRACT_AND_RUN=1 timeout 60s "${files[0]}" --version
+
+      - name: Upload AppImage artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: lutris-appimage-x86_64
+          path: dist/Lutris-*-x86_64.AppImage
+          if-no-files-found: error
+          retention-days: 14
