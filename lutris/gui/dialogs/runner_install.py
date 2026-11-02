@@ -18,6 +18,7 @@ from lutris.gui.widgets.stock_icon_image import StockIconImage
 from lutris.util import jobs, system
 from lutris.util.downloader import SimpleDownloader
 from lutris.util.extract import extract_archive
+from lutris.util.http import is_connection_error
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
 
@@ -173,7 +174,10 @@ class RunnerInstallDialog(ModelessDialog):
 
         if error:
             logger.error(error)
-            ErrorDialog(_("Unable to get runner versions: %s") % error, parent=self)
+            if is_connection_error(error):
+                ErrorDialog(_("You are offline"), parent=self)
+            else:
+                ErrorDialog(_("Unable to get runner versions: %s") % error, parent=self)
             return
 
         self.runner_info, self.runner_store = result

@@ -50,7 +50,7 @@ from lutris.services import get_enabled_services
 from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, resources, system
-from lutris.util.http import HTTPError, Request
+from lutris.util.http import HTTPError, Request, is_connection_error
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
@@ -426,7 +426,10 @@ class LutrisApplication(Gtk.Application):
     def show_lutris_installer_window(self, game_slug: str) -> None:
         def on_installers_ready(installers: list[dict[str, Any]], error: BaseException) -> None:
             if error and self.window:
-                display_error(error, parent=self.window)
+                if is_connection_error(error):
+                    ErrorDialog(_("You are offline"), parent=self.window)
+                else:
+                    display_error(error, parent=self.window)
             elif installers:
                 self.show_installer_window(installers)
             else:
