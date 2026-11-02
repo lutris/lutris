@@ -1,3 +1,5 @@
+import os
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -214,3 +216,44 @@ class TestReusesServiceLibraryEntry(TestCase):
     def test_installed_library_entry_is_not_reused(self):
         update_existing(id=self.library_game_id, installed=1)
         self.assertIsNone(self.get_installer().game_id)
+
+
+class TestLocalFiles(TestCase):
+    """Local paths in a script's files are only allowed for local scripts."""
+
+    def get_installer(self, file_url, installer_file=None):
+        installer = {
+            **TEST_INSTALLER,
+            "script": {"files": [{"setup": file_url}], "game": {"exe": "test"}},
+        }
+        if installer_file:
+            installer["installer_file"] = installer_file
+        return MockInterpreter(installer, None).installer
+
+    def test_website_script_cannot_use_absolute_path(self):
+        installer = self.get_installer("/home/user/.ssh/id_rsa")
+        with self.assertRaises(ScriptingError):
+            installer.prepare_game_files({})
+
+    def test_website_script_cannot_use_file_url(self):
+        installer = self.get_installer("file:///etc/passwd")
+        with self.assertRaises(ScriptingError):
+            installer.prepare_game_files({})
+
+    def test_website_script_cannot_use_scriptdir(self):
+        installer = self.get_installer("$SCRIPTDIR/setup.exe")
+        with self.assertRaises(ScriptingError):
+            installer.prepare_game_files({})
+
+    def test_local_script_can_use_scriptdir(self):
+        with TemporaryDirectory() as script_dir:
+            script_path = os.path.join(script_dir, "game.yml")
+            open(script_path, "w", encoding="utf-8").close()
+            installer = self.get_installer("$SCRIPTDIR/setup.exe", installer_file=script_path)
+            installer.prepare_game_files({})
+        self.assertEqual(installer.files[0].url, "file://%s/setup.exe" % os.path.realpath(script_dir))
+
+    def test_website_script_can_use_https(self):
+        installer = self.get_installer("https://example.com/setup.exe")
+        installer.prepare_game_files({})
+        self.assertEqual(installer.files[0].url, "https://example.com/setup.exe")
