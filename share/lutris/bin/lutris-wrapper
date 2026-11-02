@@ -218,8 +218,9 @@ def main():
     if return_code_path:
         with open(return_code_path, "w") as status_file:
             status_file.write("%s" % returncode)
-    # Like a shell, report a process killed by a signal as 128 + the signal number.
-    sys.exit(returncode if returncode >= 0 else 128 - returncode)
+    if returncode < 0:  # killed by signal -returncode; exit with 128 + it, as a shell does
+        sys.exit(128 - returncode)
+    sys.exit(returncode)
 
 
 if __name__ == "__main__":

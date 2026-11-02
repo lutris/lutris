@@ -648,9 +648,10 @@ you can specify an accepted return code like ``return_code: 1``
 
 Before Lutris 0.5.23, return codes were reported multiplied by 256, so older
 scripts use values like ``return_code: 256`` to accept a return code of 1. Lutris
-still understands these: any non-zero multiple of 256 is divided by 256. New
-scripts should use the plain return code, which is what Lutris now shows when a
-command fails. A return code of 0 is always accepted.
+still understands these: any non-zero multiple of 256 is divided by 256. Lutris
+0.5.23 and later accept the plain return code, which is what they show when a
+command fails; a script that must also work with older versions of Lutris should
+keep using the multiplied value. A return code of 0 is always accepted.
 
 Currently, the following tasks are implemented:
 
