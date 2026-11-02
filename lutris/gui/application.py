@@ -639,8 +639,7 @@ class LutrisApplication(Gtk.Application):
         # Execute command in Lutris context
         if option := options.lookup_value("exec"):
             command = option.get_string()
-            self.execute_command(command)
-            return 0
+            return self.execute_command(command)
 
         if options.contains("submit-issue"):
             IssueReportWindow(application=self)
@@ -995,16 +994,29 @@ class LutrisApplication(Gtk.Application):
                 )
 
     @staticmethod
-    def execute_command(command: str) -> None:
+    def execute_command(command: str) -> int:
         """Execute an arbitrary command in a Lutris context
-        with the runtime enabled and monitored by a MonitoredCommand
+        with the runtime enabled and monitored by a MonitoredCommand;
+        returns 0 if the command succeeded and 1 if it did not.
         """
         logger.info("Running command '%s'", command)
         monitored_command = exec_command(command)
+        if not monitored_command.game_process:
+            return 1
+
+        loop = GLib.MainLoop()
+
+        def on_stop() -> bool:
+            loop.quit()
+            return True
+
+        # The child watch can't fire until the loop runs, so this can't miss the exit.
+        monitored_command.stop_func = on_stop
         try:
-            GLib.MainLoop().run()
+            loop.run()
         except KeyboardInterrupt:
             monitored_command.stop()
+        return 0 if monitored_command.return_code == "0" else 1
 
     def print_steam_folders(self, command_line: Gio.ApplicationCommandLine) -> None:
         steamapps_paths = get_steamapps_dirs()
