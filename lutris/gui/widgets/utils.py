@@ -330,11 +330,48 @@ def thumbnail_image(base_image: "Image.Image", target_size: tuple[int, int]) -> 
     return base_image
 
 
-def paste_overlay(base_image: "Image.Image", overlay_image: "Image.Image", position: float = 0.7) -> "Image.Image":
+def scale_to_fit(image: "Image.Image", max_size: tuple[int, int] | None) -> "Image.Image":
+    """Downscale an image so that it fits within max_size, keeping its aspect ratio.
+
+    Images that already fit are returned unchanged; images are never scaled up. If
+    max_size is None, the image is returned unchanged as well.
+    """
+    if not max_size:
+        return image
+    width, height = image.size
+    max_width, max_height = max_size
+    if width <= max_width and height <= max_height:
+        return image
+    scale = min(max_width / width, max_height / height)
+    return image.resize((max(1, int(width * scale)), max(1, int(height * scale))), resample=Image.Resampling.BICUBIC)
+
+
+def is_transparent_logo(image: "Image.Image", threshold: float = 0.1) -> bool:
+    """Check if an image is a transparent logo rather than a full artwork image.
+
+    A real logo will have significant transparent pixels in its alpha channel.
+    """
+    if image.mode != "RGBA":
+        return False
+    # histogram() counts the pixels by value, which is much faster than iterating
+    # over getdata() (which is deprecated in Pillow 12) in Python.
+    transparent_pixels = sum(image.getchannel("A").histogram()[:128])
+    total_pixels = image.width * image.height
+    return transparent_pixels > total_pixels * threshold
+
+
+def paste_overlay(base_image: "Image.Image", overlay_image: "Image.Image", position: float = 0.5) -> "Image.Image":
+    """Paste overlay_image on base_image, centered horizontally.
+
+    The vertical position of the overlay's center within the base image is given by
+    position, where 0.0 is the top edge (the default, 0.5, is the middle). The overlay
+    is kept within the bounds of the base image, so it is clipped from the top or left
+    rather than pasted outside of it.
+    """
     base_width, base_height = base_image.size
     overlay_width, overlay_height = overlay_image.size
-    offset_x = int((base_width - overlay_width) / 2)
-    offset_y = int((base_height - overlay_height) / 2)
+    offset_x = max(0, min(int((base_width - overlay_width) / 2), base_width - overlay_width))
+    offset_y = max(0, min(int(base_height * position - overlay_height / 2), base_height - overlay_height))
     base_image.paste(
         overlay_image, (offset_x, offset_y, overlay_width + offset_x, overlay_height + offset_y), mask=overlay_image
     )

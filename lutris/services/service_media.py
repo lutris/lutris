@@ -3,9 +3,11 @@ import os
 import random
 import time
 from collections.abc import Callable, Iterable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 from lutris.database.services import ServiceGameCollection
+from lutris.gui.widgets.utils import Image, is_transparent_logo, paste_overlay, scale_to_fit, thumbnail_image
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
 from lutris.util.log import logger
@@ -187,3 +189,80 @@ class ServiceMedia:
 
     def render(self):
         """Used if the media requires extra processing"""
+
+
+class LogoOverlayMedia(ServiceMedia):
+    """ServiceMedia that composites a game logo onto the downloaded artwork.
+
+    The logo images are looked up in `logo_path`, using the artwork's file name with
+    a `.png` extension; the file names are the game slugs, so both media types have to
+    be downloaded with the same slug.
+
+    This is applied by render(), which is called after all the media have been
+    downloaded. Each artwork is only composited once per logo revision- a stamp file
+    records which logo was composited, so repeated service reloads neither degrade
+    the JPEG artwork nor waste time.
+    """
+
+    logo_path: str | None = None
+    logo_max_size: tuple[int, int] | None = None  # None if this media is not an overlay target
+    logo_y_position = 0.5  # Vertical position of the logo's center, 0.0 being the top edge
+    logo_stamp_suffix = ".logo"
+
+    @property
+    def render_size(self) -> tuple[int, int]:
+        """The size the artwork is rendered to; this is the size of the artwork file,
+        which is not necessarily the size at which it is displayed."""
+        return cast(tuple[int, int], self.size)
+
+    def render(self):
+        if not self.logo_max_size or not self.logo_path or not os.path.isdir(self.dest_path):
+            return
+        for filename in os.listdir(self.dest_path):
+            if self._is_artwork(filename):
+                self._render_filename(filename)
+
+    @staticmethod
+    def _is_artwork(filename: str) -> bool:
+        """True if the file could be an image; this skips the logo stamp files."""
+        return os.path.splitext(filename)[1].lower() in (".jpg", ".jpeg", ".png")
+
+    def _render_filename(self, filename: str) -> None:
+        art_path = os.path.join(self.dest_path, filename)
+        logo_path = os.path.join(cast(str, self.logo_path), os.path.splitext(filename)[0] + ".png")
+        if not os.path.exists(logo_path) or self._is_composited(art_path, logo_path):
+            return
+        try:
+            with Image.open(logo_path) as logo_file:
+                logo_image = logo_file.convert("RGBA")
+            if not is_transparent_logo(logo_image):
+                return
+            with Image.open(art_path) as art_file:
+                art_image = thumbnail_image(art_file.convert("RGBA"), self.render_size)
+            art_image = paste_overlay(art_image, scale_to_fit(logo_image, self.logo_max_size), self.logo_y_position)
+            art_image.convert("RGB").save(art_path)
+        except Exception:  # pylint: disable=broad-except
+            # Broken media must never break the service load.
+            logger.warning("Could not composite logo on %s", filename, exc_info=True)
+            return
+        self._stamp_composited(art_path, logo_path)
+
+    def _get_stamp_path(self, art_path: str) -> str:
+        return art_path + self.logo_stamp_suffix
+
+    def _is_composited(self, art_path: str, logo_path: str) -> bool:
+        """True if this artwork was already composited with the current logo."""
+        try:
+            return os.path.getmtime(self._get_stamp_path(art_path)) >= os.path.getmtime(logo_path)
+        except OSError:
+            return False
+
+    def _stamp_composited(self, art_path: str, logo_path: str) -> None:
+        """Record the logo revision that has been composited on this artwork."""
+        stamp_path = self._get_stamp_path(art_path)
+        try:
+            logo_mtime = os.path.getmtime(logo_path)
+            Path(stamp_path).touch()
+            os.utime(stamp_path, (logo_mtime, logo_mtime))
+        except OSError:
+            logger.warning("Could not write logo overlay stamp %s", stamp_path)
