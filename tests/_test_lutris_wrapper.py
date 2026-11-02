@@ -2,6 +2,7 @@ import os
 import os.path
 import subprocess
 import sys
+import tempfile
 import unittest
 
 if os.path.isfile("share/lutris/bin/lutris-wrapper"):
@@ -121,3 +122,24 @@ class LutrisWrapperTestCase(unittest.TestCase):
                 wrapper_proc.kill()
                 wrapper_proc.wait(30)
             wrapper_proc.stdout.close()
+
+    def test_return_code(self):
+        "Test that the exit code, not the raw wait status, is written and returned"
+        cases = [("exit 0", "0", 0), ("exit 3", "3", 3), ("kill -9 $$", "-9", 128 + 9)]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            for script, expected_file, expected_exit in cases:
+                with self.subTest(script=script):
+                    return_code_path = os.path.join(tmpdir, "return-code")
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = ":".join(sys.path)
+                    env["LUTRIS_RETURN_CODE_FILE"] = return_code_path
+                    wrapper_proc = subprocess.run(
+                        [sys.executable, lutris_wrapper_bin, "title", "0", "0", "sh", "-c", script],
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.DEVNULL,
+                        env=env,
+                        timeout=30,
+                    )
+                    with open(return_code_path, encoding="utf-8") as return_code_file:
+                        self.assertEqual(return_code_file.read(), expected_file)
+                    self.assertEqual(wrapper_proc.returncode, expected_exit)
