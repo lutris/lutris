@@ -33,6 +33,8 @@ lutris (0.5.23) jammy; urgency=medium
   * Fix favorites view not updating when removing a game from favorites
   * Report real return codes for installer commands and games (1 rather than 256); installer
     scripts using the old values in 'return_code' still work
+  * Fix 'lutris -e' never exiting after its command finishes, and make it exit with the
+    command's return code
   * Added Swedish (sv) translation
   * Added Galician (gl_ES) translation
   * Added Traditional Chinese (zh_TW) translation
