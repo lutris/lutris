@@ -1,9 +1,10 @@
 import sys
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import yaml
 
+from lutris.installer.commands import normalize_accepted_return_code
 from lutris.installer.errors import ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util.test_config import setup_test_environment
@@ -84,3 +85,55 @@ class TestExecuteCommand(TestCase):
         with self.assertRaisesRegex(ScriptingError, "file and command can't be used at the same time"):
             self.interpreter.execute({"file": sys.executable, "command": "echo test"})
         self.process.assert_not_called()
+
+
+class TestMonitorTaskReturnCode(TestCase):
+    def setUp(self):
+        installer = {
+            "script": {"game": {"exe": "test"}},
+            "version": "test",
+            "game_slug": "test",
+            "name": "test",
+            "slug": "test",
+            "runner": "linux",
+        }
+        self.interpreter = ScriptInterpreter(installer)
+        iter_patch = patch.object(self.interpreter, "_iter_commands")
+        self.iter_commands = iter_patch.start()
+        self.addCleanup(iter_patch.stop)
+
+    def monitor(self, return_code, accepted_return_code):
+        command = Mock(is_running=False, return_code=return_code, accepted_return_code=accepted_return_code)
+        return self.interpreter._monitor_task(command)
+
+    def test_accepts_plain_return_code(self):
+        self.assertFalse(self.monitor("1", 1))
+        self.iter_commands.assert_called_once_with()
+
+    def test_accepts_legacy_raw_status(self):
+        # Scripts on lutris.net use these values, as int or str; each is an exit code * 256
+        for legacy, exit_code in ((256, "1"), ("50944", "199"), (65280, "255")):
+            with self.subTest(legacy=legacy):
+                self.assertFalse(self.monitor(exit_code, legacy))
+
+    def test_always_accepts_zero(self):
+        self.assertFalse(self.monitor("0", "7"))
+
+    def test_rejects_other_return_codes(self):
+        for return_code, accepted in (("2", 1), ("256", 256), ("-9", "0"), ("", "0")):
+            with self.subTest(return_code=return_code, accepted=accepted):
+                with self.assertRaisesRegex(ScriptingError, "Command exited with code"):
+                    self.monitor(return_code, accepted)
+        self.iter_commands.assert_not_called()
+
+
+class TestNormalizeAcceptedReturnCode(TestCase):
+    def test_normalizes(self):
+        cases = [(0, "0"), ("0", "0"), (1, "1"), (255, "255"), (256, "1"), ("768", "3"), (65280, "255"), (-9, "-9")]
+        for value, expected in cases:
+            with self.subTest(value=value):
+                self.assertEqual(normalize_accepted_return_code(value), expected)
+
+    def test_leaves_non_numbers_alone(self):
+        self.assertEqual(normalize_accepted_return_code("abc"), "abc")
+        self.assertEqual(normalize_accepted_return_code(None), "None")
