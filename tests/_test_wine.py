@@ -170,3 +170,70 @@ class TestPinnedGeProton(TestCase):
     def test_release_without_a_build_fails_cleanly(self, _urls):
         with self.assertRaises(wine.RunnerInstallationError):
             wine.wine().install_ge_proton(SimpleNamespace(), "GE-Proton11-7")
+
+
+class TestMissingWineVersion(TestCase):
+    """A game whose Wine version is missing must not launch with the default version:
+    umu would download GE-Proton and upgrade the game's prefix to it."""
+
+    def setUp(self):
+        self.game_config = {}
+        self.game_version = "Nonexistent-Proton-1"
+        for patcher in (
+            patch("lutris.config.read_yaml_from_file", side_effect=self.read_yaml),
+            patch.dict(os.environ, {"WINEPREFIX": ""}),
+            patch.object(wine.proton, "get_umu_path", return_value="/umu/umu-run"),
+            patch.object(wine.system, "path_exists", side_effect=lambda path, *args, **kwargs: path == "/umu/umu-run"),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def read_yaml(self, path):
+        if path.endswith("game.yml"):
+            if not self.game_version:
+                return {"game": self.game_config}
+            return {"game": self.game_config, "wine": {"version": self.game_version}}
+        if path.endswith("wine.yml"):
+            return {"wine": {"version": "Nonexistent-Proton-1"}}
+        return {}
+
+    def test_game_with_missing_version_is_not_launched(self):
+        with tempfile.TemporaryDirectory() as prefix:
+            self.game_config = {"prefix": prefix}
+            runner = wine.wine(wine.LutrisConfig(runner_slug="wine", game_config_id="game"))
+            with (
+                patch.object(wine, "create_prefix", side_effect=AssertionError("create_prefix() was called")),
+                self.assertRaises(wine.MissingExecutableError) as error,
+            ):
+                runner.prelaunch()
+        self.assertIn("Nonexistent-Proton-1", str(error.exception))
+
+    def test_game_inheriting_a_missing_runner_version_is_not_launched(self):
+        self.game_version = None
+        runner = wine.wine(wine.LutrisConfig(runner_slug="wine", game_config_id="game"))
+        with self.assertRaises(wine.MissingExecutableError):
+            runner.prelaunch()
+
+    def test_game_with_installed_version_is_launched(self):
+        runner = wine.wine(wine.LutrisConfig(runner_slug="wine", game_config_id="game"))
+        with patch.object(wine.system, "path_exists", return_value=True):
+            runner.prelaunch()
+
+    def test_game_set_to_ge_proton_ignores_a_missing_runner_version(self):
+        self.game_version = wine.GE_PROTON_LATEST
+        runner = wine.wine(wine.LutrisConfig(runner_slug="wine", game_config_id="game"))
+        runner.prelaunch()
+
+    def test_wine_terminal_with_missing_version_is_not_opened(self):
+        runner = wine.wine(wine.LutrisConfig(runner_slug="wine", game_config_id="game"))
+        with (
+            patch.object(runner, "get_env", return_value={}),
+            patch.object(wine, "open_wine_terminal") as open_wine_terminal,
+            self.assertRaises(wine.MissingExecutableError),
+        ):
+            runner.run_wine_terminal()
+        open_wine_terminal.assert_not_called()
+
+    def test_installer_tasks_are_not_blocked(self):
+        # Installer tasks run on a runner without a game config and pass their own Wine path.
+        wine.wine().prelaunch()
