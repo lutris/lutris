@@ -1522,7 +1522,7 @@ msgstr ""
 
 #: lutris/gui/addgameswindow.py:241
 msgid "<b>Search Lutris.net</b>"
-msgstr "<b>Procurar em Lutris.net<b>"
+msgstr "<b>Procurar em Lutris.net</b>"
 
 #: lutris/gui/addgameswindow.py:272
 msgid "No results"

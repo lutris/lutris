@@ -887,7 +887,7 @@ msgstr ""
 "<b>runner:</b><i>wine</i>\t\t\t仅显示 Wine 游戏。\n"
 "<b>platform:</b><i>windows</i>\t仅显示 Windows 平台游戏。\n"
 "<b>playtime:</b><i>>2 hours</i>\t仅显示游戏时长超过 2 小时的游戏。\n"
-"<b>lastplayed:</b><i><2 days</i>\t仅显示过去 2 天内玩过的游戏。\n"
+"<b>lastplayed:</b><i>&lt;2 days</i>\t仅显示过去 2 天内玩过的游戏。\n"
 "<b>directory:</b><i>game/dir</i>\t仅显示指定路径下的游戏。"
 
 #: share/lutris/ui/lutris-window.ui:321 lutris/gui/lutriswindow.py:896
