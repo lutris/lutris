@@ -82,6 +82,18 @@ class TestExecuteCommand(TestCase):
         self.assertEqual(self.process.return_value.accepted_return_code, "7")
         self.process.return_value.start.assert_called_once_with()
 
+    def test_runtime_env_honours_prefer_system_libs(self):
+        for configured, expected in (({}, True), ({"prefer_system_libs": False}, False)):
+            with self.subTest(configured=configured):
+                with (
+                    patch("lutris.installer.commands.LutrisConfig") as config,
+                    patch("lutris.installer.commands.runtime.get_env", return_value={}) as get_env,
+                ):
+                    config.return_value.system_config = configured
+                    self.interpreter.execute({"command": "true"})
+                config.assert_called_once_with(runner_slug="linux")
+                get_env.assert_called_once_with(prefer_system_libs=expected)
+
     def test_file_and_command_remain_mutually_exclusive(self):
         with self.assertRaisesRegex(ScriptingError, "file and command can't be used at the same time"):
             self.interpreter.execute({"file": sys.executable, "command": "echo test"})
