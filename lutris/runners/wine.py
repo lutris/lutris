@@ -854,17 +854,28 @@ class wine(Runner):
                 raise
 
         if not fallback:
-            if version == "custom":
-                raise MissingExecutableError(_("The Wine executable at '%s' is missing.") % wine_path)
-            raise MissingExecutableError(
-                _("Wine version '%s' is not installed. Choose another version in the Runner options.") % version
-            )
+            raise MissingExecutableError(_("The Wine executable at '%s' is missing.") % wine_path)
 
         # Fallback to default version
         default_version = get_default_wine_version()
         wine_path = self.get_path_for_version(default_version)
         if not system.path_exists(wine_path):
             raise MissingExecutableError(_("The Wine executable at '%s' is missing.") % wine_path)
+        # Proton upgrades a Wine prefix in place, and that can't be undone. A game set to
+        # 'ge-proton' asked for it, but read_version_from_config() skips that setting.
+        game_version = (self.config.game_level.get("wine") or {}).get("version")
+        if (
+            game_version != GE_PROTON_LATEST
+            and proton.is_umu_path(wine_path)
+            and proton.is_wine_only_prefix(self.prefix_path)
+        ):
+            raise MissingExecutableError(
+                _(
+                    "Wine version '%s' is not installed. Lutris won't switch this game's Wine prefix to Proton "
+                    "automatically; choose another Wine version for this game."
+                )
+                % version
+            )
 
         # Update the version in the config
         if version == self.runner_config.get("version"):
@@ -886,13 +897,6 @@ class wine(Runner):
                 raise RuntimeError(_("Proton is not compatible with 32-bit prefixes."))
 
         return command
-
-    def get_game_wine_path(self) -> str:
-        """Return the Wine executable for a game, raising rather than falling back if its version is missing"""
-        # read_version_from_config() skips a game-level 'ge-proton' in favor of the
-        # runner's version; the default is what such a game asked for anyway.
-        game_version = (self.config.game_level.get("wine") or {}).get("version")
-        return self.get_executable(fallback=game_version == GE_PROTON_LATEST)
 
     def is_installed(self, flatpak_allowed: bool = True, version: str | None = None, fallback: bool = True) -> bool:
         """Check if Wine is installed.
@@ -1092,7 +1096,7 @@ class wine(Runner):
         system_winetricks: bool = self.runner_config.get("system_winetricks", False)
         open_wine_terminal(
             terminal=terminal,
-            wine_path=self.get_game_wine_path(),
+            wine_path=self.get_executable(),
             prefix=self.prefix_path,
             env=self.get_env(os_env=True),
             system_winetricks=system_winetricks,
@@ -1208,9 +1212,6 @@ class wine(Runner):
             monitored_command.log_handlers.append(proton.UmuLaunchStatusParser(game))
 
     def prelaunch(self):
-        # Installer tasks have no game config and pass their own Wine path.
-        if self.has_explicit_config:
-            self.get_game_wine_path()
         prefix_path = self.prefix_path
         if prefix_path:
             if os.path.islink(prefix_path) and not os.path.exists(prefix_path):
