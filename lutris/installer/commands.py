@@ -810,8 +810,12 @@ class CommandsMixin:
 
         # Determine install path
         # gogdl appends the game's installDirectory (from the depot manifest)
-        # to the path on fresh downloads, so we point it at the parent only.
+        # to the path on downloads, so we point it at the parent only; but
+        # update and repair write into the path as given, so they need the
+        # game directory itself.
         install_path = self.target_path
+        if command in ("update", "repair"):
+            install_path = self._find_gogdl_game_path(install_path)
 
         os.makedirs(install_path, exist_ok=True)
 
@@ -863,8 +867,8 @@ class CommandsMixin:
 
         # Post-install: find where gogdl actually put the files and apply config.
         # For a fresh "download", gogdl appends installDirectory to the path, so we
-        # need to discover the actual game directory. For updates and DLC adds
-        # against an existing install, we wrote into the install dir directly.
+        # need to discover the actual game directory. For update and repair,
+        # install_path is already the game directory.
         if command == "download" and not preserve_manifest:
             game_path = self._find_gogdl_game_path(install_path)
         else:
