@@ -1,5 +1,6 @@
 import hashlib
 import os
+import shutil
 import tempfile
 from types import SimpleNamespace
 from unittest import TestCase
@@ -170,3 +171,88 @@ class TestPinnedGeProton(TestCase):
     def test_release_without_a_build_fails_cleanly(self, _urls):
         with self.assertRaises(wine.RunnerInstallationError):
             wine.wine().install_ge_proton(SimpleNamespace(), "GE-Proton11-7")
+
+
+class TestMissingWineVersion(TestCase):
+    """A missing Wine version falls back to GE-Proton through umu, which would upgrade
+    a plain Wine prefix to Proton for good."""
+
+    def setUp(self):
+        self.game_config = {}
+        self.game_version = "wine-test-missing-1"
+        for patcher in (
+            patch("lutris.config.read_yaml_from_file", side_effect=self.read_yaml),
+            patch.dict(os.environ, {"WINEPREFIX": ""}),
+            patch.object(wine.proton, "get_umu_path", return_value="/umu/umu-run"),
+            patch.object(
+                wine.system,
+                "path_exists",
+                side_effect=lambda path, *args, **kwargs: path == "/umu/umu-run" or os.path.exists(path),
+            ),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def read_yaml(self, path):
+        if path.endswith("game.yml"):
+            if not self.game_version:
+                return {"game": self.game_config}
+            return {"game": self.game_config, "wine": {"version": self.game_version}}
+        if path.endswith("wine.yml"):
+            return {"wine": {"version": "wine-test-missing-1"}}
+        return {}
+
+    def make_prefix(self, *files):
+        prefix = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, prefix)
+        for name in ("user.reg",) + files:
+            open(os.path.join(prefix, name), "w", encoding="utf-8").close()
+        self.game_config = {"prefix": prefix}
+
+    def get_runner(self):
+        return wine.wine(wine.LutrisConfig(runner_slug="wine", game_config_id="game"))
+
+    def test_wine_prefix_is_not_switched_to_proton(self):
+        self.make_prefix()
+        with self.assertRaises(wine.MissingExecutableError) as error:
+            self.get_runner().get_executable()
+        self.assertIn("wine-test-missing-1", str(error.exception))
+
+    def test_wine_prefix_inheriting_a_missing_runner_version_is_not_switched(self):
+        self.game_version = None
+        self.make_prefix()
+        with self.assertRaises(wine.MissingExecutableError):
+            self.get_runner().get_executable()
+
+    def test_wine_terminal_on_a_wine_prefix_is_not_opened(self):
+        self.make_prefix()
+        runner = self.get_runner()
+        with (
+            patch.object(runner, "get_env", return_value={}),
+            patch.object(wine, "open_wine_terminal") as open_wine_terminal,
+            self.assertRaises(wine.MissingExecutableError),
+        ):
+            runner.run_wine_terminal()
+        open_wine_terminal.assert_not_called()
+
+    def test_proton_prefix_falls_back_to_the_default(self):
+        for marker in ("tracked_files", "version"):
+            with self.subTest(marker=marker):
+                self.make_prefix(marker)
+                self.assertEqual(self.get_runner().get_executable(), "/umu/umu-run")
+
+    def test_game_set_to_ge_proton_falls_back(self):
+        self.game_version = wine.GE_PROTON_LATEST
+        self.make_prefix()
+        self.assertEqual(self.get_runner().get_executable(), "/umu/umu-run")
+
+    def test_new_prefix_falls_back_to_the_default(self):
+        parent = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, parent)
+        self.game_config = {"prefix": os.path.join(parent, "prefix")}
+        self.assertEqual(self.get_runner().get_executable(), "/umu/umu-run")
+
+    def test_installed_version_is_used(self):
+        self.make_prefix()
+        with patch.object(wine.system, "path_exists", return_value=True):
+            self.assertIn("wine-test-missing-1", self.get_runner().get_executable())

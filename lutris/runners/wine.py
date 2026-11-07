@@ -861,6 +861,21 @@ class wine(Runner):
         wine_path = self.get_path_for_version(default_version)
         if not system.path_exists(wine_path):
             raise MissingExecutableError(_("The Wine executable at '%s' is missing.") % wine_path)
+        # Proton upgrades a Wine prefix in place, and that can't be undone. A game set to
+        # 'ge-proton' asked for it, but read_version_from_config() skips that setting.
+        game_version = (self.config.game_level.get("wine") or {}).get("version")
+        if (
+            game_version != GE_PROTON_LATEST
+            and proton.is_umu_path(wine_path)
+            and proton.is_wine_only_prefix(self.prefix_path)
+        ):
+            raise MissingExecutableError(
+                _(
+                    "Wine version '%s' is not installed. Lutris won't switch this game's Wine prefix to Proton "
+                    "automatically; choose another Wine version for this game."
+                )
+                % version
+            )
 
         # Update the version in the config
         if version == self.runner_config.get("version"):
