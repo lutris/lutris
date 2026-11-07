@@ -6,16 +6,29 @@ import os
 import sys
 from typing import TYPE_CHECKING
 
-from gi.repository import GLib
+# Try to import GTK, but handle import errors gracefully for systems with
+# libatkbridge issues (e.g., Fedora-based systems with version mismatches)
+try:
+    from gi.repository import GLib
+    _GTK_AVAILABLE = True
+except (ImportError, TypeError, ValueError) as e:
+    # Log the error for debugging but continue without GTK
+    print(f"Warning: Failed to import GTK: {e}", file=sys.stderr)
+    _GTK_AVAILABLE = False
+    GLib = None
 
 if TYPE_CHECKING:
     from gi.repository import Gtk
 
 # Used to store log buffers for games. Quoted so importers (notably the
 # lutris-wrapper subprocess) don't need to load the Gtk typelib just to log.
-LOG_BUFFERS: "dict[str, Gtk.TextBuffer]" = {}
+# Only define if GTK is available
+if _GTK_AVAILABLE:
+    LOG_BUFFERS: "dict[str, Gtk.TextBuffer]" = {}
+else:
+    LOG_BUFFERS: "dict[str, None]" = {}
 
-CACHE_DIR = os.path.realpath(os.path.join(GLib.get_user_cache_dir(), "lutris"))
+CACHE_DIR = os.path.realpath(os.path.join(GLib.get_user_cache_dir(), "lutris")) if GLib else os.path.realpath(os.path.join("/tmp", "lutris"))
 if not os.path.isdir(CACHE_DIR):
     os.makedirs(CACHE_DIR)
 
