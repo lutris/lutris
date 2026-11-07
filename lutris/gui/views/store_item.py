@@ -7,7 +7,7 @@ from lutris.database.services import ServiceGameCollection
 from lutris.runners import get_runner_human_name
 from lutris.services import SERVICES
 from lutris.services.lutris import LutrisService
-from lutris.services.service_media import MediaPath
+from lutris.services.service_media import MediaPath, MediaPaths
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
 
@@ -76,6 +76,10 @@ class StoreItem:
         self._cached_installed_game_data_loaded = False
         self._service_obj = service
         self._service_media = service_media
+        # Answers from media file existence checks, by path. Store items are short-lived, so
+        # this can't outlive the media it describes, and the same paths would otherwise be
+        # checked several times for every game displayed.
+        self._media_exists_memo: dict[str, bool] = {}
 
     def __str__(self):
         return self.name
@@ -194,18 +198,27 @@ class StoreItem:
 
         return check_data(self._installed_game_data)
 
+    def _media_exists(self, media_path: MediaPath) -> bool:
+        """Returns True if the media file exists and has contents, remembering the answer so
+        that repeated checks on the same path- such as the fallback search making the same
+        checks the caller already did- cost nothing."""
+        exists = self._media_exists_memo.get(media_path.path)
+        if exists is None:
+            exists = self._media_exists_memo[media_path.path] = media_path.exists
+        return exists
+
     def get_media_paths(self) -> list[MediaPath]:
         """Returns the path to the image file for this item"""
         if self._game_data.get("icon"):
             icon = self._game_data["icon"]
             if isinstance(icon, MediaPath):
-                return [icon]
+                return MediaPaths([icon])
             # String path - wrap it in a MediaPath
-            return [MediaPath(icon, self.service_media)]
+            return MediaPaths([MediaPath(icon, self.service_media)])
 
         possible_paths = self.service_media.get_possible_media_paths(self.slug)
-        if any(mp for mp in possible_paths if mp.exists):
-            return possible_paths
+        if any(self._media_exists(mp) for mp in possible_paths):
+            return MediaPaths(possible_paths)
 
         service = self._service_obj or LutrisService
         services = [(service, lambda: self.slug)]
@@ -222,8 +235,8 @@ class StoreItem:
             game_service = SERVICES[game_service_name]()
             services.append((game_service, get_service_slug))
 
-        fallback_path = self.service_media.get_fallback_media_path(services)
-        return possible_paths + [fallback_path] if fallback_path else possible_paths
+        fallback_path = self.service_media.get_fallback_media_path(services, exists_function=self._media_exists)
+        return MediaPaths(possible_paths + [fallback_path] if fallback_path else possible_paths)
 
     def _get_timestamp_attribute(self, key):
         """Read a timestamp field, discarding and reporting an implausible value. A missing

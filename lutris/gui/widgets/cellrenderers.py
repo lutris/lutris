@@ -6,7 +6,7 @@ from math import floor
 
 import gi
 
-from lutris.util.jobs import schedule_at_idle
+from lutris.util.jobs import IdleTask, schedule_at_idle
 from lutris.util.log import logger
 
 gi.require_version("PangoCairo", "1.0")
@@ -21,7 +21,7 @@ from lutris.gui.widgets.utils import (
     get_scaled_surface_by_path,
     get_surface_size,
 )
-from lutris.services.service_media import resolve_media_path
+from lutris.services.service_media import MediaPaths, resolve_media_path
 from lutris.util.path_cache import MISSING_GAMES
 
 _MEDIA_CACHE_GENERATION_NUMBER = 0
@@ -116,6 +116,7 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         self.cached_surfaces_old = {}
         self.cached_surfaces_loaded = 0
         self.cached_surface_generation = 0
+        self.cycle_task: IdleTask | None = None
         self.badge_size = 0, 0
         self.badge_alpha = 0.6
         self.badge_fore_color = 1, 1, 1
@@ -230,7 +231,16 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
         return size[1], size[1]
 
     def do_render(self, cr, widget, background_area, cell_area, flags):
-        media_path = resolve_media_path(self.media_paths) if self.media_paths else None
+        media_paths = self.media_paths
+        if isinstance(media_paths, MediaPaths):
+            # This remembers the path it resolved to, so a redraw does not need to stat the
+            # file system again for the media cache generation.
+            media_path = media_paths.get_resolved(_MEDIA_CACHE_GENERATION_NUMBER)
+        elif media_paths:
+            media_path = resolve_media_path(media_paths)
+        else:
+            media_path = None
+
         if not media_path:
             return
 
@@ -287,8 +297,10 @@ class GridViewCellRendererImage(Gtk.CellRenderer):
                     PangoCairo.update_layout(cr, layout)
 
             # Idle time will wait until the widget has drawn whatever it wants to;
-            # we can then discard surfaces we aren't using anymore.
-            schedule_at_idle(self.cycle_cache)
+            # we can then discard surfaces we aren't using anymore. Drawing happens once per
+            # cell, so only one cycle is scheduled for the whole frame.
+            if self.cycle_task is None or self.cycle_task.is_completed():
+                self.cycle_task = schedule_at_idle(self.cycle_cache)
 
     def select_badge_metrics(self, surface, media_width, media_height):
         """Updates fields holding data about the appearance of the badges;
