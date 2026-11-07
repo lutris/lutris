@@ -834,9 +834,15 @@ class CommandsMixin:
         if command == "download" and not preserve_manifest:
             clear_stale_manifest(game_id, install_path, runner="linux" if platform == "linux" else "wine")
 
-        msg = _("Downloading via GOG depot...")
+        if command == "repair":
+            msg = _("Verifying and repairing via GOG depot...")
+        else:
+            msg = _("Downloading via GOG depot...")
         logger.info(msg)
         self.interpreter_ui_delegate.report_status(msg)
+        # gogdl reports nothing until it starts downloading, and a repair may
+        # spend a long time just verifying files first.
+        self.interpreter_ui_delegate.report_progress(-1)
 
         def progress_callback(progress):
             fraction = progress.percent / 100.0
@@ -849,7 +855,7 @@ class CommandsMixin:
             self.interpreter_ui_delegate.report_progress(fraction, text)
 
         try:
-            run_gogdl(
+            outcome = run_gogdl(
                 command=command,
                 game_id=game_id,
                 path=install_path,
@@ -864,6 +870,16 @@ class CommandsMixin:
             raise ScriptingError(_("GOG depot download failed: %s") % err) from err
 
         self.interpreter_ui_delegate.report_progress(None)
+
+        if command == "repair":
+            if outcome.nothing_to_do:
+                self.install_complete_text = _("All game files are intact; nothing needed repairing.")
+            elif outcome.broken_files is not None:
+                self.install_complete_text = _("Damaged or missing files repaired: %d") % outcome.broken_files
+            else:
+                self.install_complete_text = _("Damaged or missing files were repaired.")
+        elif command == "update" and outcome.nothing_to_do:
+            self.install_complete_text = _("The game is already up to date.")
 
         # Post-install: find where gogdl actually put the files and apply config.
         # For a fresh "download", gogdl appends installDirectory to the path, so we

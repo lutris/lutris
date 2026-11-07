@@ -182,3 +182,19 @@ class TestGogdlSetupPath(TestCase):
                 self.interpreter.gogdl_setup({"game_id": "1", "command": command})
                 self.assertEqual(self.run_gogdl.call_args.kwargs["path"], self.game_dir)
                 self.post_install.assert_called_with(self.game_dir, "windows")
+
+    def run_repair_or_update(self, command, nothing_to_do=False, broken_files=None):
+        outcome = self.run_gogdl.return_value
+        outcome.nothing_to_do = nothing_to_do
+        outcome.broken_files = broken_files
+        self.interpreter.gogdl_setup({"game_id": "1", "command": command})
+        return self.interpreter.install_complete_text
+
+    def test_completion_text_reports_outcome(self):
+        self.assertIn("nothing needed repairing", self.run_repair_or_update("repair", nothing_to_do=True))
+        self.assertIn("repaired: 3", self.run_repair_or_update("repair", broken_files=3))
+        self.assertIn("were repaired", self.run_repair_or_update("repair"))
+        self.assertIn("already up to date", self.run_repair_or_update("update", nothing_to_do=True))
+
+    def test_completion_text_left_alone_after_real_update(self):
+        self.assertIsNone(self.run_repair_or_update("update"))

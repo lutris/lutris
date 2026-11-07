@@ -37,6 +37,10 @@ PROGRESS_RE = re.compile(
     r" Running for: (?P<elapsed>\S+), ETA: (?P<eta>\S+)"
 )
 SPEED_RE = re.compile(r"\+ Download\t- (?P<raw_speed>[\d.]+) MiB/s \(raw\)")
+# Outcome lines from the game download managers; the REDIST manager also says
+# "Nothing to do", about redistributables only, so match on the logger name.
+NOTHING_TO_DO_RE = re.compile(r"^\[(V1|V2|LINUX)\] INFO: (Nothing to do|All files look good)$")
+BROKEN_FILES_RE = re.compile(r"^\[(V1|V2)\] INFO: Found (?P<count>\d+) broken files")
 
 
 def _get_gogdl_binary():
@@ -154,9 +158,22 @@ class GogdlProgress:
         self.total = 0
         self.speed_mib = 0.0
         self.eta = ""
+        # True if gogdl found every file already correct, so it changed nothing
+        self.nothing_to_do = False
+        # How many files a repair found damaged or missing, if gogdl said
+        self.broken_files = None
 
     def parse_line(self, line):
         """Parse a single line of gogdl output. Returns True if progress was updated."""
+        if NOTHING_TO_DO_RE.search(line):
+            self.nothing_to_do = True
+            return False
+
+        match = BROKEN_FILES_RE.search(line)
+        if match:
+            self.broken_files = int(match.group("count"))
+            return False
+
         match = PROGRESS_RE.search(line)
         if match:
             self.percent = float(match.group("percent"))
@@ -186,7 +203,7 @@ def run_gogdl(command, game_id, path, platform="windows", lang=None, dlcs=None, 
         progress_callback: Called with (GogdlProgress) on progress updates
     Returns:
         For "info": parsed JSON dict
-        For other commands: None on success
+        For other commands: the GogdlProgress, which records the outcome
     Raises:
         FileNotFoundError: if gogdl runtime component is not installed
         RuntimeError: if gogdl fails (with gogdl's error output as the message)
@@ -253,6 +270,8 @@ def run_gogdl(command, game_id, path, platform="windows", lang=None, dlcs=None, 
             error_msg = "gogdl %s failed (exit code %d)" % (command, process.returncode)
         logger.error("gogdl %s failed: %s", command, error_msg)
         raise RuntimeError(error_msg)
+
+    return progress
 
 
 LINUX_MANIFEST_FILENAME = ".gogdl-linux-manifest"
