@@ -781,10 +781,9 @@ class wine(Runner):
 
         return super().get_runner_version(version)
 
-    def read_version_from_config(self, default: str | None = None) -> str:
-        """Return the Wine version to use. use_default can be set to false to
-        force the installation of a specific wine version. If no version is configured,
-        we return the default supplied, or the global Wine default if none is."""
+    def read_version_from_config(self) -> str:
+        """Return the Wine version to use: the game's, else the runner's, else the
+        global Wine default."""
 
         # We must use the config levels to avoid getting a default if the setting
         # is not set; we'll fall back to get_default_version()
@@ -792,12 +791,8 @@ class wine(Runner):
         for level in [self.config.game_level, self.config.runner_level]:
             if "wine" in level:
                 runner_version = level["wine"].get("version")
-                # Treat 'ge-proton' as if no version is set
-                if runner_version and runner_version != GE_PROTON_LATEST:
+                if runner_version:
                     return runner_version
-
-        if default:
-            return default
 
         return get_default_wine_version()
 
@@ -861,6 +856,15 @@ class wine(Runner):
         wine_path = self.get_path_for_version(default_version)
         if not system.path_exists(wine_path):
             raise MissingExecutableError(_("The Wine executable at '%s' is missing.") % wine_path)
+        # Proton upgrades a Wine prefix in place, and that can't be undone.
+        if proton.is_umu_path(wine_path) and proton.is_wine_only_prefix(self.prefix_path):
+            raise MissingExecutableError(
+                _(
+                    "Wine version '%s' is not installed. Lutris won't switch this game's Wine prefix to Proton "
+                    "automatically; choose another Wine version for this game."
+                )
+                % version
+            )
 
         # Update the version in the config
         if version == self.runner_config.get("version"):
