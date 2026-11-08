@@ -111,9 +111,7 @@ class TestReadLibraryFolders(TestCase):
         self.assertEqual(library_folders["0"]["path"], "/home/user/.local/share/Steam")
 
     def test_prefers_current_location_over_legacy_location(self):
-        canonical_content = LIBRARY_FOLDERS_VDF.replace(
-            "/home/user/.local/share/Steam", "/mnt/games/SteamLibrary"
-        )
+        canonical_content = LIBRARY_FOLDERS_VDF.replace("/home/user/.local/share/Steam", "/mnt/games/SteamLibrary")
         with tempfile.TemporaryDirectory() as steam_dir:
             self._write_library_folders(steam_dir, LIBRARY_FOLDERS_VDF)
             self._write_library_folders(steam_dir, canonical_content, directory="steamapps")
@@ -125,9 +123,7 @@ class TestReadLibraryFolders(TestCase):
     def test_falls_back_when_current_location_is_invalid(self):
         with tempfile.TemporaryDirectory() as steam_dir:
             self._write_library_folders(steam_dir, LIBRARY_FOLDERS_VDF)
-            self._write_library_folders(
-                steam_dir, '"somethingelse"\n{\n\t"foo"\t\t"bar"\n}\n', directory="steamapps"
-            )
+            self._write_library_folders(steam_dir, '"somethingelse"\n{\n\t"foo"\t\t"bar"\n}\n', directory="steamapps")
 
             library_folders = config.read_library_folders(steam_dir)
 

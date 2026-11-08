@@ -261,12 +261,7 @@ def get_mounted_steamapps_dirs(mounts_filename: str = "/proc/mounts") -> list[st
                 parts = line.split()
                 if len(parts) < 3 or parts[2] not in data_filesystems:
                     continue
-                mount_path = (
-                    parts[1]
-                    .replace(r"\040", " ")
-                    .replace(r"\011", "\t")
-                    .replace(r"\134", "\\")
-                )
+                mount_path = parts[1].replace(r"\040", " ").replace(r"\011", "\t").replace(r"\134", "\\")
                 if mount_path == "/":
                     continue
                 for relative_path in ("steamapps", os.path.join("SteamLibrary", "steamapps")):
