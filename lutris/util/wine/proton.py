@@ -13,6 +13,7 @@ from lutris.monitored_command import RUNNING_COMMANDS
 from lutris.util import cache_single, system
 from lutris.util.http import Request
 from lutris.util.linux import LINUX_SYSTEM
+from lutris.util.log import logger
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key
 
@@ -235,7 +236,8 @@ def _iter_proton_locations() -> Generator[str, None, None]:
 
     try:
         steamapp_dirs = get_steamapps_dirs()
-    except Exception:
+    except Exception as ex:  # pylint: disable=broad-exception-caught
+        logger.warning("Unable to discover Proton installations from Steam libraries: %s", ex)
         return  # in case of corrupt or unreadable Steam configuration files!
 
     for path in [os.path.join(p, "common") for p in steamapp_dirs]:
