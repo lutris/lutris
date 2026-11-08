@@ -1,4 +1,4 @@
-# generated on 2025-12-13T11:09:02+00:00
+# generated on 2026-11-07T19:02:30+00:00
 
 share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
@@ -36,6 +36,7 @@ lutris/gui/config/edit_game_categories.py
 lutris/gui/config/edit_game.py
 lutris/gui/config/edit_saved_search.py
 lutris/gui/config/game_common.py
+lutris/gui/config/game_info_box.py
 lutris/gui/config/__init__.py
 lutris/gui/config/preferences_box.py
 lutris/gui/config/preferences_dialog.py
@@ -48,6 +49,8 @@ lutris/gui/config/sysinfo_box.py
 lutris/gui/config/updates_box.py
 lutris/gui/config/widget_generator.py
 lutris/gui/dialogs/cache.py
+lutris/gui/dialogs/cloud_sync_progress.py
+lutris/gui/dialogs/cloud_sync.py
 lutris/gui/dialogs/delegates.py
 lutris/gui/dialogs/download.py
 lutris/gui/dialogs/game_import.py
@@ -91,6 +94,7 @@ lutris/gui/widgets/scaled_image.py
 lutris/gui/widgets/searchable_entrybox.py
 lutris/gui/widgets/sidebar.py
 lutris/gui/widgets/status_icon.py
+lutris/gui/widgets/stock_icon_image.py
 lutris/gui/widgets/utils.py
 lutris/gui/widgets/window.py
 lutris/__init__.py
@@ -108,12 +112,15 @@ lutris/migrations/migrate_banners_back.py
 lutris/migrations/migrate_ge_proton.py
 lutris/migrations/migrate_hidden_category.py
 lutris/migrations/migrate_hidden_ids.py
+lutris/migrations/migrate_multi_system_runners_to_use_platform_dict.py
+lutris/migrations/migrate_proton_to_wine_dir.py
 lutris/migrations/migrate_sortname.py
 lutris/migrations/migrate_steam_appids.py
 lutris/migrations/retrieve_discord_appids.py
 lutris/monitored_command.py
 lutris/runner_interpreter.py
 lutris/runners/atari800.py
+lutris/runners/azahar.py
 lutris/runners/cemu.py
 lutris/runners/commands/dosbox.py
 lutris/runners/commands/__init__.py
@@ -144,6 +151,7 @@ lutris/runners/rpcs3.py
 lutris/runners/runner.py
 lutris/runners/ryujinx.py
 lutris/runners/scummvm.py
+lutris/runners/shadps4.py
 lutris/runners/snes9x.py
 lutris/runners/steam.py
 lutris/runners/vice.py
@@ -151,12 +159,14 @@ lutris/runners/vita3k.py
 lutris/runners/web.py
 lutris/runners/wine.py
 lutris/runners/xemu.py
+lutris/runners/xenia.py
 lutris/runners/yuzu.py
 lutris/runners/zdoom.py
 lutris/runtime.py
 lutris/scanners/default_installers.py
 lutris/scanners/__init__.py
 lutris/scanners/lutris.py
+lutris/scanners/playtron.py
 lutris/scanners/retroarch.py
 lutris/scanners/tosec.py
 lutris/search_predicate.py
@@ -164,10 +174,14 @@ lutris/search.py
 lutris/services/amazon.py
 lutris/services/base.py
 lutris/services/battlenet.py
+lutris/services/dlsite.py
 lutris/services/dolphin.py
 lutris/services/ea_app.py
 lutris/services/egs.py
 lutris/services/flathub.py
+lutris/services/gamejolt.py
+lutris/services/gog_cloud_hooks.py
+lutris/services/gog_cloud.py
 lutris/services/gog.py
 lutris/services/humblebundle.py
 lutris/services/__init__.py
@@ -182,6 +196,7 @@ lutris/services/steam.py
 lutris/services/steamwindows.py
 lutris/services/ubisoft.py
 lutris/services/xdg.py
+lutris/services/zoom.py
 lutris/settings.py
 lutris/startup.py
 lutris/style_manager.py
@@ -191,7 +206,7 @@ lutris/util/amazon/protobuf_decoder.py
 lutris/util/amazon/sds_proto2.py
 lutris/util/battlenet/definitions.py
 lutris/util/battlenet/__init__.py
-lutris/util/battlenet/product_db_pb2.py
+lutris/util/battlenet/product_db.py
 lutris/util/busy.py
 lutris/util/cookies.py
 lutris/util/datapath.py
@@ -202,8 +217,9 @@ lutris/util/discord/rpc.py
 lutris/util/display.py
 lutris/util/dolphin/cache_reader.py
 lutris/util/dolphin/__init__.py
-lutris/util/dolphin.py
+lutris/util/download_cache.py
 lutris/util/downloader.py
+lutris/util/download_progress.py
 lutris/util/egs/egs_launcher.py
 lutris/util/egs/__init__.py
 lutris/util/extract.py
@@ -212,6 +228,8 @@ lutris/util/files.py
 lutris/util/flatpak.py
 lutris/util/gamecontrollerdb.py
 lutris/util/game_finder.py
+lutris/util/gogdl.py
+lutris/util/gog_downloader.py
 lutris/util/gog.py
 lutris/util/graphics/displayconfig.py
 lutris/util/graphics/drivers.py
@@ -245,6 +263,8 @@ lutris/util/retroarch/firmware.py
 lutris/util/savesync.py
 lutris/util/settings.py
 lutris/util/shell.py
+lutris/util/sniper.py
+lutris/util/standalone_scripts.py
 lutris/util/steam/appmanifest.py
 lutris/util/steam/config.py
 lutris/util/steam/__init__.py
@@ -253,11 +273,11 @@ lutris/util/steam/shortcut.py
 lutris/util/steam/steamid.py
 lutris/util/steam/vdf/__init__.py
 lutris/util/steam/vdfutils.py
-lutris/util/steam/vdf/vdict.py
 lutris/util/steam/watcher.py
 lutris/util/strings.py
 lutris/util/system.py
 lutris/util/test_config.py
+lutris/util/textdomain.py
 lutris/util/timer.py
 lutris/util/tokenization.py
 lutris/util/ubisoft/client.py

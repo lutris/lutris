@@ -11,6 +11,7 @@ from pathlib import Path
 
 from lutris import runtime
 from lutris.cache import is_file_in_custom_cache
+from lutris.config import LutrisConfig
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -146,8 +147,9 @@ class CommandsMixin:
             if working_dir:
                 working_dir = self._substitute(working_dir)
             if not data.get("disable_runtime"):
-                # Possibly need to handle prefer_system_libs here
-                env.update(runtime.get_env())
+                # Like Runner.get_runtime_env(); runtime-first breaks system GTK tools on new distros (#6998)
+                system_config = LutrisConfig(runner_slug=self.installer.runner).system_config
+                env.update(runtime.get_env(prefer_system_libs=system_config.get("prefer_system_libs", True)))
 
             # Loading environment variables set in the script
             env.update(self.script_env)
@@ -810,8 +812,12 @@ class CommandsMixin:
 
         # Determine install path
         # gogdl appends the game's installDirectory (from the depot manifest)
-        # to the path on fresh downloads, so we point it at the parent only.
+        # to the path on downloads, so we point it at the parent only; but
+        # update and repair write into the path as given, so they need the
+        # game directory itself.
         install_path = self.target_path
+        if command in ("update", "repair"):
+            install_path = self._find_gogdl_game_path(install_path)
 
         os.makedirs(install_path, exist_ok=True)
 
@@ -830,9 +836,15 @@ class CommandsMixin:
         if command == "download" and not preserve_manifest:
             clear_stale_manifest(game_id, install_path, runner="linux" if platform == "linux" else "wine")
 
-        msg = _("Downloading via GOG depot...")
+        if command == "repair":
+            msg = _("Verifying and repairing via GOG depot...")
+        else:
+            msg = _("Downloading via GOG depot...")
         logger.info(msg)
         self.interpreter_ui_delegate.report_status(msg)
+        # gogdl reports nothing until it starts downloading, and a repair may
+        # spend a long time just verifying files first.
+        self.interpreter_ui_delegate.report_progress(-1)
 
         def progress_callback(progress):
             fraction = progress.percent / 100.0
@@ -845,7 +857,7 @@ class CommandsMixin:
             self.interpreter_ui_delegate.report_progress(fraction, text)
 
         try:
-            run_gogdl(
+            outcome = run_gogdl(
                 command=command,
                 game_id=game_id,
                 path=install_path,
@@ -861,10 +873,20 @@ class CommandsMixin:
 
         self.interpreter_ui_delegate.report_progress(None)
 
+        if command == "repair":
+            if outcome.nothing_to_do:
+                self.install_complete_text = _("All game files are intact; nothing needed repairing.")
+            elif outcome.broken_files is not None:
+                self.install_complete_text = _("Damaged or missing files repaired: %d") % outcome.broken_files
+            else:
+                self.install_complete_text = _("Damaged or missing files were repaired.")
+        elif command == "update" and outcome.nothing_to_do:
+            self.install_complete_text = _("The game is already up to date.")
+
         # Post-install: find where gogdl actually put the files and apply config.
         # For a fresh "download", gogdl appends installDirectory to the path, so we
-        # need to discover the actual game directory. For updates and DLC adds
-        # against an existing install, we wrote into the install dir directly.
+        # need to discover the actual game directory. For update and repair,
+        # install_path is already the game directory.
         if command == "download" and not preserve_manifest:
             game_path = self._find_gogdl_game_path(install_path)
         else:
