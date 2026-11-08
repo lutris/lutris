@@ -18,7 +18,7 @@ from lutris.gui.dialogs import (
     display_error,
 )
 from lutris.gui.dialogs.cache import CacheConfigurationDialog
-from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
+from lutris.gui.dialogs.delegates import CommandLineUIDelegate, DialogInstallUIDelegate
 from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
@@ -1056,7 +1056,12 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
             # Since we're closing this window, we can't use
             # it as the delegate.
             application = Gio.Application.get_default()
-            game.launch(application.launch_ui_delegate)
+            delegate = application.launch_ui_delegate
+            # After an install from a URI or -i, this delegate can only pick the
+            # config named on the command line; it never shows the dialog.
+            if isinstance(delegate, CommandLineUIDelegate) and not delegate.launch_config_name:
+                delegate = application.window or delegate
+            game.launch(delegate)
         else:
             logger.error("Game has no ID, launch button should not be drawn")
         self.on_cancel_clicked(button)
