@@ -905,26 +905,35 @@ class GOGService(OnlineService):
             from lutris.util.gog import find_installed_product_ids
 
             installed_dlc_ids = find_installed_product_ids(install_dir) - {str(appid)}
-            gogdl_setup = {
-                "game_id": appid,
-                "platform": platform,
-                "command": "update",
-            }
-            if installed_dlc_ids:
-                gogdl_setup["dlcs"] = ",".join(sorted(installed_dlc_ids))
-            return [
-                {
+
+            def depot_installer(command: str, version: str, description: str) -> dict:
+                gogdl_setup = {
+                    "game_id": appid,
+                    "platform": platform,
+                    "command": command,
+                }
+                if installed_dlc_ids:
+                    gogdl_setup["dlcs"] = ",".join(sorted(installed_dlc_ids))
+                return {
                     "name": db_game["name"],
-                    "description": _("Update via GOG depot (incremental)"),
+                    "description": description,
                     "slug": db_game["installer_slug"],
                     "game_slug": db_game["slug"],
-                    "version": "GOG depot update",
+                    "version": version,
                     "runner": runner or "wine",
                     "script": {
                         "extends": db_game["installer_slug"],
                         "installer": [{"gogdl_setup": gogdl_setup}],
                     },
                 }
+
+            # Repair rides along with updates: it's rarely needed, and it is the
+            # way out when an update left files missing or damaged.
+            return [
+                depot_installer("update", "GOG depot update", _("Update via GOG depot (incremental)")),
+                depot_installer(
+                    "repair", "GOG depot repair", _("Verify game files and re-download any that are damaged")
+                ),
             ]
 
         # Fallback: offline installer patch-based updates

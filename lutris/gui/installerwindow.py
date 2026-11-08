@@ -31,7 +31,7 @@ from lutris.installer import InstallationKind, interpreter
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.interpreter import ScriptInterpreter
 from lutris.util import xdgshortcuts
-from lutris.util.jobs import AsyncCall
+from lutris.util.jobs import AsyncCall, schedule_repeating_at_idle
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import get_log_contents, logger
 from lutris.util.steam import shortcut as steam_shortcut
@@ -76,6 +76,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.interpreter = None
         self.installation_kind = installation_kind
         self.continue_handler = None
+        self._progress_pulse_task = None
 
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
@@ -355,14 +356,25 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
     def _set_progress(self, fraction, text):
         if not hasattr(self, "install_progress_bar"):
             return
+        if self._progress_pulse_task:
+            self._progress_pulse_task.unschedule()
+            self._progress_pulse_task = None
         if fraction is None:
             self.install_progress_bar.hide()
             return
-        self.install_progress_bar.set_fraction(fraction)
+        if fraction < 0:
+            self._progress_pulse_task = schedule_repeating_at_idle(self._pulse_progress, interval_seconds=0.1)
+        else:
+            self.install_progress_bar.set_fraction(fraction)
         if text:
             self.install_progress_bar.set_text(text)
             self.install_progress_bar.set_show_text(True)
         self.install_progress_bar.show()
+
+    def _pulse_progress(self):
+        self.install_progress_bar.pulse()
+        # Stop once the bar is off screen, e.g. if the install failed
+        return self.install_progress_bar.get_mapped()
 
     def attach_log(self, command):
         # Hook the log buffer right now, lest we miss updates.
