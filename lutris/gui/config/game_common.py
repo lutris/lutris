@@ -19,6 +19,7 @@ from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.dialogs.move_game import MoveDialog
 from lutris.gui.widgets.notifications import send_notification
 from lutris.runners import import_runner
+from lutris.runners.wine import set_default_game_prefix
 from lutris.services.lutris import download_lutris_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -445,6 +446,8 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.game.game_config_id = new_config_id
 
         self.game.runner_name = self.runner_name
+
+        set_default_game_prefix(self.game)
 
         if "icon" not in self.game.custom_images:
             self.game.runner.extract_icon(game_info_box.slug)
