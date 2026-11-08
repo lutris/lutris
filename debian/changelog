@@ -1,6 +1,7 @@
 lutris (0.5.23) jammy; urgency=medium
 
   * Add GOG depot-based downloads, DLC installs, and incremental updates via gogdl integration
+  * Add a repair option for GOG depot installs under "Install updates"
   * Add GOG cloud save synchronization
   * Add GameJolt as a game source
   * Add store page URLs for GOG, Steam, itch.io, Humble Bundle, Flathub, ZOOM Platform, and GameJolt
