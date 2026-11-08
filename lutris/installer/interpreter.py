@@ -60,7 +60,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
 
         def report_progress(self, fraction, text=""):
             """Called to report numeric progress (0.0 to 1.0) during installation.
-            If fraction is None, hides the progress bar."""
+            If fraction is None, hides the progress bar; if it is negative, shows a
+            busy bar until the next report."""
 
         def report_finished(self, game_id, status):
             """Called to report the successful completion of the installation."""
@@ -73,6 +74,8 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.service = self.interpreter_ui_delegate.service
         _appid = self.interpreter_ui_delegate.appid
         self.game_dir_created = False  # Whether a game folder was created during the install
+        # A command can set this to say what the install did, in place of "Installation completed!"
+        self.install_complete_text = None
         # Extra files for installers, either None if the extras haven't been checked yet.
         # Or a list of IDs of extras to be downloaded during the install
         self.game_disc = None
@@ -411,7 +414,11 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             )
             logger.warning("No executable found at specified location %s", exe_path)
         else:
-            status = self.installer.script.get("install_complete_text") or _("Installation completed!")
+            status = (
+                self.install_complete_text
+                or self.installer.script.get("install_complete_text")
+                or _("Installation completed!")
+            )
         AsyncCall(download_lutris_media, None, self.installer.game_slug)
         self.interpreter_ui_delegate.report_finished(game_id, status)
 

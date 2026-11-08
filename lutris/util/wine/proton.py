@@ -119,6 +119,14 @@ def is_proton_path(wine_path: str | None) -> bool:
     return False
 
 
+def is_wine_only_prefix(prefix_path: str | None) -> bool:
+    """True if prefix_path holds a Wine prefix that Proton has never run in; umu and
+    Proton leave 'tracked_files' and 'version' files in the prefixes they manage."""
+    if not prefix_path or not system.path_exists(os.path.join(prefix_path, "user.reg")):
+        return False
+    return not any(system.path_exists(os.path.join(prefix_path, name)) for name in ("tracked_files", "version"))
+
+
 @cache_single
 def get_umu_path() -> str:
     """Returns the path to the Umu launch script, which can be run to execute
