@@ -18,8 +18,16 @@ DESKTOP_KEYS = [
     "{374DE290-123F-4565-9164-39C4925E467B}",  # Downloads
     "Templates",
 ]
-DEFAULT_DESKTOP_FOLDERS = ["Desktop", "Documents", "Music", "Videos", "Pictures", "Downloads"]
-DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES", "DOWNLOADS"]
+DEFAULT_DESKTOP_FOLDERS = [
+    "Desktop",
+    "Documents",
+    "Music",
+    "Videos",
+    "Pictures",
+    "Downloads",
+    "AppData/Roaming/Microsoft/Windows/Templates",
+]
+DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES", "DOWNLOADS", "TEMPLATES"]
 DEFAULT_DLL_OVERRIDES = {
     "winemenubuilder": "",
 }
@@ -146,18 +154,25 @@ class WinePrefixManager:
         self.set_registry_key(key, dll, mode)
 
     def get_desktop_folders(self):
-        """Return the list of desktop folder names loaded from the Windows registry"""
+        """Return the desktop folders, relative to the user directory, loaded from the
+        Windows registry; the list lines up with DESKTOP_XDG."""
         desktop_folders = []
-        for key in DESKTOP_KEYS:
+        for key, default_folder in zip(DESKTOP_KEYS, DEFAULT_DESKTOP_FOLDERS):
             folder = self.get_registry_key(
                 self.hkcu_prefix + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
                 key,
             )
             if not folder:
                 logger.warning("Couldn't load shell folder name for %s", key)
+                desktop_folders.append(default_folder)
                 continue
-            desktop_folders.append(folder[folder.rfind("\\") + 1 :])
-        return desktop_folders or DEFAULT_DESKTOP_FOLDERS
+            # Templates lives under AppData, so keep the path below C:\users\<name>
+            parts = folder.split("\\")
+            if len(parts) > 3 and parts[1].lower() == "users":
+                desktop_folders.append(os.path.join(*parts[3:]))
+            else:
+                desktop_folders.append(parts[-1])
+        return desktop_folders
 
     def install_desktop_integration(self):
         """Replace WINE's desktop folders with links to the corresponding
