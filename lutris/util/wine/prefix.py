@@ -29,6 +29,21 @@ DEFAULT_DESKTOP_FOLDERS = [
     "AppData/Roaming/Microsoft/Windows/Templates",
 ]
 DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES", "DOWNLOADS", "TEMPLATES"]
+# Folders WINE links to in $HOME (or $HOME/My Documents on older versions) when no XDG folder is set
+WINE_HOME_FOLDERS = (
+    "Desktop",
+    "Documents",
+    "Downloads",
+    "Movies",
+    "Music",
+    "Pictures",
+    "Templates",
+    "Videos",
+    "My Documents",
+    "My Music",
+    "My Pictures",
+    "My Videos",
+)
 DEFAULT_DLL_OVERRIDES = {
     "winemenubuilder": "",
 }
@@ -204,6 +219,8 @@ class WinePrefixManager:
     def remove_desktop_integration(self):
         """Replace the desktop integration links with proper folders."""
         user_dir = self.user_dir
+        # Only install_desktop_integration() records $HOME, and its links may point at XDG folders since moved
+        integrated = self._get_desktop_integration_assignment() == os.path.expanduser("~")
 
         if system.path_exists(user_dir) and not self._is_desktop_integration_removed(user_dir):
             desktop_folders = self.get_desktop_folders()
@@ -211,9 +228,12 @@ class WinePrefixManager:
                 path = os.path.join(user_dir, item)
                 safe_path = path + ".winecfg"
 
-                # Disintegration means the desktop folders in WINE are
-                # actual directories not links, and that's all we want.
+                # Real folders are already disintegrated
                 if not os.path.islink(path):
+                    continue
+                # Links WINE can't have made are the user's
+                if not self._is_wine_link(path, integrated):
+                    logger.debug("Keeping %s, it links to %s", path, os.readlink(path))
                     continue
 
                 self._remove_desktop_folder(path, safe_path)
@@ -227,14 +247,37 @@ class WinePrefixManager:
             self._set_desktop_integration_assignment(user_dir)
 
     def _is_desktop_integration_removed(self, user_dir):
-        """True if the desktop folders in 'user_dir' are already proper folders."""
+        """True if the desktop folders in 'user_dir' are already proper folders or the user's own links."""
         if self._get_desktop_integration_assignment() != user_dir:
             return False
 
         # Prefixes sandboxed before Lutris handled Templates still have Wine's
-        # link for it, so a link there means the job isn't finished.
+        # link for it, so that link there means the job isn't finished.
         templates_path = os.path.join(user_dir, DEFAULT_DESKTOP_FOLDERS[DESKTOP_XDG.index("TEMPLATES")])
-        return not os.path.islink(templates_path)
+        return not os.path.islink(templates_path) or not self._is_wine_link(templates_path)
+
+    def _is_wine_link(self, path, integrated=False):
+        """Return whether 'path' could be a link WINE or the desktop integration made: an
+        absolute link to an XDG folder, to $HOME or one of WINE's default folders, or one that leads nowhere.
+        If 'integrated', any absolute link counts."""
+        link_target = os.readlink(path)
+        if not os.path.isabs(link_target):
+            return False
+        if integrated or not os.path.exists(path):
+            return True
+        # WINE links to '$HOME/<name>' when no XDG folder is set, and that may itself be a link
+        targets = {os.path.realpath(path), os.path.normpath(link_target)}
+        home = os.path.expanduser("~")
+        for home_dir in {os.path.normpath(home), os.path.realpath(home)}:
+            # Older WINE versions link to $HOME and '$HOME/My Documents/<name>'
+            wine_parents = (home_dir, os.path.join(home_dir, "My Documents"))
+            for target in targets:
+                if target == home_dir or (
+                    os.path.dirname(target) in wine_parents and os.path.basename(target) in WINE_HOME_FOLDERS
+                ):
+                    return True
+        xdg_folders = (get_xdg_entry(xdg_name) for xdg_name in DESKTOP_XDG)
+        return not targets.isdisjoint(os.path.realpath(folder) for folder in xdg_folders if folder)
 
     def _remove_desktop_folder(self, path, safe_path):
         """Removes the link or directory at 'path'; if it is a non-empty directory
