@@ -79,6 +79,9 @@ Set up your development environment
 To ensure you have the proper tools installed run `make dev`
 This will install all necessary python to allow testing and validating your code.
 
+Run `make setup venv` to create `.venv` and install everything that is missing into it. Run `make doctor` (or `make doctor venv` for the virtualenv in `.venv`) to check which Python packages and GObject introspection libraries
+(Gtk, WebKit2, ...) are available to your Python interpreter and which are missing.
+
 This project includes .editorconfig so you're good to go if you're using any
 editor/IDE that supports this. Otherwise make sure to configure your max line
 length to 120, indent style to space and always end files with an empty new line.
