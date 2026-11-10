@@ -2,11 +2,13 @@ import hashlib
 import os
 import shutil
 import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 
 from lutris.runners import wine
+from lutris.settings import WINE_DIR
 from lutris.util.test_config import setup_test_environment
 from lutris.util.wine.dll_manager import DLLManager
 
@@ -254,5 +256,7 @@ class TestMissingWineVersion(TestCase):
 
     def test_installed_version_is_used(self):
         self.make_prefix()
-        with patch.object(wine.system, "path_exists", return_value=True):
+        with patch.object(
+            wine.system, "path_exists", side_effect=lambda path, *args, **kwargs: Path(path) != Path(WINE_DIR)
+        ):
             self.assertIn("wine-test-missing-1", self.get_runner().get_executable())
