@@ -9,14 +9,18 @@ from lutris.util.strings import gtk_safe, gtk_safe_urls
 class InstallerScriptBox(Gtk.VBox):
     """Box displaying the details of a script, with associated action buttons"""
 
-    def __init__(self, script, parent=None, revealed=False):
+    def __init__(self, script, parent=None, revealed=False, show_checkbox=False):
         super().__init__()
         self.script = script
         self.parent = parent
         self.revealer = None
+        self.show_checkbox = show_checkbox
         self.set_margin_left(12)
         self.set_margin_right(12)
         box = Gtk.Box(spacing=12, margin_top=6, margin_bottom=6)
+        self.checkbox = Gtk.CheckButton(visible=show_checkbox, no_show_all=not show_checkbox)
+        self.checkbox.connect("toggled", self.on_checkbox_toggled)
+        box.pack_start(self.checkbox, False, False, 0)
         box.pack_start(self.get_infobox(), True, True, 0)
         box.add(self.get_install_button())
         self.add(box)
@@ -91,6 +95,13 @@ class InstallerScriptBox(Gtk.VBox):
         """Show or hide the information in the revealer"""
         if self.revealer:
             self.revealer.set_reveal_child(reveal)
+
+    def get_selected(self):
+        """Return whether this row's checkbox is ticked (always False unless checkboxes are shown)"""
+        return self.show_checkbox and self.checkbox.get_active()
+
+    def on_checkbox_toggled(self, _widget):
+        self.parent.emit("selection-changed")
 
     def on_install_clicked(self, _widget):
         """Handler to notify the parent of the selected installer"""
