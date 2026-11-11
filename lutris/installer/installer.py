@@ -80,7 +80,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
             return SERVICES["humblebundle"]()
         if "gog" in version and "gog" in SERVICES:
             return SERVICES["gog"]()
-        if "itch.io" in version and "itchio" in SERVICES:
+        if ("itch.io" in version or "itchio" in version or "itch io" in version) and "itchio" in SERVICES:
             return SERVICES["itchio"]()
 
     def get_appid(self, installer, initial=None):
