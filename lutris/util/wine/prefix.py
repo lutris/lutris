@@ -1,6 +1,7 @@
 """Wine prefix management"""
 
 import os
+from pathlib import PureWindowsPath
 
 from lutris.settings import get_lutris_directory_settings, set_lutris_directory_settings
 from lutris.util import joypad, system
@@ -167,11 +168,11 @@ class WinePrefixManager:
                 desktop_folders.append(default_folder)
                 continue
             # Templates lives under AppData, so keep the path below C:\users\<name>
-            parts = folder.split("\\")
-            if len(parts) > 3 and parts[1].lower() == "users":
-                desktop_folders.append(os.path.join(*parts[3:]))
+            folder_path = PureWindowsPath(folder)
+            if len(folder_path.parts) > 3 and folder_path.is_relative_to("C:/users"):
+                desktop_folders.append(os.path.join(*folder_path.parts[3:]))
             else:
-                desktop_folders.append(parts[-1])
+                desktop_folders.append(folder_path.name)
         return desktop_folders
 
     def install_desktop_integration(self):

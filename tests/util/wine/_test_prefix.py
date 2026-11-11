@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+from pathlib import PureWindowsPath
 from unittest.mock import patch
 
 from lutris.util.wine import prefix
@@ -8,13 +9,13 @@ from lutris.util.wine.prefix import WinePrefixManager
 
 # The Shell Folders values wineboot writes for these keys
 SHELL_FOLDERS = {
-    "Desktop": "Desktop",
-    "Personal": "Documents",
-    "My Music": "Music",
-    "My Videos": "Videos",
-    "My Pictures": "Pictures",
-    "{374DE290-123F-4565-9164-39C4925E467B}": "Downloads",
-    "Templates": "AppData\\\\Roaming\\\\Microsoft\\\\Windows\\\\Templates",
+    "Desktop": PureWindowsPath("Desktop"),
+    "Personal": PureWindowsPath("Documents"),
+    "My Music": PureWindowsPath("Music"),
+    "My Videos": PureWindowsPath("Videos"),
+    "My Pictures": PureWindowsPath("Pictures"),
+    "{374DE290-123F-4565-9164-39C4925E467B}": PureWindowsPath("Downloads"),
+    "Templates": PureWindowsPath("AppData/Roaming/Microsoft/Windows/Templates"),
 }
 XDG_DIRS = {
     "DESKTOP": "Desktop",
@@ -25,7 +26,7 @@ XDG_DIRS = {
     "DOWNLOADS": "Downloads",
     "TEMPLATES": "Templates",
 }
-TEMPLATES = "AppData/Roaming/Microsoft/Windows/Templates"
+TEMPLATES = SHELL_FOLDERS["Templates"].as_posix()
 
 
 class TestDesktopIntegration(unittest.TestCase):
@@ -49,18 +50,16 @@ class TestDesktopIntegration(unittest.TestCase):
     def write_user_reg(self, shell_folders):
         with open(os.path.join(self.prefix_path, "user.reg"), "w", encoding="utf-8") as reg_file:
             reg_file.write("WINE REGISTRY Version 2\n#arch=win64\n\n")
-            reg_file.write(
-                "[Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Explorer\\\\Shell Folders] 1700000000\n"
-            )
+            reg_file.write(r"[Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders] 1700000000" + "\n")
             for key, folder in shell_folders.items():
-                if ":" not in folder:
-                    folder = "C:\\\\users\\\\lutrisuser\\\\" + folder
-                reg_file.write('"%s"="%s"\n' % (key, folder))
+                if not folder.drive:
+                    folder = PureWindowsPath("C:/users/lutrisuser") / folder
+                # user.reg escapes backslashes
+                reg_file.write('"%s"="%s"\n' % (key, str(folder).replace("\\", "\\\\")))
 
     def link_like_wine(self):
         for folder in SHELL_FOLDERS.values():
-            folder = folder.replace("\\\\", "/")
-            os.symlink(os.path.join(self.home, os.path.basename(folder)), os.path.join(self.user_dir, folder))
+            os.symlink(os.path.join(self.home, folder.name), os.path.join(self.user_dir, folder.as_posix()))
 
     def test_remove_unlinks_the_templates_folder(self):
         self.write_user_reg(SHELL_FOLDERS)
@@ -76,13 +75,13 @@ class TestDesktopIntegration(unittest.TestCase):
     def test_install_links_every_folder(self):
         self.write_user_reg(SHELL_FOLDERS)
         for folder in SHELL_FOLDERS.values():
-            os.makedirs(os.path.join(self.user_dir, folder.replace("\\\\", "/")), exist_ok=True)
+            os.makedirs(os.path.join(self.user_dir, folder.as_posix()), exist_ok=True)
 
         manager = WinePrefixManager(self.prefix_path)
         manager.install_desktop_integration()
 
         for folder, xdg_folder in zip(SHELL_FOLDERS.values(), XDG_DIRS.values()):
-            path = os.path.join(self.user_dir, folder.replace("\\\\", "/"))
+            path = os.path.join(self.user_dir, folder.as_posix())
             self.assertEqual(os.readlink(path), os.path.join(self.home, xdg_folder), folder)
         self.assertEqual(manager._get_desktop_integration_assignment(), self.home)
 
@@ -100,7 +99,7 @@ class TestDesktopIntegration(unittest.TestCase):
 
     def test_folder_outside_the_profile_keeps_its_name(self):
         shell_folders = dict(SHELL_FOLDERS)
-        shell_folders["My Pictures"] = "Z:\\\\home\\\\lutrisuser\\\\Pictures"
+        shell_folders["My Pictures"] = PureWindowsPath("Z:/home/lutrisuser/Pictures")
         self.write_user_reg(shell_folders)
 
         folders = WinePrefixManager(self.prefix_path).get_desktop_folders()
