@@ -9,10 +9,27 @@ from lutris.database import sql
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
+# The fields get_game_by_field() may look up; all of them identify a game in practice.
+_GAME_LOOKUP_FIELDS = frozenset({"slug", "installer_slug", "id", "configpath", "name"})
+
+# Cached list of installed game identifiers per service, see get_service_games().
 _SERVICE_CACHE: dict[str, list[str]] = {}
-_SERVICE_CACHE_ACCESSED = False  # Keep time of last access to have a self degrading cache
 
 DbGameDict: TypeAlias = dict[str, Any]
+
+
+def invalidate_service_cache() -> None:
+    """Drop the cached per-service game lists.
+
+    Registered as a data change listener below, so any write made through this process - from
+    this module, a service, a scanner or a migration - invalidates the cache right away. This
+    replaces a previous one second timeout, which could both serve stale rows immediately
+    after an insert and needlessly re-query the database on a later cache hit.
+    """
+    _SERVICE_CACHE.clear()
+
+
+sql.add_data_change_listener(invalidate_service_cache)
 
 
 def _stringify_game_id(game: DbGameDict) -> DbGameDict:
@@ -60,41 +77,46 @@ def get_games_where(**conditions: Any) -> list[DbGameDict]:
     Returns:
         list: Rows matching the query
 
+    Field names have to be columns of the games table (they are validated, see
+    sql.validate_field_name), and the suffix has to be one of those listed above: anything
+    else raises a ValueError instead of being ignored.
+
+    Calling this without conditions returns an empty list and never every game in the
+    database. That is deliberate - this is a lookup helper, and a condition dict that came
+    back empty must not silently turn into a full table scan - so use get_games() when every
+    game is wanted.
+
+    An empty iterable given to <field>__in matches nothing, and a None value matches rows
+    where the field is NULL. <field>__not keeps the historical `!=` behaviour, which excludes
+    rows where the field is NULL; get_games(excludes=...) includes those, if that is wanted.
     """
-    query = "select * from games"
-    condition_fields = []
-    condition_values = []
-    for field, value in conditions.items():
-        field, *extra_conditions = field.split("__")
-        if extra_conditions:
-            extra_condition = extra_conditions[0]
-            if extra_condition == "lessthan":
-                condition_fields.append("{} < ?".format(field))
-                condition_values.append(value)
-            if extra_condition == "isnull":
-                condition_fields.append("{} is {} null".format(field, "" if value else "not"))
-            if extra_condition == "not":
-                condition_fields.append("{} != ?".format(field))
-                condition_values.append(value)
-            if extra_condition == "in":
-                if not hasattr(value, "__iter__"):
-                    raise ValueError("Value should be an iterable (%s given)" % value)
-                if len(value) > 999:
-                    raise ValueError("SQLite limited to a maximum of 999 parameters.")
-                if value:
-                    condition_fields.append("{} in ({})".format(field, ", ".join("?" * len(value)) or ""))
-                    condition_values = list(chain(condition_values, value))
-        else:
-            condition_fields.append("{} = ?".format(field))
-            condition_values.append(value)
-    condition = " AND ".join(condition_fields)
-    if condition:
-        query = " WHERE ".join((query, condition))
-    else:
-        # Inspect and document why we should return
-        # an empty list when no condition is present.
+    if not conditions:
         return []
-    return _stringify_game_ids(sql.db_query(settings.DB_PATH, query, tuple(condition_values)))
+    filters: dict[str, Any] = {}
+    extra_conditions: list[sql.DBQueryCondition] = []
+    for key, value in conditions.items():
+        field, *key_suffix = key.split("__")
+        sql.validate_field_name("games", field)
+        suffix = key_suffix[0] if key_suffix else ""
+        if not suffix:
+            filters[field] = value
+        elif suffix == "lessthan":
+            extra_conditions.append(sql.create_comparison("games", field, "<", value))
+        elif suffix == "isnull":
+            extra_conditions.append(sql.create_null_check("games", field, bool(value)))
+        elif suffix == "not":
+            extra_conditions.append(sql.create_comparison("games", field, "!=", value))
+        elif suffix == "in":
+            if not hasattr(value, "__iter__") or isinstance(value, str):
+                raise ValueError("Value should be an iterable (%s given)" % value)
+            if len(value) > 999:
+                raise ValueError("SQLite limited to a maximum of 999 parameters.")
+            filters[field] = value
+        else:
+            raise ValueError("Unsupported condition '%s'" % key)
+    return _stringify_game_ids(
+        sql.filtered_query(settings.DB_PATH, "games", filters=filters, conditions=extra_conditions)
+    )
 
 
 def get_games_by_ids(game_ids: Collection[str]) -> list[DbGameDict]:
@@ -132,38 +154,47 @@ def get_all_installed_game_for_service(service: str) -> dict[str, DbGameDict]:
 
 
 def get_service_games(service: str) -> list[str]:
-    """Return the list of all installed games for a service"""
-    global _SERVICE_CACHE_ACCESSED
-    previous_cache_accessed = _SERVICE_CACHE_ACCESSED or 0
-    _SERVICE_CACHE_ACCESSED = time.time()
-    if service not in _SERVICE_CACHE or _SERVICE_CACHE_ACCESSED - previous_cache_accessed > 1:
+    """Return the list of all installed games for a service.
+
+    The result is cached until something is written to the database (see
+    invalidate_service_cache): this is queried for every search result, and the query is cheap
+    but frequent. A copy is returned, so callers cannot modify what is cached.
+    """
+    if service not in _SERVICE_CACHE:
         if service == "lutris":
             _SERVICE_CACHE[service] = [game["slug"] for game in get_games(filters={"installed": "1"})]
         else:
             _SERVICE_CACHE[service] = [
                 game["service_id"] for game in get_games(filters={"service": service, "installed": "1"})
             ]
-    return _SERVICE_CACHE[service]
+    return list(_SERVICE_CACHE[service])
 
 
 def get_game_by_field(value: Any, field: str = "slug") -> DbGameDict | None:
-    """Query a game based on a database field, or None if not found."""
-    if field not in ("slug", "installer_slug", "id", "configpath", "name"):
+    """Query a game based on a database field, or None if not found.
+
+    A None value returns None without querying: `field = NULL` matches nothing in SQL, so
+    looking up NULLs here would turn a missing value into whichever game happens to have a
+    NULL in that field.
+    """
+    if field not in _GAME_LOOKUP_FIELDS:
         raise ValueError("Can't query by field '%s'" % field)
-    game_result = sql.db_select(settings.DB_PATH, "games", condition=(field, value))
+    if value is None:
+        return None
+    game_result = get_games_where(**{field: value})
     if game_result:
-        return _stringify_game_id(game_result[0])
+        return game_result[0]
     return None
 
 
 def get_games_by_runner(runner: str) -> list[DbGameDict]:
     """Return all games using a specific runner"""
-    return _stringify_game_ids(sql.db_select(settings.DB_PATH, "games", condition=("runner", runner)))
+    return get_games_where(runner=runner)
 
 
 def get_games_by_slug(slug: str) -> list[DbGameDict]:
     """Return all games using a specific slug"""
-    return _stringify_game_ids(sql.db_select(settings.DB_PATH, "games", condition=("slug", slug)))
+    return get_games_where(slug=slug)
 
 
 def add_game(**game_data: Any) -> str:
@@ -176,7 +207,7 @@ def add_game(**game_data: Any) -> str:
 
 def add_games_bulk(games: list[DbGameDict]) -> list[str]:
     """
-    Add a list of games to the database.
+    Add a list of games to the database, in a single transaction.
     The dicts must have an identical set of keys.
 
     Args:
@@ -184,7 +215,7 @@ def add_games_bulk(games: list[DbGameDict]) -> list[str]:
     Returns:
         list: List of inserted game ids
     """
-    return [str(sql.db_insert(settings.DB_PATH, "games", game)) for game in games]
+    return [str(game_id) for game_id in sql.db_insert_many(settings.DB_PATH, "games", games)]
 
 
 def add_or_update(**params: Any) -> str:
@@ -242,7 +273,7 @@ def delete_game(game_id: str) -> None:
 
 def get_used_runners() -> list[str]:
     """Return a list of the runners in use by installed games."""
-    with sql.db_cursor(settings.DB_PATH) as cursor:
+    with sql.db_read_cursor(settings.DB_PATH) as cursor:
         query = "select distinct runner from games where runner is not null order by runner"
         rows = cursor.execute(query)
         results = rows.fetchall()
@@ -251,7 +282,7 @@ def get_used_runners() -> list[str]:
 
 def get_used_platforms() -> list[str]:
     """Return a list of platforms currently in use"""
-    with sql.db_cursor(settings.DB_PATH) as cursor:
+    with sql.db_read_cursor(settings.DB_PATH) as cursor:
         query = (
             "select distinct platform from games where platform is not null and platform is not '' order by platform"
         )
