@@ -51,8 +51,9 @@ Step 2 - What is inside the sandbox
       first-run/                 used by Part A
         home/                    empty HOME: a genuine first start
         games/                   fake-game.sh and sleepy.sh, the test executables
+        work/                    cwd of every command, e.g. exported game scripts
       fresh/                     automated scenario: first start, one seeded game
-        home/  games/  logs/
+        home/  games/  logs/  work/
       existing/                  automated scenario: upgraded, two seeded games
       clone/                     only with --existing-profile
 
@@ -71,17 +72,17 @@ Step 3 - Open a sandbox profile
 -------------------------------
 
 Never launch ``bin/lutris`` bare for Part A: that opens your real profile. The
-script prints this snippet, ready to paste (``$REPO`` is your checkout)::
+script prints this snippet, with the interpreter and the ``bin/lutris`` entry point
+it used already filled in, ready to paste::
 
     SMOKE=/tmp/lutris-smoke.XXXXXXXX
-    REPO=/path/to/lutris                 # your checkout
     launch() {
         env HOME="$SMOKE/$1/home" \
             XDG_DATA_HOME="$SMOKE/$1/home/.local/share" \
             XDG_CONFIG_HOME="$SMOKE/$1/home/.config" \
             XDG_CACHE_HOME="$SMOKE/$1/home/.cache" \
             LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1 \
-            dbus-run-session -- "$REPO/.venv/bin/python" "$REPO/bin/lutris" -d
+            dbus-run-session -- "/path/to/checkout/.venv/bin/python" "/path/to/checkout/bin/lutris" -d
     }
 
     launch first-run

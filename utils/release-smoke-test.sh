@@ -293,12 +293,12 @@ PY
 
 # Add a game to the sandbox profile the same way the client does.
 seed_linux_game() { # <slug> <name> [platform]
-    "$PY" - "$REPO_ROOT" "$P_GAMES" "$P_ROOT" "$1" "$2" "${3:-}" <<'PY'
+    "$PY" - "$REPO_ROOT" "$P_GAMES" "$1" "$2" "${3:-}" <<'PY'
 import os
 import stat
 import sys
 
-repo, games_root, root, slug, name, platform = sys.argv[1:7]
+repo, games_root, slug, name, platform = sys.argv[1:6]
 sys.path.insert(0, repo)
 
 from lutris.config import write_game_config
@@ -331,21 +331,21 @@ game_data = {
 if platform:
     game_data["platform"] = platform
 
-with open(os.path.join(root, f"{slug}.id"), "w", encoding="utf-8") as id_file:
-    id_file.write(str(add_game(**game_data)))
+add_game(**game_data)
 PY
 }
 
 # Recreate the profile an upgrading user has: an old migration_version, a custom
 # setting that must survive, and a runner config still using the pre-platform key.
-# A value of 18 means only the newest migration runs, which keeps the check offline
-# (migration 17 calls the lutris.net API). Broader upgrade coverage comes from
-# --existing-profile, which migrates a copy of a real profile.
+# Seeding one below the newest means only the newest migration runs instead of the
+# whole history, which keeps the check offline as long as that migration is
+# (18 only rewrites configs; 17 calls the lutris.net API). Broader upgrade coverage
+# comes from --existing-profile, which migrates a copy of a real profile.
 seed_legacy_profile() {
     mkdir -p "$P_DATA/games"
     cat > "$P_CONF" <<EOF
 [lutris]
-migration_version = 18
+migration_version = $((EXPECTED_MIGRATION_VERSION - 1))
 pga_cache_path = $P_ROOT/pga-cache
 hide_media = False
 EOF
@@ -383,6 +383,7 @@ PY
     # (seeded without a platform so the backfill path is exercised too).
     seed_linux_game "smoke-existing-game" "Smoke Existing Game"
 }
+
 # ---------------------------------------------------------------------------
 # Shared checks
 # ---------------------------------------------------------------------------
@@ -405,10 +406,7 @@ check_db_tables() { # <scenario>
     local tables missing=() table
     tables=$(db_query "select name from sqlite_master where type='table'")
     for table in games service_games sources categories games_categories saved_searches; do
-        case "$tables" in
-            *"$table"*) ;;
-            *) missing+=("$table") ;;
-        esac
+        printf '%s\n' "$tables" | grep -qx "$table" || missing+=("$table")
     done
     if [ ${#missing[@]} -eq 0 ]; then
         ok "$1/db: all schema tables present"
@@ -450,6 +448,7 @@ launch_and_check() { # <scenario> <slug> <label>
     expect_eq "$scenario/$label: lastplayed recorded" "1" \
         "$(db_query "select case when lastplayed > 0 then 1 else 0 end from games where slug='$slug'")"
 }
+
 # ---------------------------------------------------------------------------
 # Scenario: fresh install
 # ---------------------------------------------------------------------------
@@ -536,7 +535,8 @@ scenario_fresh() {
     lutris_run "$P_LOGS/second-start" -l -j
     expect_eq "F12 restart: second startup exits 0" 0 "$RC"
     expect_eq "F12 restart: integrity_check still ok" "ok" "$(db_query 'pragma integrity_check')"
-    expect_eq "F12 restart: library size unchanged" "2" "$(game_count "$P_LOGS/second-start")"
+    expect_eq "F12 restart: library size is still 2 after the import" "2" \
+        "$(game_count "$P_LOGS/second-start")"
 
     # F13 - optional: `lutris -e`
     if [ "$WITH_EXEC" -eq 1 ]; then
@@ -707,7 +707,11 @@ PY
 
     local before
     before=$(db_query "select count(*) from games" 2>/dev/null || echo "")
-    ok "clone: profile copied ($before games)"
+    if [ -n "$before" ]; then
+        ok "clone: profile copied ($before games)"
+    else
+        fail "clone: profile copied" "could not count the games in the copied database"
+    fi
 
     lutris_run "$P_LOGS/clone-list" -l -j
     expect_eq "clone: 'lutris -l -j' exits 0" 0 "$RC"
@@ -743,7 +747,7 @@ To do the GUI pass, open the client with one of the profiles:
           XDG_CONFIG_HOME="\$SMOKE/\$1/home/.config" \\
           XDG_CACHE_HOME="\$SMOKE/\$1/home/.cache" \\
           LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1 \\
-          dbus-run-session -- $PY $LUTRIS_ENTRY -d
+          dbus-run-session -- "$PY" "$LUTRIS_ENTRY" -d
   }
   launch first-run  # never opened: item 1 needs a real first start
   launch fresh      # automated profile: one seeded game

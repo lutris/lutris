@@ -8,7 +8,9 @@ Preparation
 -----------
 - Write changelog
 - Run ``utils/release-smoke-test.sh``. It has to pass before tagging: one command,
-  about a minute, covering startup, the migrations and launching a game.
+  a few minutes, covering startup, the migrations and launching a game. Run it from
+  a desktop session, or with ``xvfb-run -a``: without a display the launch and window
+  checks are skipped, and the summary says so.
 - Recommended, when there is time: part A of ``docs/manual-gui-checklist.rst``
   (about 10 minutes, sandbox, a genuine first start).
 - Only when the release touches installers, services or the library views: part B
