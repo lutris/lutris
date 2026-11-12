@@ -204,9 +204,8 @@ class WinePrefixManager:
     def remove_desktop_integration(self):
         """Replace the desktop integration links with proper folders."""
         user_dir = self.user_dir
-        current_dir = self._get_desktop_integration_assignment()
 
-        if system.path_exists(user_dir) and current_dir != user_dir:
+        if system.path_exists(user_dir) and not self._is_desktop_integration_removed(user_dir):
             desktop_folders = self.get_desktop_folders()
             for item in desktop_folders:
                 path = os.path.join(user_dir, item)
@@ -226,6 +225,16 @@ class WinePrefixManager:
                     os.makedirs(path, exist_ok=True)
 
             self._set_desktop_integration_assignment(user_dir)
+
+    def _is_desktop_integration_removed(self, user_dir):
+        """True if the desktop folders in 'user_dir' are already proper folders."""
+        if self._get_desktop_integration_assignment() != user_dir:
+            return False
+
+        # Prefixes sandboxed before Lutris handled Templates still have Wine's
+        # link for it, so a link there means the job isn't finished.
+        templates_path = os.path.join(user_dir, DEFAULT_DESKTOP_FOLDERS[DESKTOP_XDG.index("TEMPLATES")])
+        return not os.path.islink(templates_path)
 
     def _remove_desktop_folder(self, path, safe_path):
         """Removes the link or directory at 'path'; if it is a non-empty directory

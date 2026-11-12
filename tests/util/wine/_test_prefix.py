@@ -72,6 +72,33 @@ class TestDesktopIntegration(unittest.TestCase):
             self.assertFalse(os.path.islink(path), folder)
             self.assertTrue(os.path.isdir(path), folder)
 
+    def test_remove_unlinks_templates_missing_from_the_registry(self):
+        # A fresh prefix has no Templates value in Shell Folders, but Wine has linked it
+        shell_folders = dict(SHELL_FOLDERS)
+        del shell_folders["Templates"]
+        self.write_user_reg(shell_folders)
+        self.link_like_wine()
+
+        WinePrefixManager(self.prefix_path).remove_desktop_integration()
+
+        path = os.path.join(self.user_dir, TEMPLATES)
+        self.assertFalse(os.path.islink(path))
+        self.assertTrue(os.path.isdir(path))
+
+    def test_remove_unlinks_templates_in_an_already_sandboxed_prefix(self):
+        # Lutris sandboxed this prefix before it handled Templates, leaving Wine's link
+        self.write_user_reg(SHELL_FOLDERS)
+        templates_link = os.path.join(self.user_dir, TEMPLATES)
+        os.symlink(os.path.join(self.home, "Templates"), templates_link)
+        manager = WinePrefixManager(self.prefix_path)
+        manager._set_desktop_integration_assignment(self.user_dir)
+
+        manager.remove_desktop_integration()
+
+        self.assertFalse(os.path.islink(templates_link))
+        self.assertTrue(os.path.isdir(templates_link))
+        self.assertEqual(manager._get_desktop_integration_assignment(), self.user_dir)
+
     def test_install_links_every_folder(self):
         self.write_user_reg(SHELL_FOLDERS)
         for folder in SHELL_FOLDERS.values():
