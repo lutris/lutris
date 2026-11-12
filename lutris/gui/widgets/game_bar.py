@@ -41,6 +41,12 @@ class GameBar(Gtk.Box):
         self.connect("destroy", self.on_destroy)
 
         self.set_margin_bottom(12)
+        self.set_game(db_game)
+
+    def set_game(self, db_game: dict) -> None:
+        """Displays the game described by this database row, reusing this game bar and its
+        signal registrations; db_game may be a DbGameDict from the games DB or a
+        DBServiceGame from the service games DB."""
         self.db_game = db_game
         self.service = None
         if db_game.get("service"):
@@ -49,6 +55,7 @@ class GameBar(Gtk.Box):
             except KeyError:
                 pass
 
+        self.appid = None
         game_id = None
         if "service_id" in db_game:
             self.appid = db_game["service_id"]
@@ -59,9 +66,17 @@ class GameBar(Gtk.Box):
             if game:
                 game_id = game["id"]
         if game_id:
-            self.game = application.get_game_by_id(game_id)
+            self.game = self.application.get_game_by_id(game_id)
         else:
             self.game = Game.create_empty_service_game(db_game, self.service)
+
+        self.rebuild_view()
+
+    def rebuild_view(self) -> None:
+        """Populates the view with widgets for the game we have now, discarding any widgets
+        for a game we showed before."""
+        for child in self.get_children():
+            child.destroy()
         self.update_view()
 
     def on_destroy(self, widget):
@@ -282,6 +297,4 @@ class GameBar(Gtk.Box):
         elif self.game != game:
             return
 
-        for child in self.get_children():
-            child.destroy()
-        self.update_view()
+        self.rebuild_view()

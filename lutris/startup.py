@@ -10,7 +10,7 @@ import gi
 
 gi.require_version("GdkPixbuf", "2.0")
 
-from gi.repository import GdkPixbuf
+from gi.repository import GdkPixbuf, GLib
 
 from lutris import runners, settings
 from lutris.database.games import get_games
@@ -142,18 +142,37 @@ def fill_missing_platforms():
             game.save_platform()
 
 
-def run_all_checks(async_ops: bool = True) -> None:
+def _check_hardware():
+    """Checks the graphics stack and the image loaders. These only report problems, so they
+    need not be done before the window is shown."""
+    check_vulkan()
+    check_gnome()
+
+
+def run_all_checks(async_ops: bool = True, defer_hardware_checks: bool = False) -> None:
     """Run all startup checks. When async_ops is True, expensive checks like
     check_libs run on a background thread to avoid blocking the UI. When False,
     everything runs synchronously on the calling thread so that log output
-    stays predictable (useful for CLI paths with no main loop)."""
+    stays predictable (useful for CLI paths with no main loop).
+
+    When defer_hardware_checks is True, the graphics and image loader probes run at idle
+    time instead, so that the window is drawn before them; they load libraries and
+    initialize drivers, which can take a while. Only pass True if a main loop will run.
+    """
     preload_gpus(async_ops=async_ops)
     if async_ops:
         threading.Thread(target=check_libs, daemon=True).start()
     else:
         check_libs()
-    check_vulkan()
-    check_gnome()
+
+    if defer_hardware_checks:
+        GLib.idle_add(_check_hardware, priority=GLib.PRIORITY_LOW)
+    else:
+        _check_hardware()
+
+    # These two affect what the window displays, so they run before it is created;
+    # fill_missing_platforms() repairs the games table and build_path_cache() decides
+    # which games look missing.
     fill_missing_platforms()
     build_path_cache()
 
