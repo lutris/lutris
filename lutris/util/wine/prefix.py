@@ -1,6 +1,7 @@
 """Wine prefix management"""
 
 import os
+from pathlib import PureWindowsPath
 
 from lutris.settings import get_lutris_directory_settings, set_lutris_directory_settings
 from lutris.util import joypad, system
@@ -18,8 +19,16 @@ DESKTOP_KEYS = [
     "{374DE290-123F-4565-9164-39C4925E467B}",  # Downloads
     "Templates",
 ]
-DEFAULT_DESKTOP_FOLDERS = ["Desktop", "Documents", "Music", "Videos", "Pictures", "Downloads"]
-DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES", "DOWNLOADS"]
+DEFAULT_DESKTOP_FOLDERS = [
+    "Desktop",
+    "Documents",
+    "Music",
+    "Videos",
+    "Pictures",
+    "Downloads",
+    "AppData/Roaming/Microsoft/Windows/Templates",
+]
+DESKTOP_XDG = ["DESKTOP", "DOCUMENTS", "MUSIC", "VIDEOS", "PICTURES", "DOWNLOADS", "TEMPLATES"]
 DEFAULT_DLL_OVERRIDES = {
     "winemenubuilder": "",
 }
@@ -146,18 +155,25 @@ class WinePrefixManager:
         self.set_registry_key(key, dll, mode)
 
     def get_desktop_folders(self):
-        """Return the list of desktop folder names loaded from the Windows registry"""
+        """Return the desktop folders, relative to the user directory, loaded from the
+        Windows registry; the list lines up with DESKTOP_XDG."""
         desktop_folders = []
-        for key in DESKTOP_KEYS:
+        for key, default_folder in zip(DESKTOP_KEYS, DEFAULT_DESKTOP_FOLDERS):
             folder = self.get_registry_key(
                 self.hkcu_prefix + "/Software/Microsoft/Windows/CurrentVersion/Explorer/Shell Folders",
                 key,
             )
             if not folder:
                 logger.warning("Couldn't load shell folder name for %s", key)
+                desktop_folders.append(default_folder)
                 continue
-            desktop_folders.append(folder[folder.rfind("\\") + 1 :])
-        return desktop_folders or DEFAULT_DESKTOP_FOLDERS
+            # Templates lives under AppData, so keep the path below C:\users\<name>
+            folder_path = PureWindowsPath(folder)
+            if len(folder_path.parts) > 3 and folder_path.is_relative_to("C:/users"):
+                desktop_folders.append(os.path.join(*folder_path.parts[3:]))
+            else:
+                desktop_folders.append(folder_path.name)
+        return desktop_folders
 
     def install_desktop_integration(self):
         """Replace WINE's desktop folders with links to the corresponding
@@ -188,9 +204,8 @@ class WinePrefixManager:
     def remove_desktop_integration(self):
         """Replace the desktop integration links with proper folders."""
         user_dir = self.user_dir
-        current_dir = self._get_desktop_integration_assignment()
 
-        if system.path_exists(user_dir) and current_dir != user_dir:
+        if system.path_exists(user_dir) and not self._is_desktop_integration_removed(user_dir):
             desktop_folders = self.get_desktop_folders()
             for item in desktop_folders:
                 path = os.path.join(user_dir, item)
@@ -210,6 +225,16 @@ class WinePrefixManager:
                     os.makedirs(path, exist_ok=True)
 
             self._set_desktop_integration_assignment(user_dir)
+
+    def _is_desktop_integration_removed(self, user_dir):
+        """True if the desktop folders in 'user_dir' are already proper folders."""
+        if self._get_desktop_integration_assignment() != user_dir:
+            return False
+
+        # Prefixes sandboxed before Lutris handled Templates still have Wine's
+        # link for it, so a link there means the job isn't finished.
+        templates_path = os.path.join(user_dir, DEFAULT_DESKTOP_FOLDERS[DESKTOP_XDG.index("TEMPLATES")])
+        return not os.path.islink(templates_path)
 
     def _remove_desktop_folder(self, path, safe_path):
         """Removes the link or directory at 'path'; if it is a non-empty directory
