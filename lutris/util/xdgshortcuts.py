@@ -4,6 +4,7 @@ import os
 import shlex
 import shutil
 import stat
+import tempfile
 from textwrap import dedent
 
 from gi.repository import GLib
@@ -113,6 +114,40 @@ def create_launcher(
         logger.debug("Creating menu launcher in %s", launcher_path)
         shutil.copy(tmp_launcher_path, launcher_path)
     os.remove(tmp_launcher_path)
+
+
+def rename_launchers(game_slug: str, game_id: str, old_name: str, new_name: str) -> None:
+    """Update existing launcher names, preserving custom names and other settings."""
+    desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
+    user_dir = os.path.expanduser("~/.local/share") if LINUX_SYSTEM.is_flatpak() else GLib.get_user_data_dir()
+    for directory in [desktop_dir, os.path.join(user_dir, "applications")]:
+        if not directory:
+            continue
+        path = os.path.join(directory, get_xdg_basename(game_slug, game_id, base_dir=directory))
+        if not system.path_exists(path):
+            continue
+        try:
+            launcher = GLib.KeyFile()
+            launcher.load_from_file(path, GLib.KeyFileFlags.KEEP_COMMENTS | GLib.KeyFileFlags.KEEP_TRANSLATIONS)
+            if launcher.get_string("Desktop Entry", "Name") != old_name:
+                continue
+            launcher.set_string("Desktop Entry", "Name", new_name)
+            path = os.path.realpath(path)
+            # Replace atomically without losing the launcher's executable bits.
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=os.path.dirname(path), delete=False
+            ) as output:
+                temporary_path = output.name
+                try:
+                    output.write(launcher.to_data()[0])
+                    output.flush()
+                    shutil.copymode(path, temporary_path)
+                    os.replace(temporary_path, path)
+                finally:
+                    if os.path.exists(temporary_path):
+                        os.unlink(temporary_path)
+        except (GLib.Error, OSError) as ex:
+            logger.warning("Unable to update launcher %s: %s", path, ex)
 
 
 def get_launcher_path(game_slug: str, game_id: str) -> str:

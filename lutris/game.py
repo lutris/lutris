@@ -504,6 +504,7 @@ class Game:
         """
         Save the game's config and metadata.
         """
+        previous_game = games_db.get_game_by_field(self.id, "id") if self.is_db_stored else None
         if self.config:
             configpath = self.config.game_config_id
             logger.debug("Saving %s with config ID %s", self, self.config.game_config_id)
@@ -534,6 +535,8 @@ class Game:
             "has_custom_coverart_big": "coverart_big" in self.custom_images,
         }
         self._id = str(games_db.add_or_update(**game_data))
+        if previous_game and previous_game["name"] != self.name:
+            xdgshortcuts.rename_launchers(previous_game["slug"], self.id, previous_game["name"], self.name)
         if not no_signal:
             GAME_UPDATED.fire(self)
 
