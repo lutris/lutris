@@ -16,8 +16,9 @@
 # The game used for the launch checks is a small shell script, so no download,
 # no Wine prefix and no GPU are involved.
 #
-# Checks that need a display (game launch, window check) are skipped when there
-# is no session - run `xvfb-run -a utils/release-smoke-test.sh` to include them.
+# A display is required: every command but --version has to start the client's
+# GtkApplication. Run this from a desktop session, or with
+# `xvfb-run -a utils/release-smoke-test.sh` when there is none.
 #
 # Exit status: 0 if every check passed, 1 otherwise.
 
@@ -103,6 +104,16 @@ if [ "$(id -u)" -eq 0 ]; then
     exit 2
 fi
 
+# The client is a GtkApplication, so without a display even `lutris -l -j` exits at
+# once: the run would fail every check but --version. Stop here, before the sandbox
+# and the private bus exist, with a message that says what to do instead.
+if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] && ! command -v xvfb-run >/dev/null 2>&1; then
+    echo "error: no display, and xvfb-run is not installed" >&2
+    echo "       run this from a desktop session, or install xvfb and use:" >&2
+    echo "       xvfb-run -a utils/release-smoke-test.sh" >&2
+    exit 2
+fi
+
 # Only --version is answered by the invoking process (do_handle_local_options); every
 # other command line is forwarded to the primary instance of net.lutris.Lutris, and
 # redirecting HOME and the XDG directories does not change that. So a Lutris instance
@@ -138,14 +149,13 @@ if [ -z "$EXPECTED_VERSION" ] || [ -z "$EXPECTED_MIGRATION_VERSION" ]; then
     exit 2
 fi
 
-# Display: use the current session, or Xvfb when available, or skip those checks.
+# Display: the current session, or Xvfb. The guard above guarantees that one of the
+# two is usable, so the only thing left to record is which one it is.
 DISP=()
-HAVE_DISPLAY=0
-if [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
-    HAVE_DISPLAY=1
-elif command -v xvfb-run >/dev/null 2>&1; then
+DISPLAY_NOTE="this session"
+if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ]; then
     DISP=(xvfb-run -a)
-    HAVE_DISPLAY=1
+    DISPLAY_NOTE="xvfb-run -a"
 fi
 
 # ---------------------------------------------------------------------------
@@ -337,10 +347,15 @@ PY
 
 # Recreate the profile an upgrading user has: an old migration_version, a custom
 # setting that must survive, and a runner config still using the pre-platform key.
-# Seeding one below the newest means only the newest migration runs instead of the
-# whole history, which keeps the check offline as long as that migration is
-# (18 only rewrites configs; 17 calls the lutris.net API). Broader upgrade coverage
-# comes from --existing-profile, which migrates a copy of a real profile.
+# Seeding one below the newest runs that migration and nothing else, which keeps the
+# upgrade offline: migration 13 (migrate_sortname) and 17 (retrieve_discord_appids)
+# call the lutris.net API, and lutris/migrations/__init__.py does not catch their
+# failures. Broader upgrade coverage comes from --existing-profile, which migrates a
+# copy of a real profile.
+# The fixture's E5 checks expect the model -> platform rewrite, so they describe
+# migration 18. When a migration is added, extend this fixture for the new newest
+# migration and move LEGACY_FIXTURE_MIGRATION with it.
+LEGACY_FIXTURE_MIGRATION=18
 seed_legacy_profile() {
     mkdir -p "$P_DATA/games"
     cat > "$P_CONF" <<EOF
@@ -433,12 +448,6 @@ check_logs_clean() { # <scenario>
 launch_and_check() { # <scenario> <slug> <label>
     local scenario="$1" slug="$2" label="$3"
     local marker="$P_GAMES/$slug/launched.marker"
-
-    if [ "$HAVE_DISPLAY" -eq 0 ]; then
-        skip "$scenario/$label: game launches and the client exits" \
-            "no display (try: xvfb-run -a utils/release-smoke-test.sh)"
-        return
-    fi
 
     lutris_run "$P_LOGS/launch-$slug" "lutris:rungame/$slug"
     expect_eq "$scenario/$label: 'rungame' exits 0" 0 "$RC"
@@ -549,8 +558,8 @@ scenario_fresh() {
     check_logs_clean "$scenario"
 
     # F14 - the window starts and stays up
-    if [ "$RUN_GUI" -eq 0 ] || [ "$HAVE_DISPLAY" -eq 0 ]; then
-        skip "F14 gui: window starts and stays up" "no display or --no-gui"
+    if [ "$RUN_GUI" -eq 0 ]; then
+        skip "F14 gui: window starts and stays up" "--no-gui"
         return
     fi
     ( cd "$P_WORK" && timeout --signal=TERM 15 "${DISP[@]+"${DISP[@]}"}" \
@@ -574,6 +583,15 @@ scenario_fresh() {
 
 scenario_existing() {
     section "Existing install (upgrade)"
+    # The seed below runs only the newest migration, so the fixture and the E5 checks
+    # have to describe that one. When they no longer do, say it once, plainly, instead
+    # of leaving two unexplained E5 failures behind.
+    local newest_migration=$((EXPECTED_MIGRATION_VERSION - 1))
+    if [ "$LEGACY_FIXTURE_MIGRATION" -ne "$newest_migration" ]; then
+        local fix="the fixture asserts migration $LEGACY_FIXTURE_MIGRATION, the newest is $newest_migration"
+        fail "existing/fixture: legacy profile matches the newest migration" \
+            "$fix; update seed_legacy_profile() and E5"
+    fi
     profile_reset existing
     local scenario=existing out migrated_yml
     local legacy_yml="$P_DATA/games/legacy-emulator-1.yml"
@@ -715,8 +733,12 @@ PY
 
     lutris_run "$P_LOGS/clone-list" -l -j
     expect_eq "clone: 'lutris -l -j' exits 0" 0 "$RC"
-    expect_eq "clone: game count unchanged after upgrade" "$before" \
-        "$(db_query 'select count(*) from games' 2>/dev/null || echo "")"
+    if [ -n "$before" ]; then
+        expect_eq "clone: game count unchanged after upgrade" "$before" \
+            "$(db_query 'select count(*) from games' 2>/dev/null)"
+    else
+        skip "clone: game count unchanged after upgrade" "the copied database could not be counted"
+    fi
     expect_eq "clone: integrity_check" "ok" "$(db_query 'pragma integrity_check')"
     expect_contains "clone: migration_version current" \
         "$(cat "$P_CONF" 2>/dev/null || true)" "migration_version = $EXPECTED_MIGRATION_VERSION"
@@ -776,11 +798,7 @@ printf '  repository : %s\n' "$REPO_ROOT"
 printf '  version    : %s\n' "$EXPECTED_VERSION"
 printf '  python     : %s\n' "$PY"
 printf '  sandbox    : %s\n' "$SANDBOX"
-if [ "$HAVE_DISPLAY" -eq 1 ]; then
-    printf '  display    : yes\n'
-else
-    printf '  display    : no (display checks will be skipped)\n'
-fi
+printf '  display    : %s\n' "$DISPLAY_NOTE"
 
 if [ "$KEEP" -eq 1 ]; then
     prepare_first_run_profile

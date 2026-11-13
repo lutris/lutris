@@ -51,11 +51,13 @@ Step 2 - What is inside the sandbox
       first-run/                 used by Part A
         home/                    empty HOME: a genuine first start
         games/                   fake-game.sh and sleepy.sh, the test executables
-        work/                    cwd of every command, e.g. exported game scripts
       fresh/                     automated scenario: first start, one seeded game
-        home/  games/  logs/  work/
+        home/  games/  logs/  work/  export/  import/
       existing/                  automated scenario: upgraded, two seeded games
       clone/                     only with --existing-profile
+
+``work/`` is the working directory of the automated commands, and is where the
+client writes files such as the exported game script.
 
 ``first-run``
     Never opened by the automated checks. Part A runs here, so item 1 really is a
@@ -324,8 +326,9 @@ Paste this into the release pull request or issue, with the counts from your run
 Troubleshooting
 ---------------
 
-- "display checks will be skipped" from the script: there is no session. Run it
-  from your desktop, or with ``xvfb-run -a utils/release-smoke-test.sh``.
+- "error: no display, and xvfb-run is not installed" from the script: the run needs a
+  display, every check but ``--version`` fails without one. Start it from your
+  desktop, or install xvfb and use ``xvfb-run -a utils/release-smoke-test.sh``.
 - "the client shows my own library during Part A": the environment variables were
   not applied, or ``launch`` was not used. Check that ``$SMOKE`` is set.
 - A game does not start: right-click → **Show logs**. The exact command line is
