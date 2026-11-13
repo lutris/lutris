@@ -181,6 +181,21 @@ class TestUmuLaunchStatusParser(unittest.TestCase):
         self.assertEqual(game.launch_status, "Downloading GE-Proton10-34.tar.gz...")
         self.assertIs(game.launch_progress_text_function, proton.get_umu_download_progress_text)
 
+    def test_resumed_download_sets_status_and_progress_text_function(self):
+        game = FakeGame()
+        self.feed(game, "[umu.umu_proton:406] INFO: Found 'GE-Proton10-34.tar.gz.parts' in cache, resuming...")
+        self.assertEqual(game.launch_status, "Resuming download of GE-Proton10-34.tar.gz...")
+        self.assertIs(game.launch_progress_text_function, proton.get_umu_download_progress_text)
+
+    def test_resumed_runtime_download(self):
+        game = FakeGame()
+        self.feed(
+            game,
+            "[umu.umu_runtime:155] INFO: Found 'SteamLinuxRuntime_4.tar.xz.4.0.20261110.268882.parts' in cache, "
+            "resuming...",
+        )
+        self.assertEqual(game.launch_status, "Resuming download of SteamLinuxRuntime_4.tar.xz.4.0.20261110.268882...")
+
     def test_extracting_drops_progress_text_function(self):
         game = FakeGame()
         self.feed(

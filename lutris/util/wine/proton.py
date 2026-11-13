@@ -34,6 +34,10 @@ _GE_PROTON_TAG_RE = re.compile(r"^GE-Proton\d+-\d+$")
 #   [umu.umu_proton:348] INFO: Downloading GE-Proton10-34.tar.gz...
 _UMU_LOG_LINE_RE = re.compile(r"\[umu\.[\w_]+:\d+\]\s+(?:INFO|WARNING|ERROR):\s+(.+)")
 
+# Logged instead of 'Downloading ...' when umu picks up a download that was
+# interrupted earlier, e.g. "Found 'GE-Proton10-34.tar.gz.parts' in cache, resuming..."
+_UMU_RESUME_RE = re.compile(r"^Found '(.+?)(?:\.parts)?' in cache, resuming")
+
 
 class UmuLaunchStatusParser:
     """Scans umu's stdout for runtime setup progress and pushes it onto a
@@ -64,6 +68,11 @@ class UmuLaunchStatusParser:
         # before it hands off to Proton — clear any pending status then.
         if message.startswith("Using "):
             self.game.launch_status = ""
+            return
+        resume = _UMU_RESUME_RE.match(message)
+        if resume:
+            self.game.launch_progress_text_function = get_umu_download_progress_text
+            self.game.launch_status = _("Resuming download of %s...") % resume.group(1)
             return
         # Only the user-meaningful progress messages — skip lock acquisition,
         # version chatter, env dumps, etc.
