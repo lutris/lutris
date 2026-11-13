@@ -8,6 +8,7 @@ import shutil
 import signal
 import subprocess
 import time
+from collections.abc import Callable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any, cast
 
@@ -134,6 +135,9 @@ class Game:
         self.killswitch = None
         self.state = self.STATE_STOPPED
         self._launch_status = ""
+        # Optional function returning a short progress detail for the current
+        # launch_status (e.g. bytes downloaded so far); polled by the UI.
+        self.launch_progress_text_function: Callable[[], str] | None = None
         self.game_runtime_config = {}
         self.resolution_changed = False
         self.compositor_disabled = False
@@ -892,6 +896,8 @@ class Game:
         if status == self._launch_status:
             return
         self._launch_status = status
+        if not status:
+            self.launch_progress_text_function = None
         GAME_LAUNCH_STATUS.fire(self)
 
     def force_stop(self) -> None:
