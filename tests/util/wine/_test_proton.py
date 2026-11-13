@@ -1,4 +1,6 @@
 import os
+import tempfile
+import time
 import unittest
 from unittest.mock import patch
 
@@ -154,3 +156,93 @@ class TestGeProtonReleaseUrls(unittest.TestCase):
     def test_no_build_without_a_checksum(self):
         self.assertIsNone(self.get_urls(make_release("GE-Proton11-7-x86_64.tar.gz")))
         self.assertIsNone(self.get_urls({}))
+
+
+class FakeGame:
+    """Stands in for Game: the parser only sets these two attributes."""
+
+    def __init__(self):
+        self.launch_status = ""
+        self.launch_progress_text_function = None
+
+
+class TestUmuLaunchStatusParser(unittest.TestCase):
+    """umu's setup messages become the game's launch status; while umu is
+    downloading, the UI is also given a way to read the bytes received so far."""
+
+    def feed(self, game, *lines):
+        parser = proton.UmuLaunchStatusParser(game)
+        for line in lines:
+            parser(line + "\n")
+
+    def test_download_sets_status_and_progress_text_function(self):
+        game = FakeGame()
+        self.feed(game, "[umu.umu_proton:414] INFO: Downloading GE-Proton10-34.tar.gz...")
+        self.assertEqual(game.launch_status, "Downloading GE-Proton10-34.tar.gz...")
+        self.assertIs(game.launch_progress_text_function, proton.get_umu_download_progress_text)
+
+    def test_extracting_drops_progress_text_function(self):
+        game = FakeGame()
+        self.feed(
+            game,
+            "[umu.umu_runtime:163] INFO: Downloading steamrt4 (latest), please wait...",
+            "[umu.umu_proton:610] INFO: Extracting GE-Proton10-34.tar.gz...",
+        )
+        self.assertEqual(game.launch_status, "Extracting GE-Proton10-34.tar.gz...")
+        self.assertIsNone(game.launch_progress_text_function)
+
+
+class TestGetUmuDownloadSize(unittest.TestCase):
+    """umu downloads into '<name>.parts' inside a mkdtemp() directory, in the
+    temp dir or under $XDG_CACHE_HOME/umu; the newest recent one is the download."""
+
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.tmp_dir = os.path.join(temp.name, "tmp")
+        self.cache_home = os.path.join(temp.name, "cache")
+        os.makedirs(self.tmp_dir)
+        os.makedirs(os.path.join(self.cache_home, "umu"))
+        for patcher in (
+            patch.object(proton.tempfile, "gettempdir", return_value=self.tmp_dir),
+            patch.dict(os.environ, {"XDG_CACHE_HOME": self.cache_home}),
+        ):
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def make_parts(self, directory, name, size, age=0.0):
+        os.makedirs(directory, exist_ok=True)
+        path = os.path.join(directory, name)
+        with open(path, "wb") as parts_file:
+            parts_file.write(b"x" * size)
+        mtime = time.time() - age
+        os.utime(path, (mtime, mtime))
+        return path
+
+    def test_nothing_downloading(self):
+        self.assertIsNone(proton.get_umu_download_size())
+        self.assertEqual(proton.get_umu_download_progress_text(), "")
+
+    def test_download_on_tmpfs(self):
+        self.make_parts(os.path.join(self.tmp_dir, "tmpab12"), "GE-Proton10-34.tar.gz.parts", 2048)
+        self.assertEqual(proton.get_umu_download_size(), 2048)
+        self.assertEqual(proton.get_umu_download_progress_text(), "2.0 kB")
+
+    def test_download_in_hidden_cache_dir(self):
+        hidden_dir = os.path.join(self.cache_home, "umu", ".tmpcd34")
+        self.make_parts(hidden_dir, "SteamLinuxRuntime_4.tar.xz.123.parts", 4096)
+        self.assertEqual(proton.get_umu_download_size(), 4096)
+
+    def test_newest_download_wins(self):
+        self.make_parts(os.path.join(self.tmp_dir, "tmpold"), "old.parts", 100, age=10)
+        self.make_parts(os.path.join(self.cache_home, "umu", "tmpnew"), "new.parts", 200)
+        self.assertEqual(proton.get_umu_download_size(), 200)
+
+    def test_stale_partial_is_ignored(self):
+        self.make_parts(os.path.join(self.tmp_dir, "tmpdead"), "old.parts", 100, age=300)
+        self.assertIsNone(proton.get_umu_download_size())
+
+    def test_other_files_are_ignored(self):
+        self.make_parts(os.path.join(self.tmp_dir, "tmpab12"), "GE-Proton10-34.tar.gz", 100)
+        self.make_parts(self.tmp_dir, "loose.parts", 100)
+        self.assertIsNone(proton.get_umu_download_size())

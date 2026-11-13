@@ -1,8 +1,11 @@
 """Utility module to deal with Proton and umu"""
 
+import glob
 import json
 import os
 import re
+import tempfile
+import time
 from collections.abc import Generator
 from gettext import gettext as _
 from typing import TYPE_CHECKING
@@ -14,7 +17,7 @@ from lutris.util import cache_single, system
 from lutris.util.http import Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.steam.config import get_steamapps_dirs
-from lutris.util.strings import get_natural_sort_key
+from lutris.util.strings import get_natural_sort_key, human_size
 
 if TYPE_CHECKING:
     from lutris.game import Game
@@ -65,7 +68,53 @@ class UmuLaunchStatusParser:
         # Only the user-meaningful progress messages — skip lock acquisition,
         # version chatter, env dumps, etc.
         if message.startswith(("Downloading ", "Extracting ", "Checking updates")):
+            # umu logs nothing while a download runs, so for downloads let the
+            # UI poll the size of the partial file instead.
+            if message.startswith("Downloading "):
+                self.game.launch_progress_text_function = get_umu_download_progress_text
+            else:
+                self.game.launch_progress_text_function = None
             self.game.launch_status = message
+
+
+# A partial download that hasn't grown for this long is assumed not to be umu's
+# current download (e.g. left over from an interrupted run).
+_UMU_DOWNLOAD_STALE_SECONDS = 30
+
+
+def get_umu_download_size() -> int | None:
+    """Return the size in bytes of the file umu is downloading right now, or
+    None if no download is found.
+
+    umu writes downloads as '<name>.parts' inside a fresh mkdtemp() directory,
+    either in the system temp dir (when it is a large enough tmpfs) or under
+    $XDG_CACHE_HOME/umu (a hidden '.tmp*' directory, or 'tmp*' when resuming
+    a cached partial). The newest recently-written one is taken to be it."""
+    cache_home = os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache")
+    umu_cache = os.path.join(cache_home, "umu")
+    patterns = (
+        os.path.join(tempfile.gettempdir(), "tmp*", "*.parts"),
+        os.path.join(umu_cache, ".tmp*", "*.parts"),
+        os.path.join(umu_cache, "tmp*", "*.parts"),
+    )
+    newest = None
+    for pattern in patterns:
+        for path in glob.glob(pattern):
+            try:
+                stat = os.stat(path)
+            except OSError:
+                continue  # finished and renamed between glob and stat
+            if newest is None or stat.st_mtime > newest.st_mtime:
+                newest = stat
+    if newest is None or time.time() - newest.st_mtime > _UMU_DOWNLOAD_STALE_SECONDS:
+        return None
+    return newest.st_size
+
+
+def get_umu_download_progress_text() -> str:
+    """Bytes umu has downloaded so far, formatted for a progress bar; empty if unknown."""
+    size = get_umu_download_size()
+    return human_size(size) if size else ""
 
 
 def is_proton_version(version: str | None) -> bool:
