@@ -257,6 +257,10 @@ class TestGetUmuDownloadSize(unittest.TestCase):
         self.make_parts(os.path.join(self.tmp_dir, "tmpdead"), "old.parts", 100, age=300)
         self.assertIsNone(proton.get_umu_download_size())
 
+    def test_errors_show_no_size(self):
+        with patch.object(proton, "get_umu_download_size", side_effect=RuntimeError("boom")):
+            self.assertEqual(proton.get_umu_download_progress_text(), "")
+
     def test_other_files_are_ignored(self):
         self.make_parts(os.path.join(self.tmp_dir, "tmpab12"), "GE-Proton10-34.tar.gz", 100)
         self.make_parts(self.tmp_dir, "loose.parts", 100)

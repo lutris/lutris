@@ -16,6 +16,7 @@ from lutris.monitored_command import RUNNING_COMMANDS
 from lutris.util import cache_single, system
 from lutris.util.http import Request
 from lutris.util.linux import LINUX_SYSTEM
+from lutris.util.log import logger
 from lutris.util.steam.config import get_steamapps_dirs
 from lutris.util.strings import get_natural_sort_key, human_size
 
@@ -121,8 +122,16 @@ def get_umu_download_size() -> int | None:
 
 
 def get_umu_download_progress_text() -> str:
-    """Bytes umu has downloaded so far, formatted for a progress bar; empty if unknown."""
-    size = get_umu_download_size()
+    """Bytes umu has downloaded so far, formatted for a progress bar; empty if unknown.
+
+    This is polled by the UI while the launch progress box is shown; an
+    exception there would stop the box from updating (and from going away), so
+    any failure here just means no size is shown."""
+    try:
+        size = get_umu_download_size()
+    except Exception as ex:
+        logger.warning("Unable to read umu download size: %s", ex)
+        return ""
     return human_size(size) if size else ""
 
 
