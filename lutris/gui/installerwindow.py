@@ -1135,6 +1135,13 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack.discard_navigation()
         self.cancel_button.grab_focus()
 
+        # If Lutris is in the background, ask for attention. No window of ours has the focus
+        # for the compositor to hand over, so it flags this one instead- flashing it in the
+        # taskbar, or showing a notification. If Lutris is in use, we don't take the focus.
+        application = self.get_application()
+        if application and not any(w.is_active() for w in application.get_windows()):
+            self.present()
+
     def present_finished_page(self, game_id, status):
         self.set_status(status)
         self.stack.present_page("nothing")

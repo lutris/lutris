@@ -204,9 +204,10 @@ creation and presentation.
 ## GnomeDesktop / Display API
 
 GnomeDesktop 3.0 (`gi.require_version('GnomeDesktop', '3.0')`) requires GTK 3 and cannot
-be loaded alongside GTK 4. The `MutterDisplayManager` and `GnomeDesktopDisplayManager`
-classes are unavailable; display resolution queries fall through to xrandr parsing via
-`LegacyDisplayManager` in `lutris/util/graphics/xrandr.py`.
+be loaded alongside GTK 4, so the display manager built on it is gone. `get_display_manager()`
+in `lutris/util/display.py` still prefers `MutterDisplayManager`, which uses D-Bus; where
+Mutter is not running, display resolution queries now always fall through to xrandr parsing
+via `LegacyDisplayManager` in `lutris/util/graphics/xrandr.py`.
 
 ## SearchEntry Return Key Handling
 
@@ -309,15 +310,22 @@ helper rather than at each call site.
 
 ## Window Urgency Hint Removed
 
-`Gtk.Window.set_urgency_hint()` was removed in GTK 4 with no direct replacement —
-the X11 urgency hint (used to flash the taskbar entry to draw attention to a
-window when a long-running operation finishes) has no Wayland equivalent and was
-dropped wholesale. The closest modern analog is a freedesktop notification via
-`Gio.Notification`, but that's a different UX (a popup, not a taskbar flash).
+`Gtk.Window.set_urgency_hint()` was removed in GTK 4. The installer
+window used it to flash its taskbar entry when an install finished
+while the window was inactive.
 
-The installer window previously called `set_urgency_hint(True)` when an install
-finished and cleared it on `focus-in-event`. Both signal and method are gone in
-GTK 4; the behavior is dropped rather than reimplemented.
+`Gtk.Window.present()` serves instead, if it is called while no window
+of ours has the focus. On Wayland GDK then has no focused surface to
+name in its xdg-activation token (see "Re-raising Already-Open Windows
+on Wayland"), so the compositor refuses the activation. Mutter responds
+by calling `meta_window_set_demands_attention()`, provided the window
+is not in full view; GNOME Shell shows that as a notification, and
+other desktops flash the taskbar entry.
+
+`InstallerWindow.load_finish_install_page()` does this. It does not
+call `present()` while another Lutris window is active, because then
+the activation may be granted and would take the focus from whatever
+the user is doing.
 
 ## Gdk.Keymap Removed
 
