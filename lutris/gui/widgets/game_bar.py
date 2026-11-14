@@ -2,13 +2,13 @@ from datetime import datetime
 from gettext import gettext as _
 from typing import TYPE_CHECKING
 
-from gi.repository import GLib, Gtk, Pango
+from gi.repository import Gtk, Pango
 
 from lutris import runners, services
 from lutris.database.games import get_game_for_service
 from lutris.game import GAME_INSTALLED, GAME_START, GAME_STARTED, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.game_actions import get_game_actions
-from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
+from lutris.gui.widgets.contextual_menu import get_menu_item, get_menu_popover, update_action_widget_visibility
 from lutris.gui.widgets.utils import get_widget_children
 from lutris.util.strings import gtk_safe
 
@@ -102,18 +102,6 @@ class GameBar(Gtk.Box):
         If primary_opens_popover is true, this method also handled the 'clicked' signal
         of the primary button to trigger the popover as well."""
 
-        def get_popover(parent):
-            # Creates the popover widget containing the list of link buttons
-            pop = Gtk.Popover()
-            vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-
-            for button in popover_buttons:
-                vbox.append(button)
-
-            pop.set_child(vbox)
-            pop.set_position(Gtk.PositionType.TOP)
-            return pop
-
         box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         box.add_css_class("linked")
 
@@ -122,29 +110,13 @@ class GameBar(Gtk.Box):
         if popover_buttons:
             popover_button = Gtk.MenuButton(direction=Gtk.ArrowType.UP)
             popover_button.set_size_request(32, 32)
-            popover = get_popover(popover_button)
-            popover_button.set_popover(popover)
+            popover_button.set_popover(get_menu_popover(popover_buttons, position=Gtk.PositionType.TOP))
             box.append(popover_button)
 
             if primary_opens_popover:
                 primary_button.connect("clicked", lambda _x: popover_button.emit("clicked"))
 
         return box
-
-    def get_link_button(self, text, callback=None):
-        """Return a suitable button for a menu popover."""
-        if text == "-":
-            return Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-
-        button = Gtk.Button(label=text)
-        button.add_css_class("popover-menu-button")
-        button.add_css_class("flat")
-        child = button.get_child()
-        if child and isinstance(child, Gtk.Label):
-            child.set_halign(Gtk.Align.START)
-        if callback:
-            button.connect("clicked", self.on_link_button_clicked, callback)
-        return button
 
     def get_game_name_label(self):
         """Return the label with the game's title"""
@@ -198,9 +170,7 @@ class GameBar(Gtk.Box):
 
     def get_locate_installed_game_button(self, game_actions):
         """Return a button to locate an existing install"""
-        button = self.get_link_button(_("Locate installed game"))
-        button.connect("clicked", game_actions.on_locate_installed_game)
-        return button
+        return get_menu_item(_("Locate installed game"), game_actions.on_locate_installed_game)
 
     def get_play_button(self, game_actions):
         """Return the widget for install/play/stop and game config"""
@@ -246,7 +216,7 @@ class GameBar(Gtk.Box):
         for action_id, label, callback in game_actions.get_game_actions():
             if action_id in ("play", "stop", "install"):
                 continue
-            button = self.get_link_button(label, callback)
+            button = get_menu_item(label, callback)
             if action_id:
                 button_visibility[button] = displayed.get(action_id, True)
             buttons.append(button)
@@ -259,18 +229,9 @@ class GameBar(Gtk.Box):
         if self.game.has_runner and self.game.is_installed:
             runner = runners.import_runner(self.game.runner_name)(self.game.config)
             for _name, label, callback in runner.context_menu_entries:
-                button = self.get_link_button(label, callback)
+                button = get_menu_item(label, callback)
                 buttons.append(button)
         return buttons
-
-    def on_link_button_clicked(self, button, callback):
-        """Callback for link buttons. Runs the actual action while the popover is open, since
-        on Wayland it can't reliably focus a window once the popover has closed. The popover
-        closes at idle, so it does not linger if the action runs a main loop for a modal dialog."""
-        popover = button.get_ancestor(Gtk.Popover)
-        if popover:
-            GLib.idle_add(popover.popdown)
-        callback(button)
 
     def on_install_clicked(self, button):
         """Handler for installing service games"""

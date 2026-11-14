@@ -266,11 +266,16 @@ the action's handler:
 So we do two things:
 
 - Menus that can re-raise a window run the action while still open.
-  `ContextualMenu` is a hand-built `Gtk.Popover` of buttons for this
-  reason (with the CSS name `modelbutton`, so the theme styles them as
-  menu items), and so are the game bar's menus. Both queue `popdown()`
-  with `idle_add()` and then call back, so the menu also closes
+  `get_menu_popover()` and `get_menu_item()` in
+  `lutris/gui/widgets/contextual_menu.py` build a `Gtk.Popover` of
+  buttons that stands in for a `Gtk.PopoverMenu`; the game context menu
+  and the game bar's menus both use them. An item queues `popdown()`
+  with `idle_add()` and then calls back, so the menu also closes
   promptly if the callback runs a nested main loop for a modal dialog.
+  The buttons have the CSS name `modelbutton`, so the theme styles them
+  as menu items. The theme highlights such an item when it is
+  `:selected`, not on `:hover`, so each one sets that state on itself
+  as `GtkModelButton` does.
 - `reraise_window()` in `lutris/gui/widgets/utils.py`, used by
   `LutrisApplication.show_window()`, presents at once if GDK's pointer
   surface is still mapped, and otherwise from a 1 ms timeout. A closed
