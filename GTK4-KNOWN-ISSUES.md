@@ -1,29 +1,11 @@
 # GTK 4 Port — Known Issues
 
 This document describes behaviour that differs in the GTK 4 build of
-Lutris from the previous GTK 3 release. A few features had no direct
-GTK 4 equivalent and have been dropped, a few work differently, and a
+Lutris from the previous GTK 3 release. One feature had no direct
+GTK 4 equivalent and has been dropped, a few work differently, and a
 defect remains that we have not been able to fully resolve.
 
 ## Features Removed
-
-### System tray icon
-
-GTK 4 ships no replacement for `Gtk.StatusIcon`, and the
-libappindicator / libayatana-appindicator libraries that took over tray
-duties on Linux desktops, and that Lutris used, depend on GTK 3. There
-is no AppIndicator 4 release. A tray icon can be had without them, but
-only by implementing the underlying D-Bus protocols ourselves, which we
-have not done. The tray icon — including the "minimize to tray",
-quick-launch, and quit-from-tray affordances — is therefore
-unavailable.
-
-The closest replacements:
-
-- Minimize the window; most desktop environments will park it on the
-  taskbar.
-- Close the window to exit the process and re-launch from your menu /
-  dock when you need it.
 
 ### gnome-desktop3 display detection
 
@@ -42,6 +24,26 @@ or `xrandr` (Fedora, openSUSE, Arch). Without it the resolution
 dropdown collapses to a single default entry.
 
 ## Behaviour Changes
+
+### System tray icon
+
+GTK 4 ships no replacement for `Gtk.StatusIcon`, and the libappindicator
+/ libayatana-appindicator libraries that took over tray duties on Linux
+desktops, and that the GTK 3 build used, depend on GTK 3. The GTK 4
+build instead speaks the D-Bus protocols underneath those libraries
+(StatusNotifierItem and DBusMenu) itself. The icon, its menu of recent
+games, and "minimize to tray" work as before, with these differences:
+
+- The **Show Tray Icon** preference only appears when the desktop has
+  somewhere to show the icon. KDE and most others do; GNOME needs an
+  extension such as "AppIndicator and KStatusNotifierItem Support".
+- On X11 desktops with only the older XEmbed system tray, there is no
+  icon. The GTK 3 build fell back to `Gtk.StatusIcon` there.
+- The menu's list of games is refreshed each time it opens; the GTK 3
+  build listed the games that were installed when Lutris started.
+- If the desktop's tray goes away while the Lutris window is hidden,
+  for instance when the GNOME extension is disabled, Lutris keeps
+  running with no window. Launch Lutris again to bring it back.
 
 ### Installer-completion taskbar flash
 

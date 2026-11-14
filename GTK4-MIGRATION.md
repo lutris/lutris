@@ -308,6 +308,34 @@ time and the constructor returns a cursor object for any name. `set_cursor_by_na
 in `lutris/gui/widgets/utils.py` still checks, so the tolerance lives in one shared
 helper rather than at each call site.
 
+## Status Icon
+
+`Gtk.StatusIcon` is gone in GTK 4, and AppIndicator3 / AyatanaAppIndicator3 load GTK 3, so
+neither can be used. Those libraries are wrappers over two D-Bus protocols that need no GTK
+at all, and `lutris/gui/widgets/status_icon.py` implements them directly with Gio:
+
+- `org.kde.StatusNotifierItem`, an object at `/StatusNotifierItem` whose properties describe
+  the icon. We register it with the desktop's `org.kde.StatusNotifierWatcher`, which reads
+  the properties and draws the icon; it calls `Activate` when the icon is clicked.
+- `com.canonical.dbusmenu`, an object at `/MenuBar`. The desktop calls `GetLayout` for the
+  tree of items and draws the menu, and calls `Event` with an item's ID when it is clicked.
+
+Things learned along the way:
+
+- Exporting an object needs a `Gio.DBusInterfaceInfo`, which is why the module carries the
+  interfaces as XML; calling a service, as `TrashPortal` does, needs none. Gio uses it to
+  validate calls and to answer `Properties.GetAll`, which is how hosts read the icon.
+- Don't set `IconThemePath`. GNOME's AppIndicator extension then looks for the icon *only*
+  there, and a directory that is not a complete icon theme finds nothing; the icon is shown
+  as three dots. Without it the name is looked up in the installed themes.
+- The watcher comes and goes with the shell or its extension, so we watch its bus name and
+  register again whenever it appears. `is_visible()` is false while there is no watcher, so
+  that closing the main window quits Lutris and does not hide it beyond recall.
+- The menu is rebuilt on `AboutToShow`, and `LayoutUpdated` is emitted if it changed.
+
+The GTK 3 fallback to `Gtk.StatusIcon`, for X11 desktops with only an XEmbed tray, is not
+replaced.
+
 ## Window Urgency Hint Removed
 
 `Gtk.Window.set_urgency_hint()` was removed in GTK 4. The installer
