@@ -2,7 +2,7 @@ from datetime import datetime
 from gettext import gettext as _
 from typing import TYPE_CHECKING
 
-from gi.repository import Gtk, Pango
+from gi.repository import GLib, Gtk, Pango
 
 from lutris import runners, services
 from lutris.database.games import get_game_for_service
@@ -264,10 +264,12 @@ class GameBar(Gtk.Box):
         return buttons
 
     def on_link_button_clicked(self, button, callback):
-        """Callback for link buttons. Closes the popover then runs the actual action"""
+        """Callback for link buttons. Runs the actual action while the popover is open, since
+        on Wayland it can't reliably focus a window once the popover has closed. The popover
+        closes at idle, so it does not linger if the action runs a main loop for a modal dialog."""
         popover = button.get_ancestor(Gtk.Popover)
         if popover:
-            popover.popdown()
+            GLib.idle_add(popover.popdown)
         callback(button)
 
     def on_install_clicked(self, button):

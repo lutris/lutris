@@ -46,28 +46,23 @@ resolution dropdown collapses to a single default entry.
 
 ## Known Defects
 
-### Some windows don't reliably take focus when re-raised on Wayland
+### Some windows don't take focus when re-raised from the main menu on Wayland
 
 When a dialog is already open and you trigger an action that re-opens
-it, Wayland compositors (notably Mutter) sometimes refuse to give the
-re-raised window keyboard focus. The window comes visually to the
-front, but typing keeps going to whatever window had focus before. The
-title bar usually looks dimmed when this happens.
+it, Lutris asks the compositor to bring it forward and give it keyboard
+focus. Mutter only agrees if the window you clicked in is still under
+the mouse pointer. A menu closes as you click it, so what counts is
+whatever lies beneath the menu item.
 
-We've added a 1-millisecond defer before re-raising, which fixes most
-cases, but two situations remain:
+This is fixed for the game context menu and the game bar's menus, which
+now stay open until the dialog has been raised. It can still happen with
+the main window's menu button: if the Lutris window is small enough that
+**Preferences** or another item hangs outside its edge, the dialog is
+not focused. Typing keeps going to the main window, and the dialog's
+title bar looks dimmed.
 
-- The **Configure** dialog re-opened from the game's right-click context
-  menu still sometimes fails to take focus. Whether it works appears to
-  depend on the vertical position of the mouse pointer at click time,
-  which strongly suggests a heuristic inside Mutter that we cannot
-  influence from the application.
-- The **Preferences** dialog occasionally refuses to come to the front
-  for a few seconds when re-opened, hinting at a separate rate-limit
-  heuristic in the compositor.
-
-Workaround: click the dialog's title bar once, or click the existing
-window via the taskbar, to give it focus.
+Workaround: click the dialog's title bar once, or enlarge the Lutris
+window so the menu fits inside it.
 
 ### Editable dropdowns now have a "Custom" choice
 

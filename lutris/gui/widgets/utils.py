@@ -65,6 +65,29 @@ def get_widget_window(widget: Gtk.Widget | None) -> Gtk.Window | None:
         return None
 
 
+def reraise_window(window: Gtk.Window) -> None:
+    """Presents a window that is already open, to bring it forward and give it the focus.
+
+    On Wayland, present() has GDK tell Mutter which surface it believes has keyboard
+    focus, and Mutter focuses the window only if that surface is under the pointer.
+
+    After a click on a menu that has closed already, GDK still believes the menu
+    has keyboard focus; it has not yet read Mutter's message that focus returned
+    to the menu's window. A 1ms timeout lets the main loop poll for that message
+    (an idle would run too soon), so GDK names that window instead. This still fails
+    if the menu item was outside the window, so a menu that can lead here should stay
+    open until its callback returns, as ContextualMenu does.
+
+    We detect a closed menu by GDK's pointer surface, which is equally stale."""
+    seat = window.get_display().get_default_seat()
+    pointer = seat.get_pointer() if seat else None
+    pointer_surface = pointer.get_surface_at_position()[0] if pointer else None
+    if pointer_surface and pointer_surface.get_mapped():
+        window.present()
+    else:
+        GLib.timeout_add(1, window.present)  # returns None, so this runs just once
+
+
 def set_cursor_by_name(widget: Gtk.Widget, name: str | None) -> None:
     """Applies the named cursor to a widget; if 'name' is None the widget reverts to
     its default cursor.

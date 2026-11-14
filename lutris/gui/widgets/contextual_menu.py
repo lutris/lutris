@@ -1,4 +1,4 @@
-from gi.repository import Gdk, Gio, GLib, Gtk
+from gi.repository import Gdk, GLib, Gtk
 
 
 def update_action_widget_visibility(widgets, visible_predicate):
@@ -29,48 +29,65 @@ def update_action_widget_visibility(widgets, visible_predicate):
 
 
 class ContextualMenu:
-    """Context menu using Gtk.PopoverMenu with Gio.Menu model for GTK4 compatibility."""
+    """Context menu for games. This is built by hand, and is not a Gtk.PopoverMenu, because
+    that closes before it activates an item. On Wayland a window can't be reliably focused
+    from the item's callback unless the menu is still open. See reraise_window()."""
 
     def __init__(self, main_entries):
         self.main_entries = main_entries
-        self._action_group = Gio.SimpleActionGroup()
-        self._actions = {}
 
     def popup_at(self, widget, x, y, game_actions):
         """Show the context menu as a popover attached to widget at (x, y)."""
         displayed = game_actions.get_displayed_entries()
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        popover = Gtk.Popover(child=box, has_arrow=False)
+        popover.add_css_class("menu")
 
-        menu = Gio.Menu()
-        section = Gio.Menu()
-        visible_count = 0
+        def on_clicked(_button, callback):
+            # Close at idle, so the menu is open during the callback but does not
+            # linger if that runs a main loop of its own for a modal dialog.
+            GLib.idle_add(popover.popdown)
+            callback(None)
 
+        def track_selection(item):
+            # The theme highlights the 'selected' menu item, not the hovered one; like
+            # Gtk.PopoverMenu, we select the item under the pointer or focused by keyboard.
+            def select(*_args):
+                item.set_state_flags(Gtk.StateFlags.SELECTED, False)
+                item.grab_focus()
+
+            def unselect(*_args):
+                item.unset_state_flags(Gtk.StateFlags.SELECTED)
+
+            def on_state_flags_changed(_item, old_flags):
+                # The first item gets the focus when the menu opens, but should not look
+                # selected then; so we look for the visible focus that keyboard use gives.
+                if item.get_state_flags() & ~old_flags & Gtk.StateFlags.FOCUS_VISIBLE:
+                    select()
+
+            motion = Gtk.EventControllerMotion()
+            motion.connect("enter", select)
+            motion.connect("leave", unselect)
+            item.add_controller(motion)
+            focus = Gtk.EventControllerFocus()
+            focus.connect("leave", unselect)
+            item.add_controller(focus)
+            item.connect("state-flags-changed", on_state_flags_changed)
+
+        visibility = {}
         for name, label, callback in self.main_entries:
             if label == "-":
-                if section.get_n_items() > 0:
-                    menu.append_section(None, section)
-                    section = Gio.Menu()
-                continue
+                item = Gtk.Separator()
+                visibility[item] = None
+            else:
+                # The 'modelbutton' CSS name gets us the theme's menu item style.
+                item = Gtk.Button(css_name="modelbutton", child=Gtk.Label(label=label, xalign=0, use_underline=True))
+                item.connect("clicked", on_clicked, callback)
+                track_selection(item)
+                visibility[item] = displayed.get(name, True)
+            box.append(item)
 
-            is_visible = displayed.get(name, True)
-            if not is_visible:
-                continue
-
-            action_name = name.replace("-", "_")
-            action = Gio.SimpleAction.new(action_name, None)
-            action.connect("activate", lambda _action, _param, cb=callback: cb(None))
-            self._action_group.add_action(action)
-            self._actions[action_name] = action
-
-            menu_item = Gio.MenuItem.new(label, "context." + action_name)
-            section.append_item(menu_item)
-            visible_count += 1
-
-        if section.get_n_items() > 0:
-            menu.append_section(None, section)
-
-        if visible_count > 0:
-            popover = Gtk.PopoverMenu.new_from_model(menu)
-            popover.insert_action_group("context", self._action_group)
+        if update_action_widget_visibility(visibility, visibility.get) > 0:
             popover.set_parent(widget)
             popover.connect("closed", lambda p: GLib.idle_add(p.unparent))
             rect = Gdk.Rectangle()
@@ -79,9 +96,4 @@ class ContextualMenu:
             rect.width = 1
             rect.height = 1
             popover.set_pointing_to(rect)
-            popover.set_has_arrow(False)
-            # GtkMenuSectionBox inserts section separators from a G_PRIORITY_DEFAULT
-            # idle, so measuring synchronously here undercounts the natural height
-            # and the compositor clamps the popup. Defer popup() to a lower-priority
-            # idle so the separator sync runs first.
-            GLib.idle_add(popover.popup)
+            popover.popup()

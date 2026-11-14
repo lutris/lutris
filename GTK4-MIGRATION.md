@@ -219,65 +219,71 @@ connect the plain `activate` signal for bare Return. Example in
 
 ## Re-raising Already-Open Windows on Wayland
 
-`Gtk.Window.present()` on an already-open window often fails to take
-focus on Wayland/Mutter when called synchronously from the event
-handler that triggered us. Mutter raises the window's z-order
-(stacking) but refuses to give it keyboard focus — the dialog stays
-visible but with a dimmed title bar, and typing keeps going to whatever
-window had focus before. This is Mutter's focus-stealing prevention
-acting on a `present()` call it doesn't believe is user-initiated.
+`Gtk.Window.present()` on an already-open window can fail to take focus
+on Wayland/Mutter: the window is flagged as demanding attention and left
+with a dimmed title bar, and typing keeps going to whatever had focus
+before. This is a mismatch between GDK and Mutter (read from the GTK
+4.22 and Mutter 50 sources, and confirmed by injecting input into a
+headless Mutter):
 
-We don't fully understand the heuristic. A plausible-but-incomplete
-sketch: GTK forwards an `xdg-activation` token to Mutter when calling
-`present()`; the token is delivered to the client over the Wayland
-socket *after* the input event itself, so calling `present()`
-synchronously runs without one. The GLib main loop only reads from the
-socket when it `poll()`s, and `idle_add()` / `timeout_add(0, …)` both
-dispatch without yielding to `poll()`. `timeout_add(1, …)` does — for
-that millisecond — so the deferred callback runs after the token has
-arrived.
+- GTK 3 used `gtk_shell.present`, which Mutter honoured given a
+  timestamp. GTK 4 uses `xdg-activation`. `gdk_wayland_toplevel_focus()`
+  requests a token, vouching for it with the serial of the last button
+  or key press and the surface GDK believes has *keyboard* focus.
+- Mutter's `token_can_activate()` accepts a button-press serial only if
+  the token's surface is the one currently under the *pointer*
+  (`pointer->focus_surface`). Otherwise it does not focus the window.
 
-The deferral helps measurably:
+A button in a window satisfies both, so a synchronous `present()` just
+works. A menu is the trouble. While it is open, its popup surface has
+both keyboard and pointer focus, so `present()` works from there too.
+But `GtkModelButton` — every item of a `Gtk.PopoverMenu` built from a
+`Gio.Menu` — pops the menu down *before* it activates the action. From
+the action's handler:
 
-```python
-GLib.timeout_add(1, lambda: bool(existing.present()))
-```
+- Called synchronously, GDK's record of the keyboard focus is stale.
+  Closing the popup is only a request to Mutter; the reply saying that
+  keyboard focus has moved back to the menu's window has not been read
+  yet. GDK still believes the dead popup has the focus, so the token
+  names no usable surface and is always refused — even if the pointer
+  is over the menu's window. `idle_add()` and `timeout_add(0, …)` fail
+  the same way, since both run before the main loop polls the Wayland
+  socket again.
+- `timeout_add(1, …)` is the cheapest way to get one trip through
+  `poll()`. Nothing changes on screen or in Mutter in that millisecond;
+  GDK just catches up, and now names the menu's window. The token is
+  accepted if the pointer is over that window, which it is if the menu
+  item was drawn on top of it. If the item hung outside the window — a
+  context menu opened near the bottom edge, say — the pointer is over
+  something else and the token is refused, however long we wait.
 
-What we've observed empirically:
+| `present()` called | item over its window | item outside it |
+|---|---|---|
+| while the menu is still open | focused | focused |
+| menu closed; synchronously, idle, `timeout_add(0)` | refused | refused |
+| menu closed; `timeout_add(1)` or later | focused | refused |
 
-- Synchronous, `idle_add`, `timeout_add(0)`: typically fail.
-- `timeout_add(1)`: typically works.
-- `time.sleep(0.001)` on the main thread: fails (blocks without
-  polling).
-- Async-via-thread (`AsyncCall`, `BusyAsyncCall`): works — and this is
-  what disguised the bug for a long time, because the install path goes
-  through `BusyAsyncCall` and worked, while the configure path was
-  synchronous.
+So we do two things:
 
-The pure "token in flight" theory doesn't explain everything though:
+- Menus that can re-raise a window run the action while still open.
+  `ContextualMenu` is a hand-built `Gtk.Popover` of buttons for this
+  reason (with the CSS name `modelbutton`, so the theme styles them as
+  menu items), and so are the game bar's menus. Both queue `popdown()`
+  with `idle_add()` and then call back, so the menu also closes
+  promptly if the callback runs a nested main loop for a modal dialog.
+- `reraise_window()` in `lutris/gui/widgets/utils.py`, used by
+  `LutrisApplication.show_window()`, presents at once if GDK's pointer
+  surface is still mapped, and otherwise from a 1 ms timeout. A closed
+  menu leaves GDK's pointer surface as stale as its keyboard focus, so
+  an unmapped one tells us we are in that case. This covers model-built
+  menus, such as the main window's menu button, as long as the item was
+  over the window.
 
-- Some entry points re-raise fine *without* any deferral at all (the
-  toolbar `[+]` button being one).
-- Configure from the right-click context menu *still* doesn't reliably
-  reactivate even with the 1ms deferral, and the result depends on the
-  vertical position of the mouse pointer at click time — top half of
-  the screen tends to succeed, bottom half tends to fail. Proximity
-  between the click and the dialog isn't the variable; it really seems
-  to be raw screen geometry. There's no obvious GTK-side hook for
-  whatever Mutter is computing here.
-- The Preferences dialog raises most of the time but occasionally
-  refuses for a few seconds, hinting at a separate rate-limit
-  heuristic.
-
-Earlier dead-ends: `Gdk.Toplevel.focus(0)`,
-`present_with_time(GLib.get_monotonic_time() // 1000)`, re-calling
-`set_transient_for()`, rebuilding the context menu without GAction.
-None of those, on their own, helped.
-
-Net: the 1ms deferral is committed as a cheap improvement that is
-*usually* sufficient. The remaining gaps look like compositor-level
-heuristics outside our reach without dropping below GTK to raw
-`xdg-activation` protocol.
+A model-built menu item that hangs outside its window remains broken.
+Hiding and re-showing the window does get it focused, since Mutter
+focuses newly mapped windows without consulting xdg-activation, but
+Mutter also places it afresh, so a window the user had moved jumps
+back. We judged that worse.
 
 ## Cursors
 
