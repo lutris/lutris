@@ -372,11 +372,6 @@ class GameRemovalRow(Gtk.ListBoxRow):
         label = Gtk.Label(label=game.name, selectable=True, hexpand=True, halign=Gtk.Align.START)
         hbox.append(label)
 
-        self.remove_from_library_checkbox = Gtk.CheckButton(label=_("Remove from Library"), halign=Gtk.Align.END)
-        self.remove_from_library_checkbox.set_active(False)
-        self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
-        hbox.append(self.remove_from_library_checkbox)
-
         if game.is_installed and self.game.directory:
             self.delete_files_checkbox = Gtk.CheckButton(label=_("Delete Files"), halign=Gtk.Align.END)
             self.delete_files_checkbox.set_sensitive(False)
@@ -401,6 +396,12 @@ class GameRemovalRow(Gtk.ListBoxRow):
             dir_box.append(self.folder_size_spinner)
 
             vbox.append(dir_box)
+
+        self.remove_from_library_checkbox = Gtk.CheckButton(label=_("Remove from Library"), halign=Gtk.Align.END)
+        self.remove_from_library_checkbox.set_active(False)
+        self.remove_from_library_checkbox.connect("toggled", self.on_checkbox_toggled)
+        hbox.append(self.remove_from_library_checkbox)
+
         self.set_child(vbox)
 
     def _get_directory_markup(self, folder_size: int | None = None):
