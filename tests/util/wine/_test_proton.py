@@ -112,7 +112,9 @@ class TestIsGeProtonRelease(unittest.TestCase):
 class TestProtonLocations(unittest.TestCase):
     def test_requests_unlisted_mounted_libraries(self):
         with (
-            patch.object(proton, "get_steamapps_dirs", return_value=["/listed/steamapps", "/mount/steamapps"]) as discover,
+            patch.object(
+                proton, "get_steamapps_dirs", return_value=["/listed/steamapps", "/mount/steamapps"]
+            ) as discover,
             patch.object(proton, "get_steam_compat_dir", return_value="/compat"),
         ):
             locations = list(proton._iter_proton_locations())
