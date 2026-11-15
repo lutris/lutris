@@ -266,5 +266,5 @@ class ImportGameDialog(ModelessDialog):
             installer_slug="%s-%s" % (slug, installer["runner"]),
             configpath=configpath,
         )
-        download_lutris_media(slug)
+        AsyncCall(download_lutris_media, None, slug)
         return game_id

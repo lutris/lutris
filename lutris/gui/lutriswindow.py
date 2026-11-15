@@ -160,6 +160,29 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         if self.maximized:
             self.maximize()
         self.init_template()
+        content = self.get_child()
+        assert content is not None
+        self.remove(content)
+        overlay = Gtk.Overlay(visible=True)
+        overlay.add(content)
+        self.add(overlay)
+        self._artwork_toast = Gtk.Revealer(
+            visible=True,
+            halign=Gtk.Align.CENTER,
+            valign=Gtk.Align.END,
+            margin_bottom=24,
+            transition_type=Gtk.RevealerTransitionType.SLIDE_UP,
+        )
+        toast_box = Gtk.Box(visible=True, margin=8)
+        toast_box.get_style_context().add_class("app-notification")
+        self._artwork_toast_label = Gtk.Label(visible=True, margin=12)
+        toast_box.add(self._artwork_toast_label)
+        self._artwork_toast.add(toast_box)
+        overlay.add_overlay(self._artwork_toast)
+        self._artwork_toast_timer = None
+        self._artwork_request_generations = {}
+        self._artwork_window_destroyed = False
+        self.connect("destroy", lambda *_: setattr(self, "_artwork_window_destroyed", True))
         self._init_actions()
 
         # Per-game progress functions for launch-status (e.g. umu runtime
@@ -335,13 +358,27 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     def sync_library(self, force: bool = False) -> None:
         """Tasks that can be run after the UI has been initialized."""
 
-        def on_library_synced(_result, error):
+        def on_library_synced(_result, _error):
             """Sync media after the library is loaded"""
-            if not error:
-                AsyncCall(sync_media, None)
+            AsyncCall(sync_media, None)
 
         if settings.read_bool_setting("library_sync_enabled", True):
-            AsyncCall(LibrarySyncer().sync_local_library, on_library_synced if force else None, force=force)
+            AsyncCall(LibrarySyncer().sync_local_library, on_library_synced, force=force)
+        else:
+            AsyncCall(sync_media, None)
+
+    def show_artwork_toast(self, message):
+        if self._artwork_toast_timer is not None:
+            GLib.source_remove(self._artwork_toast_timer)
+        self._artwork_toast_label.set_text(message)
+        self._artwork_toast.set_reveal_child(True)
+
+        def hide():
+            self._artwork_toast.set_reveal_child(False)
+            self._artwork_toast_timer = None
+            return False
+
+        self._artwork_toast_timer = GLib.timeout_add_seconds(5, hide)
 
     def update_action_state(self):
         """This invokes the functions to update the enabled states of all the actions

@@ -107,6 +107,7 @@ class Game:
         self.year = game_data.get("year") or ""
         self.lastplayed = game_data.get("lastplayed") or 0
         self.custom_images = set()
+        self.artwork_source = game_data.get("artwork_source")
         if game_data.get("has_custom_banner"):
             self.custom_images.add("banner")
         if game_data.get("has_custom_icon"):
@@ -532,8 +533,12 @@ class Game:
             "has_custom_banner": "banner" in self.custom_images,
             "has_custom_icon": "icon" in self.custom_images,
             "has_custom_coverart_big": "coverart_big" in self.custom_images,
+            "artwork_source": self.artwork_source,
         }
-        self._id = str(games_db.add_or_update(**game_data))
+        from lutris.artwork import ARTWORK_LOCK
+
+        with ARTWORK_LOCK:
+            self._id = str(games_db.add_or_update(**game_data))
         if not no_signal:
             GAME_UPDATED.fire(self)
 

@@ -19,7 +19,6 @@ from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.dialogs.move_game import MoveDialog
 from lutris.gui.widgets.notifications import send_notification
 from lutris.runners import import_runner
-from lutris.services.lutris import download_lutris_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import parse_playtime, slugify
@@ -411,11 +410,12 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         game_info_box = self.info_box
         name = game_info_box.name_entry.get_text()
         sortname = game_info_box.sortname_entry.get_text()
+        old_name = self.game.name if self.game else None
+        old_source = getattr(self.game, "artwork_source", None) if self.game else None
+        new_source = game_info_box.artwork_source_buttons.get_value()
 
         if not game_info_box.slug:
             game_info_box.slug = slugify(name)
-        if game_info_box.slug != game_info_box.initial_slug:
-            AsyncCall(download_lutris_media, None, game_info_box.slug)
         if not self.game:
             self.game = Game()
 
@@ -432,6 +432,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.lutris_config.game_config_id = make_game_config_id(game_info_box.slug)
 
         self.game.name = name
+        self.game.artwork_source = new_source
         self.game.sortname = sortname
         self.game.slug = game_info_box.slug
         self.game.year = year
@@ -450,6 +451,54 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
             self.game.runner.extract_icon(game_info_box.slug)
 
         self.game.save()
+        if old_name != name or old_source != new_source or game_info_box.slug != game_info_box.initial_slug:
+            from lutris.artwork import get_effective_source, refresh_artwork
+            from lutris.database.games import get_games_by_ids
+
+            game_id = self.game.id
+            games = get_games_by_ids([game_id])
+            source = get_effective_source(games[0]) if games else None
+            window = self.get_transient_for()
+            while window and not hasattr(window, "show_artwork_toast"):
+                window = window.get_transient_for()
+            if window:
+                generations = getattr(window, "_artwork_request_generations", {})
+                generation = generations.get(game_id, 0) + 1
+                generations[game_id] = generation
+
+            def refreshed(results, error):
+                if (
+                    not window
+                    or window._artwork_window_destroyed
+                    or window._artwork_request_generations.get(game_id) != generation
+                ):
+                    return
+                current = get_games_by_ids([game_id])
+                if not current or current[0].get("name") != name or get_effective_source(current[0]) != source:
+                    return
+                result = results.get(str(game_id)) if results else None
+                if result and (result.title != name or result.source != source or result.game_id != str(game_id)):
+                    return
+                status = "error" if error else getattr(result, "status", "error")
+                messages = {
+                    "no_match": (
+                        _("No SteamGridDB match. Check the exact game title.")
+                        if source == "steamgriddb"
+                        else _("No Lutris.net artwork found for this game.")
+                    ),
+                    "ambiguous": _("More than one SteamGridDB match. Check the game title."),
+                    "missing_key": _("Add a SteamGridDB API key in Preferences."),
+                    "no_assets": (
+                        _("No original Steam artwork is available for this game.")
+                        if source == "steamgriddb"
+                        else _("No Lutris.net artwork is available for this game.")
+                    ),
+                    "error": _("Couldn't look up artwork. Please try again."),
+                }
+                if status in messages:
+                    window.show_artwork_toast(messages[status])
+
+            AsyncCall(refresh_artwork, refreshed, [game_id], force=True, callback_target=window)
         self.destroy()
         self.saved = True
         return True  # stop signal propagation
