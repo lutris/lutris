@@ -235,7 +235,7 @@ def _iter_proton_locations() -> Generator[str, None, None]:
     yield get_steam_compat_dir()
 
     try:
-        steamapp_dirs = get_steamapps_dirs()
+        steamapp_dirs = get_steamapps_dirs(include_mounted=True)
     except Exception as ex:  # pylint: disable=broad-exception-caught
         logger.warning("Unable to discover Proton installations from Steam libraries: %s", ex)
         return  # in case of corrupt or unreadable Steam configuration files!

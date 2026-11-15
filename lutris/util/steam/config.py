@@ -283,8 +283,12 @@ def get_library_config() -> dict[str, Any] | None:
     return read_library_folders(get_steam_dir())
 
 
-def get_steamapps_dirs() -> Iterable[str]:
-    """Return a list of the Steam library main + custom folders."""
+def get_steamapps_dirs(include_mounted: bool = False) -> Iterable[str]:
+    """Return Steam's main and configured library folders.
+
+    Proton discovery can opt into unlisted libraries on data mounts. These
+    fallback paths come last and must not be used for installed-game syncing.
+    """
     dirs = []
     # Extra colon-separated compatibility tools dirs environment variable
     if compat_tool_paths := os.getenv("STEAM_EXTRA_COMPAT_TOOLS_PATHS"):
@@ -296,10 +300,6 @@ def get_steamapps_dirs() -> Iterable[str]:
             abs_dir = system.fix_path_case(abs_dir)
             if abs_dir and os.path.isdir(abs_dir):
                 dirs.append(abs_dir)
-
-    # Conventional libraries on data mounts. This covers Steam configurations
-    # that have lost their secondary entry while the library remains usable.
-    dirs.extend(get_mounted_steamapps_dirs())
 
     # Custom dirs
     steam_config = get_steam_config()
@@ -331,4 +331,7 @@ def get_steamapps_dirs() -> Iterable[str]:
         for path in paths:
             if path and os.path.isdir(path):
                 dirs.append(path)
+    # Prefer Steam's configured libraries over potentially stale mount copies.
+    if include_mounted:
+        dirs.extend(get_mounted_steamapps_dirs())
     return system.list_unique_folders(dirs)

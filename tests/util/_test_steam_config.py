@@ -188,9 +188,29 @@ class TestGetSteamappsDirs(TestCase):
                 patch.object(config, "get_library_config", return_value=None),
                 patch.dict(os.environ, {"STEAM_EXTRA_COMPAT_TOOLS_PATHS": ""}),
             ):
-                steamapps_dirs = list(config.get_steamapps_dirs())
+                self.assertEqual(list(config.get_steamapps_dirs()), [])
+                steamapps_dirs = list(config.get_steamapps_dirs(include_mounted=True))
 
         self.assertEqual(steamapps_dirs, [steamapps_dir])
+
+    def test_configured_libraries_precede_mount_fallbacks(self):
+        with tempfile.TemporaryDirectory() as root:
+            listed = os.path.join(root, "listed")
+            listed_apps = os.path.join(listed, "steamapps")
+            fallback_apps = os.path.join(root, "SteamLibrary", "steamapps")
+            os.makedirs(listed_apps)
+            os.makedirs(fallback_apps)
+            with (
+                patch.object(config, "STEAM_DATA_DIRS", ()),
+                patch.object(config, "get_mounted_steamapps_dirs", return_value=(fallback_apps, listed_apps)),
+                patch.object(config, "get_steam_config", return_value=None),
+                patch.object(config, "get_library_config", return_value={"0": {"path": listed}}),
+                patch.dict(os.environ, {"STEAM_EXTRA_COMPAT_TOOLS_PATHS": ""}),
+            ):
+                self.assertEqual(
+                    list(config.get_steamapps_dirs(include_mounted=True)),
+                    [listed_apps, fallback_apps],
+                )
 
     def test_ignores_unmounted_library_entries(self):
         with tempfile.TemporaryDirectory() as steam_dir:
