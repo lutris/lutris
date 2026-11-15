@@ -16,6 +16,7 @@ help:
 	@echo "Common developer tasks:"
 	@echo "  make dev            Install development dependencies"
 	@echo "  make test           Run the unit test suite"
+	@echo "  make smoke          Run the end-to-end release smoke test"
 	@echo "  make cover          Run the test suite with a coverage report"
 	@echo "  make check          Run every static-analysis check"
 	@echo "  make style          Check code formatting (ruff format --check)"
@@ -38,6 +39,12 @@ cover:
 	rm tests/fixtures/pga.db -f
 	rm tests/coverage/ -rf
 	nose2 --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+
+# End-to-end checks against a throwaway profile: a fresh install and an
+# upgrade of an existing one. Needs a display for the game launch checks
+# (use `xvfb-run -a` when there is none).
+smoke:
+	utils/release-smoke-test.sh
 
 # ==================
 # Environment setup
