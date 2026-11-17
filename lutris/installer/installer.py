@@ -44,6 +44,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         except KeyError as ex:
             raise ScriptingError(_("The script was missing the '%s' key, which is required.") % ex.args[0]) from ex
 
+        if not self.script:
+            raise ScriptingError(_("This installer doesn't have a 'script' section"))
+
         self.service = self.get_service(initial=service)
         self.service_appid = self.get_appid(installer, initial=appid)
         self.variables = self.script.get("variables", {})

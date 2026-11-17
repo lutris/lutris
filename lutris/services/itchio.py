@@ -721,7 +721,7 @@ class ItchIoService(OnlineService):
         try:
             uploads = self.fetch_uploads(installer.service_appid, key)
         except HTTPError as ex:
-            raise UnavailableGameError from ex
+            raise UnavailableGameError(_("Couldn't load the downloads for this game")) from ex
         filtered = []
         files = []
         link = None
@@ -798,7 +798,7 @@ class ItchIoService(OnlineService):
         try:
             uploads = self.fetch_uploads(installer.service_appid, key)
         except HTTPError as ex:
-            raise UnavailableGameError from ex
+            raise UnavailableGameError(_("Couldn't load the downloads for this game")) from ex
 
         selected_extras_ids = set(str(x["id"]) for x in selected_extras)
         extra_files = []

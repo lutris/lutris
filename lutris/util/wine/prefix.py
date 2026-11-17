@@ -314,7 +314,7 @@ class WinePrefixManager:
             if os.path.isfile(obsolete_path):
                 with open(obsolete_path, "r", encoding="utf-8") as f:
                     dpi_assigned = int(f.read())
-                set_lutris_directory_settings(self.path, int(dpi_assigned))
+                set_lutris_directory_settings(self.path, {"dpi_assigned": str(dpi_assigned)})
                 os.unlink(obsolete_path)
         except Exception as ex:
             logger.exception("Unable to read Lutris assigned DPI: %s", ex)

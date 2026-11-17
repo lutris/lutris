@@ -736,7 +736,7 @@ class CommandsMixin:
             self.installer.script["game"] = dosbox_config
             self.installer.runner = "dosbox"
         elif scummvm_found:
-            self._extract_innoextract_setup(file_id)
+            self._extract_innosetup(file_id)
             arguments = {"path": os.path.join(self.target_path, "Data"), "args": "--auto-detect"}
             logger.info("ScummVM config: %s", arguments)
             self.installer.script["game"] = arguments

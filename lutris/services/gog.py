@@ -436,7 +436,7 @@ class GOGService(OnlineService):
                         "type": download.get("type", "").strip(),
                         "total_size": download.get("total_size", 0),
                         "id": str(download["id"]),
-                        "downlinks": [f.get("downlink") for f in download.get("files") or []],
+                        "downlinks": [f["downlink"] for f in download.get("files") or [] if f.get("downlink")],
                     }
                     for download in product["downloads"].get("bonus_content") or []
                 ]
@@ -522,13 +522,8 @@ class GOGService(OnlineService):
     def get_extras_files(self, installer: "LutrisInstaller", selected_extras: list[dict]) -> list[InstallerFile]:
         extra_files = []
         for extra in selected_extras:
-            downlinks = extra.get("downlinks")
-            if downlinks:
-                links = [info for link in downlinks for info in self.get_download_info(link)]
-            elif str(extra["id"]) in selected_extras:
-                links = self.query_download_links(extra)
-            else:
-                links = []
+            downlinks = extra.get("downlinks") or []
+            links = [info for link in downlinks for info in self.get_download_info(link)]
 
             if not links:
                 logger.error("No download link for bonus content '%s' could be obtained.", extra.get("name"))

@@ -51,6 +51,11 @@ class TestScriptInterpreter(TestCase):
         self.assertEqual(interpreter.installer.game_name, "Doom")
         self.assertFalse(interpreter.installer.get_errors())
 
+    def test_installer_without_script_section_is_a_scripting_error(self):
+        installer = {key: value for key, value in TEST_INSTALLER.items() if key != "script"}
+        with self.assertRaises(ScriptingError):
+            ScriptInterpreter(installer, None)
+
     def test_move_requires_src_and_dst(self):
         script = {
             "foo": "bar",
