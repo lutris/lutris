@@ -287,7 +287,7 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         config = {}
         for key in script_config:
             if not isinstance(key, str):
-                raise ScriptingError(_("Game config key must be a string"), key)
+                raise ScriptingError(_("Game config key must be a string"), faulty_data=key)
             value = script_config[key]
             if str(value).lower() == "true":
                 value = True

@@ -118,6 +118,7 @@ class CommandsMixin:
         terminal = None
         working_dir = None
         env = {}
+        return_code = "0"
         if isinstance(data, dict):
             self._check_required_params([("file", "command")], data, "execute")
             if "command" in data and "file" in data:
@@ -134,8 +135,6 @@ class CommandsMixin:
             # Accept return codes other than 0
             if "return_code" in data:
                 return_code = data.pop("return_code")
-            else:
-                return_code = "0"
 
             exec_path = data.get("file", "")
             command = data.get("command", "")
@@ -311,7 +310,7 @@ class CommandsMixin:
             if params.get("optional"):
                 logger.info("Optional path %s not present", src)
                 return
-            raise ScriptingError(_("Source does not exist: %s") % src, params)
+            raise ScriptingError(_("Source does not exist: %s") % src, faulty_data=params)
         os.makedirs(dst, exist_ok=True)
         if os.path.isfile(src):
             # If single file, copy it and change reference in game file so it
@@ -376,7 +375,7 @@ class CommandsMixin:
             except OSError:
                 pass
         if os.path.exists(dst):
-            raise ScriptingError(_("Rename error, destination already exists: %s") % src)
+            raise ScriptingError(_("Rename error, destination already exists: %s") % dst)
         dst_dir = os.path.dirname(dst)
 
         # Pre-move on dest filesystem to avoid error with
@@ -395,11 +394,11 @@ class CommandsMixin:
             raise ScriptingError(_("Missing parameter src")) from err
         src = self.game_files.get(src_ref) or self._substitute(src_ref)
         if not src:
-            raise ScriptingError(_("Wrong value for 'src' param"), src_ref)
+            raise ScriptingError(_("Wrong value for 'src' param"), faulty_data=src_ref)
         dst_ref = params["dst"]
         dst = self._substitute(dst_ref)
         if not dst:
-            raise ScriptingError(_("Wrong value for 'dst' param"), dst_ref)
+            raise ScriptingError(_("Wrong value for 'dst' param"), faulty_data=dst_ref)
         return src.rstrip("/"), dst.rstrip("/")
 
     def substitute_vars(self, data):
@@ -587,7 +586,7 @@ class CommandsMixin:
             return result
 
     def _extract_innosetup(self, file_id):
-        self.extract({"src": file_id, "dst": "$GAMEDIR", "extractor": "innoextract"})
+        self.extract({"src": file_id, "dst": "$GAMEDIR", "format": "gog"})
         app_path = os.path.join(self.target_path, "app")
         if system.path_exists(app_path):
             for app_content in os.listdir(app_path):
@@ -658,6 +657,7 @@ class CommandsMixin:
             self.installer.runner = "dosbox"
         elif scummvm_found:
             self._extract_innosetup(file_id)
+            arguments = None
             for filename in os.listdir(self.target_path):
                 if filename.startswith("goggame") and filename.endswith(".info"):
                     arguments = self._get_scummvm_arguments(os.path.join(self.target_path, filename))
@@ -723,6 +723,7 @@ class CommandsMixin:
                 else:
                     dosbox_config["main_file"] = config_file
 
+            arguments = []
             for filename in os.listdir(self.target_path):
                 if filename.startswith("Launch") and filename.endswith(".bat"):
                     arguments = self._get_dosbox_arguments(os.path.join(self.target_path, filename))
@@ -797,7 +798,7 @@ class CommandsMixin:
         if not game_id:
             raise ScriptingError(
                 _("gogdl_setup requires a game_id, or a gogid set on the installer."),
-                data,
+                faulty_data=data,
             )
 
         game_id = str(game_id)
