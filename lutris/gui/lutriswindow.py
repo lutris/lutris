@@ -1482,7 +1482,12 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             def progress_function() -> ProgressInfo:
                 if not game.launch_status:
                     return ProgressInfo.ended()
-                return ProgressInfo(progress=None, label_markup=gtk_safe(game.launch_status))
+                text_function = game.launch_progress_text_function
+                return ProgressInfo(
+                    progress=None,
+                    label_markup=gtk_safe(game.launch_status),
+                    progress_text=text_function() if text_function else "",
+                )
 
             self._launch_progress_functions[game.id] = progress_function
 

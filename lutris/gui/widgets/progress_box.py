@@ -13,9 +13,18 @@ class ProgressInfo:
     Processes sometimes cannot be stopped after a certain point; at that point they start
     providing Progress objects with no stop-function."""
 
-    def __init__(self, progress: float | None = 0, label_markup: str = "", stop_function: Callable | None = None):
+    def __init__(
+        self,
+        progress: float | None = 0,
+        label_markup: str = "",
+        stop_function: Callable | None = None,
+        progress_text: str = "",
+    ):
         self.progress = progress
         self.label_markup = label_markup
+        # Short text drawn on the progress bar itself (e.g. '312.0 MB'); this
+        # leaves the label above the bar free for the description.
+        self.progress_text = progress_text
         self.stop_function = stop_function
         self.has_ended = False
 
@@ -110,8 +119,19 @@ class ProgressBox(Gtk.Box):
             self.progressbar.pulse()
         else:
             self.progressbar.set_fraction(min(progress.progress, 1))
+        self._set_progress_text(progress.progress_text or "")
         self._set_label(progress.label_markup or "")
         self.stop_button.set_visible(progress.can_stop)
+
+    def _set_progress_text(self, text: str) -> None:
+        # With show-text on and no text set, GTK falls back to a percentage,
+        # which is meaningless for a pulsing bar; so only show real text.
+        if text:
+            if text != self.progressbar.get_text():
+                self.progressbar.set_text(text)
+            self.progressbar.set_show_text(True)
+        else:
+            self.progressbar.set_show_text(False)
 
     def _set_label(self, markup: str) -> None:
         if markup:
