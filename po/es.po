@@ -2,10 +2,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lutris\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 14:06+0100\n"
-"PO-Revision-Date: 2026-11-14 08:50+0100\n"
+"POT-Creation-Date: 2026-11-18 02:02+0100\n"
+"PO-Revision-Date: 2026-11-18 18:00+0100\n"
 "Last-Translator: Miguel Barrio Orsikowsky <megamik79@protonmail.com>\n"
-"Language-Team: \n"
+"Language-Team: Spanish <es@li.org>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -450,7 +450,7 @@ msgstr "Añadida vista 'Sin categorizar' al panel lateral"
 msgid ""
 "Preference options that do not work on Wayland will be hidden when on Wayland"
 msgstr ""
-"Las opciones de preferencia que no funcionan en Wayland estarán ocultarás "
+"Las opciones de preferencia que no funcionan en Wayland estarán ocultas "
 "cuando se esté en Wayland"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:132
@@ -617,11 +617,11 @@ msgstr ""
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:164
 msgid "Support the \"Categories\" command when you select multiple games"
 msgstr ""
-"Soporte para el comando \"Categorías\" cuando seleccionas múltiples juegos"
+"Soporte para el comando \"Categorías\" cuando se seleccionan múltiples juegos"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:165
 msgid "Notification bar when your Lutris is no longer supported"
-msgstr "Ya no se soporta la barra de notificación cuando Lutris"
+msgstr "Barra de notificación cuando la versión de Lutris ya no se soporta"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:166
 msgid "Improved error dialog."
@@ -629,7 +629,7 @@ msgstr "Diálogo de error mejorado."
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:167
 msgid "Add Vita3k runner (thanks @ItsAllAboutTheCode)"
-msgstr "Añade el ejecutor Vita3k (gracias @ltsAllAboutTheCode)"
+msgstr "Añade el ejecutor Vita3k (gracias a @ItsAllAboutTheCode)"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:168
 msgid "Add Supermodel runner"
@@ -857,7 +857,7 @@ msgstr ""
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:225
 msgid "Download appropriate DXVK and VKD3D versions based on"
-msgstr "Descargar las versiones de DXKV y VKD3D apropiadas en basándose en"
+msgstr "Descargar las versiones adecuadas de DXVK y VKD3D en función de"
 
 #: share/metainfo/net.lutris.Lutris.metainfo.xml:226
 msgid "the available GPU PCI IDs"
@@ -1005,7 +1005,7 @@ msgid ""
 "\">Download %s here!</a>"
 msgstr ""
 "Ya no hay soporte para Lutris %s. <a href=\"https://lutris.net/downloads/"
-"\">Descarga %s aquí</a>"
+"\">Descargue %s aquí</a>"
 
 #: share/lutris/ui/lutris-window.ui:305
 msgid ""
@@ -1394,7 +1394,7 @@ msgstr "No hay actualizaciones"
 
 #: lutris/game.py:456
 msgid "No DLC found"
-msgstr "No hay expansiones"
+msgstr "No hay contenido descargable"
 
 #: lutris/game.py:490
 msgid "Uninstall the game before deleting"
@@ -1556,7 +1556,7 @@ msgstr[1] "Mostrando <b>%d</b> resultados"
 #: lutris/gui/addgameswindow.py:277
 #, python-format
 msgid "<b>%s</b> results, only displaying first %s"
-msgstr "<b>%s</b> resultados, solo se muestran arlos primeros %s"
+msgstr "<b>%s</b> resultados, solo se muestran los primeros %s"
 
 #: lutris/gui/addgameswindow.py:306
 msgid "Game name"
@@ -1873,7 +1873,7 @@ msgstr "URI a abrir"
 
 #: lutris/gui/application.py:431
 msgid "No installer available."
-msgstr "No hay un instalador disponible."
+msgstr "No hay ningún instalador disponible."
 
 #: lutris/gui/application.py:650
 #, python-format
@@ -2405,7 +2405,7 @@ msgstr "Ocultar insignias en los iconos (alternar con Ctrl+p)"
 msgid ""
 "Removes the platform and missing-game badges from icons in the Lutris window."
 msgstr ""
-"Quita las insignias de plataforma y nombre ausente de los iconos en la "
+"Quita las insignias de plataforma y de juego ausente de los iconos en la "
 "ventana de Lutris."
 
 #: lutris/gui/config/preferences_box.py:41
@@ -2833,7 +2833,7 @@ msgstr "Sincronizando partidas en la nube de %s"
 #: lutris/gui/dialogs/cloud_sync_progress.py:69
 #, python-format
 msgid "Uploading cloud saves for %s"
-msgstr "Enviando partidas guardadas de %s"
+msgstr "Enviando partidas en la nube de %s"
 
 #: lutris/gui/dialogs/cloud_sync_progress.py:96
 #, python-format
@@ -3147,7 +3147,7 @@ msgstr "No es posible obtener las versiones de los ejecutores desde lutris.net"
 #: lutris/gui/dialogs/runner_install.py:189
 #, python-format
 msgid "%s version management"
-msgstr "Gestión de la versión %s"
+msgstr "Gestión de versiones de %s"
 
 #: lutris/gui/dialogs/runner_install.py:239
 #, python-format
@@ -3377,7 +3377,7 @@ msgstr "Instalando {}"
 
 #: lutris/gui/installerwindow.py:455
 msgid "No installer available"
-msgstr "No hay un instalador disponible"
+msgstr "No hay ningún instalador disponible"
 
 #: lutris/gui/installerwindow.py:461
 #, python-format
@@ -3569,12 +3569,12 @@ msgid ""
 msgstr ""
 "Sus límites no están correctamente configurados. Auméntelos como se describe "
 "aquí: <a href='https://github.com/lutris/docs/blob/master/"
-"HowToEsync.md'>Cómo:-Esync (https://github.com/lutris/docs/blob/master/"
+"HowToEsync.md'>Guía: Esync (https://github.com/lutris/docs/blob/master/"
 "HowToEsync.md)</a>"
 
 #: lutris/gui/widgets/cellrenderers.py:399 lutris/gui/widgets/sidebar.py:595
 msgid "Missing"
-msgstr "Ausentes"
+msgstr "Ausente"
 
 #: lutris/gui/widgets/common.py:87
 msgid "Select a folder"
@@ -3911,7 +3911,7 @@ msgstr ""
 #: lutris/installer/commands.py:881
 #, python-format
 msgid "Damaged or missing files repaired: %d"
-msgstr "Archivos faltantes o reparados: %d"
+msgstr "Archivos dañados o faltantes reparados: %d"
 
 #: lutris/installer/commands.py:883
 msgid "Damaged or missing files were repaired."
@@ -4291,8 +4291,8 @@ msgstr ""
 #, python-format
 msgid "No user.reg found after prefix creation in %s. The prefix is not valid."
 msgstr ""
-"No se encuentra user.reg tras la creación el prefijo en %s. El prefijo no es "
-"válido."
+"No se encuentra user.reg tras la creación del prefijo en %s. El prefijo no "
+"es válido."
 
 #: lutris/runners/dolphin.py:11
 msgid "Nintendo GameCube"
@@ -4445,7 +4445,7 @@ msgid ""
 "Instead of auto detecting the encoding or using the one in RPG_RT.ini, the "
 "specified encoding is used."
 msgstr ""
-"Usa la configuración especificada en lugar de detectarla automáticamente o "
+"Usa la codificación especificada en lugar de detectarla automáticamente o "
 "utilizar la de RPG_RT.ini."
 
 #: lutris/runners/easyrpg.py:36 lutris/runners/easyrpg.py:61
@@ -4655,7 +4655,7 @@ msgstr "Depuración"
 
 #: lutris/runners/easyrpg.py:144
 msgid "Test play"
-msgstr "Test play"
+msgstr "Prueba de juego"
 
 #: lutris/runners/easyrpg.py:145
 msgid "Enable TestPlay (debug) mode."
@@ -5050,7 +5050,7 @@ msgstr "Puede ser un sistema o un usuario."
 
 #: lutris/runners/flatpak.py:56
 msgid "Args"
-msgstr "Args"
+msgstr "Argumentos"
 
 #: lutris/runners/flatpak.py:57
 msgid "Arguments to be passed to the application."
@@ -5165,7 +5165,7 @@ msgstr "68000"
 
 #: lutris/runners/fsuae.py:99
 msgid "68010"
-msgstr "68000"
+msgstr "68010"
 
 #: lutris/runners/fsuae.py:100
 msgid "68020 with 24-bit addressing"
@@ -5327,7 +5327,7 @@ msgstr "Modelo de Amiga"
 
 #: lutris/runners/fsuae.py:212
 msgid "Specify the Amiga model you want to emulate."
-msgstr "Especifica el modelo de Amiga que quiere emular."
+msgstr "Especifique el modelo de Amiga que quiere emular."
 
 #: lutris/runners/fsuae.py:216 lutris/runners/fsuae.py:229
 msgid "Kickstart"
@@ -6222,7 +6222,7 @@ msgstr "O2EM"
 
 #: lutris/runners/o2em.py:14
 msgid "Magnavox Odyssey² Emulator"
-msgstr "Emulador de Magnavox Osyssey²"
+msgstr "Emulador de Magnavox Odyssey²"
 
 #: lutris/runners/o2em.py:16
 msgid "Magnavox Odyssey²"
@@ -6318,7 +6318,7 @@ msgstr "Sin GUI"
 
 #: lutris/runners/pico8.py:21
 msgid "Runs PICO-8 fantasy console cartridges"
-msgstr "Funciona con los cartuchos de la consola de fantasía PICO-8"
+msgstr "Ejecuta cartuchos de la consola de fantasía PICO-8"
 
 #: lutris/runners/pico8.py:23 lutris/runners/pico8.py:24
 msgid "PICO-8"
@@ -6331,8 +6331,8 @@ msgstr "Archivo/URL/ID del cartucho"
 #: lutris/runners/pico8.py:30
 msgid "You can put a .p8.png file path, URL, or BBS cartridge ID here."
 msgstr ""
-"Puedes poner aquí la ruta del archivo .p8.png, la URL o el ID del cartucho "
-"de la BBS."
+"Puede poner aquí la ruta del archivo .p8.png, la URL o el ID del cartucho de "
+"la BBS."
 
 #: lutris/runners/pico8.py:41
 msgid "Launch in fullscreen."
@@ -6698,7 +6698,7 @@ msgid ""
 "Changes the resolution of the game. For example, a 2x scale will take a "
 "320x200 resolution game and scale it up to 640x400. "
 msgstr ""
-"Cambia la resolución del juego. Por ejemplo, una valor 2x escalará un juego "
+"Cambia la resolución del juego. Por ejemplo, un valor 2x escalará un juego "
 "de 320x200 de resolución hasta los 640x400. "
 
 #: lutris/runners/scummvm.py:183
@@ -6727,7 +6727,7 @@ msgstr "Hércules (verde)"
 
 #: lutris/runners/scummvm.py:203
 msgid "Hercules (Amber)"
-msgstr "Hércules (ambar)"
+msgstr "Hércules (ámbar)"
 
 #: lutris/runners/scummvm.py:204
 msgid "CGA"
@@ -7058,7 +7058,8 @@ msgstr "Ruta al emulador personalizada"
 
 #: lutris/runners/shadps4.py:43
 msgid "Path to ShadPS4 SDL emulator (only used if 'Custom' is selected)"
-msgstr "Ruta al emulador ShadPS4 SDL (solo si has escogido 'Personalizado')"
+msgstr ""
+"Ruta al emulador ShadPS4 SDL (solo si se ha seleccionado 'Personalizado')"
 
 #: lutris/runners/snes9x.py:18
 msgid "Super Nintendo emulator"
@@ -7515,7 +7516,7 @@ msgid ""
 msgstr ""
 "<b>Advertencia</b> Sus límites no están correctamente configurados. "
 "Auméntelos tal y como se describe aquí:\n"
-"<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>Cómo-"
+"<a href='https://github.com/lutris/docs/blob/master/HowToEsync.md'>Guía: "
 "Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)</a>"
 
 #: lutris/runners/wine.py:220
@@ -7572,7 +7573,7 @@ msgstr "Sistema ({})"
 
 #: lutris/runners/wine.py:266
 msgid "GE-Proton (Latest)"
-msgstr "GE-Proton (último)"
+msgstr "GE-Proton (más reciente)"
 
 #: lutris/runners/wine.py:277
 msgid "Runs Windows games"
@@ -7756,7 +7757,7 @@ msgid ""
 "selected as Graphics backend."
 msgstr ""
 "Activar el soporte de Proton para gráficos HDR. Requiere que Wayland esté "
-"seleccionado como controlador gráfico."
+"seleccionado como backend de gráficos."
 
 #: lutris/runners/wine.py:478
 msgid "Enable Esync"
@@ -7804,26 +7805,26 @@ msgstr ""
 
 #: lutris/runners/wine.py:516
 msgid "Enable BattlEye Anti-Cheat"
-msgstr "Activar anti-trampas BattlEye Anti-Cheat"
+msgstr "Activar el anti-trampas de BattlEye"
 
 #: lutris/runners/wine.py:520
 msgid ""
 "Enable support for BattlEye Anti-Cheat in supported games\n"
 "Requires Lutris Wine 6.21-2 and newer or any other compatible Wine build.\n"
 msgstr ""
-"Activa el soporte de BattlEye Anti-Cheat en los juegos que lo soportan\n"
+"Activar el soporte de BattlEye Anti-Cheat en los juegos que lo soportan\n"
 "Requiere Lutris Wine 6.21-2 o superior u otra versión de Wine compatible.\n"
 
 #: lutris/runners/wine.py:526
 msgid "Enable Easy Anti-Cheat"
-msgstr "Activar anti-trampas Easy Anti-Cheat"
+msgstr "Activar el anti-trampas de Easy Anti-Cheat"
 
 #: lutris/runners/wine.py:530
 msgid ""
 "Enable support for Easy Anti-Cheat in supported games\n"
 "Requires Lutris Wine 7.2 and newer or any other compatible Wine build.\n"
 msgstr ""
-"Activa el soporte de Easy Anti-Cheat en los juegos que lo soportan\n"
+"Activar el soporte de Easy Anti-Cheat en los juegos que lo soportan\n"
 "Requiere Lutris Wine 7.2 o superior u otra versión de Wine compatible.\n"
 
 #: lutris/runners/wine.py:536 lutris/runners/wine.py:551
@@ -8239,7 +8240,7 @@ msgstr "El algoritmo de compresión en el manifiesto es desconocido"
 #: lutris/services/amazon.py:527
 #, python-format
 msgid "Unable to get the patches of game '%s'"
-msgstr "No se puede obtener parches para el juego '%s'"
+msgstr "No se pueden obtener los parches del juego '%s'"
 
 #: lutris/services/amazon.py:613
 msgid "Unable to get fuel.json file."
@@ -8286,13 +8287,13 @@ msgstr "No puedo obtener los detalles del juego desde DLsite"
 
 #: lutris/services/dlsite.py:204
 msgid "DLsite cookies not found. Please log in again."
-msgstr "No encuentro cookies de DLsite, intenta conectarte de nuevo."
+msgstr "No se encuentran cookies de DLsite. Conéctese de nuevo."
 
 #: lutris/services/dlsite.py:218
 msgid "Could not resolve download link. Ensure you own this game."
 msgstr ""
-"No se puede acceder desde el enlace de descarga. Asegúrate de que tienes "
-"este juego."
+"No se puede acceder desde el enlace de descarga. Asegúrese de que es "
+"propietario de este juego."
 
 #: lutris/services/ea_app.py:221
 msgid "EA App"
@@ -8411,10 +8412,10 @@ msgid ""
 "You should give Lutris its own API key instead of sharing them."
 msgstr ""
 "Lutris necesita una clave de API para conectar con itch.io. Puede obtener "
-"una\r\n"
+"una\n"
 "de la <a href='https://itch.io/user/settings/api-keys'>página de claves de "
-"API</a> de itch.io.\r\n"
-"\r\n"
+"API</a> de itch.io.\n"
+"\n"
 "Es recomendable proporcionar una clave de API propia para Lutris en lugar de "
 "compartirla."
 
@@ -8442,7 +8443,7 @@ msgid ""
 "Failed to load games. Check that your Steam profile and your game details "
 "are both set to public during the sync."
 msgstr ""
-"No se ha podido cargar los juegos. Compruebe que su perfil de Steam y "
+"No se han podido cargar los juegos. Compruebe que su perfil de Steam y "
 "detalles de los juegos estén ambos configurados como públicos durante la "
 "sincronización."
 
