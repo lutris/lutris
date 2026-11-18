@@ -8,7 +8,7 @@ from gettext import gettext as _
 from typing import TYPE_CHECKING
 
 from lutris import settings
-from lutris.exceptions import MissingExecutableError
+from lutris.exceptions import GameConfigError, MissingExecutableError
 from lutris.monitored_command import RUNNING_COMMANDS
 from lutris.util import cache_single, system
 from lutris.util.http import Request
@@ -351,29 +351,59 @@ def update_proton_env(wine_path: str, env: dict[str, str], game_id: str = DEFAUL
         env["HOST_LC_ALL"] = locale
 
 
-def get_game_id(game, env) -> str:
-    if not game:
-        return DEFAULT_GAMEID
+def get_umu_id(game_db_id: str | int | None, service: str | None, appid: str | None, env: dict[str, str]) -> str:
+    """Return the umu GAMEID to launch with.
 
+    Umu derives SteamAppId from the 'umu-<suffix>' part of GAMEID, and Proton builds the
+    X11 WM_CLASS from SteamAppId as 'steam_app_<suffix>'. Games that share a GAMEID
+    therefore share a window class, which leaves a desktop environment no way to give
+    them different icons. Use a per-game id when no store appid is known.
+    """
     game_id = env.get("UMU_ID")
     if game_id:
         return game_id
 
     games_path = os.path.join(settings.RUNTIME_DIR, "umu-games/umu-games.json")
 
-    if not os.path.exists(games_path):
+    if os.path.exists(games_path):
+        with open(games_path, "r", encoding="utf-8") as games_file:
+            umu_games = json.load(games_file)
+
+        for umu_game in umu_games:
+            if (
+                umu_game["store"]
+                and (umu_game["store"] == service or (umu_game["store"] == "humble" and service == "humblebundle"))
+                and umu_game["appid"] == appid
+            ):
+                return umu_game["umu_id"]
+
+    if game_db_id is None:
         return DEFAULT_GAMEID
+    return f"umu-lutris_{game_db_id}"
 
-    with open(games_path, "r", encoding="utf-8") as games_file:
-        umu_games = json.load(games_file)
 
-    for umu_game in umu_games:
-        if (
-            umu_game["store"]
-            and (
-                umu_game["store"] == game.service or (umu_game["store"] == "humble" and game.service == "humblebundle")
-            )
-            and umu_game["appid"] == game.appid
-        ):
-            return umu_game["umu_id"]
-    return DEFAULT_GAMEID
+def get_game_id(game: "Game | None", env: dict[str, str]) -> str:
+    if not game:
+        return DEFAULT_GAMEID
+    return get_umu_id(game.id, game.service, game.appid, env)
+
+
+def get_wm_class(umu_id: str | None) -> str | None:
+    """Return the X11 WM_CLASS Proton uses for a umu GAMEID, if it derives one.
+
+    Umu only derives SteamAppId for GAMEIDs matching its 'umu-<suffix>' scheme and
+    leaves it at '0' otherwise.
+    """
+    match = re.fullmatch(r"umu-(\w+)", umu_id or "")
+    return f"steam_app_{match.group(1)}" if match else None
+
+
+def get_wm_class_for_game(game: "Game | None") -> str | None:
+    """Return the StartupWMClass matching this game's windows, or None."""
+    if not game or game.runner_name != "wine":
+        return None
+    try:
+        env = dict(game.runner.system_config.get("env") or {})
+    except GameConfigError:
+        return None
+    return get_wm_class(get_umu_id(game.id, game.service, game.appid, env))

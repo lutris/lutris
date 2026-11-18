@@ -34,6 +34,7 @@ from lutris.util.standalone_scripts import generate_script
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, slugify
 from lutris.util.system import path_exists
+from lutris.util.wine import proton
 
 if TYPE_CHECKING:
     from lutris.gui.application import LutrisApplication
@@ -389,7 +390,14 @@ class SingleGameActions(GameActions):
         game = self.game
         launch_config_name = self._select_game_launch_config_name(game)
         if launch_config_name is not None:
-            xdgshortcuts.create_launcher(game.slug, game.id, game.name, launch_config_name, menu=True)
+            xdgshortcuts.create_launcher(
+                game.slug,
+                game.id,
+                game.name,
+                launch_config_name,
+                menu=True,
+                wm_class=proton.get_wm_class_for_game(game),
+            )
 
     def on_create_steam_shortcut(self, *_args: Any) -> None:
         """Add the selected game to steam as a nonsteam-game."""
@@ -415,7 +423,14 @@ class SingleGameActions(GameActions):
         game = self.game
         launch_config_name = self._select_game_launch_config_name(game)
         if launch_config_name is not None:
-            xdgshortcuts.create_launcher(game.slug, game.id, game.name, launch_config_name, desktop=True)
+            xdgshortcuts.create_launcher(
+                game.slug,
+                game.id,
+                game.name,
+                launch_config_name,
+                desktop=True,
+                wm_class=proton.get_wm_class_for_game(game),
+            )
 
     def on_remove_menu_shortcut(self, *_args: Any) -> None:
         """Remove an XDG menu shortcut"""

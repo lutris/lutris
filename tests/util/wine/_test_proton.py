@@ -1,4 +1,6 @@
+import json
 import os
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -154,3 +156,56 @@ class TestGeProtonReleaseUrls(unittest.TestCase):
     def test_no_build_without_a_checksum(self):
         self.assertIsNone(self.get_urls(make_release("GE-Proton11-7-x86_64.tar.gz")))
         self.assertIsNone(self.get_urls({}))
+
+
+class TestGetUmuId(unittest.TestCase):
+    """The umu GAMEID decides the window class Proton gives a game, so games without a
+    store appid need one of their own rather than the shared umu-default."""
+
+    def test_games_without_a_store_id_get_their_own_umu_id(self):
+        self.assertEqual(proton.get_umu_id("35", None, None, {}), "umu-lutris_35")
+        self.assertEqual(proton.get_wm_class(proton.get_umu_id("35", None, None, {})), "steam_app_lutris_35")
+
+    def test_a_game_without_a_database_id_keeps_the_default(self):
+        self.assertEqual(proton.get_umu_id(None, None, None, {}), proton.DEFAULT_GAMEID)
+
+    def test_an_explicit_umu_id_wins(self):
+        self.assertEqual(proton.get_umu_id("35", None, None, {"UMU_ID": "umu-15522"}), "umu-15522")
+
+    def test_store_games_use_the_umu_games_mapping(self):
+        with tempfile.TemporaryDirectory() as runtime_dir:
+            games_dir = os.path.join(runtime_dir, "umu-games")
+            os.makedirs(games_dir)
+            with open(os.path.join(games_dir, "umu-games.json"), "w", encoding="utf-8") as games_file:
+                json.dump([{"store": "steam", "appid": "15522", "umu_id": "umu-15522"}], games_file)
+
+            with patch.object(proton.settings, "RUNTIME_DIR", runtime_dir):
+                self.assertEqual(proton.get_umu_id("35", "steam", "15522", {}), "umu-15522")
+                self.assertEqual(proton.get_umu_id("35", "steam", "99999", {}), "umu-lutris_35")
+                # Humble's service is called 'humblebundle' in Lutris but 'humble' in umu.
+                self.assertEqual(proton.get_umu_id("35", "humblebundle", "15522", {}), "umu-lutris_35")
+
+            with open(os.path.join(games_dir, "umu-games.json"), "w", encoding="utf-8") as games_file:
+                json.dump([{"store": "humble", "appid": "abc", "umu_id": "umu-humble_abc"}], games_file)
+
+            with patch.object(proton.settings, "RUNTIME_DIR", runtime_dir):
+                self.assertEqual(proton.get_umu_id("35", "humblebundle", "abc", {}), "umu-humble_abc")
+
+    def test_a_missing_mapping_file_is_not_an_error(self):
+        with tempfile.TemporaryDirectory() as runtime_dir:
+            with patch.object(proton.settings, "RUNTIME_DIR", runtime_dir):
+                self.assertEqual(proton.get_umu_id("35", "steam", "15522", {}), "umu-lutris_35")
+
+
+class TestGetWmClass(unittest.TestCase):
+    """Proton only derives a window class from GAMEIDs that follow umu's scheme."""
+
+    def test_umu_ids_map_to_proton_window_classes(self):
+        self.assertEqual(proton.get_wm_class("umu-lutris_35"), "steam_app_lutris_35")
+        self.assertEqual(proton.get_wm_class("umu-default"), "steam_app_default")
+        self.assertEqual(proton.get_wm_class("umu-15522"), "steam_app_15522")
+
+    def test_other_ids_have_no_window_class(self):
+        self.assertIsNone(proton.get_wm_class("custom-id"))
+        self.assertIsNone(proton.get_wm_class(""))
+        self.assertIsNone(proton.get_wm_class(None))

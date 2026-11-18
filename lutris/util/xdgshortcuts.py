@@ -63,6 +63,7 @@ def create_launcher(
     launch_config_name: str | None = None,
     desktop: bool = False,
     menu: bool = False,
+    wm_class: str | None = None,
 ) -> None:
     """Create a .desktop file."""
     desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
@@ -89,6 +90,9 @@ def create_launcher(
         {}
         """.format(game_name, f"lutris_{game_slug}", command, try_exec)
     )
+
+    if wm_class:
+        launcher_content += f"StartupWMClass={wm_class}\n"
 
     launcher_filename = get_xdg_basename(game_slug, game_id)
     tmp_launcher_path = os.path.join(CACHE_DIR, launcher_filename)

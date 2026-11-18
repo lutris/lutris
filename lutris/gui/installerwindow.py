@@ -37,6 +37,7 @@ from lutris.util.log import get_log_contents, logger
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, human_size
 from lutris.util.system import is_removeable
+from lutris.util.wine import proton
 
 INSTALLATION_FAILED = NotificationSource()
 INSTALLATION_COMPLETED = NotificationSource()
@@ -1071,10 +1072,16 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         game_id = self.interpreter.installer.game_id
         game_name = self.interpreter.installer.game_name
 
+        installer = self.interpreter.installer
+        wm_class = None
+        if installer.runner == "wine":
+            service = installer.service.id if installer.service else None
+            wm_class = proton.get_wm_class(proton.get_umu_id(game_id, service, installer.service_appid, {}))
+
         if desktop:
-            xdgshortcuts.create_launcher(game_slug, game_id, game_name, desktop=True)
+            xdgshortcuts.create_launcher(game_slug, game_id, game_name, desktop=True, wm_class=wm_class)
         else:
-            xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True)
+            xdgshortcuts.create_launcher(game_slug, game_id, game_name, menu=True, wm_class=wm_class)
 
     # Buttons
     def display_continue_button(
