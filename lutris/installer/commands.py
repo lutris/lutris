@@ -23,7 +23,7 @@ from lutris.util.gog import apply_gog_config, find_gog_config_dir
 from lutris.util.gogdl import clear_stale_manifest, run_gogdl
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
-from lutris.util.wine.wine import WINE_DEFAULT_ARCH, get_default_wine_version, get_wine_path_for_version
+from lutris.util.wine.wine import detect_arch, get_default_wine_version, get_wine_path_for_version
 
 
 class CommandsMixin:
@@ -424,7 +424,11 @@ class CommandsMixin:
         if runner_name.startswith("wine"):
             data["wine_path"] = self.get_wine_path()
             data["prefix"] = data.get("prefix") or self.installer.script.get("game", {}).get("prefix") or "$GAMEDIR"
-            data["arch"] = data.get("arch") or self.installer.script.get("game", {}).get("arch") or WINE_DEFAULT_ARCH
+            data["arch"] = (
+                data.get("arch")
+                or self.installer.script.get("game", {}).get("arch")
+                or detect_arch(data["prefix"], data["wine_path"])
+            )
             if task_name == "wineexec":
                 data["env"] = self.script_env
 

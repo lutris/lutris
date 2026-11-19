@@ -7,6 +7,7 @@ import xml.etree.ElementTree
 
 from lutris.util.log import logger
 from lutris.util.system import execute, read_process_output
+from lutris.util.wine.wine import detect_arch
 
 
 class CabInstaller:
@@ -17,9 +18,9 @@ class CabInstaller:
 
     def __init__(self, prefix, arch=None, wine_path=None):
         self.prefix = prefix
+        self.wine_path = wine_path
         self.winearch = arch or self.get_wineprefix_arch()
         self.tmpdir = tempfile.mkdtemp()
-        self.wine_path = wine_path
 
         self.register_dlls = False  # Whether to register DLLs, I don't the purpose of that
         self.strip_dlls = False  # When registering, strip the full path
@@ -132,13 +133,15 @@ class CabInstaller:
         return (out, arch)
 
     def get_wineprefix_arch(self):
-        with open(os.path.join(self.prefix, "system.reg"), encoding="utf-8") as reg_file:
-            for line in reg_file.readlines():
-                if line.startswith("#arch=win32"):
-                    return "win32"
-                if line.startswith("#arch=win64"):
-                    return "win64"
-        return "win64"
+        registry_path = os.path.join(self.prefix, "system.reg") if self.prefix else None
+        if registry_path and os.path.isfile(registry_path):
+            with open(registry_path, encoding="utf-8") as reg_file:
+                for line in reg_file.readlines():
+                    if line.startswith("#arch=win32"):
+                        return "win32"
+                    if line.startswith("#arch=win64"):
+                        return "win64"
+        return detect_arch(self.prefix, self.wine_path)
 
     def get_system32_realdir(self, arch):
         dest_map = {

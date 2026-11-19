@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING, Any, Type, TypeVar, cast
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
-from lutris.api import get_runners, parse_installer_url
+from lutris.api import get_runners, normalize_version_architecture, parse_installer_url
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
@@ -1048,8 +1048,9 @@ class LutrisApplication(Gtk.Application):
         Downloads wine runner using lutris -r <runner>
         """
 
+        version = normalize_version_architecture(version)
         WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-        runner_path = os.path.join(WINE_DIR, f"{version}{'' if '-x86_64' in version else '-x86_64'}")
+        runner_path = os.path.join(WINE_DIR, version)
         if os.path.isdir(runner_path):
             print(f"Wine version '{version}' is already installed.")
         else:
@@ -1061,7 +1062,7 @@ class LutrisApplication(Gtk.Application):
                 print(ex.message)
 
     def wine_runner_uninstall(self, version: str) -> None:
-        version = f"{version}{'' if '-x86_64' in version else '-x86_64'}"
+        version = normalize_version_architecture(version)
         WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
         runner_path = os.path.join(WINE_DIR, version)
         if os.path.isdir(runner_path):

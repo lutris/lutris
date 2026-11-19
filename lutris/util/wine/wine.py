@@ -47,11 +47,16 @@ def detect_arch(prefix_path: str | None = None, wine_path: str | None = None) ->
     asks for one. Older Wine builds shipped a separate 'wine64' binary, but modern
     builds using the new WoW64 mode ship a single 'wine' binary, so the absence of
     'wine64' no longer implies a 32-bit-only build."""
+    if prefix_path and is_prefix_directory(prefix_path):
+        # The prefix is authoritative. A 64-bit Wine installation can run a
+        # 32-bit prefix, and older installations expose a separate wine64
+        # executable, so checking the Wine executable first can report the
+        # wrong architecture for an existing prefix.
+        return detect_prefix_arch(prefix_path)
+
     if wine_path:
         if proton.is_proton_path(wine_path) or system.path_exists(wine_path + "64"):
             return "win64"
-    if prefix_path and is_prefix_directory(prefix_path):
-        return detect_prefix_arch(prefix_path)
     return WINE_DEFAULT_ARCH
 
 
