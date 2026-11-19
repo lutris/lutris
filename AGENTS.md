@@ -4,7 +4,7 @@
 - Comments must always start with a capital and never end with a period.
 - Use numpy docstring style when asked to write docstrings.
 - Strictly typed, target Python 3.14.
-- Follow pyright and ruff rules.
+- Follow ty and ruff rules.
 - Use `uv` for package management.
 - Use `uv add` to add packages.
 - Use `uv run` to run files.
