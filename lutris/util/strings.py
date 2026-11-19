@@ -388,14 +388,31 @@ def human_size(size: float) -> str:
 
 
 # inverse of human_size converts a human readable size to bytes
-def computer_size(size: str) -> int:
+def computer_size(size: object) -> int:
     """Converts a human readable size to bytes.
 
     A size without a recognized unit suffix is interpreted as bytes.
+    Returns 0 for empty or malformed input.
     """
+    if size is None:
+        return 0
+    if isinstance(size, bool):
+        return int(size)
+    if isinstance(size, (int, float)):
+        return int(size)
+    if not isinstance(size, str):
+        try:
+            size = str(size)
+        except Exception:
+            logger.warning("Invalid size value '%r'", size)
+            return 0
+
     units = ("bytes", "kb", "mb", "gb", "tb", "pb")
     unit_index = 0
     size = size.strip()
+    if not size:
+        return 0
+    original_size = size
     size = size.casefold()
     for index, unit in enumerate(units):
         if size.endswith(unit):
@@ -404,8 +421,8 @@ def computer_size(size: str) -> int:
             break
     try:
         return int(float(size) * (1024**unit_index))
-    except ValueError:
-        logger.warning("Invalid size value '%s'", size)
+    except (ValueError, TypeError):
+        logger.warning("Invalid size value '%s'", original_size)
         return 0  # if we can't parse the size, return 0 bytes to avoid crashing
 
 

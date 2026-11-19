@@ -132,6 +132,9 @@ class ImportGameDialog(ModelessDialog):
             else:
                 md5 = get_md5_hash(filepath)
 
+            if not md5:
+                raise RuntimeError(_("Could not compute checksum for this file."))
+
             if self.search_stopping:
                 return None
 
