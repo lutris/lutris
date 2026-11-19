@@ -117,7 +117,7 @@ class PreferencesWidgetGenerator(WidgetGenerator):
         if no_label:
             return super().build_option_widget(option, widget, no_label=no_label, expand=expand)
 
-        label = Gtk.Label(option["label"], visible=True, wrap=True)
+        label = Gtk.Label(label=option["label"], visible=True, wrap=True)
         label.set_alignment(0, 0.5)
         if self.wrapper and widget:
             self.wrapper.pack_start(label, True, True, 0)

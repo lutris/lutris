@@ -201,7 +201,7 @@ class MonitoredCommand:
             fileno = self.game_process.stdout.fileno()
             fcntl.fcntl(fileno, fcntl.F_SETFL, fcntl.fcntl(fileno, fcntl.F_GETFL) | os.O_NONBLOCK)
 
-        self.stdout_monitor = GLib.io_add_watch(
+        self.stdout_monitor = GLib.io_add_watch(  # type: ignore[call-arg, arg-type]
             self.game_process.stdout,
             GLib.IO_IN | GLib.IO_HUP,
             self.on_stdout_output,
