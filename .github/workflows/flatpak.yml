@@ -2,7 +2,7 @@ name: Flatpak
 
 # Builds the Flatpak from packaging/flatpak and uploads the single-file bundle
 # as a workflow artifact. On a published release the bundle is also attached
-# to that release.
+# to that release
 on:
   push:
     branches: [master]

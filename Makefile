@@ -3,13 +3,13 @@
 # Run `make help` to list the common developer targets.
 
 # Everything runs inside the project's uv-managed virtualenv (.venv), which
-# `uv sync` creates and keeps in step with uv.lock.
+# `uv sync` creates and keeps in step with uv.lock
 RUN:=uv run
 
-# Diagnostics ty already reports, so `make check` only fails on new ones.
+# Diagnostics ty already reports, so `make check` only fails on new ones
 TY_BASELINE:=ty-baseline.json
 
-# Use a flatpak-builder from the host if there is one, else the Flathub app.
+# Use a flatpak-builder from the host if there is one, else the Flathub app
 FLATPAK_BUILDER:=$(shell command -v flatpak-builder 2>/dev/null || echo flatpak run org.flatpak.Builder)
 FLATPAK_MANIFEST:=packaging/flatpak/net.lutris.Lutris.yml
 FLATPAK_DIR:=build-flatpak
@@ -61,7 +61,7 @@ install-hooks:
 dev: install-hooks
 	uv sync
 
-# Re-resolve every dependency to its newest allowed version and rewrite uv.lock.
+# Re-resolve every dependency to its newest allowed version and rewrite uv.lock
 upgrade:
 	uv lock --upgrade
 	uv sync
@@ -84,16 +84,13 @@ format:
 # Static analysis
 # ===============
 
-check: ruff_lint ty syntax-compat annotation-compat po-check
+check: ruff_lint ty syntax-compat po-check
 
 ruff_lint:
 	$(RUN) ruff check .
 
 syntax-compat:
 	$(RUN) python -m compileall -q lutris/
-
-annotation-compat:
-	$(RUN) python utils/check_annotations.py
 
 po-check:
 	@for f in po/*.po; do msgfmt --check "$$f" -o /dev/null; done

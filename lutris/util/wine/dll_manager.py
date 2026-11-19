@@ -123,7 +123,7 @@ class DLLManager:
         with open(self.versions_path, "r", encoding="utf-8") as dll_version_file:
             try:
                 dll_versions = [v["tag_name"] for v in json.load(dll_version_file)]
-            except (KeyError, json.decoder.JSONDecodeError):
+            except KeyError, json.decoder.JSONDecodeError:
                 logger.warning(
                     "Invalid versions file %s, deleting so it is downloaded on next start.", self.versions_path
                 )

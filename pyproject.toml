@@ -6,27 +6,29 @@ authors = [
 ]
 description = "Video game preservation platform"
 readme = "README.rst"
-requires-python = ">=3.10"
+# 3.14 is what the Flatpak's GNOME runtime ships; development defaults to 3.15
+# (.python-version)
+requires-python = ">=3.14"
 
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 dependencies = [
     "PyYAML>=6.0.3",
-    "lxml>=6.1",
-    "requests>=2.34",
-    "Pillow>=12.3",
+    "lxml>=6.1.3",
+    "requests>=2.34.2",
+    "Pillow>=13.0.0",
     "setproctitle>=1.3.8",
     "python-magic>=0.4.27",
-    "distro>=1.9",
-    "dbus-python>=1.5",
-    "evdev>=1.9.3",
-    "PyGObject>=3.58",
-    "pypresence>=4.6",
-    "moddb>=0.16",
+    "distro>=1.9.0",
+    "dbus-python>=1.5.1",
+    "evdev>=2.0.0",
+    "PyGObject>=3.58.0",  # 3.58.0 is what the Flatpak's GNOME runtime provides
+    "pypresence>=4.6.2",
+    "moddb>=0.16.0",
     # Optional at runtime (guarded imports), but they back real features:
-    # icons extracted from Windows executables, and WebDAV save sync.
+    # icons extracted from Windows executables, and WebDAV save sync
     "pefile>=2024.8.26",
-    "webdav4>=0.11",
+    "webdav4>=0.11.0",
 ]
 
 [project.urls]
@@ -36,19 +38,19 @@ Issues = "https://github.com/lutris/lutris/issues"
 
 [dependency-groups]
 # Split so CI jobs can install only what they run (`uv sync --only-group lint`
-# needs no GTK headers); `dev` is everything and is what `uv sync` installs.
+# needs no GTK headers); `dev` is everything and is what `uv sync` installs
 lint = [
     "ruff>=0.17.6",
 ]
 typing = [
     "ty>=0.0.107",
-    "types-requests>=2.33",
-    "types-PyYAML>=6.0.12",
-    "pygobject-stubs>=2.20",
+    "types-requests>=2.33.0.20261030",
+    "types-PyYAML>=6.0.12.20261113",
+    "pygobject-stubs>=2.20.0",
 ]
 test = [
-    "pytest>=9.2",
-    "pytest-cov>=7.1",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
 ]
 dev = [
     { include-group = "lint" },
@@ -59,11 +61,17 @@ dev = [
 [tool.uv]
 # Lutris isn't built as a Python package: it runs straight from the checkout
 # (bin/lutris puts it on sys.path) and meson installs it for the Flatpak. uv
-# only manages the environment its dependencies live in.
+# only manages the environment its dependencies live in
 package = false
+required-version = ">=0.13.9"
+# Always use uv's own Python builds (downloaded on demand), never the system's:
+# they're the same everywhere and include the headers PyGObject, evdev and
+# dbus-python need to compile, which many distros split into a -devel package
+# The Flatpak build overrides this to use the runtime's Python
+python-preference = "only-managed"
 default-groups = ["dev"]
 # pygobject-stubs only ships an sdist, and which GI namespaces it generates
-# stubs for is a build-time setting. Lutris targets GTK 3 and libsoup 2.
+# stubs for is a build-time setting. Lutris targets GTK 3 and libsoup 2
 no-binary-package = ["pygobject-stubs"]
 
 [tool.uv.config-settings-package]
@@ -105,15 +113,16 @@ fixable = ["ALL"]
 unfixable = []
 
 [tool.ty.environment]
-# The oldest Python Lutris supports, so newer-only APIs get flagged.
-python-version = "3.10"
+# The oldest Python Lutris supports (the Flatpak runtime's), so APIs newer
+# than that get flagged
+python-version = "3.14"
 
 [tool.ty.src]
 exclude = ["**/*_pb2.py"]
 
 [tool.ty.rules]
 # Lutris reassigns attributes and variables with different types throughout
-# (mypy's `assignment` check was disabled for the same reason).
+# (mypy's `assignment` check was disabled for the same reason)
 invalid-assignment = "ignore"
 
 [tool.pytest]

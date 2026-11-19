@@ -180,7 +180,7 @@ class ItchIoService(OnlineService):
             return False
         try:
             profile = self.fetch_profile()
-        except (HTTPError, UnauthorizedAccessError):
+        except HTTPError, UnauthorizedAccessError:
             logger.warning("Not connected to itch.io account.")
             return False
         return profile and "user" in profile

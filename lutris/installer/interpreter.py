@@ -338,7 +338,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                     AttributeError, which tells the user nothing on its own."""
                     try:
                         return method(params)
-                    except (ScriptingError, MissingGameDependencyError):
+                    except ScriptingError, MissingGameDependencyError:
                         raise
                     except Exception as command_error:
                         raise ScriptingError(
@@ -515,7 +515,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         try:
             replacements["RESOLUTION_WIDTH_HEX"] = hex(int(current_res[0]))
             replacements["RESOLUTION_HEIGHT_HEX"] = hex(int(current_res[1]))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             pass  # If we can't generate hex, just omit the vars
 
         try:

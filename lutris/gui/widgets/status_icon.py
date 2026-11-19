@@ -15,13 +15,13 @@ try:
     from gi.repository import AppIndicator3 as AppIndicator
 
     APP_INDICATOR_SUPPORTED = True
-except (ImportError, ValueError):
+except ImportError, ValueError:
     try:
         gi.require_version("AyatanaAppIndicator3", "0.1")
         from gi.repository import AyatanaAppIndicator3 as AppIndicator
 
         APP_INDICATOR_SUPPORTED = True
-    except (ImportError, ValueError):
+    except ImportError, ValueError:
         APP_INDICATOR_SUPPORTED = False
 
 

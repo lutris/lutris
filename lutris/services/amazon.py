@@ -734,7 +734,7 @@ class AmazonService(OnlineService):
                     # Parse and normalize to UTC date
                     release_datetime = datetime.fromisoformat(release_date.replace("Z", "+00:00"))
                     return release_datetime.astimezone(timezone.utc).date().isoformat()
-            except (KeyError, AttributeError):
+            except KeyError, AttributeError:
                 pass
         return ""
 

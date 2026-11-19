@@ -331,7 +331,7 @@ def kill_all_wine_processes():
                 logger.info("Killing Wine process %s (%s)", pid, name)
                 os.kill(pid, signal.SIGKILL)
                 killed += 1
-        except (ProcessLookupError, PermissionError):
+        except ProcessLookupError, PermissionError:
             continue
     logger.info("Killed %d Wine processes", killed)
     return killed

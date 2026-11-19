@@ -43,7 +43,7 @@ class Process:
         try:
             with open(stat_filename, encoding="utf-8", errors="replace") as stat_file:
                 _stat = stat_file.readline()
-        except (ProcessLookupError, FileNotFoundError):
+        except ProcessLookupError, FileNotFoundError:
             return None
         if parsed:
             return _stat[_stat.rfind(")") + 1 :].split()
@@ -66,7 +66,7 @@ class Process:
         try:
             with open(children_path, encoding="utf-8", errors="replace") as children_file:
                 children_content = children_file.read()
-        except (FileNotFoundError, ProcessLookupError, PermissionError):
+        except FileNotFoundError, ProcessLookupError, PermissionError:
             children_content = ""
         return children_content.strip().split()
 

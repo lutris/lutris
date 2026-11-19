@@ -62,8 +62,9 @@ pinned in `uv.lock`. Install uv, then:
     make dev    # creates .venv with `uv sync` and installs the git pre-commit hook
     make run    # same as `uv run bin/lutris -d`
 
-uv downloads a Python interpreter if it doesn't find a suitable one
-(`.python-version` names the preferred release). Any `uv run <command>` runs
+uv downloads and uses its own build of Python 3.15 (`.python-version`), never
+the system's; Lutris also supports 3.14, the Flatpak runtime's version, and CI
+tests both. Any `uv run <command>` runs
 in the project environment and brings it up to date first; you can also
 `source .venv/bin/activate` and run `./bin/lutris -d` directly.
 

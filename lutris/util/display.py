@@ -20,7 +20,7 @@ try:
     GnomeDesktop.RRScreen  # type: ignore  # noqa: B018
 
     LIB_GNOME_DESKTOP_AVAILABLE = True
-except (ValueError, AttributeError):
+except ValueError, AttributeError:
     LIB_GNOME_DESKTOP_AVAILABLE = False
     GnomeDesktop = None
 

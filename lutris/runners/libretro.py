@@ -389,7 +389,7 @@ class libretro(Runner):
                 mandatory_firmware_count = sum(
                     1 for i in range(firmware_count) if not retro_config.get("firmware%d_opt" % i)
                 )
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 firmware_count = 0
                 mandatory_firmware_count = 0
             system_path = self.get_system_directory(retro_config)

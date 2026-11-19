@@ -25,7 +25,7 @@ def _describe_timestamp(value):
     """Render a timestamp for a log message, decoding it to a date where possible."""
     try:
         return "%s (%s)" % (value, time.strftime("%x", time.localtime(int(value))))
-    except (TypeError, ValueError, OSError, OverflowError):
+    except TypeError, ValueError, OSError, OverflowError:
         return repr(value)
 
 
@@ -56,7 +56,7 @@ def sanitize_timestamp(value):
     """
     try:
         timestamp = int(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
     if timestamp <= 0 or timestamp > time.time() + TIMESTAMP_FUTURE_TOLERANCE:
         return None
@@ -262,7 +262,7 @@ class StoreItem:
         """Playtime duration in hours"""
         try:
             return float(self._get_game_attribute("playtime") or 0)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return 0.0
 
     @property

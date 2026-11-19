@@ -104,7 +104,7 @@ def _account_recency(account: dict[str, Any]) -> tuple[int, int]:
     most_recent = get_config_value(account, "mostrecent", warn_if_missing=False) == "1"
     try:
         timestamp = int(get_config_value(account, "timestamp", warn_if_missing=False) or 0)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         timestamp = 0
     return int(most_recent), timestamp
 

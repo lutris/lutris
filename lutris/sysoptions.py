@@ -90,7 +90,7 @@ def _is_not_wine_runner(_option_key: str, config: "LutrisConfig") -> bool:
 
         runner = runners.import_runner(config.runner_slug)
         return not issubclass(runner, wine)
-    except (runners.InvalidRunnerError, ImportError):
+    except runners.InvalidRunnerError, ImportError:
         return True
 
 

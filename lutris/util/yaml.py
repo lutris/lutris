@@ -18,7 +18,7 @@ def read_yaml_from_file(filename: str) -> dict[str, Any]:
     with open(filename, "r", encoding="utf-8") as yaml_file:
         try:
             yaml_content = yaml.safe_load(yaml_file) or {}
-        except (ScannerError, ParserError):
+        except ScannerError, ParserError:
             logger.error("error parsing file %s", filename)
             yaml_content = {}
     return yaml_content

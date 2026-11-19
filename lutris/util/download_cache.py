@@ -182,7 +182,7 @@ def is_safe_to_delete(file_path: str) -> bool:
                 os.path.basename(file_path),
                 days_old,
             )
-        except (OSError, json.JSONDecodeError):
+        except OSError, json.JSONDecodeError:
             pass
         return True
 

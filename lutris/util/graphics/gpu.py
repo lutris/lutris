@@ -126,7 +126,7 @@ def read_vulkaninfo_summary(icd_files: str = "") -> str | None:
             error_result=None,
             stderr_handler=log_vulkan_loader_messages,
         )
-    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+    except OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired:
         # read_process_output() already logged this; callers fall back to lspci.
         return None
 

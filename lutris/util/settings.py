@@ -34,7 +34,7 @@ class SettingsIO:
         """
         try:
             return self.config.get(section, key)
-        except (configparser.NoOptionError, configparser.NoSectionError):
+        except configparser.NoOptionError, configparser.NoSectionError:
             return default
 
     def read_bool_setting(self, key: str, default: bool = False, section: str = "lutris") -> bool:

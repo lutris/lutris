@@ -343,7 +343,7 @@ class GOGCloudStorageClient:
             try:
                 f_timestamp = datetime.datetime.fromisoformat(last_modified).astimezone().timestamp()
                 os.utime(sync_file.absolute_path, (f_timestamp, f_timestamp))
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 logger.warning(
                     "Invalid LastModified header for %s: %s",
                     sync_file.relative_path,

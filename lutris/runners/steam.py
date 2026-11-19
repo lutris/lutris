@@ -207,7 +207,7 @@ class steam(Runner):
         if raw not in (None, ""):
             try:
                 value = float(raw)  # type: ignore[arg-type]
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 value = None
             if value is not None and value > 0:
                 return value
@@ -475,7 +475,7 @@ class steam(Runner):
             return None
         try:
             return int(steam_pid)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return None
 
     def _game_is_alive_in_steam(self) -> bool:

@@ -40,7 +40,6 @@ def main():
                 sys.exit(1)
             checks_to_run: list[list[str]] = [
                 ["uv", "run", "ty", "check", "--baseline", "ty-baseline.json"] + [str(f) for f in modified_python_files],
-                ["uv", "run", "python", "utils/check_annotations.py"],
                 ["uv", "run", "ruff", "check"] + [str(f) for f in modified_python_files],
                 ["uv", "run", "ruff", "format", "--check"] + [str(f) for f in modified_python_files],
                 ["uv", "run", "pytest", "-q", "-m", "not display"]

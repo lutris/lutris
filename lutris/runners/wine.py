@@ -1186,7 +1186,7 @@ class wine(Runner):
             return None
         try:
             return int(self.runner_config.get("ExplicitDpi", get_default_dpi()))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             # Older configs may say 'auto', or be blank
             return get_default_dpi()
 

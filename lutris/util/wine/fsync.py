@@ -256,7 +256,7 @@ def is_futex_wait_multiple_supported():
     """
     try:
         return _get_futex_wait_multiple_op(_get_futex_syscall()) is not None
-    except (AttributeError, RuntimeError):
+    except AttributeError, RuntimeError:
         return False
 
 
@@ -391,7 +391,7 @@ def is_futex_waitv_supported():
     try:
         ret = _get_futex_waitv_syscall()(None, 0, 0, None)
         return ret[1] != errno.ENOSYS
-    except (AttributeError, RuntimeError):
+    except AttributeError, RuntimeError:
         return False
 
 

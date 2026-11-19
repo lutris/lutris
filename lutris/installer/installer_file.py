@@ -283,7 +283,7 @@ class InstallerFile:
                 size = int(self._file_meta["size"])
                 if size >= 0:
                     return size
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 return None
         return None
 
@@ -294,7 +294,7 @@ class InstallerFile:
                 total_size = int(self._file_meta["total_size"])
                 if total_size >= 0:
                     return total_size
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 return None
         return None
 

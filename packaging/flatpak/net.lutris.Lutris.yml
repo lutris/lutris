@@ -1,14 +1,14 @@
-# Lutris Flatpak, built from this checkout.
+# Lutris Flatpak, built from this checkout
 #
 # Derived from Flathub's manifest (github.com/flathub/net.lutris.Lutris); the
 # runtime, extensions and bundled tools are kept in step with it. What differs:
-#   * Lutris is built from this source tree rather than a pinned commit.
+#   * Lutris is built from this source tree rather than a pinned commit
 #   * Its Python dependencies are installed by uv from uv.lock (the same pins the
 #     test suite runs against) instead of hand-maintained pip modules. That step
-#     needs network access at build time, which Flathub's builders don't allow.
-#   * Read-write access to drives mounted under /mnt.
+#     needs network access at build time, which Flathub's builders don't allow
+#   * Read-write access to drives mounted under /mnt
 #
-# Build and install it with `make flatpak` (or `make flatpak-bundle`).
+# Build and install it with `make flatpak` (or `make flatpak-bundle`)
 
 id: net.lutris.Lutris
 sdk: org.gnome.Sdk
@@ -257,8 +257,12 @@ modules:
       - --disable-qv4l2
       - --disable-qvidcap
     sources: &v4l2_sources
+      # linuxtv.org now answers automated downloads with a bot challenge page;
+      # Debian ships the identical upstream tarball
       - type: archive
-        url: https://linuxtv.org/downloads/v4l-utils/v4l-utils-1.20.0.tar.bz2
+        url: https://deb.debian.org/debian/pool/main/v/v4l-utils/v4l-utils_1.20.0.orig.tar.bz2
+        mirror-urls:
+          - https://snapshot.debian.org/file/91128695040c694c3998540ca3b710ca9c8262e1
         sha256: 956118713f7ccb405c55c7088a6a2490c32d54300dd9a30d8d5008c28d3726f7
 
   - name: v4l2-utils-32bit
@@ -796,15 +800,17 @@ modules:
         url: https://github.com/astral-sh/uv/releases/download/0.13.9/uv-x86_64-unknown-linux-musl.tar.gz
         sha256: 58ccf5f1792b8a5a88d01bc910ea131a8b3db4a319a17ad5fad75e0845a3e271
 
-  # Lutris's Python dependencies, exactly as pinned (and hash-checked) in uv.lock.
+  # Lutris's Python dependencies, exactly as pinned (and hash-checked) in uv.lock
   # PyGObject and pycairo are left to the GNOME runtime, which builds them
-  # against its own GLib and GTK.
+  # against its own GLib and GTK
   - name: python-dependencies
     buildsystem: simple
     build-options:
       build-args:
         - --share=network
       env:
+        # The runtime's Python, not one uv downloads (pyproject.toml asks for those)
+        UV_PYTHON_PREFERENCE: only-system
         UV_PYTHON_DOWNLOADS: never
         UV_NO_CACHE: "1"
     build-commands:

@@ -61,6 +61,7 @@ Then::
     uv sync --no-dev        # or `make dev` to include the development tools
     uv run bin/lutris
 
-uv fetches a suitable Python interpreter if your system doesn't have one.
+uv downloads its own build of Python 3.15 for this; your system's Python isn't
+used, so it doesn't matter which version (if any) your distribution ships.
 After pulling new changes, ``uv run`` brings the environment up to date by
 itself.

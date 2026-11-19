@@ -282,7 +282,7 @@ class UbisoftParser(object):
             except KeyError:
                 exe = game_yaml["root"]["start_game"]["online"]["executables"][0]["path"]["register"]
             return registry_path, exe
-        except (KeyError, IndexError):
+        except KeyError, IndexError:
             return None, None
 
     def _parse_game(self, game_yaml, install_id, launch_id):

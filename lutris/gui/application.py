@@ -670,7 +670,7 @@ class LutrisApplication(Gtk.Application):
                 try:
                     headers = dict(request.response_headers or {})
                     file_name = headers["Content-Disposition"].split("=", 1)[-1]
-                except (KeyError, IndexError):
+                except KeyError, IndexError:
                     file_name = os.path.basename(installer_file)
                 file_path = os.path.join(tempfile.gettempdir(), file_name)
                 self._print(

@@ -339,7 +339,7 @@ def _load_gog_info_file(info_file: str) -> dict | None:
     try:
         with open(info_file, "r", encoding="utf-8") as f:
             return json.load(f)
-    except (json.JSONDecodeError, OSError, FileNotFoundError):
+    except json.JSONDecodeError, OSError, FileNotFoundError:
         return None
 
 
