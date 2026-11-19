@@ -1,8 +1,0 @@
-recursive-include lutris *.py
-include bin/lutris
-include LICENSE
-include AUTHORS
-include MANIFEST.in
-include README.rst
-graft debian
-prune tests
