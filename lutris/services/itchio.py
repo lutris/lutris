@@ -146,7 +146,8 @@ class ItchIoService(OnlineService):
             self.logout()
             return
 
-        api_key = api_key_dialog.user_value
+        # A key copied from a web page can easily pick up a stray space; keys never contain any
+        api_key = api_key_dialog.user_value.strip()
 
         if api_key:
             with open(self.api_key_path, "w") as key_file:
@@ -165,7 +166,7 @@ class ItchIoService(OnlineService):
             return None
 
         with open(self.api_key_path, "r") as key_file:
-            return key_file.read()
+            return key_file.read().strip()
 
     def get_headers(self):
         api_key = self.load_api_key()
@@ -471,7 +472,8 @@ class ItchIoService(OnlineService):
 
         # Reload whole key library to check if a key was added
         library = self.get_owned_games(True)
-        game = next((x for x in library if x["id"] == appid), game)
+        # The API gives IDs as numbers, but Lutris stores them as strings
+        game = next((x for x in library if str(x["id"]) == str(appid)), game)
 
         if "download_key_id" in game:
             return game["download_key_id"]
