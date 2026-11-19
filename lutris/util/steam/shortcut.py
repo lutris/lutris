@@ -84,7 +84,7 @@ def is_steam_game(game: "Game") -> bool:
     return game.runner_name == "steam"
 
 
-def create_shortcut(game: "Game", launch_config_name: str | None = None, standalone: bool = False) -> None:
+def create_shortcut(game: "Game", launch_config_name: str = "", standalone: bool = False) -> None:
     if is_steam_game(game):
         logger.warning("Not updating shortcut for Steam game")
         return None

@@ -2,7 +2,11 @@
 
 import logging
 
-from nose2.events import MatchPathEvent, Plugin
+try:
+    from nose2.events import MatchPathEvent, Plugin
+except ImportError:
+    MatchPathEvent = object  # type: ignore
+    Plugin = object  # type: ignore
 
 TEST_TO_SKIP = ["_test_dialogs.py"]
 
@@ -14,7 +18,7 @@ class ExcludeTestCI(Plugin):
     configSection = "exclude-ci"
     commandLineSwitch = (None, "exclude-ci", "True")
 
-    def matchPath(self, event: MatchPathEvent) -> bool:
+    def matchPath(self, event: "MatchPathEvent") -> bool:
         if event.name in TEST_TO_SKIP:
             log.info(f'Skipping test for module "{event.name}')
             event.handled = True

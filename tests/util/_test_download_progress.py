@@ -324,10 +324,10 @@ class TestAtomicWrites(TestCase):
             t.join()
 
         assert not errors
-        # All ranges should be marked — even if ordering varied
+        # All ranges should be marked — even if ordering varied and adjacent ranges coalesced
         fresh = DownloadProgress(self.progress.dest_path)
         fresh.load()
-        assert len(fresh.completed_ranges) == num_ranges
+        assert fresh.get_completed_size() == num_ranges * 100
 
     def test_save_creates_directories(self):
         deep = str(self.tmp_path / "a" / "b" / "c" / "file.bin")

@@ -52,6 +52,13 @@ WINE_RUNNER_VERSIONS = [
 
 
 class TestApi(unittest.TestCase):
+    def test_normalize_version_architecture_uses_host_architecture(self):
+        with patch.object(api.LINUX_SYSTEM, "arch", "i386"):
+            self.assertEqual(api.normalize_version_architecture("lutris-7.2"), "lutris-7.2-i386")
+
+        with patch.object(api.LINUX_SYSTEM, "arch", "x86_64"):
+            self.assertEqual(api.normalize_version_architecture("lutris-7.2"), "lutris-7.2-x86_64")
+
     @patch("lutris.api.get_runtime_versions")
     @patch("lutris.api.download_runner_versions")
     def test_get_default_runner_version_info(self, mock_download_runner_versions, mock_get_runtime_versions):

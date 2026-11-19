@@ -10,12 +10,26 @@ version = "0.5.23"
 authors = [
     {name = "Mathieu Comandon", email = "strider@strycore.com"}
 ]
-description = "Video game preservation platform"
+description = """
+Lutris is a video game preservation platform that helps you install and play video games from all eras and from most gaming systems.
+By leveraging and combining existing emulators, engine re-implementations and compatibility layers, it gives you a central interface to launch all your games.
+"""
 readme = "README.rst"
 requires-python = ">=3.10"
 
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: Linux",
+    "Topic :: Games/Entertainment",
+]
 dependencies = [
     "PyYAML",
     "lxml",

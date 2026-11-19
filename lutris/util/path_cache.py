@@ -50,6 +50,17 @@ def get_game_paths():
     return game_paths
 
 
+def write_path_cache(path_cache):
+    """Persist the path cache, recreating its directory when necessary."""
+    cache_dir = os.path.dirname(GAME_PATH_CACHE_PATH)
+    if cache_dir:
+        os.makedirs(cache_dir, exist_ok=True)
+
+    with open(GAME_PATH_CACHE_PATH, "w", encoding="utf-8") as cache_file:
+        json.dump(path_cache, cache_file, indent=2)
+    get_path_cache.cache_clear()
+
+
 def build_path_cache(recreate=False):
     """Generate a new cache path"""
     if os.path.exists(GAME_PATH_CACHE_PATH) and not recreate:
@@ -57,7 +68,6 @@ def build_path_cache(recreate=False):
     start_time = time.time()
     _write_path_cache(get_game_paths())
     end_time = time.time()
-    get_path_cache.cache_clear()
     logger.debug("Game path cache built in %0.2f seconds", end_time - start_time)
 
 

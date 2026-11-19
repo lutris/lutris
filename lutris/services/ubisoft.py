@@ -43,6 +43,11 @@ class UbisoftCover(ServiceMedia):
         # First try coverUrl from the API (available for games fetched via GraphQL)
         if details.get("coverUrl"):
             return details["coverUrl"]
+        # Try bannerUrl and backgroundUrl as fallbacks for missing coverUrl
+        if details.get("bannerUrl"):
+            return details["bannerUrl"]
+        if details.get("backgroundUrl"):
+            return details["backgroundUrl"]
         # Fall back to thumbImage from local config files (for locally parsed games)
         if details.get(self.api_field):
             return self.url_pattern % details[self.api_field]

@@ -99,7 +99,7 @@ class SystemBox(BaseConfigBox):
         row = 0
         for item in items:
             if isinstance(item, str):
-                header_label = Gtk.Label(visible=True, xalign=0, yalign=0, margin_top=16)
+                header_label = Gtk.Label(label="", visible=True, xalign=0, yalign=0, margin_top=16)
                 header_label.set_markup("<b>[%s]</b>" % gtk_safe(item))
                 if row == 0:
                     grid.set_margin_top(0)
@@ -109,7 +109,7 @@ class SystemBox(BaseConfigBox):
                 name_label = Gtk.Label(label=name + ":", visible=True, xalign=0, yalign=0, margin_right=30)
                 grid.attach(name_label, 0, row, 1, 1)
 
-                markup_label = Gtk.Label(visible=True, xalign=0, selectable=True)
+                markup_label = Gtk.Label(label="", visible=True, xalign=0, selectable=True)
                 markup_label.set_markup("<b>%s</b>" % gtk_safe(text))
                 grid.attach(markup_label, 1, row, 1, 1)
             row += 1

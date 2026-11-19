@@ -12,6 +12,7 @@ lutris.spec``) both install through ``setup.py``.
 """
 
 import os
+import re
 import sys
 
 from setuptools import setup
