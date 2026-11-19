@@ -18,8 +18,9 @@ Prerequisites
 -------------
 
 - A desktop session (X11 or Wayland). The GUI items cannot be done headless.
-- The checkout with its dependencies installed; see ``CONTRIBUTING.md``. Activate
-  the virtualenv first, the commands below use the same interpreter as the script.
+- The checkout with its dependencies installed (``make dev``); see ``CONTRIBUTING.md``.
+  Activate the virtualenv (``source .venv/bin/activate``) first, the commands below
+  use the same interpreter as the script.
 - A normal user account; Lutris refuses to start as root.
 - Part A does not care whether your own Lutris is running: the script and the
   ``launch()`` helper below use a private D-Bus session, so nothing reaches the
@@ -221,12 +222,10 @@ Step B2 - Open your profile
 
 ::
 
-    LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1 ./bin/lutris -d
+    ./bin/lutris -d
 
 No HOME or XDG overrides this time: this is your real profile. The first launch of a
 new build runs any pending migrations once, which is what the backup above is for.
-``LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1`` is needed when the virtualenv lives under
-your home directory, otherwise ``bin/lutris`` drops it from ``sys.path``.
 
 Item 2 - Library rendering
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

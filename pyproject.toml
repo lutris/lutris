@@ -17,19 +17,18 @@ requires-python = ">=3.10"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 dependencies = [
-    "PyYAML",
-    "lxml",
-    "requests",
-    "Pillow",
-    "setproctitle",
-    "python-magic",
-    "distro",
-    "dbus-python",
-    "evdev",
-    "PyGObject",
-    "pypresence",
-    "protobuf",
-    "moddb"
+    "PyYAML>=6.0.3",
+    "lxml>=6.1",
+    "requests>=2.34",
+    "Pillow>=12.3",
+    "setproctitle>=1.3.8",
+    "python-magic>=0.4.27",
+    "distro>=1.9",
+    "dbus-python>=1.5",
+    "evdev>=1.9.3",
+    "PyGObject>=3.58",
+    "pypresence>=4.6",
+    "moddb>=0.16",
 ]
 
 [project.urls]
@@ -78,15 +77,35 @@ packages = [
 ]
 
 [dependency-groups]
-dev = [
-    "ruff==0.12.1",
-    "mypy==1.16.1",
-    "mypy-baseline",
-    "nose2",
-    "types-requests",
-    "types-PyYAML",
-    "pygobject-stubs>=2.18.0"
+# Split so CI jobs can install only what they run (`uv sync --only-group lint`
+# needs no GTK headers); `dev` is everything and is what `uv sync` installs.
+lint = [
+    "ruff>=0.17.6",
 ]
+typing = [
+    "mypy>=2.4.1",
+    "mypy-baseline>=0.7.4",
+    "types-requests>=2.33",
+    "types-PyYAML>=6.0.12",
+    "pygobject-stubs>=2.20",
+]
+test = [
+    "nose2>=0.16",
+]
+dev = [
+    { include-group = "lint" },
+    { include-group = "typing" },
+    { include-group = "test" },
+]
+
+[tool.uv]
+default-groups = ["dev"]
+# pygobject-stubs only ships an sdist, and which GI namespaces it generates
+# stubs for is a build-time setting. Lutris targets GTK 3 and libsoup 2.
+no-binary-package = ["pygobject-stubs"]
+
+[tool.uv.config-settings-package]
+pygobject-stubs = { config = "Gtk3,Gdk3,Soup2" }
 
 
 [tool.ruff]

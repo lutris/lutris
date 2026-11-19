@@ -7,14 +7,17 @@
 #
 # Run `make help` to list the common developer targets.
 
-PYTHON:=$(shell which python3)
-PIP:=$(PYTHON) -m pip
+# Everything runs inside the project's uv-managed virtualenv (.venv), which
+# `uv sync` creates and keeps in step with uv.lock.
+RUN:=uv run
 
 .DEFAULT_GOAL := help
 
 help:
 	@echo "Common developer tasks:"
-	@echo "  make dev            Install development dependencies"
+	@echo "  make dev            Create or refresh the virtualenv (.venv)"
+	@echo "  make upgrade        Upgrade every locked dependency to its newest version"
+	@echo "  make run            Run Lutris from the checkout in debug mode"
 	@echo "  make test           Run the unit test suite"
 	@echo "  make smoke          Run the end-to-end release smoke test"
 	@echo "  make cover          Run the test suite with a coverage report"
@@ -33,12 +36,12 @@ help:
 
 test:
 	rm tests/fixtures/pga.db -f
-	nose2
+	$(RUN) nose2
 
 cover:
 	rm tests/fixtures/pga.db -f
 	rm tests/coverage/ -rf
-	nose2 --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
+	$(RUN) nose2 --with-coverage --cover-package=lutris --cover-html --cover-html-dir=tests/coverage
 
 # End-to-end checks against a throwaway profile: a fresh install and an
 # upgrade of an existing one. Needs a display for the game launch checks
@@ -50,27 +53,30 @@ smoke:
 # Environment setup
 # ==================
 
-req-python:
-	pip3 install PyYAML lxml requests Pillow setproctitle python-magic distro dbus-python evdev \
-	 PyGObject pypresence protobuf moddb
-
 install-hooks:
 	ln -sf -t .git/hooks/ ../../.hooks/pre-commit
 
 dev: install-hooks
-	pip3 install ruff==0.12.1 mypy==1.16.1 mypy-baseline nose2 types-requests types-PyYAML
-	pip3 install 'pygobject-stubs>=2.18.0' --no-cache-dir --config-settings=config=Gtk3,Gdk3,Soup2
+	uv sync
+
+# Re-resolve every dependency to its newest allowed version and rewrite uv.lock.
+upgrade:
+	uv lock --upgrade
+	uv sync
+
+run:
+	$(RUN) bin/lutris -d
 
 # ============
 # Style checks
 # ============
 
 style:
-	ruff format . --check
+	$(RUN) ruff format . --check
 
 format:
-	ruff check --select I --fix
-	ruff format .
+	$(RUN) ruff check --select I --fix
+	$(RUN) ruff format .
 
 # ===============
 # Static analysis
@@ -79,22 +85,22 @@ format:
 check: ruff_lint mypy syntax-compat annotation-compat po-check
 
 ruff_lint:
-	ruff check .
+	$(RUN) ruff check .
 
 syntax-compat:
-	python3 -m compileall -q lutris/
+	$(RUN) python -m compileall -q lutris/
 
 annotation-compat:
-	python3 utils/check_annotations.py
+	$(RUN) python utils/check_annotations.py
 
 po-check:
 	@for f in po/*.po; do msgfmt --check "$$f" -o /dev/null; done
 
 mypy:
-	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline filter
+	$(RUN) mypy . --python-version 3.10 2>&1 | $(RUN) mypy-baseline filter
 
 mypy-reset-baseline:  # Add new typing errors to mypy. Use sparingly.
-	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline sync
+	$(RUN) mypy . --python-version 3.10 2>&1 | $(RUN) mypy-baseline sync
 
 # ==============================
 # Packaging (developer-facing)

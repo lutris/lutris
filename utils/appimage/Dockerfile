@@ -25,7 +25,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     patchelf \
     python3 \
     python3-dev \
-    python3-pip \
     python3-venv \
     python3-setuptools \
     python3-wheel \
@@ -34,7 +33,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     meson \
     ninja-build \
     libcairo2-dev \
-    libgirepository1.0-dev \
+    libgirepository-2.0-dev \
     libdbus-1-dev \
     libdbus-glib-1-dev \
     libsystemd-dev \
@@ -58,24 +57,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     librsvg2-common \
  && rm -rf /var/lib/apt/lists/*
 
-# Two pip installs into the build image's system Python:
-#   * pycairo, so PyGObject's meson build can find its C headers (apt's
-#     python3-cairo ships no headers, which is why python3-cairo /
-#     python3-gi-cairo are deliberately not in the apt list above).
-#   * setuptools >=77, which is where PEP 639 SPDX string license
-#     support landed. Lutris's pyproject.toml declares
-#     `license = "GPL-3.0-or-later"` in that form, and Noble's apt
-#     setuptools (68.1.2) rejects it at `setup.py install` time with
-#     `configuration error: project.license must be valid exactly by
-#     one definition`.
+COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /usr/local/bin/uv
+
+# setuptools >=77 in the build image's system Python, which is where PEP 639
+# SPDX string license support landed. Lutris's pyproject.toml declares
+# `license = "GPL-3.0-or-later"` in that form, and Noble's apt setuptools
+# (68.1.2) rejects it at `setup.py install` time with `configuration error:
+# project.license must be valid exactly by one definition`.
 # PEP 668 makes Noble's system Python externally managed, so use
 # --break-system-packages — safe because this image is single-purpose
 # and the packages are consumed by the same Python.
-RUN python3 -m pip install --no-cache-dir --break-system-packages \
-    --ignore-installed packaging \
+RUN uv pip install --system --break-system-packages --no-cache \
     'setuptools>=77' \
-    'packaging>=24.2' \
-    pycairo
+    'packaging>=24.2'
 
 # linuxdeploy + plugin-gtk handle library/typelib bundling and GTK env setup.
 # linuxdeploy-plugin-gtk is vendored from the repo (see the matching

@@ -3,26 +3,10 @@
 { pkgs ? import <nixpkgs> { } }:
 
 let
-  python = pkgs.python3.withPackages (ps: with ps; [
-    # runtime deps (pyproject.toml)
-    pyyaml
-    lxml
-    requests
-    pillow
-    setproctitle
-    python-magic
-    distro
-    dbus-python
-    evdev
-    pygobject3
-    pycairo
-    pypresence
-    protobuf
-    moddb
-    # test runner; ruff/mypy are pinned by `make dev` and go in the venv
-    nose2
-    pip
-  ]);
+  # Only the interpreter comes from Nix. Every Python package, PyGObject and
+  # dbus-python included, is installed into .venv by `uv sync` from uv.lock,
+  # built against the C libraries in buildInputs below.
+  python = pkgs.python3;
 
   # Runs the checkout inside steam-run so downloaded runners (Wine, Proton...)
   # find their libraries. steam-run puts its own python3 first in PATH and
@@ -35,13 +19,21 @@ pkgs.mkShell {
   nativeBuildInputs = with pkgs; [
     gobject-introspection # sets GI_TYPELIB_PATH from buildInputs
     wrapGAppsHook3
+    # meson/ninja also build PyGObject, pycairo and dbus-python for uv; the
+    # PyPI ninja binary can't run on NixOS (see NINJA below)
     meson
     ninja
+    pkg-config
     gettext
+    uv
   ];
 
   buildInputs = with pkgs; [
     python
+    # headers for the Python packages uv builds from source
+    glib
+    cairo
+    dbus
     lutris-steam-run
     gtk3
     webkitgtk_4_1
@@ -72,11 +64,18 @@ pkgs.mkShell {
     # container can't see, which breaks winetricks
     export TMPDIR=/tmp TMP=/tmp TEMP=/tmp TEMPDIR=/tmp
 
-    # pinned ruff/mypy-baseline/pygobject-stubs from `make dev` go in a venv
-    # that still sees the Nix-provided PyGObject
-    if [ ! -d .venv ]; then
-      python -m venv --system-site-packages .venv
-    fi
+    # uv must use the Nix interpreter: its own downloaded Pythons expect an
+    # FHS dynamic loader that NixOS doesn't have
+    export UV_PYTHON="${python}/bin/python3" UV_PYTHON_DOWNLOADS=never
+    # dbus-python's build pulls in the PyPI ninja anyway; this makes meson-python
+    # run the Nix one instead
+    export NINJA="${pkgs.ninja}/bin/ninja"
+    # uv builds in isolated envs under ~/.cache; the Nix compiler wrapper would
+    # otherwise drop their include paths (PyGObject needs pycairo's from there)
+    export NIX_ENFORCE_PURITY=0
+    # evdev's build only looks for linux/input.h in /usr/include and these
+    export C_INCLUDE_PATH="${pkgs.linuxHeaders}/include''${C_INCLUDE_PATH:+:$C_INCLUDE_PATH}"
+    uv sync
     source .venv/bin/activate
   '';
 }

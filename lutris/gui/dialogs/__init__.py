@@ -249,8 +249,9 @@ class NoticeDialog(Gtk.MessageDialog):
     """Display a message to the user."""
 
     def __init__(self, message_markup: str, secondary: str | None = None, parent: Gtk.Widget | None = None):
-        parent: Gtk.Window = get_widget_window(parent)
-        super().__init__(message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(
+            message_type=Gtk.MessageType.INFO, buttons=Gtk.ButtonsType.OK, transient_for=get_widget_window(parent)
+        )
         self.set_markup(message_markup)
         if secondary:
             self.format_secondary_text(secondary[:256])
@@ -268,8 +269,11 @@ class WarningDialog(Gtk.MessageDialog):
     a QuestionDialog."""
 
     def __init__(self, message_markup: str, secondary: str | None = None, parent: Gtk.Widget | None = None):
-        parent: Gtk.Window = get_widget_window(parent)
-        super().__init__(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK_CANCEL, parent=parent)
+        super().__init__(
+            message_type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            transient_for=get_widget_window(parent),
+        )
         self.set_markup(message_markup)
         if secondary:
             self.format_secondary_text(secondary[:256])
@@ -292,8 +296,9 @@ class ErrorDialog(Gtk.MessageDialog):
         secondary_markup: str | None = None,
         parent: Gtk.Widget | None = None,
     ):
-        parent: Gtk.Window = get_widget_window(parent)
-        super().__init__(message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, parent=parent)
+        super().__init__(
+            message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.OK, transient_for=get_widget_window(parent)
+        )
 
         def get_message_markup(err: BaseException | str) -> str:
             if isinstance(err, LutrisError):

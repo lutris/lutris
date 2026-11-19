@@ -424,12 +424,12 @@ def _binary_dump_gen(obj: dict[str, Any], level: int = 0, alt_format: bool = Fal
             yield BIN_INT64 + key + BIN_NONE + int64.pack(value)
         elif isinstance(value, string_type):
             try:
-                value = value.encode("utf-8") + BIN_NONE
+                encoded = value.encode("utf-8") + BIN_NONE
                 yield BIN_STRING
             except:
-                value = value.encode("utf-16") + BIN_NONE * 2
+                encoded = value.encode("utf-16") + BIN_NONE * 2
                 yield BIN_WIDESTRING
-            yield key + BIN_NONE + value
+            yield key + BIN_NONE + encoded
         elif isinstance(value, float):
             yield BIN_FLOAT32 + key + BIN_NONE + float32.pack(value)
         elif isinstance(value, (COLOR, POINTER, int, int_type)):

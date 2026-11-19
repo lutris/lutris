@@ -177,7 +177,7 @@ class SteamID:
                 account_number = cls.get_account_number_from_steamid(steamid)
                 account_type = TYPE_INDIVIDUAL
             elif match.group("path") in TYPE_URL_PATH_MAP[TYPE_CLAN]:
-                account_number = (steamid - instance - 0x0170000000000000) / 2
+                account_number = (steamid - instance - 0x0170000000000000) // 2
                 account_type = TYPE_CLAN
             return cls(account_number, instance, account_type, universe)
         raise SteamIDError("Invalid Steam community URL ({})".format(url))

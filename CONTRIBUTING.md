@@ -53,31 +53,47 @@ is the best way to have them reviewed and merged quickly.
 Running Lutris from Git
 -----------------------
 
-Running Lutris from a local git repository is easy, it only requires cloning
-the repository and executing Lutris from there.
+Lutris is developed in a virtualenv managed by [uv](https://docs.astral.sh/uv/),
+which installs every Python dependency, PyGObject included, at the versions
+pinned in `uv.lock`. Install uv, then:
 
     git clone https://github.com/lutris/lutris
     cd lutris
-    ./bin/lutris -d
+    make dev    # creates .venv with `uv sync` and installs the git pre-commit hook
+    make run    # same as `uv run bin/lutris -d`
 
-Make sure you have all necessary dependencies installed. It is recommended that
-you keep a copy of the stable version installed with your package manager to
-ensure that all dependencies are available.
-If you are working on newly written code that might introduce
-new dependencies, check in the package configuration files for new packages to
-install. Debian based distros will have their dependencies listed
-in `debian/control` and RPM based ones in `packaging/lutris.spec`.
+uv downloads a Python interpreter if it doesn't find a suitable one
+(`.python-version` names the preferred release). Any `uv run <command>` runs
+in the project environment and brings it up to date first; you can also
+`source .venv/bin/activate` and run `./bin/lutris -d` directly.
 
-The PyGOject introspection libraries are not regular python packages, for that
-reason, using a virtualenv for development is heavily discouraged. Make
-sure to always use PyGOject from your distribution's package manager. Also
-install the necessary GObject bindings as described in the INSTALL file.
+PyGObject, pycairo, dbus-python and evdev are built from source the first time,
+so you need a C compiler, `pkg-config` and these development headers:
 
-Set up your development environment
------------------------------------
+* Fedora: `gcc pkgconf-pkg-config gobject-introspection-devel cairo-devel cairo-gobject-devel dbus-devel kernel-headers`
+* Debian/Ubuntu: `build-essential pkg-config libgirepository-2.0-dev libcairo2-dev libdbus-1-dev linux-libc-dev`
+* Arch: `base-devel gobject-introspection cairo dbus linux-api-headers`
 
-To ensure you have the proper tools installed run `make dev`
-This will install all necessary python to allow testing and validating your code.
+The libraries Lutris loads through GObject introspection still come from your
+system: GTK 3, WebKitGTK 4.1, libnotify and gnome-desktop 3, along with the
+rest of the runtime dependencies listed in `debian/control` (Debian based
+distros) or `packaging/lutris.spec` (RPM based ones).
+
+Managing dependencies
+---------------------
+
+Python dependencies are declared in `pyproject.toml` and locked in `uv.lock`,
+which is committed. CI installs with `--locked` and fails if the two disagree.
+
+* Add a runtime dependency with `uv add <package>`, a development tool with
+  `uv add --group lint|typing|test <package>`.
+* `make upgrade` (`uv lock --upgrade`) moves every package to its newest
+  allowed version; `uv lock --upgrade-package <package>` moves just one.
+* Commit `pyproject.toml` and `uv.lock` together.
+
+Development tools are split into dependency groups so CI jobs install only
+what they run: `lint` (ruff), `typing` (mypy and stubs) and `test` (nose2).
+`dev` includes all three and is what `uv sync` installs by default.
 
 This project includes .editorconfig so you're good to go if you're using any
 editor/IDE that supports this. Otherwise make sure to configure your max line
@@ -86,16 +102,14 @@ length to 120, indent style to space and always end files with an empty new line
 ### NixOS
 
 On NixOS (or anywhere with Nix), the `shell.nix` at the root of the repository
-provides every dependency, GObject typelib and external tool Lutris needs:
+provides the interpreter, the C libraries and headers, every GObject typelib and
+the external tools Lutris needs:
 
     nix-shell
-    make dev
     ./bin/lutris -d
 
-Entering the shell creates a `.venv` with `--system-site-packages` and activates
-it. PyGObject still comes from Nix; the venv only holds the tools `make dev`
-pins (ruff, mypy, pygobject-stubs), since NixOS doesn't allow `pip install`
-outside a virtualenv.
+Entering the shell runs `uv sync` against the Nix Python and activates `.venv`,
+so the Python packages come from `uv.lock` exactly as on any other system.
 
 The shell is enough to work on the client and run the test suite, but the
 runners Lutris downloads (Wine, Proton, ...) are generic Linux binaries that
@@ -109,7 +123,7 @@ Plain `steam-run ./bin/lutris` doesn't work: inside it, `python3` resolves to
 steam-run's own interpreter (no PyGObject), and `GIO_EXTRA_MODULES` is dropped,
 which disables TLS in Lutris and its web views.
 
-When adding a dependency, add it to `shell.nix` as well.
+When adding a system library or tool, add it to `shell.nix` as well.
 
 Formatting your code
 --------------------
@@ -117,6 +131,7 @@ Formatting your code
 To ensure getting your contributions getting merged faster and to avoid other
 developers from going back and fixing your code, please make sure your code
 passes style checks by running `make sc` and fixing any reported issues
+(`make format` fixes formatting and import order for you)
 before submitting your code. This runs a series of tools to apply PEP 8 coding
 style conventions, sorting and grouping imports and checking for formatting issues
 and other code smells.

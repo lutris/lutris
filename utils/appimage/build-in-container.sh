@@ -51,30 +51,14 @@ SITE_PACKAGES=${SITE_PACKAGES#/usr/}
 TARGET="$APPDIR/usr/$SITE_PACKAGES"
 mkdir -p "$TARGET"
 
-# PyGObject is satisfied by the system python3-gi we bundle from apt; pip
-# rebuilds against the host gobject-introspection and we want the version
-# wired up to the bundled typelibs, so we leave it to apt + linuxdeploy.
-# PyGObject and dbus-python both ship as source-only distributions and
-# build via meson-python — that's why the Dockerfile pulls in meson +
-# ninja-build + libdbus-glib-1-dev. Building them through pip (rather
-# than copying apt's python3-gi / python3-dbus into the AppDir by hand)
-# keeps every runtime dep on a single, version-pinnable surface and
-# lets pycairo land naturally as a PyGObject dependency.
-python3 -m pip install --no-compile --break-system-packages --target="$TARGET" \
-    certifi \
-    distro \
-    evdev \
-    lxml \
-    pillow \
-    pypresence \
-    PyYAML \
-    requests \
-    protobuf \
-    'moddb>=0.8.1' \
-    setproctitle \
-    pycairo \
-    'PyGObject<3.50' \
-    dbus-python
+# The runtime deps are exactly the ones pinned in uv.lock, the same set the
+# test suite runs against, and uv checks every download against its locked
+# hash. PyGObject and dbus-python ship as source-only distributions built
+# with meson-python, which is why the Dockerfile pulls in meson, ninja-build
+# and the -dev packages; pycairo comes in as a PyGObject dependency.
+uv export --quiet --frozen --no-dev --no-emit-project --format requirements.txt \
+    --output-file /tmp/lutris-requirements.txt
+uv pip install --python python3 --target="$TARGET" -r /tmp/lutris-requirements.txt
 
 # Stage desktop file + icon for linuxdeploy. It looks for them at the AppDir
 # root, so symlink from the canonical install locations.
