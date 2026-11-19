@@ -126,7 +126,7 @@ class JsonRunner(Runner):
         arg = opt.get("argument")
         if arg:
             args.append(arg)
-        args.extend(shlex.split(self.runner_config.get(opt["option"])))
+        args.extend(shlex.split(self.runner_config.get(opt["option"]) or ""))
 
     _OPTION_HANDLERS = {
         "bool": _opt_bool,

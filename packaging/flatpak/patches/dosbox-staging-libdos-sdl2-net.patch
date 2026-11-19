@@ -1,0 +1,12 @@
+diff --git a/src/dos/meson.build b/src/dos/meson.build
+index 4a31a1b..5e9978f 100644
+--- a/src/dos/meson.build
++++ b/src/dos/meson.build
+@@ -47,6 +47,7 @@ libdos = static_library(
+     include_directories: incdir,
+     dependencies: [
+         sdl2_dep,
++        sdl2_net_dep,
+         libdecoders_dep,
+         ghc_dep,
+         libiir_dep,

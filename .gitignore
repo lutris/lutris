@@ -22,6 +22,15 @@ tests/coverage/*
 # meson builddirs
 builddir
 
+# flatpak-builder output (make flatpak / flatpak-bundle)
+build-flatpak
+.flatpak-builder
+lutris.flatpak
+
+# tool caches
+.pytest_cache
+.ruff_cache
+
 # i18n files
 po/lutris.pot
 po/*.mo

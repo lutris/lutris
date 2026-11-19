@@ -1,0 +1,117 @@
+From 689f77c63a4e9480ce2c8576fdbeb11ab30d206c Mon Sep 17 00:00:00 2001
+From: Jan Grulich <jgrulich@redhat.com>
+Date: Thu, 15 Apr 2021 09:09:10 +0200
+Subject: Revert "QStandardPaths: Don't change permissions of XDG_RUNTIME_DIR"
+
+This reverts commit 0fbb484d4aeb4eff50eb4aa312ab8ff41ce4e082.
+
+diff --git a/src/corelib/io/qstandardpaths_unix.cpp b/src/corelib/io/qstandardpaths_unix.cpp
+index 4ebeefcedb..2e779bef66 100644
+--- a/src/corelib/io/qstandardpaths_unix.cpp
++++ b/src/corelib/io/qstandardpaths_unix.cpp
+@@ -94,30 +94,6 @@ static QLatin1String xdg_key_name(QStandardPaths::StandardLocation type)
+ }
+ #endif
+ 
+-static QByteArray unixPermissionsText(QFile::Permissions permissions)
+-{
+-    mode_t perms = 0;
+-    if (permissions & QFile::ReadOwner)
+-        perms |= S_IRUSR;
+-    if (permissions & QFile::WriteOwner)
+-        perms |= S_IWUSR;
+-    if (permissions & QFile::ExeOwner)
+-        perms |= S_IXUSR;
+-    if (permissions & QFile::ReadGroup)
+-        perms |= S_IRGRP;
+-    if (permissions & QFile::WriteGroup)
+-        perms |= S_IWGRP;
+-    if (permissions & QFile::ExeGroup)
+-        perms |= S_IXGRP;
+-    if (permissions & QFile::ReadOther)
+-        perms |= S_IROTH;
+-    if (permissions & QFile::WriteOther)
+-        perms |= S_IWOTH;
+-    if (permissions & QFile::ExeOther)
+-        perms |= S_IXOTH;
+-    return '0' + QByteArray::number(perms, 8);
+-}
+-
+ static bool checkXdgRuntimeDir(const QString &xdgRuntimeDir)
+ {
+     auto describeMetaData = [](const QFileSystemMetaData &metaData) -> QByteArray {
+@@ -137,7 +113,27 @@ static bool checkXdgRuntimeDir(const QString &xdgRuntimeDir)
+         else
+             description += "a block device";
+ 
+-        description += " permissions " + unixPermissionsText(metaData.permissions());
++        // convert QFileSystemMetaData permissions back to Unix
++        mode_t perms = 0;
++        if (metaData.permissions() & QFile::ReadOwner)
++            perms |= S_IRUSR;
++        if (metaData.permissions() & QFile::WriteOwner)
++            perms |= S_IWUSR;
++        if (metaData.permissions() & QFile::ExeOwner)
++            perms |= S_IXUSR;
++        if (metaData.permissions() & QFile::ReadGroup)
++            perms |= S_IRGRP;
++        if (metaData.permissions() & QFile::WriteGroup)
++            perms |= S_IWGRP;
++        if (metaData.permissions() & QFile::ExeGroup)
++            perms |= S_IXGRP;
++        if (metaData.permissions() & QFile::ReadOther)
++            perms |= S_IROTH;
++        if (metaData.permissions() & QFile::WriteOther)
++            perms |= S_IWOTH;
++        if (metaData.permissions() & QFile::ExeOther)
++            perms |= S_IXOTH;
++        description += " permissions 0" + QByteArray::number(perms, 8);
+ 
+         return description
+                 + " owned by UID " + QByteArray::number(metaData.userId())
+@@ -190,11 +186,14 @@ static bool checkXdgRuntimeDir(const QString &xdgRuntimeDir)
+ 
+     // "and he MUST be the only one having read and write access to it. Its Unix access mode MUST be 0700."
+     if (metaData.permissions() != wantedPerms) {
+-        qWarning("QStandardPaths: wrong permissions on runtime directory %ls, %s instead of %s",
+-                 qUtf16Printable(xdgRuntimeDir),
+-                 unixPermissionsText(metaData.permissions()).constData(),
+-                 unixPermissionsText(wantedPerms).constData());
+-        return false;
++        // attempt to correct:
++        QSystemError error;
++        if (!QFileSystemEngine::setPermissions(entry, wantedPerms, error)) {
++            qErrnoWarning("QStandardPaths: could not set correct permissions on runtime directory "
++                          "'%ls', which is %s", qUtf16Printable(xdgRuntimeDir),
++                          describeMetaData(metaData).constData());
++            return false;
++        }
+     }
+ 
+     return true;
+diff --git a/tests/auto/corelib/io/qstandardpaths/tst_qstandardpaths.cpp b/tests/auto/corelib/io/qstandardpaths/tst_qstandardpaths.cpp
+index a0aefac268..afbd64c405 100644
+--- a/tests/auto/corelib/io/qstandardpaths/tst_qstandardpaths.cpp
++++ b/tests/auto/corelib/io/qstandardpaths/tst_qstandardpaths.cpp
+@@ -532,12 +532,7 @@ void tst_qstandardpaths::testCustomRuntimeDirectory_data()
+         d.mkdir("runtime");
+         QFile::setPermissions(p, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner |
+                                  QFile::ExeGroup | QFile::ExeOther);
+-        updateRuntimeDir(p);
+-        QTest::ignoreMessage(QtWarningMsg,
+-                             QString("QStandardPaths: wrong permissions on runtime directory %1, "
+-                                     "0711 instead of 0700")
+-                             .arg(p).toLatin1());
+-        return fallbackXdgRuntimeDir();
++        return updateRuntimeDir(p);
+     });
+ 
+     addRow("environment:wrong-owner", [](QDir &) {
+@@ -602,7 +597,6 @@ void tst_qstandardpaths::testCustomRuntimeDirectory_data()
+         clearRuntimeDir();
+         QString p = fallbackXdgRuntimeDir();
+         d.mkdir(p);         // probably has wrong permissions
+-        QFile::setPermissions(p, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
+         return p;
+     });
+ 

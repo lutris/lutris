@@ -1,0 +1,53 @@
+name: Flatpak
+
+# Builds the Flatpak from packaging/flatpak and uploads the single-file bundle
+# as a workflow artifact. On a published release the bundle is also attached
+# to that release.
+on:
+  push:
+    branches: [master]
+  pull_request:
+  release:
+    types: [released, prereleased]
+  workflow_dispatch:
+
+concurrency:
+  group: flatpak-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.8
+        with:
+          manifest-path: packaging/flatpak/net.lutris.Lutris.yml
+          bundle: lutris.flatpak
+          artifact-name: lutris-flatpak
+          # Everything but the lutris module is rebuilt only when the manifest changes
+          cache-key: flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}
+
+  attach-to-release:
+    name: Attach to release
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: lutris-flatpak
+      - name: Upload the bundle to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mv lutris.flatpak "Lutris-${GITHUB_REF_NAME#v}-x86_64.flatpak"
+          gh release upload "$GITHUB_REF_NAME" Lutris-*-x86_64.flatpak --repo "$GITHUB_REPOSITORY"

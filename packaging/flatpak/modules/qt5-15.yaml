@@ -1,0 +1,148 @@
+name: qt5-15
+modules:
+  - name: qt5-qtbase
+    buildsystem: autotools
+    cleanup:
+    - /app/bin
+    - /include
+    - /doc
+    - /lib/cmake
+    - /lib/pkgconfig
+    - /lib/mkspecs
+    - /lib/*.so
+    - /lib/libQt5PrintSupport*
+    - /lib/libQt5Concurrent*
+    - /lib/libQt5Xml*
+    - '*.prl'
+    - '*.la'
+    - '*.a'
+    post-install:
+    - strip ${FLATPAK_DEST}/lib/*.so.5.*
+    - strip ${FLATPAK_DEST}/lib/plugins/*/*.so
+    config-opts:
+    - -reduce-relocations
+    - -confirm-license
+    - -opensource
+    - -shared
+    - -release
+    - -strip
+    - -platform
+    - linux-g++
+    - -optimized-qmake
+    - -nomake
+    - examples
+    - -nomake
+    - tests
+    - -system-harfbuzz
+    - -system-sqlite
+    - -accessibility
+    - -dbus-linked
+    - -fontconfig
+    - -glib
+    - -icu
+    - -openssl-linked
+    - -no-cups
+    - -no-pch
+    - -no-rpath
+    - -no-directfb
+    - -no-linuxfb
+    - -no-kms
+    - -no-feature-sql
+    - -no-feature-testlib
+    - -system-proxies
+    - -gtk
+    - -no-use-gold-linker
+    - -qpa
+    - xcb
+    - -archdatadir
+    - /app/lib
+    sources:
+    - type: git
+      url: https://invent.kde.org/qt/qt/qtbase.git
+      # HEAD of 5.15 branch as of 2025-09-07
+      commit: 5e8b3ee0ae8cabf3c1a84d4568ff5f9f2bb09544
+      # Some LFS objects 404 on invent.kde.org and none are needed to build
+      disable-lfs: true
+    - type: patch
+      path: patches/qtbase-avoid-hardcoding-kernel-version.patch
+    - type: patch
+      path: patches/qtbase-use-wayland-on-gnome.patch
+    # TODO: Temporary fix for https://github.com/flatpak/flatpak/issues/3397.
+    - type: patch
+      path: patches/qtbase-revert-qstandardpaths-dont-change-permissions-on-xdg-runtime-dir.patch
+    - type: shell
+      commands:
+        - mv configure configure.qt
+    - type: script
+      commands:
+        - processed=`sed -e 's/--/-/g ; s/=/ /g' <<< $@`
+        - ./configure.qt $processed
+      dest-filename: configure
+  - name: qtwayland
+    buildsystem: qmake
+    cleanup:
+      - /app/bin
+    sources:
+      - type: git
+        url: https://invent.kde.org/qt/qt/qtwayland.git
+        # HEAD of 5.15 branch as of 2025-09-07
+        commit: 26d0b4202b9d81527138ce614573e0bc3b528b9d
+  - name: qtquickcontrols
+    buildsystem: qmake
+    cleanup:
+      - /app/bin
+    sources:
+      - type: git
+        url: https://invent.kde.org/qt/qt/qtquickcontrols.git
+        # HEAD of 5.15 branch as of 2025-09-07
+        commit: 37ee5e07e82296e24cc02c8bf6f31cb6bd8846b1
+  - name: qtx11extras
+    buildsystem: qmake
+    cleanup:
+      - /app/bin
+    sources:
+      - type: git
+        url: https://invent.kde.org/qt/qt/qtx11extras.git
+        # HEAD of 5.15 branch as of 2025-09-07
+        commit: e6e7633bbd0efcc56035fef77f3f45efccf03a64
+  - name: qt5-qttools
+    buildsystem: qmake
+    cleanup:
+      - /app/bin
+      - /include
+      - /lib
+      - /phrasebooks
+      - '*.prl'
+      - '*.la'
+      - '*.a'
+    cleanup-platform:
+      - /mkspecs
+      - /app/bin/assistant
+      - /app/bin/qhelpgenerator
+      - /app/bin/qcollectiongenerator
+      - /app/bin/qhelpconverter
+      - /app/bin/pixeltool
+      - /app/bin/designer
+      - /app/bin/lrelease
+      - /app/bin/lupdate
+      - /app/bin/lconvert
+      - /app/bin/linguist
+      - /app/bin/qdoc
+      - /app/bin/qtattributionsscanner
+      - /app/bin/qtplugininfo
+      - /app/bin/qtdiag
+      - /app/bin/qdbusviewer
+    sources:
+      - type: git
+        url: https://invent.kde.org/qt/qt/qttools.git
+        # HEAD of 5.15 branch as of 2025-09-07
+        commit: 1db38dc7d01e2b0567fc6d92c7aa58bfe69ce9c3
+  - name: qt3d
+    buildsystem: qmake
+    cleanup:
+      - /app/bin
+    sources:
+      - type: git
+        url: https://invent.kde.org/qt/qt/qt3d.git
+        # HEAD of 5.15 branch as of 2025-09-07
+        commit: 73c1dda553f338c5a3b9ebbfd0e7de114f0c93dc

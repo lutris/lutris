@@ -16,11 +16,9 @@ are automated and can be modified through user made scripts.
 Running Lutris
 ==============
 
-If you have not installed Lutris through your package manager and are using the
-source package, it is recommended that you install lutris at least once, even an
-older version to have all dependencies available.
-Once all dependencies are satisfied, you can run lutris directly from the source
-directory with ``./bin/lutris``
+Lutris runs either as a Flatpak or straight from the source tree with uv;
+``INSTALL.rst`` covers both. From a checkout with its dependencies installed,
+start it with ``uv run bin/lutris``.
 
 If you need to run lutris through gdb to troubleshoot segmentation faults, you
 can use the following command:

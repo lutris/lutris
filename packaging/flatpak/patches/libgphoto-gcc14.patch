@@ -1,0 +1,34 @@
+From 721f7f8c3ec8058d504607873e4c317aac0c99c5 Mon Sep 17 00:00:00 2001
+From: Marcus Meissner <marcus@jet.franken.de>
+Date: Mon, 4 Dec 2023 13:26:08 +0100
+Subject: [PATCH] align outlen length with jpeg jeaders. fixes
+ https://github.com/gphoto/libgphoto2/issues/941
+
+---
+ camlibs/ptp2/chdk.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/camlibs/ptp2/chdk.c b/camlibs/ptp2/chdk.c
+index e1d898f378..e775ea1d4b 100644
+--- a/camlibs/ptp2/chdk.c
++++ b/camlibs/ptp2/chdk.c
+@@ -1150,7 +1150,7 @@ static void yuv_live_to_jpeg(unsigned char *p_yuv,
+ 	struct		jpeg_error_mgr jerr;
+ 	JSAMPROW	row_ptr[1];
+ 	uint8_t		*outbuf = NULL, *tmprowbuf = NULL;
+-	uint64_t	outlen = 0;
++	unsigned long	outlen = 0;
+ 	unsigned int	row_inc;
+ 	int		sshift, dshift, xshift, skip;
+ 
+@@ -1161,8 +1161,8 @@ static void yuv_live_to_jpeg(unsigned char *p_yuv,
+ 		sshift = 6;
+ 		dshift = (width/height > 2) ? 6 : 12;
+ 		xshift = 4;
+-	/* Digic 6 cameras: 8 bit per element UYVY,
+-	 * 4 bytes used to encode 2 pixels, need 6 bytes raw YUV data for jpeg encoding */
++		/* Digic 6 cameras: 8 bit per element UYVY,
++		 * 4 bytes used to encode 2 pixels, need 6 bytes raw YUV data for jpeg encoding */
+ 	} else {
+ 		row_inc = buf_width*2;
+ 		sshift = 4;

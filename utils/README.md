@@ -12,15 +12,3 @@ application; these are developer- and build-facing helpers.
 | `bios_format.py` | One-off utility to reformat BIOS/firmware definition data. | Manual use |
 | `cleanup_prefix.py` | Removes known runner directories from a Wine prefix. | Manual use |
 | `release-smoke-test.sh` | End-to-end release check on a throwaway sandbox over a private D-Bus session: first start, upgrade of an old profile, game launch, export/import. | `make smoke`, `docs/release-guidelines.rst` |
-
-## AppImage build
-
-The `appimage/` directory builds the standalone AppImage:
-
-| File | Purpose |
-|------|---------|
-| `build.sh` | Host-side wrapper: builds/reuses the Docker image and runs the in-container build. Invoked by `make appimage` and the AppImage workflow. |
-| `build-in-container.sh` | Assembles the AppDir and packs the AppImage (runs inside the container). |
-| `Dockerfile` | Ubuntu 24.04 build image with the required native/Python dependencies. |
-| `AppRun` | Custom AppImage launcher (sets up the bundled Python + GTK environment). |
-| `linuxdeploy-plugin-gtk.sh` / `.LICENSE` | Vendored `linuxdeploy-plugin-gtk` (upstream is dormant) so builds stay reproducible. |

@@ -1,9 +1,6 @@
 Release Guidelines
 ==================
 
-Release and packaging automation lives in ``packaging/Makefile``. Run those
-targets from the repository root, e.g. ``make -f packaging/Makefile build-source``.
-
 Preparation
 -----------
 - Write changelog
@@ -15,26 +12,17 @@ Preparation
   (about 10 minutes, sandbox, a genuine first start).
 - Only when the release touches installers, services or the library views: part B
   of the same checklist (about 15 minutes, your own profile after a backup).
+- Bump ``version`` in ``pyproject.toml`` and ``__version__`` in ``lutris/__init__.py``
 - Create git tag: ``git tag vX.Y.Z``
 
 GitHub Release
 --------------
-- Draft new release: https://github.com/lutris/lutris/releases/new
+- Draft new release: https://github.com/jedace07/lutris/releases/new
 - Copy changelog to release notes
-
-Launchpad PPA
--------------
-- Check the Github action has uploaded the debs to the PPA
+- Publishing the release runs the Flatpak workflow, which attaches
+  ``Lutris-X.Y.Z-x86_64.flatpak`` to it; check that it's there
 
 Website
 -------
 - Bump version in lutris website
 - Deploy website to production
-
-OpenSUSE Build Service
-----------------------
-Upload to OBS (https://build.opensuse.org/package/show/home:strycore/lutris):
-
-- ``packaging/lutris.spec``
-- ``build/lutris*.dsc``
-- ``build/lutris*.tar.xz``

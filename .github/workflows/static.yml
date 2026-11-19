@@ -23,8 +23,8 @@ jobs:
       - name: Check syntax compatibility
         run: uv run --no-project python -m compileall -q lutris/
 
-  mypy-checker:
-    name: Mypy
+  type-checker:
+    name: ty
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -38,10 +38,10 @@ jobs:
           enable-cache: true
       - name: Install Python dependencies
         run: uv sync --no-default-groups --group typing
-      - name: Run mypy analysis
+      - name: Run ty
         run: |
-          uv run --no-sync mypy --version
-          uv run --no-sync mypy . --python-version 3.10
+          uv run --no-sync ty --version
+          uv run --no-sync ty check --baseline ty-baseline.json --output-format github
 
   po-checker:
     name: Translation files
@@ -102,4 +102,4 @@ jobs:
       - name: Install Python dependencies
         run: uv sync --no-default-groups --group test
       - name: Run Unit Test
-        run: uv run --no-sync nose2 --exclude-ci
+        run: uv run --no-sync pytest -m "not display"

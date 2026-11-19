@@ -32,8 +32,7 @@ mv ~/.local/share/lutris ~/.local/share/lutris.bak
 
 * Remove any runner globally installed.
 
-sudo apt-get remove wine
-sudo apt-get remove steam
+Uninstall any distribution packages of Wine and Steam.
 
 * Create an empty folder to put your games in.
 
@@ -46,14 +45,14 @@ mkdir ~/games-testing
 git clone https://github.com/lutris/lutris
 cd lutris
 
-option 1: install with python
+option 1: install the Flatpak (closest to what users run)
 
-sudo python setup.py install
+make flatpak
 
-option 2: package and install the .deb/.rpm (better)
+option 2: run from the source tree (see INSTALL.rst)
 
-# This step will require you to have the required packaging tools
-make build-all
+uv sync --no-dev
+uv run bin/lutris
 
 Scenario 1: Launching Lutris
 - You can find a lutris icon in your menu/launcher (Unity dash, GS launcher,

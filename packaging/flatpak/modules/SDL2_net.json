@@ -1,0 +1,26 @@
+{
+    "name": "SDL2_net",
+    "cleanup": [
+        "/include",
+        "/lib/cmake",
+        "/lib/pkgconfig"
+    ],
+    "buildsystem": "cmake-ninja",
+    "builddir": true,
+    "sources": [
+        {
+            "type": "archive",
+            "url": "https://github.com/libsdl-org/SDL_net/releases/download/release-2.4.0/SDL2_net-2.4.0.tar.gz",
+            "sha256": "9cbca2527feb3f1a622d48ba65cc7dee9b1e3f2c55ceafb7d7720bb058aafb30",
+            "x-checker-data": {
+                "type": "anitya",
+                "project-id": 4783,
+                "stable-only": true,
+                "versions": {
+                    "<": "3.0.0"
+                },
+                "url-template": "https://github.com/libsdl-org/SDL_net/releases/download/release-$version/SDL2_net-$version.tar.gz"
+            }
+        }
+    ]
+}

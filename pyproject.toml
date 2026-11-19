@@ -1,9 +1,3 @@
-[build-system]
-# setuptools >=77 is required for PEP 639 SPDX license strings, which is the
-# form used by `license = "GPL-3.0-or-later"` below.
-requires = ["setuptools>=77", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "lutris"
 version = "0.5.23"
@@ -29,52 +23,16 @@ dependencies = [
     "PyGObject>=3.58",
     "pypresence>=4.6",
     "moddb>=0.16",
+    # Optional at runtime (guarded imports), but they back real features:
+    # icons extracted from Windows executables, and WebDAV save sync.
+    "pefile>=2024.8.26",
+    "webdav4>=0.11",
 ]
 
 [project.urls]
 Homepage = "https://lutris.net/"
 Repository = "https://github.com/lutris/lutris"
 Issues = "https://github.com/lutris/lutris/issues"
-
-[tool.setuptools]
-# `bin/lutris` is the runtime entry point. The meson build installs it too,
-# but setuptools must as well because the AppImage (utils/appimage) and the
-# RPM spec both install through setuptools.
-script-files = ["bin/lutris"]
-zip-safe = false
-# Explicit package list (rather than packages.find) on purpose: the
-# `retroarch` and `ubisoft` sub-packages below intentionally have no
-# `__init__.py`, so discovery-based tooling would silently skip them even
-# though the application imports their modules at runtime.
-packages = [
-    "lutris",
-    "lutris.database",
-    "lutris.gui",
-    "lutris.gui.config",
-    "lutris.gui.dialogs",
-    "lutris.gui.installer",
-    "lutris.gui.views",
-    "lutris.gui.widgets",
-    "lutris.installer",
-    "lutris.migrations",
-    "lutris.runners",
-    "lutris.runners.commands",
-    "lutris.scanners",
-    "lutris.services",
-    "lutris.util",
-    "lutris.util.amazon",
-    "lutris.util.battlenet",
-    "lutris.util.discord",
-    "lutris.util.dolphin",
-    "lutris.util.egs",
-    "lutris.util.graphics",
-    "lutris.util.mame",
-    "lutris.util.retroarch",
-    "lutris.util.steam",
-    "lutris.util.steam.vdf",
-    "lutris.util.ubisoft",
-    "lutris.util.wine",
-]
 
 [dependency-groups]
 # Split so CI jobs can install only what they run (`uv sync --only-group lint`
@@ -83,14 +41,14 @@ lint = [
     "ruff>=0.17.6",
 ]
 typing = [
-    "mypy>=2.4.1",
-    "mypy-baseline>=0.7.4",
+    "ty>=0.0.107",
     "types-requests>=2.33",
     "types-PyYAML>=6.0.12",
     "pygobject-stubs>=2.20",
 ]
 test = [
-    "nose2>=0.16",
+    "pytest>=9.2",
+    "pytest-cov>=7.1",
 ]
 dev = [
     { include-group = "lint" },
@@ -99,6 +57,10 @@ dev = [
 ]
 
 [tool.uv]
+# Lutris isn't built as a Python package: it runs straight from the checkout
+# (bin/lutris puts it on sys.path) and meson installs it for the Flatpak. uv
+# only manages the environment its dependencies live in.
+package = false
 default-groups = ["dev"]
 # pygobject-stubs only ships an sdist, and which GI namespaces it generates
 # stubs for is a build-time setting. Lutris targets GTK 3 and libsoup 2.
@@ -142,99 +104,26 @@ ignore = [
 fixable = ["ALL"]
 unfixable = []
 
-[tool.mypy]
-python_version = "3.10"
-packages = [
-    "lutris",
-    "tests",
-]
-exclude = [
-    ".*_pb2.py",  # Any automatically generated protobuf files
-    "venv",
-    "^build/",  # setuptools build output
-]
-disable_error_code = [
-    "no-redef",  # Allow variable redefinition
-    "has-type",  # Ignore when variable types cannot be determined.
-    "dict-item",  # Dictionaries are always fully dynamic
-    "var-annotated",  # Never require type annotations
-    "assignment",  # Allow incompatible types in assignment (used heavily in lutris class structure).
-]
-allow_redefinition = true
-follow_imports = "silent"
-ignore_missing_imports = true
+[tool.ty.environment]
+# The oldest Python Lutris supports, so newer-only APIs get flagged.
+python-version = "3.10"
 
-[tool.mypy-baseline]
-# --baseline-path: the file where the baseline should be stored
-baseline_path = ".mypy_baseline"
-# --depth: cut path names longer than that many directories deep
-depth = 40
-# --allow-unsynced: do not fail for unsynced resolved errors
-allow_unsynced = true
-# --preserve-position: do not remove error position from the baseline
-preserve_position = false
-# --hide-stats: do not show stats and messages at the end
-hide_stats = false
-# --no-colors: do not use colors in stats
-no_colors = false
-# --ignore: regexes for error messages to ignore
-ignore = []
+[tool.ty.src]
+exclude = ["**/*_pb2.py"]
 
-[[tool.mypy.overrides]]
-module = [
-    "lutris.api",
-    "lutris.cache",
-    "lutris.config",
-    "lutris.database.*",
-    "lutris.exception_backstops",
-    "lutris.exceptions",
-    "lutris.gui.dialogs",
-    "lutris.monitored_command",
-    "lutris.runners",
-    "lutris.scanners.default_installers",
-    "lutris.services.mame",
-    "lutris.settings",
-    "lutris.sysoptions",
-    "lutris.util",
-    "lutris.util.busy",
-    "lutris.util.datapath",
-    "lutris.util.discord.base",
-    "lutris.util.graphics.*",
-    "lutris.util.http",
-    "lutris.util.jobs",
-    "lutris.util.log",
-    "lutris.util.flatpak",
-    "lutris.util.retroarch.core_config",
-    "lutris.util.settings",
-    "lutris.util.standalone_scripts",
-    "lutris.util.steam.*",
-    "lutris.util.shell",
-    "lutris.util.system",
-    "lutris.util.timer",
-    "lutris.util.ubisoft.consts",
-    "lutris.util.urlhandler",
-    "lutris.util.wine.d3d_extras",
-    "lutris.util.wine.dgvoodoo2",
-    "lutris.util.xdgshortcuts",
-    "lutris.util.yaml",
-    "setup",
-    "utils.bios_format",
-    "utils.meson_post_install",
+[tool.ty.rules]
+# Lutris reassigns attributes and variables with different types throughout
+# (mypy's `assignment` check was disabled for the same reason).
+invalid-assignment = "ignore"
+
+[tool.pytest]
+minversion = "9.0"
+testpaths = ["tests"]
+python_files = ["_test_*.py"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+markers = [
+    "display: needs a display server to create windows (deselect with -m 'not display')",
 ]
-# Equivalent to strict = true for per-module config
-# Use strict = true when https://github.com/python/mypy/issues/11401 is fixed
-check_untyped_defs = true
-disallow_any_generics = true
-disallow_incomplete_defs = true
-disallow_subclassing_any = true
-disallow_untyped_calls = true
-disallow_untyped_decorators = true
-disallow_untyped_defs = true
-extra_checks = true
-no_implicit_reexport = true
-strict_equality = true
-warn_return_any = true
-warn_unused_ignores = true
 
 [tool.pyright]
 

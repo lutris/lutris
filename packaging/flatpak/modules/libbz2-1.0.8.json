@@ -1,0 +1,21 @@
+{
+    "name": "libbz2",
+    "no-autogen": true,
+    "make-args": [
+      "--f=Makefile-libbz2_so",
+      "PREFIX=${FLATPAK_DEST}"
+    ],
+    "no-make-install": true,
+    "post-install": [
+      "mv libbz2.so.1.0.8 ${FLATPAK_DEST}/lib/",
+      "ln -s ${FLATPAK_DEST}/lib/libbz2.so.1.0.8 ${FLATPAK_DEST}/lib/libbz2.so.1.0"
+    ],
+    "sources": [
+      {
+        "type": "archive",
+        "url": "https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz",
+        "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269"
+      }
+    ]
+}
+  

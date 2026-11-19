@@ -1,73 +1,66 @@
 Installing Lutris
 =================
 
-Requirements
-------------
+There are two supported ways to run Lutris: the Flatpak, built from this
+repository, or straight from the source tree with `uv <https://docs.astral.sh/uv/>`_.
 
-Lutris should work on any up to date Linux system. It is based on Python and
-Gtk but will run on any desktop environment.
-If you installed Lutris from our PPA or some other repository, it should already
-come with all of its essential dependencies. However, if you need to install
-Lutris manually, it requires the following components:
+Flatpak
+-------
 
-    * Python >= 3.10
-    * PyGObject
-    * PyGObject bindings for: Gtk, Gdk, Cairo, GnomeDesktop, Webkit2, Notify
-    * python3-requests
-    * python3-pillow
-    * python3-yaml
-    * python3-setproctitle
-    * python3-distro
-    * python3-evdev (optional, for controller detection)
+The Flatpak bundles everything Lutris needs, including the 32-bit libraries,
+tools and Wine base that games rely on. Its manifest lives in
+``packaging/flatpak``. You need ``flatpak`` with the Flathub remote set up,
+and ``flatpak-builder`` (either the distribution package or the
+``org.flatpak.Builder`` app from Flathub)::
 
-These dependencies are only for running the Lutris client. To install and run
-games themselves we recommend you install the following packages:
-
-  * psmisc (or the package providing 'fuser')
-  * p7zip (or the package providing '7z')
-  * curl
-  * fluid-soundfont-gs (or other soundfonts for MIDI support)
-  * cabextract (if needed, to install Windows games)
-  * x11-xserver-utils (or the package providing 'xrandr', if you are running
-    Xorg, if you are not, you will depend on the GnomeDesktop bindings to fetch
-    screen resolutions on Wayland, the GnomeDesktop library is not directly
-    related to the Gnome desktop and is only used as a xrandr replacement.)
-  * The 32bit OpenGL and Vulkan drivers for your graphics card
-  * Wine (not actually needed, but installing it is the easiest way to get all
-    the libraries missing from our runtime).
-
-To install all those dependencies (except for Wine and graphics drivers)
-on Ubuntu based systems, you can run::
-
-    sudo apt install python3-yaml python3-requests python3-pil python3-gi python3-gi-cairo \
-      gir1.2-gtk-3.0 gir1.2-gnomedesktop-3.0 gir1.2-webkit2-4.0 \
-      gir1.2-notify-0.7 psmisc cabextract unzip p7zip curl fluid-soundfont-gs \
-      x11-xserver-utils python3-evdev libgirepository1.0-dev \
-      python3-setproctitle python3-distro
-
-Note :
-If you use OpenSUSE, some dependencies are missing. You need to install python3-gobject-Gdk and typelib-1_0-Gtk-3_0
-
-``sudo zypper install python3-gobject-Gdk typelib-1_0-Gtk-3_0``
-
-Installation
-------------
-
-To install Lutris, please follow instructions listed on our `Downloads Page <https://lutris.net/downloads/>`_.
-Getting Lutris from a PPA or a repository is the preferred way of installing
-it and we *strongly advise* to use this method if you can.
-
-However, if the instructions on our Downloads page don't apply to your Linux
-distribution or there's some other reason you can't get it from a package,
-you can run it directly from the source directory::
-
-    git clone https://github.com/lutris/lutris
+    git clone --recurse-submodules https://github.com/jedace07/lutris
     cd lutris
-    ./bin/lutris
+    make flatpak            # builds and installs it for the current user
+    flatpak run net.lutris.Lutris
 
-Run Lutris
+``make flatpak-bundle`` instead produces a single ``lutris.flatpak`` file that
+can be installed elsewhere with ``flatpak install lutris.flatpak``. Every CI
+build of ``master`` and every release also publishes that bundle.
+
+The first build takes a long time, as it compiles the bundled tools (Qt,
+DOSBox Staging, Mono and others); later builds reuse flatpak-builder's cache.
+
+The sandbox can read and write your home directory and any drive mounted under
+``/mnt``, ``/media`` or ``/run/media``. Games elsewhere need an override, for
+example ``flatpak override --user --filesystem=/srv/games net.lutris.Lutris``.
+
+From source
 -----------
 
-If you installed Lutris using a package, you can launch the program by typing
-``lutris`` at the command line. And if you want to run Lutris from the source tree,
-type ``./bin/lutris``
+uv installs Lutris's Python dependencies, at the versions pinned in
+``uv.lock``, into a virtualenv in the checkout. The rest comes from your
+distribution.
+
+Build requirements, for the Python packages that compile against C libraries
+(PyGObject, pycairo, dbus-python and evdev):
+
+* Fedora: ``gcc pkgconf-pkg-config gobject-introspection-devel cairo-devel cairo-gobject-devel dbus-devel kernel-headers``
+* Debian/Ubuntu: ``build-essential pkg-config libgirepository-2.0-dev libcairo2-dev libdbus-1-dev linux-libc-dev``
+* Arch: ``base-devel gobject-introspection cairo dbus linux-api-headers``
+
+Runtime requirements, the libraries Lutris loads through GObject introspection
+and the tools it runs:
+
+* Fedora: ``gtk3 webkit2gtk4.1 libnotify gnome-desktop3 glib-networking file-libs psmisc cabextract unzip 7zip curl xrandr mesa-demos vulkan-tools fluid-soundfont-gs``
+* Debian/Ubuntu: ``gir1.2-gtk-3.0 gir1.2-webkit2-4.1 gir1.2-notify-0.7 gir1.2-gnomedesktop-3.0 glib-networking libmagic1 psmisc cabextract unzip p7zip-full curl x11-xserver-utils mesa-utils vulkan-tools fluid-soundfont-gs``
+* Arch: ``gtk3 webkit2gtk-4.1 libnotify gnome-desktop glib-networking file psmisc cabextract unzip p7zip curl xorg-xrandr mesa-utils vulkan-tools soundfont-fluid``
+
+GnomeDesktop is only used to read screen resolutions on Wayland, where xrandr
+can't. To run games you'll also want the 32-bit OpenGL and Vulkan drivers for
+your graphics card, and optionally Wine, gamemode and gamescope.
+
+Then::
+
+    git clone https://github.com/jedace07/lutris
+    cd lutris
+    uv sync --no-dev        # or `make dev` to include the development tools
+    uv run bin/lutris
+
+uv fetches a suitable Python interpreter if your system doesn't have one.
+After pulling new changes, ``uv run`` brings the environment up to date by
+itself.

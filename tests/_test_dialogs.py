@@ -1,5 +1,7 @@
 from unittest import TestCase
 
+import pytest
+
 from lutris import runners
 from lutris.gui.application import LutrisApplication
 from lutris.gui.config.add_game_dialog import AddGameDialog
@@ -17,6 +19,7 @@ class TestGameDialogCommon(TestCase):
         self.assertEqual(list_store[1][1], runners.get_installed()[0].name)
 
 
+@pytest.mark.display
 class TestGameDialog(TestCase):
     def setUp(self):
         lutris_application = LutrisApplication()

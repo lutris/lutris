@@ -39,11 +39,11 @@ def main():
                 print("uv command is missing: Install it from https://docs.astral.sh/uv/ and run `make dev`.")
                 sys.exit(1)
             checks_to_run: list[list[str]] = [
-                ["uv", "run", "mypy", "--python-version=3.10"] + [str(f) for f in modified_python_files],
+                ["uv", "run", "ty", "check", "--baseline", "ty-baseline.json"] + [str(f) for f in modified_python_files],
                 ["uv", "run", "python", "utils/check_annotations.py"],
                 ["uv", "run", "ruff", "check"] + [str(f) for f in modified_python_files],
                 ["uv", "run", "ruff", "format", "--check"] + [str(f) for f in modified_python_files],
-                ["uv", "run", "nose2"]
+                ["uv", "run", "pytest", "-q", "-m", "not display"]
             ]
             for check in checks_to_run:
                 comp_process = subprocess.run(check, capture_output=True)

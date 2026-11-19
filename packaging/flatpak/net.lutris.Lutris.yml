@@ -1,0 +1,839 @@
+# Lutris Flatpak, built from this checkout.
+#
+# Derived from Flathub's manifest (github.com/flathub/net.lutris.Lutris); the
+# runtime, extensions and bundled tools are kept in step with it. What differs:
+#   * Lutris is built from this source tree rather than a pinned commit.
+#   * Its Python dependencies are installed by uv from uv.lock (the same pins the
+#     test suite runs against) instead of hand-maintained pip modules. That step
+#     needs network access at build time, which Flathub's builders don't allow.
+#   * Read-write access to drives mounted under /mnt.
+#
+# Build and install it with `make flatpak` (or `make flatpak-bundle`).
+
+id: net.lutris.Lutris
+sdk: org.gnome.Sdk
+runtime: org.gnome.Platform
+runtime-version: "51"
+command: lutris
+base: org.winehq.Wine
+base-version: stable-26.08
+x-compat-version: &compat-version "26.08"
+x-gl-version: &gl-version "1.4"
+x-gl-versions: &gl-versions 26.08;26.08-extra;1.4
+x-gl-merge-dirs: &gl-merge-dirs vulkan/icd.d;glvnd/egl_vendor.d;egl/egl_external_platform.d;OpenCL/vendors;lib/dri;lib/d3d;lib/gbm;vulkan/explicit_layer.d;vulkan/implicit_layer.d;vdpau
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --device=all
+  - --share=network
+  - --allow=multiarch
+  - --allow=devel
+  - --talk-name=org.gnome.Mutter.DisplayConfig
+  - --talk-name=org.freedesktop.ScreenSaver
+  - --system-talk-name=org.freedesktop.UDisks2
+  - --filesystem=home
+  - --filesystem=~/Games
+  - --filesystem=/run/media
+  # Drives mounted under /mnt; on ostree systems that's a symlink to /var/mnt,
+  # which flatpak follows
+  - --filesystem=/mnt
+  # For Steam Deck HDR support
+  - --env=LD_LIBRARY_PATH=/usr/lib/extensions/vulkan/gamescope/lib
+  - --filesystem=xdg-run/gamescope-0:ro
+  # For Debian
+  - --filesystem=/media
+  - --filesystem=~/.var/app/com.valvesoftware.Steam:ro
+  - --filesystem=~/.config/MangoHud:ro
+  - --env=PATH=/app/bin:/usr/bin:/app/utils/bin:/usr/lib/extensions/vulkan/MangoHud/bin/:/app/jre/bin/:/usr/lib/extensions/vulkan/gamescope/bin
+  - --env=GST_PLUGIN_SYSTEM_PATH=/app/lib/gstreamer-1.0:/app/lib32/gstreamer-1.0:/app/lib/i386-linux-gnu/codecs-extra/lib/gstreamer-1.0:/app/lib/i386-linux-gnu/gstreamer-1.0:/usr/lib/extensions/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/codecs-extra/lib/gstreamer-1.0:/usr/lib/i386-linux-gnu/codecs-extra/lib/gstreamer-1.0:/usr/lib/x86_64-linux-gnu/gstreamer-1.0:/usr/lib/i386-linux-gnu/gstreamer-1.0
+  # System tray icon
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.freedesktop.Flatpak
+  # Disable access to xdg-data/flatpak as it's causing a finish-args-unnecessary-xdg-data-access error.
+  # Flatpak talk API might be enough but this might break features like Steam games detection.
+  # - --filesystem=xdg-data/flatpak:ro
+  # Needed for appimages
+  - --env=APPIMAGE_EXTRACT_AND_RUN=1
+  # See: https://github.com/flathub/net.lutris.Lutris/pull/368#issuecomment-1751381312
+  - --env=WEBKIT_DISABLE_DMABUF_RENDERER=1
+  # --- umu ---
+  # Install the umu runtime at $HOST_XDG_DATA_HOME
+  # See: https://github.com/Open-Wine-Components/umu-launcher/pull/229
+  - --filesystem=xdg-data/umu:create
+  # Pressure Vessel
+  # See: https://github.com/flathub/com.valvesoftware.Steam/commit/0538256facdb0837c33232bc65a9195a8a5bc750
+  - --env=XDG_DATA_DIRS=/app/share:/usr/lib/extensions/vulkan/share:/usr/share:/usr/share/runtime/share:/run/host/user-share:/run/host/share:/usr/lib/pressure-vessel/overrides/share
+  - --allow=per-app-dev-shm
+
+inherit-extensions:
+  - org.winehq.Wine.gecko
+  - org.winehq.Wine.mono
+
+add-extensions:
+  org.freedesktop.Platform.Compat.i386:
+    directory: lib/i386-linux-gnu
+    version: *compat-version
+
+  org.freedesktop.Platform.Compat.i386.Debug:
+    directory: lib/debug/lib/i386-linux-gnu
+    version: *compat-version
+    no-autodownload: true
+
+  org.freedesktop.Platform.GL32:
+    directory: lib/i386-linux-gnu/GL
+    version: *gl-version
+    versions: *gl-versions
+    subdirectories: true
+    no-autodownload: true
+    autodelete: false
+    add-ld-path: lib
+    merge-dirs: *gl-merge-dirs
+    download-if: active-gl-driver
+    enable-if: active-gl-driver
+    autoprune-unless: active-gl-driver
+
+  org.freedesktop.Platform.GL32.Debug:
+    directory: lib/debug/lib/i386-linux-gnu/GL
+    version: *gl-version
+    versions: *gl-versions
+    subdirectories: true
+    no-autodownload: true
+    merge-dirs: *gl-merge-dirs
+    enable-if: active-gl-driver
+    autoprune-unless: active-gl-driver
+
+  org.freedesktop.Platform.VAAPI.Intel.i386:
+    directory: lib/i386-linux-gnu/dri/intel-vaapi-driver
+    version: *compat-version
+    versions: *compat-version
+    autodelete: false
+    no-autodownload: true
+    add-ld-path: lib
+    download-if: have-intel-gpu
+    autoprune-unless: have-intel-gpu
+
+  org.freedesktop.Platform.VAAPI.nvidia.i386:
+    directory: i386/nvidia-vaapi-driver
+    version: *compat-version
+    versions: *compat-version
+    autodelete: false
+    no-autodownload: true
+    add-ld-path: lib
+    download-if: have-kernel-module-nvidia
+    autoprune-unless: have-kernel-module-nvidia
+
+  org.freedesktop.Platform.codecs_extra.i386:
+    directory: lib/i386-linux-gnu/codecs-extra
+    version: 26.08-extra
+    autodelete: false
+    add-ld-path: lib
+
+  org.gtk.Gtk3theme.Adwaita-dark:
+    directory: share/themes/Adwaita-dark
+    version: "3.22"
+    autodownload: true
+
+  org.freedesktop.Platform.VulkanLayer.gamescope:
+    directory: lib/extensions/vulkan/gamescope
+    version: *compat-version
+    autodownload: true
+    autodelete: false
+
+  org.freedesktop.Platform.VulkanLayer.MangoHud:
+    directory: lib/extensions/vulkan/MangoHud
+    version: *compat-version
+    autodownload: true
+    autodelete: false
+sdk-extensions:
+  - org.freedesktop.Sdk.Compat.i386
+  - org.freedesktop.Sdk.Extension.toolchain-i386
+  - org.freedesktop.Sdk.Extension.openjdk17
+  - org.freedesktop.Sdk.Extension.mono6
+
+x-compat-i386-opts: &compat_i386_opts
+  prepend-pkg-config-path: /app/lib32/pkgconfig:/usr/lib/i386-linux-gnu/pkgconfig
+  ldflags: -L/app/lib32 -Wl,-rpath-link=/app/lib32 -Wl,-z,relro,-z,now -Wl,--as-needed
+  ldflags-override: true
+  append-path: /usr/lib/sdk/toolchain-i386/bin
+  env:
+    CC: i686-unknown-linux-gnu-gcc
+    CXX: i686-unknown-linux-gnu-g++
+  libdir: /app/lib32
+
+cleanup:
+  - "*.a"
+  - "*.la"
+  - /share/man
+  - /share/help
+cleanup-commands:
+  - python3 -m compileall /app/lib
+  - mkdir -p /app/utils
+  - mkdir -p /app/lib/extensions/vulkan/gamescope
+  - mkdir -p /app/lib/extensions/vulkan/MangoHud
+  - mkdir -p /app/lib/i386-linux-gnu/codecs-extra
+  - mkdir -p /app/share/themes/Adwaita-dark
+modules:
+  - modules/qt5-15.yaml
+  - modules/libbz2-1.0.8.json
+  - name: vulkan-tools
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DGLSLANG_INSTALL_DIR=/app
+      - -DVULKAN_HEADERS_INSTALL_DIR=/app
+      - -DCMAKE_BUILD_TYPE=Release
+    sources:
+      - type: archive
+        url: https://github.com/KhronosGroup/Vulkan-Tools/archive/v1.3.297/Vulkan-Tools-1.3.297.tar.gz
+        sha256: 95bffa39d90f3ec81d8e3a0fa6c846ac1a10442152cc0b6d0d6567ce48932f89
+    modules:
+      - name: volk
+        buildsystem: cmake-ninja
+        config-opts:
+          - -DVOLK_INSTALL=ON
+        sources:
+          - type: archive
+            url: https://github.com/zeux/volk/archive/vulkan-sdk-1.3.296.0.tar.gz
+            sha256: 8ffd0e81e29688f4abaa39e598937160b098228f37503903b10d481d4862ab85
+        modules:
+          - name: vulkan-headers
+            buildsystem: cmake-ninja
+            sources:
+              - type: archive
+                url: https://github.com/KhronosGroup/Vulkan-Headers/archive/v1.3.297/Vulkan-Headers-v1.3.297.tar.gz
+                sha256: 1d679e2edc43cb7ad818b81dea960e374f1d6dd082325eb9b4c6113e76263c02
+
+  - name: glu
+    buildsystem: meson
+    sources: &glu_sources
+      - type: archive
+        url: https://archive.mesa3d.org/glu/glu-9.0.3.tar.xz
+        sha256: bd43fe12f374b1192eb15fe20e45ff456b9bc26ab57f0eee919f96ca0f8a330f
+        x-checker-data:
+          type: anitya
+          project-id: 13518
+          stable-only: true
+          url-template: https://archive.mesa3d.org/glu/glu-$version.tar.xz
+
+  - name: glu-32bit
+    buildsystem: meson
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    sources: *glu_sources
+
+  - name: OpenCL
+    buildsystem: simple
+    build-commands:
+      - cp -av CL $FLATPAK_DEST/include/
+    sources:
+      - type: archive
+        url: https://github.com/KhronosGroup/OpenCL-Headers/archive/v2023.04.17/OpenCL-Headers-v2023.04.17.tar.gz
+        sha256: 0ce992f4167f958f68a37918dec6325be18f848dee29a4521c633aae3304915d
+
+  - name: libpcap
+    config-opts: &libpcap_config_opts
+      - --enable-ipv6
+    sources: &libcap_sources
+      - type: archive
+        url: http://www.tcpdump.org/release/libpcap-1.11.0.tar.gz
+        sha256: 596389bc8560ea027dff9db8aaf6c173d992366d9aef4baf5d7c6d180b4d49ad
+        x-checker-data:
+          type: anitya
+          project-id: 1702
+          url-template: http://www.tcpdump.org/release/libpcap-$version.tar.gz
+
+  - name: libpcap-32bit
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    config-opts: *libpcap_config_opts
+    sources: *libcap_sources
+
+  - name: v4l2-utils
+    config-opts: &v4l2_config_opts
+      - --disable-v4l-utils
+      - --disable-qv4l2
+      - --disable-qvidcap
+    sources: &v4l2_sources
+      - type: archive
+        url: https://linuxtv.org/downloads/v4l-utils/v4l-utils-1.20.0.tar.bz2
+        sha256: 956118713f7ccb405c55c7088a6a2490c32d54300dd9a30d8d5008c28d3726f7
+
+  - name: v4l2-utils-32bit
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    config-opts: *v4l2_config_opts
+    sources: *v4l2_sources
+
+  - name: libgphoto2
+    config-opts: &libgphoto2_config_opts
+      - --disable-docs
+    sources: &libgphoto2_sources
+      - type: archive
+        url: https://sourceforge.net/projects/gphoto/files/libgphoto/2.5.31/libgphoto2-2.5.31.tar.xz
+        sha256: 8fc7bf40f979459509b87dd4ff1aae9b6c1c2b4724d37db576081eec15406ace
+      - type: patch
+        path: patches/libgphoto-gcc14.patch
+
+  - name: libgphoto2-32bit
+    config-opts: *libgphoto2_config_opts
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    sources: *libgphoto2_sources
+
+  - name: libcapi20
+    sources: &libcapi20_sources
+      - type: archive
+        url: http://deb.debian.org/debian/pool/main/libc/libcapi20-3/libcapi20-3_3.27.orig.tar.bz2
+        sha256: d8e423d5adba1750f511a2c088296db2a8a2e1e9209401871b01ce411d8ac583
+
+  - name: libcapi20-32bit
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    sources: *libcapi20_sources
+
+  - name: libvlc
+    config-opts:
+      - BUILDCC=gcc
+      - --disable-lua
+      - --disable-a52
+      - --disable-qt
+      - --disable-ncurses
+      - --disable-udev
+    sources:
+      - type: archive
+        url: https://get.videolan.org/vlc/3.0.24/vlc-3.0.24.tar.xz
+        sha256: e7cab503d1d7d5849b89d2cf0e1ee60d0ef6d012407791b644b9cfc0cc225fdf
+
+  # Multilib dependencies for native games and runners
+
+  - name: libbsd
+    sources: &libbsd_sources
+      - type: archive
+        url: https://libbsd.freedesktop.org/releases/libbsd-0.10.0.tar.xz
+        sha256: 34b8adc726883d0e85b3118fa13605e179a62b31ba51f676136ecb2d0bc1a887
+
+  - name: libbsd-32bit
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    sources: *libbsd_sources
+
+  - name: sndio11
+    config-opts: &sndio_config_opts
+      - --with-libbsd
+    cleanup: &sndio_cleanup
+      - /bin
+    build-options:
+      cflags: -Wno-error=implicit-function-declaration
+    sources: &sndio11_sources
+      - type: archive
+        url: http://archive.ubuntu.com/ubuntu/pool/universe/s/sndio/sndio_1.1.0.orig.tar.gz
+        sha256: fcd7f845ff70f38c2898d737450b8aa3e1bb0afb9d147e8429ef22c0b2c2db57
+      - type: shell
+        commands:
+          - |
+            for i in libsndio aucat midicat; do
+              sed 's/cp /cp -f /g' -i $i/Makefile.in
+            done
+
+  - name: sndio11-32bit
+    build-options:
+      cflags: -Wno-error=implicit-function-declaration
+      arch:
+        x86_64: *compat_i386_opts
+    config-opts: *sndio_config_opts
+    cleanup: *sndio_cleanup
+    sources: *sndio11_sources
+
+  - name: sndio15
+    config-opts: *sndio_config_opts
+    cleanup: *sndio_cleanup
+    build-options:
+      cflags: -Wno-error=implicit-function-declaration
+    sources: &sndio15_sources
+      - type: archive
+        url: http://archive.ubuntu.com/ubuntu/pool/universe/s/sndio/sndio_1.5.0.orig.tar.gz
+        sha256: 12c70044749ad9cb7eaeb26c936816aa6b314fe4be71ef479d12272e4c5ad253
+      - type: shell
+        commands:
+          - |
+            for i in libsndio aucat midicat; do
+              sed 's/cp /cp -f /g' -i $i/Makefile.in
+            done
+
+  - name: sndio15-32bit
+    build-options:
+      cflags: -Wno-error=implicit-function-declaration
+      arch:
+        x86_64: *compat_i386_opts
+    config-opts: *sndio_config_opts
+    cleanup: *sndio_cleanup
+    sources: *sndio15_sources
+
+  - name: gamemode
+    buildsystem: meson
+    config-opts: &gamemode_config_opts
+      - -Dwith-examples=false
+      - -Dwith-util=false
+      - -Dwith-sd-bus-provider=no-daemon
+    post-install:
+      - install -Dm0775 -t /app/bin ../data/gamemoderun
+    sources: &gamemode_sources
+      - type: archive
+        url: https://github.com/FeralInteractive/gamemode/releases/download/1.8.2/gamemode-1.8.2.tar.xz
+        sha256: 98cd1bcf6101c92fe87f974c7776af23c7e18f29ce6ecfe572b1c39dcde5c181
+        x-checker-data:
+          type: anitya
+          project-id: 17410
+          stable-only: true
+          url-template: https://github.com/FeralInteractive/gamemode/releases/download/$version/gamemode-$version.tar.xz
+
+  - name: gamemode-32bit
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    buildsystem: meson
+    config-opts: *gamemode_config_opts
+    sources: *gamemode_sources
+
+  - name: libcaca
+    config-opts: &libcaca_config_opts
+      - --disable-doc
+      - --disable-python
+      - --disable-ruby
+      - --disable-static
+    sources: &libcaca_sources
+      - type: archive
+        url: http://caca.zoy.org/files/libcaca/libcaca-0.99.beta19.tar.gz
+        sha256: 128b467c4ed03264c187405172a4e83049342cc8cc2f655f53a2d0ee9d3772f4
+
+  - name: libcaca-32bit
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    config-opts: *libcaca_config_opts
+    sources: *libcaca_sources
+
+  - name: libxmu
+    config-opts: &libxmu_config_opts
+      - --disable-static
+    sources: &libxmu_sources
+      - type: archive
+        url: https://xorg.freedesktop.org/releases/individual/lib/libXmu-1.2.1.tar.xz
+        sha512: 05a30e5961e00e940ad7ec4eb94ec482b5cbe808585972bf70c849333af3fddf4ae4bd87895d706507fb3a94ed0fb73ea161e0e27dc2840323a1a1af49c0e8a3
+
+  - name: libxmu-32bit
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    config-opts: *libxmu_config_opts
+    sources: *libxmu_sources
+
+  - name: libjpeg # with libjpeg.so.8
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_SKIP_RPATH:BOOL=YES
+      - -DENABLE_STATIC:BOOL=NO
+      - -DWITH_JPEG8:BOOL=YES
+      - -DCMAKE_INSTALL_LIBDIR=/app/lib # uses lib64 by default
+    sources: &libjpeg_sources
+      - type: archive
+        url: https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/3.1.2.tar.gz
+        sha256: 560f6338b547544c4f9721b18d8b87685d433ec78b3c644c70d77adad22c55e6
+
+  - name: libjpeg-32bit # with libjpeg.so.8
+    buildsystem: cmake-ninja
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    config-opts:
+      - -DCMAKE_SKIP_RPATH:BOOL=YES
+      - -DENABLE_STATIC:BOOL=NO
+      - -DWITH_JPEG8:BOOL=YES
+    sources: *libjpeg_sources
+
+  - name: libcurl-gnutls-hack
+    buildsystem: simple
+    build-commands:
+      - install -d /app/lib
+      - ln -s /usr/lib/x86_64-linux-gnu/libcurl.so.4 /app/lib/libcurl-gnutls.so.4
+
+  - name: libcurl-gnutls-hack-32bit
+    buildsystem: simple
+    build-commands:
+      - install -d /app/lib32
+      - ln -s /usr/lib/i386-linux-gnu/libcurl.so.4 /app/lib32/libcurl-gnutls.so.4
+
+  # Standalone utilities
+
+  - name: hwdata
+    config-opts:
+      - --datarootdir=/app/share
+    sources:
+      - type: archive
+        url: https://github.com/vcrhonek/hwdata/archive/refs/tags/v0.349.tar.gz
+        sha256: 2591ebf85b36e6d953360a003b2991fc0a0c2c35d3fdbd3133f435098b0af3da
+
+  - name: pciutils
+    no-autogen: true
+    make-args:
+      - SHAREDIR=/app/share/hwdata
+      - OPT=-O2 -g
+    make-install-args:
+      - PREFIX=/app
+      - SBINDIR=/app/bin
+      - SHAREDIR=/app/share/hwdata
+      - MANDIR=/app/share/man
+    sources:
+      - type: archive
+        url: https://mirrors.edge.kernel.org/pub/software/utils/pciutils/pciutils-3.7.0.tar.gz
+        sha256: 2432e7a2e12000502d36cf769ab6e5a0cf4931e5050ccaf8b02984b2d3cb0948
+
+  - name: usbutils
+    config-opts:
+      - --datadir=/app/share/hwdata
+      - --sbindir=/app/bin
+    sources:
+      - type: archive
+        url: https://mirrors.edge.kernel.org/pub/linux/utils/usb/usbutils/usbutils-013.tar.xz
+        sha256: 9e23494fcc78b7a80ee29a07dd179c95ae2f71509c35728dbbabc2d1cca41338
+
+  - name: xrandr
+    sources:
+      - type: archive
+        url: https://xorg.freedesktop.org/archive/individual/app/xrandr-1.5.1.tar.gz
+        sha256: 7b99edb7970a1365eaf5bcaf552144e4dfc3ccf510c4abc08569849929fb366e
+
+  - name: setxkbmap
+    sources:
+      - type: archive
+        url: https://xorg.freedesktop.org/archive/individual/app/setxkbmap-1.3.3.tar.xz
+        sha256: b560c678da6930a0da267304fa3a41cc5df39a96a5e23d06f14984c87b6f587b
+
+  - name: mesa-demos
+    config-opts:
+      - --without-glut
+      - --bindir=/app/lib/mesa-demos
+    make-args:
+      - -C
+      - src/xdemos
+      - glxinfo
+    no-make-install: true
+    build-commands:
+      - install -D src/xdemos/glxinfo -t /app/bin/
+    sources:
+      - type: archive
+        url: https://mesa.freedesktop.org/archive/demos/mesa-demos-8.4.0.tar.bz2
+        sha256: 01e99c94a0184e63e796728af89bfac559795fb2a0d6f506fa900455ca5fff7d
+    cleanup:
+      - /lib/mesa-demos
+    modules:
+      - shared-modules/glew/glew.json
+
+  - name: psmisc
+    sources:
+      - type: archive
+        url: https://downloads.sourceforge.net/psmisc/psmisc-23.4.tar.xz
+        sha256: 7f0cceeace2050c525f3ebb35f3ba01d618b8d690620580bdb8cd8269a0c1679
+
+  - name: zenity
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/zenity/3.41/zenity-3.41.0.tar.xz
+        sha256: 19b676c3510e22badfcc3204062d432ba537402f5e0ae26128c0d90c954037e1
+
+  - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
+
+  # Required by some 8/16-bit emulators
+  - name: fluidsynth
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    cleanup:
+      - /bin
+      - /include
+      - /lib/cmake
+      - /lib/pkgconfig
+      - /share/man
+      - "*.so"
+    sources:
+      - type: archive
+        url: https://github.com/FluidSynth/fluidsynth/archive/v2.3.5.tar.gz
+        sha256: f89e8e983ecfb4a5b4f5d8c2b9157ed18d15ed2e36246fa782f18abaea550e0d
+      - type: patch
+        path: patches/fluidsynth-cmake-policy.patch
+
+  - name: fluid-soundfont
+    buildsystem: simple
+    build-commands:
+      - install -Dm644 FluidR3_GS.sf2 -t /app/share/sounds/sf2/
+    sources:
+      - type: archive
+        url: http://deb.debian.org/debian/pool/main/f/fluid-soundfont/fluid-soundfont_3.1.orig.tar.gz
+        sha256: 2621acaa1c78e4abdb24bdd163230cc577e61276936d6aa6e3180582142f0343
+
+  # Required by electron and some proprietary game launchers
+
+  - shared-modules/gtk2/gtk2.json
+
+  - shared-modules/dbus-glib/dbus-glib.json
+
+  - name: gconf
+    config-opts:
+      - --disable-static
+      - --disable-gtk-doc
+      - --disable-orbit
+      - --disable-introspection
+    build-options:
+      cflags: -fpermissive
+    cleanup:
+      - /bin
+      - /libexec
+      - /share
+      - /etc
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/GConf/3.2/GConf-3.2.6.tar.xz
+        sha256: 1912b91803ab09a5eed34d364bf09fe3a2a9c96751fde03a4e0cfa51a04d784c
+
+  # Required by ScummVM
+
+  - name: libspeechd
+    config-opts:
+      - --disable-python
+      - --with-systemdsystemunitdir=/app/lib/systemd/system/speech-dispatcherd.service
+    sources:
+      - type: archive
+        url: https://github.com/brailcom/speechd/releases/download/0.12.1/speech-dispatcher-0.12.1.tar.gz
+        sha256: b14a5238d287d2dcce4dd42bbd66ca65fa228e7e683708267f7b34036f7ba4b4
+    modules:
+      - name: dotconf
+        sources:
+          - type: archive
+            url: https://github.com/williamh/dotconf/archive/refs/tags/v1.3.tar.gz
+            sha256: 7f1ecf40de1ad002a065a321582ed34f8c14242309c3547ad59710ae3c805653
+          - type: script
+            commands:
+              - autoreconf -fiv
+            dest-filename: autogen.sh
+
+  # Environment setup
+
+  - name: lutris-app-environment
+    buildsystem: simple
+    build-commands:
+      - install -Dm644 ld.so.conf -t /app/etc/
+      # Mount points for the 32-bit extensions declared in add-extensions
+      - mkdir -p /app/lib/i386-linux-gnu
+      - mkdir -p /app/lib/debug/lib/i386-linux-gnu
+      - mkdir -p /app/lib/i386-linux-gnu/GL
+      - mkdir -p /app/lib/debug/lib/i386-linux-gnu/GL
+      - mkdir -p /app/lib/i386-linux-gnu/dri/intel-vaapi-driver
+      - mkdir -p /app/i386/nvidia-vaapi-driver
+      - mkdir -p /app/runners
+    sources:
+      - type: file
+        path: ld.so.conf
+
+  - name: perl
+    sources:
+      - type: archive
+        url: https://www.cpan.org/src/5.0/perl-5.42.0.tar.gz
+        sha256: e093ef184d7f9a1b9797e2465296f55510adb6dab8842b0c3ed53329663096dc
+      - type: script
+        dest-filename: configure
+        commands:
+          - ./Configure -des -Dprefix=/app
+    post-install:
+      - find /app/lib/perl5 -type f -exec chmod u+w {} \;
+
+  - name: librsync
+    buildsystem: cmake-ninja
+    sources:
+      - type: git
+        url: https://github.com/librsync/librsync.git
+        tag: v2.3.4
+        commit: e364852674780e43d578e4239128ff7014190ed3
+
+  - name: kitty
+    buildsystem: simple
+    build-commands:
+      - install -Dm0775 -t /app/bin bin/kitty
+      - cp -rn lib/kitty-extensions /app/lib
+      - install -Dm0755 lib/libpython3.12.so.1.0 /app/lib/libpython3.12.so.1.0
+    sources:
+      - type: archive
+        url: https://github.com/kovidgoyal/kitty/releases/download/v0.45.0/kitty-0.45.0-x86_64.txz
+        sha256: e6b70867a9a35181796775c79ebfbd82e00cf18c38b2bbdad73ff48d362380da
+        strip-components: 0
+
+  # Needed by Quake 3 and others
+  - name: sdl12-compat
+    buildsystem: cmake-ninja
+    sources: &sdl12_compat_sources
+      - type: archive
+        url: https://github.com/libsdl-org/sdl12-compat/archive/refs/tags/release-1.2.68.tar.gz
+        sha256: 63c6e4dcc1154299e6f363c872900be7f3dcb3e42b9f8f57e05442ec3d89d02d
+
+  - name: sdl12-compat-32bit
+    buildsystem: cmake-ninja
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+    sources: *sdl12_compat_sources
+
+  # Needed for minecraft
+  - name: java17
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/openjdk17/install.sh
+
+  # Modern DOSBox replacement
+  - name: dosbox-staging
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://github.com/dosbox-staging/dosbox-staging/archive/v0.79.1.tar.gz
+        sha256: 43f23fd0a5cff55e06a3ba2be8403f872ae47423f3bb4f823301eaae8a39ac2f
+      # SDL2_net headers are no longer next to SDL2's, libdos needs the dep for SDL_net.h
+      - type: patch
+        path: patches/dosbox-staging-libdos-sdl2-net.patch
+    modules:
+      # SDL2_net was dropped from the 26.08 runtime
+      - modules/SDL2_net.json
+      - name: iir1
+        buildsystem: cmake-ninja
+        sources:
+          - type: archive
+            url: https://github.com/berndporr/iir1/archive/refs/tags/1.10.0.tar.gz
+            sha256: 13b53f14d276adf6cafd3564fcda1d4b3e72342108d1c40ec4b4f0c7fc3ac95a
+      - name: libslirp
+        buildsystem: meson
+        sources:
+          - type: archive
+            url: https://gitlab.freedesktop.org/slirp/libslirp/-/archive/v4.9.1/libslirp-v4.9.1.tar.gz
+            sha256: 3970542143b7c11e6a09a4d2b50f30a133473c41f15ed0bdcc3b7a1c450d9a5c
+      - name: munt
+        buildsystem: cmake-ninja
+        config-opts:
+          - -Dmunt_WITH_MT32EMU_SMF2WAV=FALSE
+          - -Dmunt_WITH_MT32EMU_QT=FALSE
+          - -Dlibmt32emu_WITH_VERSION_TAGGING=TRUE
+          - -Dlibmt32emu_WITH_SYMBOL_VERSIONING=TRUE
+        sources:
+          - type: archive
+            url: https://github.com/munt/munt/archive/libmt32emu_2_7_2.tar.gz
+            sha256: 3b0beff64e83d2b4879baba2326eed1300edc9663b3dc52621fc74d196ca9a80
+
+  # Needed for FreeSO
+  - name: mono
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/mono6/install.sh
+
+  - name: ncurses
+    build-options:
+      cflags: -std=gnu17
+    config-opts: &ncurses_config_opts
+      - --with-shared
+      - --without-manpageus
+      - --with-abi-version=5
+    cleanup: &ncurses_cleanup
+      - /bin
+      - /include
+      - /share
+      - "*.a"
+    sources: &ncurses_sources
+      - type: archive
+        url: http://ftp.gnu.org/gnu/ncurses/ncurses-6.5.tar.gz
+        sha256: 136d91bc269a9a5785e5f9e980bc76ab57428f604ce3e5a5a90cebc767971cc6
+
+  - name: ncurses-32bits
+    build-options:
+      arch:
+        x86_64: *compat_i386_opts
+      cflags: -std=gnu17
+    config-opts: *ncurses_config_opts
+    cleanup: *ncurses_cleanup
+    sources: *ncurses_sources
+
+  # These are needed for window management inside gamescope
+  # --- python-xlib ---
+  - name: python-six
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-index --no-build-isolation --prefix="${FLATPAK_DEST}" .
+    sources:
+      - type: archive
+        url: https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz
+        sha256: ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
+
+  - name: python-xlib
+    buildsystem: simple
+    build-commands:
+      - pip3 install --no-index --no-build-isolation --prefix="${FLATPAK_DEST}" python_xlib-*.whl
+    sources:
+      # The sdist's setup.py imports pkg_resources, which setuptools no longer ships
+      - type: file
+        url: https://files.pythonhosted.org/packages/fc/b8/ff33610932e0ee81ae7f1269c890f697d56ff74b9f5b2ee5d9b7fa2c5355/python_xlib-0.33-py2.py3-none-any.whl
+        sha256: c3534038d42e0df2f1392a1b30a15a4ff5fdc2b86cfa94f072bf11b10a164398
+
+  # uv, only to install the Python dependencies below; removed from the final app
+  - name: uv
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 -t ${FLATPAK_DEST}/bin uv
+    cleanup: ["*"]
+    sources:
+      - type: archive
+        url: https://github.com/astral-sh/uv/releases/download/0.13.9/uv-x86_64-unknown-linux-musl.tar.gz
+        sha256: 58ccf5f1792b8a5a88d01bc910ea131a8b3db4a319a17ad5fad75e0845a3e271
+
+  # Lutris's Python dependencies, exactly as pinned (and hash-checked) in uv.lock.
+  # PyGObject and pycairo are left to the GNOME runtime, which builds them
+  # against its own GLib and GTK.
+  - name: python-dependencies
+    buildsystem: simple
+    build-options:
+      build-args:
+        - --share=network
+      env:
+        UV_PYTHON_DOWNLOADS: never
+        UV_NO_CACHE: "1"
+    build-commands:
+      - uv export --frozen --no-dev --no-emit-project --no-emit-package pygobject
+        --no-emit-package pycairo --format requirements.txt --output-file requirements.txt
+      - uv pip install --python /usr/bin/python3 --prefix ${FLATPAK_DEST} -r requirements.txt
+    sources:
+      - type: file
+        path: ../../pyproject.toml
+      - type: file
+        path: ../../uv.lock
+
+  - name: gnome-desktop
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/gnome-desktop/44/gnome-desktop-44.1.tar.xz
+        sha256: ae7ca55dc9e08914999741523a17d29ce223915626bd2462a120bf96f47a79ab
+
+  - name: lutris
+    buildsystem: meson
+    sources:
+      - type: dir
+        path: ../..
+        skip:
+          - .git
+          - .venv
+          - build
+          - builddir
+          - build-flatpak
+          - .flatpak-builder
+          - lutris.flatpak

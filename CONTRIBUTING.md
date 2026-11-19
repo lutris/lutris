@@ -57,7 +57,7 @@ Lutris is developed in a virtualenv managed by [uv](https://docs.astral.sh/uv/),
 which installs every Python dependency, PyGObject included, at the versions
 pinned in `uv.lock`. Install uv, then:
 
-    git clone https://github.com/lutris/lutris
+    git clone https://github.com/jedace07/lutris
     cd lutris
     make dev    # creates .venv with `uv sync` and installs the git pre-commit hook
     make run    # same as `uv run bin/lutris -d`
@@ -67,17 +67,14 @@ uv downloads a Python interpreter if it doesn't find a suitable one
 in the project environment and brings it up to date first; you can also
 `source .venv/bin/activate` and run `./bin/lutris -d` directly.
 
-PyGObject, pycairo, dbus-python and evdev are built from source the first time,
-so you need a C compiler, `pkg-config` and these development headers:
+PyGObject, pycairo, dbus-python and evdev are built from source the first
+time, and the libraries Lutris loads through GObject introspection (GTK 3,
+WebKitGTK 4.1, ...) come from your system. `INSTALL.rst` lists the packages
+for both on Fedora, Debian/Ubuntu and Arch.
 
-* Fedora: `gcc pkgconf-pkg-config gobject-introspection-devel cairo-devel cairo-gobject-devel dbus-devel kernel-headers`
-* Debian/Ubuntu: `build-essential pkg-config libgirepository-2.0-dev libcairo2-dev libdbus-1-dev linux-libc-dev`
-* Arch: `base-devel gobject-introspection cairo dbus linux-api-headers`
-
-The libraries Lutris loads through GObject introspection still come from your
-system: GTK 3, WebKitGTK 4.1, libnotify and gnome-desktop 3, along with the
-rest of the runtime dependencies listed in `debian/control` (Debian based
-distros) or `packaging/lutris.spec` (RPM based ones).
+To try your changes inside the sandbox users get, `make flatpak` builds the
+Flatpak from your working tree and installs it for your user (see
+`INSTALL.rst`; the first build is long).
 
 Managing dependencies
 ---------------------
@@ -92,38 +89,12 @@ which is committed. CI installs with `--locked` and fails if the two disagree.
 * Commit `pyproject.toml` and `uv.lock` together.
 
 Development tools are split into dependency groups so CI jobs install only
-what they run: `lint` (ruff), `typing` (mypy and stubs) and `test` (nose2).
+what they run: `lint` (ruff), `typing` (ty and stubs) and `test` (pytest).
 `dev` includes all three and is what `uv sync` installs by default.
 
 This project includes .editorconfig so you're good to go if you're using any
 editor/IDE that supports this. Otherwise make sure to configure your max line
 length to 120, indent style to space and always end files with an empty new line.
-
-### NixOS
-
-On NixOS (or anywhere with Nix), the `shell.nix` at the root of the repository
-provides the interpreter, the C libraries and headers, every GObject typelib and
-the external tools Lutris needs:
-
-    nix-shell
-    ./bin/lutris -d
-
-Entering the shell runs `uv sync` against the Nix Python and activates `.venv`,
-so the Python packages come from `uv.lock` exactly as on any other system.
-
-The shell is enough to work on the client and run the test suite, but the
-runners Lutris downloads (Wine, Proton, ...) are generic Linux binaries that
-won't run on NixOS as-is. To launch games from your checkout, install
-`steam-run` (it's unfree; `programs.steam.enable = true;` also provides it)
-and start Lutris from the repository root with the helper the shell provides:
-
-    lutris-steam-run -d
-
-Plain `steam-run ./bin/lutris` doesn't work: inside it, `python3` resolves to
-steam-run's own interpreter (no PyGObject), and `GIO_EXTRA_MODULES` is dropped,
-which disables TLS in Lutris and its web views.
-
-When adding a system library or tool, add it to `shell.nix` as well.
 
 Formatting your code
 --------------------
@@ -151,7 +122,10 @@ Running tests
 
 Be sure to test your changes thoroughly, never submit changes without running
 the code. Also run the test suite and check that nothing broke.
-You can run the test suite by typing `make test` in the source directory.
+You can run the test suite by typing `make test` in the source directory; it
+uses pytest, so `uv run pytest tests/util` or `uv run pytest -k steam` narrows
+it down. Tests that open windows are marked `display`; `uv run pytest -m "not display"`
+skips them when you have no display, which is what CI does.
 
 QAing your changes
 ------------------
@@ -190,7 +164,6 @@ Project structure
     [root]-+ Config files and READMEs (pyproject.toml, meson.build, Makefile)
         |
         +-[bin] Main lutris executable script
-        +-[debian] Debian / Ubuntu packaging configuration
         +-[docs] User documentation
         +-[lutris]-+ Source folder
         |          |
@@ -201,18 +174,23 @@ Project structure
         |          +-[services] External services (Steam, GOG, ...)
         |          +-[util] Generic utilities
         |
-        +-[packaging] RPM spec and release/packaging Makefile
+        +-[packaging] Flatpak manifest
         +-[po] Translation files
         +-[share] Lutris resources like icons, ui files, scripts
         +-[tests] Unit tests
-        +-[utils] Helper scripts and the AppImage build
+        +-[utils] Helper scripts
 
 Build tooling
 -------------
 
-* ``pyproject.toml`` is the single source of truth for Python packaging
-  metadata and for ruff/mypy/pyright configuration.
-* ``meson.build`` (plus ``po/meson.build``) drives the install layout used by
-  distro packages.
-* The root ``Makefile`` holds developer tasks only. Release, packaging and
-  upload targets live in ``packaging/Makefile``.
+* ``pyproject.toml`` declares the Python dependencies (locked in ``uv.lock``)
+  and configures ruff, ty, pytest and pyright. Lutris isn't built as a Python
+  package; uv only manages the environment it runs in.
+* ``ty-baseline.json`` lists the type errors ty already reports, so CI only
+  fails on new ones. Fix entries rather than adding to it; ``make
+  ty-update-baseline`` rewrites it when that's unavoidable.
+* ``meson.build`` (plus ``po/meson.build``) drives the install layout the
+  Flatpak build uses.
+* ``packaging/flatpak`` holds the Flatpak manifest, derived from Flathub's;
+  ``shared-modules`` is a git submodule of Flathub's shared modules.
+* The root ``Makefile`` holds the developer and Flatpak build tasks.
