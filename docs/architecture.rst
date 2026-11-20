@@ -255,8 +255,16 @@ including categories, sources and saved searches. It launches and stops games
 through the backend. The Game Actions menu can add or remove favorites, hide
 or unhide a game, edit its categories, and open its installation directory.
 It also shows live game logs and manages desktop, application menu, and Steam
-shortcuts. When a game has multiple launch configurations, Qt can prompt for
-one and remember the choice. ``lutris:rungame/...`` and ``lutris:rungameid/...``
+shortcuts. The Steam Big Picture (Standalone) destination exports an executable
+script for the selected launch configuration and adds it to Steam separately
+from the regular shortcut. The script launches without Lutris; recreate the
+shortcut after changing the launch configuration. Qt can remove legacy
+standalone entries without deleting their old shared scripts. Standalone
+creation is not offered from inside Flatpak because exported commands can refer
+to sandbox-only paths.
+
+When a game has multiple launch configurations, Qt can prompt for one and
+remember the choice. ``lutris:rungame/...`` and ``lutris:rungameid/...``
 launch installed library games, including the launch target encoded in a shortcut.
 A shortcut uses the running instance if there is one. On a fresh launch,
 ``LUTRIS_FRONTEND=qt`` selects Qt as usual. Log updates use ``GAME_LOG_CHANGED`` and ``games.get_game_log``.
@@ -276,10 +284,9 @@ grid reloads its thumbnails when it receives ``ARTWORK_CHANGED``.
 
 What it needs next, roughly in order, each with the backend calls it takes:
 
-* **Game actions** still need installation entry points and the standalone Steam
-  Big Picture shortcut. The launch configuration
-  prompt receives ``GameInfo`` and configuration names. The remaining launch
-  delegate methods still need the same plain-data boundary.
+* **Game actions** still need installation entry points. The launch
+  configuration prompt receives ``GameInfo`` and configuration names. The
+  remaining launch delegate methods still need the same plain-data boundary.
 * **Configuration**: game, runner and system options, as data, with a widget
   generator like ``lutris/gui/config``.
 * **Services and runners**: logging in (a web view, QtWebEngine), syncing

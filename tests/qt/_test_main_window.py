@@ -418,8 +418,15 @@ def test_qml_launch_configuration_uses_selected_index(qt_application: QGuiApplic
     asyncio.run(run())
 
 
+@pytest.mark.parametrize(
+    ("kind", "label"), [("menu", "Application Menu"), ("steam_big_picture", "Steam Big Picture (Standalone)")]
+)
 def test_qml_shortcuts_submit_the_destination_and_configuration(
-    qt_application: QGuiApplication, library: list[str], monkeypatch: pytest.MonkeyPatch
+    qt_application: QGuiApplication,
+    library: list[str],
+    monkeypatch: pytest.MonkeyPatch,
+    kind: shortcuts.ShortcutKind,
+    label: str,
 ) -> None:
     changes: list[tuple[str, bool, str]] = []
 
@@ -427,7 +434,7 @@ def test_qml_shortcuts_submit_the_destination_and_configuration(
         assert game_id == library[0]
         exists = bool(changes and changes[-1][1])
         return shortcuts.GameShortcuts(
-            (shortcuts.ShortcutTarget("menu", "Application Menu", exists),),
+            (shortcuts.ShortcutTarget(kind, label, exists),),
             ("Primary", "Windowed"),
             ("", "Windowed"),
         )
@@ -451,7 +458,7 @@ def test_qml_shortcuts_submit_the_destination_and_configuration(
             choice.setProperty("currentIndex", 1)
 
             def shortcut_button(item: QQuickItem | None) -> QQuickItem | None:
-                if item is None or item.objectName() == "menuShortcut":
+                if item is None or item.objectName() == f"{kind}Shortcut":
                     return item
                 return next((match for child in item.childItems() if (match := shortcut_button(child))), None)
 
@@ -470,7 +477,7 @@ def test_qml_shortcuts_submit_the_destination_and_configuration(
             remove = find_button()
             assert remove is not None and QMetaObject.invokeMethod(remove, "clicked")
             await wait_for_qml(qt_application, lambda: len(changes) == 2)
-            assert changes == [("menu", True, "Windowed"), ("menu", False, "")]
+            assert changes == [(kind, True, "Windowed"), (kind, False, "")]
         finally:
             window.shutdown()
 

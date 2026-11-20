@@ -7,15 +7,17 @@ from threading import Lock
 from typing import TYPE_CHECKING, Literal
 
 from lutris.backend.launch_configurations import configuration_names
+from lutris.delegates import CommandLineUIDelegate
 from lutris.exceptions import LutrisError
 from lutris.game import Game
 from lutris.util import xdgshortcuts
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.steam import shortcut as steam_shortcut
 
 if TYPE_CHECKING:
     from lutris.config import LaunchConfigDict
 
-type ShortcutKind = Literal["desktop", "menu", "steam"]
+type ShortcutKind = Literal["desktop", "menu", "steam", "steam_big_picture"]
 
 
 @dataclass(frozen=True)
@@ -50,7 +52,15 @@ def _get_shortcuts(game: Game) -> GameShortcuts:
         )
     targets.append(ShortcutTarget("menu", _("Application Menu"), xdgshortcuts.menu_launcher_exists(game.slug, game.id)))
     if not steam_shortcut.is_steam_game(game) and steam_shortcut.vdf_file_exists():
-        targets.append(ShortcutTarget("steam", _("Steam"), steam_shortcut.shortcut_exists(game)))
+        standalone_kinds = {
+            steam_shortcut.is_standalone_shortcut(shortcut, game)
+            for shortcut in steam_shortcut.get_game_shortcuts(game)
+        }
+        targets.append(ShortcutTarget("steam", _("Steam"), False in standalone_kinds))
+        if True in standalone_kinds or not LINUX_SYSTEM.is_flatpak():
+            targets.append(
+                ShortcutTarget("steam_big_picture", _("Steam Big Picture (Standalone)"), True in standalone_kinds)
+            )
     config = game.config
     game_options = config.game_level.get("game", {}) if config else {}
     alternatives: list["LaunchConfigDict"] = game_options.get("launch_configs") or []
@@ -85,11 +95,15 @@ def _set_shortcut(game_id: str, kind: str, present: bool, configuration: str) ->
         if present and configuration not in current.configuration_names:
             raise LutrisError(_("The selected launch configuration is no longer available."))
         try:
-            if target.kind == "steam":
+            if target.kind in {"steam", "steam_big_picture"}:
+                standalone = target.kind == "steam_big_picture"
                 if present:
-                    steam_shortcut.create_shortcut(game, configuration)
+                    if standalone:
+                        steam_shortcut.create_standalone_shortcut(game, CommandLineUIDelegate(configuration))
+                    else:
+                        steam_shortcut.create_shortcut(game, configuration)
                 else:
-                    steam_shortcut.remove_shortcut(game)
+                    steam_shortcut.remove_shortcut(game, standalone=standalone)
             elif present:
                 xdgshortcuts.create_launcher(
                     game.slug, game.id, game.name, configuration, desktop=kind == "desktop", menu=kind == "menu"

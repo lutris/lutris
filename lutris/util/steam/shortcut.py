@@ -5,19 +5,25 @@ import os
 import re
 import shlex
 import shutil
+from collections.abc import Iterable
+from gettext import gettext as _
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any, TypeAlias
 
 from lutris.api import format_installer_url
+from lutris.exceptions import LutrisError
 from lutris.util import resources, system
 from lutris.util.log import logger
 from lutris.util.steam import vdf
 from lutris.util.steam.config import convert_steamid64_to_steamid32, get_active_steamid64, get_user_data_dirs
 
 if TYPE_CHECKING:
+    from lutris.delegates import CommandLineUIDelegate
     from lutris.game import Game
 
 SteamShortcut: TypeAlias = dict[str, Any]
+_SCRIPT_DIRECTORY = "lutris-shortcuts"
 
 
 def get_config_path() -> str:
@@ -62,22 +68,57 @@ def matches_id(shortcut: SteamShortcut, game: "Game") -> bool:
 def get_shortcuts() -> dict[str, SteamShortcut]:
     """Return all Steam shortcuts"""
     shortcut_path = get_shortcuts_vdf_path()
-    if not shortcut_path or not os.path.exists(shortcut_path):
+    return _read_shortcuts(Path(shortcut_path)) if shortcut_path else {}
+
+
+def _read_shortcuts(shortcut_path: Path) -> dict[str, SteamShortcut]:
+    try:
+        payload = shortcut_path.read_bytes()
+    except FileNotFoundError:
         return {}
-    with open(shortcut_path, "rb") as shortcut_file:
-        shortcuts: dict[str, SteamShortcut] = vdf.binary_loads(shortcut_file.read())["shortcuts"]
+    shortcuts: dict[str, SteamShortcut] = vdf.binary_loads(payload)["shortcuts"]
     return shortcuts
 
 
-def shortcut_exists(game: "Game") -> bool:
+def _write_shortcuts(shortcut_path: Path, shortcuts: Iterable[SteamShortcut]) -> None:
+    updated_shortcuts = {"shortcuts": {str(index): shortcut for index, shortcut in enumerate(shortcuts)}}
+    with TemporaryDirectory(dir=shortcut_path.parent) as staging:
+        staged_path = Path(staging) / shortcut_path.name
+        staged_path.write_bytes(vdf.binary_dumps(updated_shortcuts))
+        staged_path.replace(shortcut_path)
+
+
+def _script_name(game: "Game") -> str:
+    return f"lutris-{game.id}.sh"
+
+
+def _legacy_script_path(game: "Game") -> Path:
+    return Path.home() / ".local/share/applications" / f"lutris-{game.slug}.sh"
+
+
+def _managed_script_path(game: "Game", shortcut_path: Path) -> Path:
+    return shortcut_path.parent / _SCRIPT_DIRECTORY / _script_name(game)
+
+
+def is_standalone_shortcut(shortcut: SteamShortcut, game: "Game") -> bool:
+    """Recognize the script destinations used by Qt and legacy GTK shortcuts."""
+    executable = Path(shortcut.get("Exe", "").strip('"'))
+    return executable == _legacy_script_path(game) or (
+        executable.name == _script_name(game) and executable.parent.name == _SCRIPT_DIRECTORY
+    )
+
+
+def get_game_shortcuts(game: "Game") -> list[SteamShortcut]:
+    """List Steam entries that refer to this library game."""
     try:
-        shortcuts = get_shortcuts()
-        if not shortcuts:
-            return False
-        return any(s for s in shortcuts.values() if matches_id(s, game))
+        return [shortcut for shortcut in get_shortcuts().values() if matches_id(shortcut, game)]
     except Exception as ex:
         logger.error("Failed to read shortcut vdf file: %s", ex)
-        return False
+        return []
+
+
+def shortcut_exists(game: "Game") -> bool:
+    return bool(get_game_shortcuts(game))
 
 
 def is_steam_game(game: "Game") -> bool:
@@ -93,46 +134,80 @@ def create_shortcut(game: "Game", launch_config_name: str | None = None, standal
     if not shortcut_path:
         logger.warning("No Steam user configuration found, not creating a shortcut for %s", game)
         return None
-    if os.path.exists(shortcut_path):
-        with open(shortcut_path, "rb") as shortcut_file:
-            shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"].values()
-    else:
-        shortcuts = []
-
-    if standalone:
-        shortcuts = list(shortcuts) + [generate_standalone_shortcut(game, launch_config_name)]
-    else:
-        shortcuts = list(shortcuts) + [generate_shortcut(game, launch_config_name)]
-
-    updated_shortcuts = {"shortcuts": {str(index): elem for index, elem in enumerate(shortcuts)}}
-    with open(shortcut_path, "wb") as shortcut_file:
-        shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
+    path = Path(shortcut_path)
+    shortcut = (
+        generate_standalone_shortcut(game, launch_config_name)
+        if standalone
+        else generate_shortcut(game, launch_config_name)
+    )
+    _write_shortcuts(path, [*_read_shortcuts(path).values(), shortcut])
     set_artwork(game)
 
 
-def remove_shortcut(game: "Game") -> None:
+def create_standalone_shortcut(game: "Game", launch_delegate: "CommandLineUIDelegate") -> None:
+    """Export the selected launch configuration before registering its Steam entry."""
+    shortcut_path = get_shortcuts_vdf_path()
+    if not shortcut_path or is_steam_game(game):
+        raise LutrisError(_("The selected shortcut destination is unavailable."))
+    path = Path(shortcut_path)
+    script = _managed_script_path(game, path)
+    script.parent.mkdir(exist_ok=True)
+    shortcut = generate_standalone_shortcut(game, launch_delegate.launch_config_name, script_path=script)
+    with TemporaryDirectory(dir=script.parent) as staging:
+        staged_script = Path(staging) / script.name
+        game.write_script(str(staged_script), launch_delegate)
+        if not staged_script.is_file() or not os.access(staged_script, os.X_OK):
+            raise LutrisError(_("Could not generate the standalone launch script."))
+        shortcuts = _read_shortcuts(path)
+        staged_script.replace(script)
+        try:
+            _write_shortcuts(path, [*shortcuts.values(), shortcut])
+        except OSError:
+            script.unlink(missing_ok=True)
+            raise
+    try:
+        set_artwork(game, appid=str(shortcut["appid"] + 0x100000000), config_path=str(path.parent))
+    except OSError as error:
+        logger.warning("Could not set Steam shortcut artwork for %s: %s", game, error)
+
+
+def remove_shortcut(game: "Game", *, standalone: bool | None = None) -> None:
     logger.info("Removing Steam shortcut for %s", game)
     shortcut_path = get_shortcuts_vdf_path()
-    if not shortcut_path or not os.path.exists(shortcut_path):
-        return None
-    with open(shortcut_path, "rb") as shortcut_file:
-        shortcuts = vdf.binary_loads(shortcut_file.read())["shortcuts"].values()
-    other_shortcuts = [s for s in shortcuts if not matches_id(s, game)]
-    # Quit early if no shortcut is removed
-    if len(shortcuts) == len(other_shortcuts):
-        return None
-    updated_shortcuts = {"shortcuts": {str(index): elem for index, elem in enumerate(other_shortcuts)}}
-    with open(shortcut_path, "wb") as shortcut_file:
-        shortcut_file.write(vdf.binary_dumps(updated_shortcuts))
+    if not shortcut_path:
+        return
+    path = Path(shortcut_path)
+    remaining: list[SteamShortcut] = []
+    removed: list[SteamShortcut] = []
+    for shortcut in _read_shortcuts(path).values():
+        if matches_id(shortcut, game) and (standalone is None or is_standalone_shortcut(shortcut, game) == standalone):
+            removed.append(shortcut)
+        else:
+            remaining.append(shortcut)
+    if not removed:
+        return
+
+    _write_shortcuts(path, remaining)
+    script = _managed_script_path(game, path)
+    executable = f'"{script}"'
+    if any(shortcut.get("Exe") == executable for shortcut in removed) and not any(
+        shortcut.get("Exe") == executable for shortcut in remaining
+    ):
+        try:
+            script.unlink(missing_ok=True)
+        except OSError as error:
+            logger.warning("Could not remove Steam shortcut script %s: %s", script, error)
+
+
+def _unsigned_appid(executable: str, name: str) -> int:
+    return binascii.crc32((executable + name).encode("utf-8")) | 0x80000000
 
 
 def generate_preliminary_id(game: "Game") -> int:
     lutris_binary = shutil.which("lutris")
     if lutris_binary == "/app/bin/lutris":
         lutris_binary = "/usr/bin/flatpak"
-    exe = f'"{lutris_binary}"'
-    unique_id = "".join([exe, game.name])
-    top = binascii.crc32(str.encode(unique_id, "utf-8")) | 0x80000000
+    top = _unsigned_appid(f'"{lutris_binary}"', game.name)
     return (top << 32) | 0x02000000
 
 
@@ -173,7 +248,9 @@ def generate_shortcut(game: "Game", launch_config_name: str | None) -> SteamShor
     }
 
 
-def generate_standalone_shortcut(game: "Game", launch_config_name: str | None) -> SteamShortcut:
+def generate_standalone_shortcut(
+    game: "Game", launch_config_name: str | None, *, script_path: Path | None = None
+) -> SteamShortcut:
     lutris_binary = shutil.which("lutris")
 
     launch_options = format_installer_url(
@@ -183,14 +260,15 @@ def generate_standalone_shortcut(game: "Game", launch_config_name: str | None) -
     launch_options = shlex.quote(launch_options)
 
     if lutris_binary == "/app/bin/lutris":
-        lutris_binary = "/usr/bin/flatpak"
         launch_options = "run net.lutris.Lutris " + launch_options
 
+    script = script_path or _legacy_script_path(game)
+    executable = f'"{script}"'
     return {
-        "appid": generate_shortcut_id(game),
+        "appid": _unsigned_appid(executable, game.name) - 0x100000000 if script_path else generate_shortcut_id(game),
         "AppName": game.name,
-        "Exe": f'"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"',
-        "StartDir": f'"{Path.home()!s}/.local/share/applications/"',
+        "Exe": executable,
+        "StartDir": f'"{script.parent}/"',
         "icon": resources.get_icon_path(game.slug),
         "LaunchOptions": launch_options,
         "IsHidden": 0,
@@ -207,14 +285,14 @@ def is_flatpak_lutris() -> bool:
     return shutil.which("lutris") == "/app/bin/lutris"
 
 
-def set_artwork(game: "Game") -> None:
-    config_path = get_config_path()
+def set_artwork(game: "Game", *, appid: str | None = None, config_path: str | None = None) -> None:
+    config_path = config_path if config_path is not None else get_config_path()
     if not config_path:
         return None
     artwork_path = os.path.join(config_path, "grid")
     if not os.path.exists(artwork_path):
         os.makedirs(artwork_path)
-    shortcut_id = generate_appid(game)
+    shortcut_id = appid if appid is not None else generate_appid(game)
     source_cover = resources.get_cover_path(game.slug)
     source_banner = resources.get_banner_path(game.slug)
     source_icon = resources.get_icon_path(game.slug)

@@ -1,6 +1,7 @@
 """Exercise shortcut files and launch targets through the backend API."""
 
 import asyncio
+import subprocess
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -40,6 +41,15 @@ def shortcut_game(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[s
         games_db.delete_game(game_id)
 
 
+@pytest.fixture
+def steam_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    config = tmp_path / "Steam config"
+    config.mkdir()
+    monkeypatch.setattr(steam_shortcut, "get_config_path", lambda: str(config))
+    monkeypatch.setattr(steam_shortcut, "set_artwork", lambda _game, **_kwargs: None)
+    return config
+
+
 def test_application_shortcut_without_desktop_folder(
     shortcut_game: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -65,13 +75,7 @@ def test_application_shortcut_without_desktop_folder(
     asyncio.run(run())
 
 
-def test_steam_shortcut_mutations_are_idempotent(
-    shortcut_game: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(steam_shortcut, "get_shortcuts_vdf_path", lambda: str(tmp_path / "shortcuts.vdf"))
-    monkeypatch.setattr(steam_shortcut, "set_artwork", lambda _game: None)
-    monkeypatch.setattr(steam_shortcut.shutil, "which", lambda _program: "/usr/bin/lutris")
-
+def test_steam_shortcut_mutations_are_idempotent(shortcut_game: str, steam_config: Path) -> None:
     async def run() -> None:
         await asyncio.gather(
             shortcuts.set_shortcut(shortcut_game, "steam", True, "Safe / Windowed"),
@@ -82,6 +86,100 @@ def test_steam_shortcut_mutations_are_idempotent(
         assert request["launch_config_name"] == "Safe / Windowed"
         await shortcuts.set_shortcut(shortcut_game, "steam", False)
         assert not steam_shortcut.get_shortcuts()
+
+    asyncio.run(run())
+
+
+def test_standalone_shortcut_runs_selected_configuration(
+    shortcut_game: str, steam_config: Path, tmp_path: Path
+) -> None:
+    executable = tmp_path / "fixture game"
+    executable.write_text('#!/bin/bash\nprintf "%s\\n" "$@"\n', encoding="utf-8")
+    executable.chmod(0o700)
+    (tmp_path / "games" / "shortcut.yml").write_text(
+        f'game:\n  exe: "{executable}"\n  args: --primary\n  launch_configs:\n'
+        f'    - name: Safe / Windowed\n      exe: "{executable}"\n      args: --windowed\n'
+        "system:\n  disable_runtime: true\n  gamemode: false\n",
+        encoding="utf-8",
+    )
+
+    async def run() -> None:
+        await shortcuts.set_shortcut(shortcut_game, "steam", True)
+        state = await shortcuts.set_shortcut(shortcut_game, "steam_big_picture", True, "Safe / Windowed")
+        assert {target.kind: target.exists for target in state.targets if target.kind.startswith("steam")} == {
+            "steam": True,
+            "steam_big_picture": True,
+        }
+        regular, standalone = steam_shortcut.get_shortcuts().values()
+        assert regular["appid"] != standalone["appid"]
+        script = Path(standalone["Exe"].strip('"'))
+        assert script == steam_config / "lutris-shortcuts" / f"lutris-{shortcut_game}.sh"
+        result = subprocess.run(
+            [script], cwd=standalone["StartDir"].strip('"'), check=True, capture_output=True, text=True, timeout=10
+        )
+        assert result.stdout == "--windowed\n"
+
+        await shortcuts.set_shortcut(shortcut_game, "steam", False)
+        assert list(steam_shortcut.get_shortcuts().values()) == [standalone]
+        assert script.is_file()
+        await shortcuts.set_shortcut(shortcut_game, "steam", True)
+        state = await shortcuts.set_shortcut(shortcut_game, "steam_big_picture", False)
+        assert {target.kind: target.exists for target in state.targets if target.kind.startswith("steam")} == {
+            "steam": True,
+            "steam_big_picture": False,
+        }
+        assert list(steam_shortcut.get_shortcuts().values()) == [regular]
+        assert not script.exists()
+
+    asyncio.run(run())
+
+
+def test_failed_standalone_export_preserves_existing_entries(
+    shortcut_game: str, steam_config: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def failed_export(_game: Game, filename: str, delegate: LaunchUIDelegate) -> None:
+        assert isinstance(delegate, CommandLineUIDelegate)
+        assert delegate.launch_config_name == "Safe / Windowed"
+        Path(filename).write_text("Unfinished script", encoding="utf-8")
+        raise OSError("write failed")
+
+    monkeypatch.setattr(Game, "write_script", failed_export)
+
+    async def run() -> None:
+        await shortcuts.set_shortcut(shortcut_game, "steam", True)
+        vdf_path = steam_config / "shortcuts.vdf"
+        original = vdf_path.read_bytes()
+        with pytest.raises(LutrisError, match="Could not update"):
+            await shortcuts.set_shortcut(shortcut_game, "steam_big_picture", True, "Safe / Windowed")
+        assert vdf_path.read_bytes() == original
+        assert not list((steam_config / "lutris-shortcuts").iterdir())
+
+    asyncio.run(run())
+
+
+def test_flatpak_only_offers_removal_of_legacy_standalone_shortcut(
+    shortcut_game: str, steam_config: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setattr(shortcuts.LINUX_SYSTEM, "is_flatpak", lambda: True)
+    script = tmp_path / ".local/share/applications/lutris-shortcut-game.sh"
+    script.parent.mkdir(parents=True)
+    script.touch()
+    steam_shortcut.create_shortcut(Game(shortcut_game), standalone=True)
+
+    async def run() -> None:
+        state = await shortcuts.get_shortcuts(shortcut_game)
+        assert {target.kind: target.exists for target in state.targets if target.kind.startswith("steam")} == {
+            "steam": False,
+            "steam_big_picture": True,
+        }
+        state = await shortcuts.set_shortcut(shortcut_game, "steam_big_picture", False)
+        assert all(target.kind != "steam_big_picture" for target in state.targets)
+        assert not (steam_config / "lutris-shortcuts").exists()
+        assert not steam_shortcut.get_shortcuts()
+        assert script.is_file()
+        with pytest.raises(LutrisError, match="destination is unavailable"):
+            await shortcuts.set_shortcut(shortcut_game, "steam_big_picture", True)
 
     asyncio.run(run())
 
