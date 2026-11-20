@@ -18,8 +18,10 @@ lutris/backend/events.py
 lutris/backend/game_actions.py
 lutris/backend/game_maintenance.py
 lutris/backend/games.py
+lutris/backend/installers.py
 lutris/backend/launch_configurations.py
 lutris/backend/library.py
+lutris/backend/local_games.py
 lutris/backend/media.py
 lutris/backend/models.py
 lutris/backend/processes.py
@@ -152,8 +154,10 @@ lutris/qt/display_backend.py
 lutris/qt/game_log.py
 lutris/qt/game_maintenance.py
 lutris/qt/game_shortcuts.py
+lutris/qt/installers.py
 lutris/qt/library_controller.py
 lutris/qt/library_model.py
+lutris/qt/local_games.py
 lutris/qt/main_window.py
 lutris/qt/sidebar.py
 lutris/qt/tasks.py
@@ -359,10 +363,12 @@ lutris/qt/qml/GameList.qml
 lutris/qt/qml/GameListRow.qml
 lutris/qt/qml/GameLogDialog.qml
 lutris/qt/qml/GameShortcutsDialog.qml
+lutris/qt/qml/InstallerDialog.qml
 lutris/qt/qml/LaunchConfigurationDialog.qml
 lutris/qt/qml/LibrarySidebar.qml
 lutris/qt/qml/LibraryToolbar.qml
 lutris/qt/qml/LibraryView.qml
+lutris/qt/qml/LocalGameDialog.qml
 lutris/qt/qml/Main.qml
 lutris/qt/qml/MoveGameDialog.qml
 lutris/qt/qml/PromptHost.qml

@@ -13,6 +13,7 @@ ToolButton {
     property bool targetCanPlay: false
     property bool targetInstalled: false
     property bool targetCanLinkLocalGame: false
+    property bool targetCanInstall: false
 
     text: qsTr("Game Actions")
     enabled: controller.selectedGameId.length > 0
@@ -22,6 +23,7 @@ ToolButton {
         targetCanPlay = controller.canPlay
         targetInstalled = controller.selectedGameInstalled
         targetCanLinkLocalGame = controller.canLinkLocalGame
+        targetCanInstall = controller.canInstall
         controller.load_organization(targetGameId)
         gameMenu.open()
     }
@@ -51,6 +53,13 @@ ToolButton {
         }
 
         MenuSeparator {}
+
+        MenuItem {
+            objectName: "installGame"
+            text: qsTr("Install…")
+            visible: actions.targetCanInstall
+            onTriggered: actions.controller.installers.open_installers(actions.targetGameId, actions.targetGameName)
+        }
 
         MenuItem {
             objectName: "locateLocalGame"

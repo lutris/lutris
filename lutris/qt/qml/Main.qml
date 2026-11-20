@@ -49,6 +49,24 @@ ApplicationWindow {
         onLoaded: if (status === Loader.Ready) (item as LocalGameDialog).open()
     }
 
+    Connections {
+        target: window.controller.installers
+        function onRequested() { installerLoader.active = true }
+    }
+
+    Loader {
+        id: installerLoader
+        active: false
+        sourceComponent: InstallerDialog {
+            controller: window.controller.installers
+            onClosed: {
+                controller.close_installers()
+                installerLoader.active = false
+            }
+        }
+        onLoaded: if (status === Loader.Ready) (item as InstallerDialog).open()
+    }
+
     footer: ToolBar {
         visible: window.controller.statusText.length > 0
         implicitHeight: visible ? statusLabel.implicitHeight + 14 : 0

@@ -11,7 +11,7 @@ from PySide6.QtCore import Property, QObject, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QDesktopServices
 
 from lutris import settings
-from lutris.backend import events, game_actions, games, library, local_games, media
+from lutris.backend import events, game_actions, games, installers, library, local_games, media
 from lutris.backend.library import LibraryQuery, LibrarySort
 from lutris.backend.models import GameInfo, LibraryGame
 from lutris.exceptions import LutrisError
@@ -20,6 +20,7 @@ from lutris.qt.delegates import PromptController, QtLaunchUIDelegate
 from lutris.qt.game_log import GameLogController
 from lutris.qt.game_maintenance import GameMaintenanceController
 from lutris.qt.game_shortcuts import GameShortcutController
+from lutris.qt.installers import InstallerController
 from lutris.qt.library_model import LibraryModel
 from lutris.qt.local_games import LocalGameController
 from lutris.qt.sidebar import ALL_GAMES, SidebarModel
@@ -52,6 +53,7 @@ class LibraryController(QObject):
         self._shortcuts = GameShortcutController(prompts, self)
         self._local_games = LocalGameController(prompts, self)
         self._local_games.registered.connect(self._on_local_game_registered)
+        self._installers = InstallerController(prompts, self)
         self.model.setParent(self)
         self.sidebar.setParent(self)
         self.categories.setParent(self)
@@ -127,6 +129,10 @@ class LibraryController(QObject):
     @Property(QObject, constant=True)
     def localGames(self) -> LocalGameController:  # noqa: N802
         return self._local_games
+
+    @Property(QObject, constant=True)
+    def installers(self) -> InstallerController:
+        return self._installers
 
     @Property(QObject, constant=True)
     def gamesModel(self) -> LibraryModel:  # noqa: N802
@@ -210,6 +216,15 @@ class LibraryController(QObject):
             game
             and self._can_maintain(game.game_id)
             and local_games.can_link_linux_game(game.installed, game.runner, game.service)
+        )
+
+    @Property(bool, notify=selectionChanged)
+    def canInstall(self) -> bool:  # noqa: N802
+        game = self.selected_game
+        return bool(
+            game
+            and self._can_maintain(game.game_id)
+            and installers.can_install_game(game.installed, game.slug, game.service)
         )
 
     @Property(bool, notify=selectionChanged)

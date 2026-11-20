@@ -207,8 +207,8 @@ eventually through nothing else:
 It's grouped by subject: ``games``, ``library`` (what the library's views
 list: ``query_games`` takes a ``LibraryQuery``, the view's sidebar row, search
 and sort, and returns ``LibraryGame`` rows), ``services``, ``steam``,
-``runners``, ``processes`` (running a command the way Lutris runs games) and
-``saves``.
+``runners``, ``installers`` (finding and checking install scripts),
+``processes`` (running a command the way Lutris runs games) and ``saves``.
 ``lutris.backend.startup.start_backend()`` starts it; that isn't an API call,
 but what the backend's own process will do in stage 3.
 
@@ -286,6 +286,18 @@ the executable's folder, but Move and Trash Files cannot act on it from that ent
 Store-owned entries, non-Linux runners, and installer scripts are not handled
 by this flow.
 
+For an uninstalled library entry with a Lutris.net slug, Game Actions can
+open its install scripts. ``installers.find_game_installers`` fetches them
+off the UI loop and returns an ``InstallerCatalog`` of ``InstallerChoice``
+metadata; the scripts stay in the backend under the catalog's id, and
+``installers.close_catalog`` drops them when the dialog closes (the backend
+also keeps only the most recent few). ``installers.select_installer`` builds a
+``ScriptInterpreter`` on a copy of the script in a worker thread, which checks
+it, and returns an ``InstallerSelection``: the default folder, the runners
+that would be installed first, or the slug of a game that must be installed
+before it. The dialog can then show that game's installers. Nothing runs and
+no folder is created; the dialog says Qt can't run install scripts yet.
+
 The library opens in a cover grid. The View menu switches to banners or a list
 and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
 row. The backend resolves files from the Lutris and service caches. The same
@@ -294,7 +306,7 @@ grid reloads its thumbnails when it receives ``ARTWORK_CHANGED``.
 
 What it needs next, roughly in order, each with the backend calls it takes:
 
-* **Game actions** still need script and service installation entry points. The launch
+* **Game actions** still need service installation entry points. The launch
   configuration prompt receives ``GameInfo`` and configuration names. The
   remaining launch delegate methods still need the same plain-data boundary.
 * **Configuration**: game, runner and system options, as data, with a widget
@@ -309,23 +321,30 @@ What it needs next, roughly in order, each with the backend calls it takes:
 Script installer handoff
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The next installer slice should expose catalog discovery and selection for an
-uninstalled library entry through ``lutris.backend``. Fetch the catalog off
-the UI loop with ``lutris.installer.get_installers``. Give Qt plain choice
-metadata and keep the script and service objects on the backend side. Keep
-discovery separate from execution so selecting or dismissing a choice does
-not run an installer. Start with Lutris.net catalog entries; service-specific
-lookup, local scripts, and installer URIs can use the same flow once it works.
+Discovery and selection are done (see above). The next slice runs the selected
+script. Add a backend call that takes the catalog id, the choice id, the
+chosen folder and the shortcut options, builds a ``ScriptInterpreter`` with a
+backend delegate, and reports progress as plain-data events or delegate calls
+scoped to that installation. Build the interpreter again from the catalog's
+script rather than reusing the one ``select_installer`` checked, since a
+selection holds no live objects.
 
-For execution, use ``lutris.gui.installerwindow.InstallerWindow`` as a reference
-without importing or changing it. It sequences runner prerequisites, extras,
-file preparation/downloads, interpreter commands, and cleanup.
-``ScriptInterpreter.InterpreterUIDelegate`` already reports progress and status
-and requests disc and menu input, but still passes live objects to some
-callbacks. Bridge those to plain data and make failure and cancellation
-explicit. The interpreter's runner-completion event is shared: scope callbacks
-to the active interpreter. Test with local fixtures before trying store
-downloads, and keep GTK as the default until Qt reaches parity.
+Use ``lutris.gui.installerwindow.InstallerWindow`` as a reference without
+importing or changing it. It sequences runner prerequisites
+(``launch_install``, then ``RUNNERS_INSTALLED``), extras, file preparation and
+downloads (``InstallerFilesBox`` is GTK, so the download driving needs a
+toolkit-free counterpart over ``lutris.util.downloader``), interpreter
+commands, and cleanup or ``revert`` on failure and cancellation.
+``ScriptInterpreter.InterpreterUIDelegate`` already reports progress and
+status and requests disc and menu input, but still passes live objects to
+some callbacks (``begin_disc_prompt`` gets the installer). Bridge those to
+plain data and make failure and cancellation explicit. ``RUNNERS_INSTALLED``
+is shared: scope callbacks to the active interpreter. Runner installation
+takes an ``InstallUIDelegate``, whose downloads the Qt side must show. Test
+with local fixtures before trying store downloads; selection already calls
+``get_current_resolution``, which runs xrandr in tests. Keep GTK as the
+default until Qt reaches parity. Service installs, local script files and
+installer URIs can reuse the catalog once execution works.
 
 Stage 3
 -------

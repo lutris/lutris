@@ -11,7 +11,7 @@ from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 
 from lutris import settings
-from lutris.backend import events, game_actions, shortcuts
+from lutris.backend import events, game_actions, installers, shortcuts
 from lutris.backend.launch_configurations import LaunchChoice
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
@@ -269,6 +269,102 @@ async def open_game_action(window: MainWindow, application: QGuiApplication, gam
     assert item is not None and item.property("enabled")
     assert QMetaObject.invokeMethod(item, "triggered")
     assert QMetaObject.invokeMethod(menu, "close")
+
+
+def find_item(root: QQuickItem, name: str) -> QQuickItem | None:
+    for child in root.childItems():
+        if child.objectName() == name:
+            return child
+        if found := find_item(child, name):
+            return found
+    return None
+
+
+def test_qml_lists_and_selects_installers_without_running_them(
+    qt_application: QGuiApplication, library: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    base_slug = PREFIX + "base"
+
+    def script(name: str, slug: str, version: str, **extra: object) -> dict[str, object]:
+        return {
+            "name": name,
+            "game_slug": slug,
+            "slug": f"{slug}-{version.lower()}",
+            "version": version,
+            "runner": "linux",
+            "description": f"{version} description",
+            "notes": "",
+            "credits": "",
+            "script": {
+                "game": {"exe": "$GAMEDIR/game.sh"},
+                "files": [{"setup": "N/A:Select the setup"}],
+                "installer": [{"extract": {"file": "setup", "dst": "$GAMEDIR"}}],
+                **extra,
+            },
+        }
+
+    catalogs = {
+        PREFIX + "uninstalled": [
+            script(PREFIX + "Uninstalled", PREFIX + "uninstalled", "Native"),
+            script(PREFIX + "Uninstalled", PREFIX + "uninstalled", "Expansion", requires=base_slug),
+        ],
+        base_slug: [script(PREFIX + "Base", base_slug, "Base")],
+    }
+    monkeypatch.setattr(installers, "get_installers", lambda game_slug: catalogs[game_slug])
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        controller = window.controller
+        dialog_controller = controller._installers
+        try:
+            controller.set_installed_only(False)
+            await settle(window)
+            controller.select_game(controller.model.find_row(library[0]))
+            assert not controller.property("canInstall")
+            await open_game_action(window, qt_application, library[1], "installGame")
+
+            dialog = window.window.findChild(QObject, "installerDialog")
+            choices = window.window.findChild(QQuickItem, "installerChoices")
+            assert dialog is not None and choices is not None
+            await wait_for_qml(qt_application, lambda: len(dialog_controller.property("choices")) == 2)
+            assert dialog.property("title") == "Install " + PREFIX + "Uninstalled"
+
+            async def choose(choice_id: str) -> None:
+                await wait_for_qml(
+                    qt_application, lambda: find_item(choices, "chooseInstaller" + choice_id) is not None
+                )
+                button = find_item(choices, "chooseInstaller" + choice_id)
+                assert button is not None and QMetaObject.invokeMethod(button, "clicked")
+                await wait_for_qml(qt_application, lambda: bool(dialog_controller.property("selected")))
+
+            await choose("0")
+            directory = window.window.findChild(QObject, "installerDirectory")
+            assert directory is not None
+            target = str(directory.property("text"))
+            assert target.endswith("/" + PREFIX + "uninstalled") and not Path(target).exists()
+            assert dialog_controller.property("requiredGame") == ""
+
+            back = window.window.findChild(QObject, "installerBack")
+            assert back is not None and QMetaObject.invokeMethod(back, "clicked")
+            await wait_for_qml(qt_application, lambda: not dialog_controller.property("selected"))
+
+            await choose("1")
+            assert dialog_controller.property("requiredGame") == base_slug
+            required = window.window.findChild(QObject, "showRequiredGameInstallers")
+            assert required is not None and QMetaObject.invokeMethod(required, "clicked")
+            await wait_for_qml(qt_application, lambda: dialog_controller.property("gameName") == PREFIX + "Base")
+            assert [choice["version"] for choice in dialog_controller.property("choices")] == ["Base"]
+
+            catalog = dialog_controller._catalog
+            assert catalog is not None and catalog.id in installers._catalogs
+            assert QMetaObject.invokeMethod(dialog, "close")
+            await wait_for_qml(qt_application, lambda: catalog.id not in installers._catalogs)
+            assert dialog_controller.property("choices") == []
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
 
 
 @pytest.mark.parametrize("link_existing", [False, True])

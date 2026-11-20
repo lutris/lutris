@@ -119,3 +119,48 @@ class ServiceInfo:
     id: str
     name: str
     online: bool
+
+
+@dataclass(frozen=True)
+class InstallerChoice:
+    """An install script a game can be installed with."""
+
+    # Identifies the script in its catalog
+    id: str
+    version: str
+    runner: str
+    # The runner's name for people
+    runner_name: str
+    description: str
+    notes: str
+    credits: str
+
+
+@dataclass(frozen=True)
+class InstallerCatalog:
+    """The install scripts found for a game. The backend keeps the scripts themselves,
+    so a frontend refers to one by the catalog's id and the choice's id."""
+
+    id: str
+    game_name: str
+    game_slug: str
+    choices: tuple[InstallerChoice, ...]
+
+
+@dataclass(frozen=True)
+class InstallerSelection:
+    """What installing with a chosen script involves, checked before anything runs."""
+
+    catalog_id: str
+    choice_id: str
+    game_name: str
+    version: str
+    # Whether the script installs into a folder of its own, which the user may choose
+    creates_game_folder: bool
+    # Where the game goes unless the user chooses otherwise; empty if the script decides
+    default_directory: str
+    # The runners installed before the script runs, by their names for people
+    runners_to_install: tuple[str, ...]
+    # Set when the script needs another game installed first, which must happen
+    # before this script can be used
+    required_game_slug: str | None = None
