@@ -400,16 +400,25 @@ What it needs next, roughly in order, each with the backend calls it takes:
   the game from the Game Info tab (Game Actions → Move already does).
 * **Preferences**: Library → Preferences covers sources, storage paths,
   runtime and artwork updates, the Steam account, system info and global
-  options (``preferences``, ``runtime_updates``). Left: the Runners tab (below),
-  and GTK's Interface tab, whose options (tray icon, badges, theme, Discord Rich
+  options (``preferences``, ``runtime_updates``). It also manages runners and
+  GE-Proton builds. Left: GTK's Interface tab, whose options (tray icon, badges, theme, Discord Rich
   Presence) need Qt counterparts first.
-* **Services and runners**: logging in (a web view, QtWebEngine), syncing
-  libraries, installing and configuring runners.
+* **Services**: logging in (a web view, QtWebEngine), syncing libraries, and
+  connecting store-specific installers and launch actions.
 * **The installer**: service installs (GOG, Steam...), local script files,
   installer URIs, Steam-provided files, and the yes/no and file questions some
   runners ask while installing.
 * **The rest of the application** still needs the tray icon,
-  runtime updates, and the remaining command-line actions, including installer URIs.
+  display mode and monitor controls, and the remaining command-line actions.
+
+Preferences → Runners uses ``lutris.backend.runners`` to configure, install
+and remove runners. Downloads and runner file prompts pass progress and plain
+text back to Qt while installation runs in a worker thread. Wine's **Manage
+GE-Proton** lists installed builds and recent releases for the host architecture
+from GitHub. It reuses the existing SHA-512 verification and installs into
+Steam's ``compatibilitytools.d`` directory. The remove action moves builds
+from that directory to the Trash. Other Proton locations are listed without a
+remove action. GE-Proton (Latest) is still managed by umu at launch.
 
 Script installer handoff
 ~~~~~~~~~~~~~~~~~~~~~~~~

@@ -268,6 +268,7 @@ class BaseDownloader(abc.ABC):
         self._discard_persistent_state()
         if os.path.isfile(self.dest):
             os.remove(self.dest)
+        self.progress_event.set()
 
     # ------------------------------------------------------------------
     # Transfer hooks — implemented by concrete downloaders
@@ -304,11 +305,13 @@ class BaseDownloader(abc.ABC):
         # Cancelling closes the file, which can result in an
         # error. If so, we just remain cancelled.
         if self.state != self.CANCELLED:
-            self.state = self.ERROR
             self.error = error
         # Keep any resumable progress: the next attempt should resume, not
         # restart. Only release the transient handles.
         self._release_resources()
+        if self.state != self.CANCELLED:
+            self.state = self.ERROR
+        self.progress_event.set()
 
     def on_download_completed(self):
         if self.state == self.CANCELLED:
@@ -321,10 +324,12 @@ class BaseDownloader(abc.ABC):
         if not self.full_size:
             self.progress_fraction = 1.0
             self.progress_percentage = 100
-        self.state = self.COMPLETED
         self._release_resources()
         # Download is complete — the resumable state is no longer needed.
         self._discard_persistent_state()
+        if self.state != self.CANCELLED:
+            self.state = self.COMPLETED
+        self.progress_event.set()
 
     def get_stats(self):
         """Calculate and store download stats."""

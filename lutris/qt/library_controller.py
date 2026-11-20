@@ -26,6 +26,7 @@ from lutris.qt.installers import InstallerController
 from lutris.qt.library_model import LibraryModel
 from lutris.qt.local_games import LocalGameController
 from lutris.qt.preferences import PreferencesController
+from lutris.qt.runner_manager import RunnerManagerController
 from lutris.qt.runtime_updates import RuntimeUpdatesController
 from lutris.qt.sidebar import ALL_GAMES, SidebarModel
 from lutris.qt.tasks import start_task
@@ -64,6 +65,8 @@ class LibraryController(QObject):
         self._artwork_settings.saved.connect(self.update_artwork)
         self._preferences = PreferencesController(prompts, self)
         self._preferences.sourcesChanged.connect(self._on_sources_changed)
+        self._runner_manager = RunnerManagerController(prompts, self)
+        self._runner_manager.runnersChanged.connect(self.refresh_sidebar)
         self.runtime_updates_controller = RuntimeUpdatesController(prompts, self)
         self._installers.installation_controller.launchRequested.connect(lambda game_id: self.launch(game_id, False))
         self.model.setParent(self)
@@ -145,6 +148,10 @@ class LibraryController(QObject):
     @Property(QObject, constant=True)
     def preferences(self) -> PreferencesController:
         return self._preferences
+
+    @Property(QObject, constant=True)
+    def runnerManager(self) -> RunnerManagerController:  # noqa: N802
+        return self._runner_manager
 
     @Property(QObject, constant=True)
     def runtimeUpdates(self) -> RuntimeUpdatesController:  # noqa: N802

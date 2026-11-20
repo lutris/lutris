@@ -2,7 +2,10 @@
 
 import asyncio
 import functools
+import hashlib
 import http.server
+import shutil
+import tarfile
 import threading
 from collections.abc import Callable, Iterator
 from pathlib import Path
@@ -11,13 +14,16 @@ from typing import Any
 import pytest
 
 from lutris import settings
-from lutris.backend import events, installations, installers
+from lutris.backend import events, installations, installers, runners
 from lutris.backend.models import GameInfo, InstallationInfo
 from lutris.database import games as games_db
+from lutris.delegates import InstallUIDelegate
 from lutris.exceptions import LutrisError
 from lutris.installer import interpreter
 from lutris.installer.installer import LutrisInstaller
+from lutris.runners.runner import Runner
 from lutris.util.test_config import setup_test_environment
+from lutris.util.wine import proton
 from tests.conftest import FakeMainLoop
 
 setup_test_environment()
@@ -36,6 +42,104 @@ def server(tmp_path: Path) -> Iterator[str]:
     thread.start()
     yield f"http://127.0.0.1:{httpd.server_address[1]}"
     httpd.shutdown()
+
+
+def test_runner_manager_downloads_and_removes_an_architecture_suffixed_proton_build(
+    server: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    tag = "GE-Proton11-7"
+    build_name = tag + "-x86_64"
+    compat_dir = tmp_path / "compatibilitytools.d"
+    alternate = tmp_path / "other-tools"
+    cache = tmp_path / "cache"
+    alternate.mkdir()
+    cache.mkdir()
+    previous = alternate / "GE-Proton10-2"
+    previous.mkdir()
+    (previous / "proton").touch()
+    source = tmp_path / "proton"
+    source.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    source.chmod(0o755)
+    archive = tmp_path / "served" / f"{build_name}.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        tar.add(source, arcname=f"{build_name}/proton")
+    checksum = hashlib.sha512(archive.read_bytes()).hexdigest()
+    (tmp_path / "served" / "checksum").write_text(f"{checksum}  {archive.name}\n", encoding="utf-8")
+    monkeypatch.setattr(settings, "CACHE_DIR", str(cache))
+    monkeypatch.setattr(proton.LINUX_SYSTEM, "arch", "x86_64")
+    monkeypatch.setattr(proton, "get_steam_compat_dir", lambda: str(compat_dir))
+    monkeypatch.setattr(proton, "_iter_proton_locations", lambda: iter((str(alternate), str(compat_dir))))
+    monkeypatch.setattr(
+        proton, "get_ge_proton_release_urls", lambda _tag: (f"{server}/{archive.name}", server + "/checksum")
+    )
+    progress: list[tuple[str, float | None]] = []
+
+    async def no_questions(*args: str) -> Any:
+        pytest.fail(f"Unexpected runner prompt: {args!r}")
+
+    def trash(path: str, completion: Callable[[], None], _error: Callable[[Exception], None]) -> None:
+        shutil.move(path, tmp_path / "trash")
+        completion()
+
+    monkeypatch.setattr(runners.system, "remove_folder", trash)
+    interaction = runners.RunnerInstallInteraction(
+        lambda text, fraction: progress.append((text, fraction)), no_questions, no_questions
+    )
+
+    async def run() -> None:
+        await asyncio.wait_for(runners.install_runner("wine", tag, interaction=interaction), timeout=10)
+        assert (compat_dir / build_name / "proton").is_file()
+        assert (await runners.list_proton_builds((tag,)))[0] == runners.ProtonBuild(tag, True, True)
+        assert progress and progress[0][0] == "Downloading…"
+        await runners.uninstall_runner("wine", tag)
+        assert (tmp_path / "trash" / "proton").is_file()
+        with pytest.raises(LutrisError, match="outside"):
+            await runners.uninstall_runner("wine", previous.name)
+        assert previous.is_dir()
+
+    proton.get_proton_versions.cache_clear()
+    try:
+        asyncio.run(run())
+    finally:
+        proton.get_proton_versions.cache_clear()
+
+
+def test_runner_manager_asks_for_firmware_from_the_main_loop(monkeypatch: pytest.MonkeyPatch) -> None:
+    answers: list[str | None] = []
+
+    class FirmwareRunner(Runner):
+        def install(
+            self,
+            install_ui_delegate: InstallUIDelegate,
+            version: str | None = None,
+            callback: Callable[[], None] | None = None,
+        ) -> None:
+            assert install_ui_delegate.show_install_yesno_inquiry("Continue?", "Firmware")
+            answers.append(install_ui_delegate.show_install_file_inquiry("Use a BIOS?", "Firmware", "Select a BIOS"))
+
+        def is_installed(self, flatpak_allowed: bool = True) -> bool:
+            return answers == ["/games/firmware/bios.bin"]
+
+    monkeypatch.setattr(runners, "import_runner", lambda _name: FirmwareRunner)
+
+    async def run() -> None:
+        loop = asyncio.get_running_loop()
+
+        async def question(title: str, message: str) -> bool:
+            assert (title, message) == ("Firmware", "Continue?")
+            assert asyncio.get_running_loop() is loop
+            return True
+
+        async def file(title: str, question: str, message: str) -> str:
+            assert (title, question, message) == ("Firmware", "Use a BIOS?", "Select a BIOS")
+            assert asyncio.get_running_loop() is loop
+            return "/games/firmware/bios.bin"
+
+        interaction = runners.RunnerInstallInteraction(lambda _status, _fraction: None, question, file)
+        await runners.install_runner("firmware", interaction=interaction)
+
+    asyncio.run(run())
+    assert answers == ["/games/firmware/bios.bin"]
 
 
 @pytest.fixture

@@ -5,7 +5,7 @@ import os
 import re
 from collections.abc import Generator
 from gettext import gettext as _
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from lutris import settings
 from lutris.exceptions import MissingExecutableError
@@ -21,7 +21,8 @@ if TYPE_CHECKING:
 
 DEFAULT_GAMEID = "umu-default"
 
-GE_PROTON_RELEASE_URL = "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/tags/%s"
+GE_PROTON_RELEASES_URL = "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases"
+GE_PROTON_RELEASE_URL = GE_PROTON_RELEASES_URL + "/tags/%s"
 
 # A GE-Proton release tag such as 'GE-Proton11-7'; unlike the lower-case 'ge-proton'
 # sentinel, this pins one specific build.
@@ -92,7 +93,13 @@ def find_proton_version(version: str | None) -> str | None:
 def is_ge_proton_release(version: str | None) -> bool:
     """True if the version is a GE-Proton release tag, which can be downloaded from
     GitHub when it isn't installed. This excludes the 'ge-proton' sentinel."""
-    return bool(version and _GE_PROTON_TAG_RE.match(version))
+    return bool(version and _GE_PROTON_TAG_RE.fullmatch(version))
+
+
+def get_ge_proton_release_tag(build_name: str) -> str | None:
+    """Return the release tag of an installed GE-Proton build for this architecture."""
+    tag = build_name.removesuffix(f"-{LINUX_SYSTEM.arch}")
+    return tag if is_ge_proton_release(tag) else None
 
 
 def is_umu_path(path: str | None) -> bool:
@@ -261,6 +268,24 @@ def get_ge_proton_release_urls(tag: str) -> tuple[str, str] | None:
     GE-Proton 11 and later name their builds '<tag>-<arch>.tar.gz'; older releases
     only shipped an x86_64 build named '<tag>.tar.gz'."""
     release = Request(GE_PROTON_RELEASE_URL % tag).get().json
+    return _get_ge_proton_assets(tag, release)
+
+
+def get_ge_proton_releases() -> tuple[str, ...]:
+    """Return recent GE-Proton tags with builds for this architecture."""
+    releases = Request(f"{GE_PROTON_RELEASES_URL}?per_page=30").get().json
+    if not isinstance(releases, list):
+        raise ValueError("Expected a list of GE-Proton releases")
+    return tuple(
+        tag
+        for release in releases
+        if not (release.get("draft") or release.get("prerelease"))
+        and is_ge_proton_release(tag := release.get("tag_name") or "")
+        and _get_ge_proton_assets(tag, release)
+    )
+
+
+def _get_ge_proton_assets(tag: str, release: dict[str, Any]) -> tuple[str, str] | None:
     assets = {asset["name"]: asset["browser_download_url"] for asset in release.get("assets", [])}
     build_names = ["%s-%s" % (tag, LINUX_SYSTEM.arch)]
     if LINUX_SYSTEM.arch == "x86_64":

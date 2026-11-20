@@ -48,7 +48,7 @@ Dialog {
             objectName: "preferencesPages"
             Layout.preferredWidth: 180
             Layout.fillHeight: true
-            model: [qsTr("Sources"), qsTr("Storage"), qsTr("Updates"), qsTr("Accounts"), qsTr("System"), qsTr("Options")]
+            model: [qsTr("Sources"), qsTr("Storage"), qsTr("Updates"), qsTr("Accounts"), qsTr("System"), qsTr("Options"), qsTr("Runners")]
             currentIndex: 0
 
             delegate: ItemDelegate {
@@ -393,6 +393,14 @@ Dialog {
                 }
 
                 Item { Layout.fillHeight: true }
+            }
+
+            Loader {
+                active: visible
+                sourceComponent: RunnerPreferences {
+                    controller: dialog.library.runnerManager
+                    configuration: dialog.library.configuration
+                }
             }
         }
     }

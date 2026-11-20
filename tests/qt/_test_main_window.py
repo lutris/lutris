@@ -19,6 +19,7 @@ from lutris.backend import (
     installers,
     media,
     preferences,
+    runners,
     runtime_updates,
     shortcuts,
 )
@@ -695,6 +696,83 @@ def test_qml_preferences_change_sources_storage_and_check_the_runtime(
             assert check is not None and QMetaObject.invokeMethod(check, "clicked")
             runtime = window.controller.runtime_updates_controller
             await wait_for_qml(qt_application, lambda: runtime.property("statusText") == "Updated dxvk.")
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
+
+
+def test_qml_manages_ge_proton_from_preferences(
+    qt_application: QGuiApplication, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    version = "GE-Proton11-7"
+    installed = False
+
+    async def list_catalog() -> tuple[runners.RunnerCatalogEntry, ...]:
+        return (runners.RunnerCatalogEntry("wine", "Wine", "Runs Windows games", True, False, False),)
+
+    async def list_builds(available: tuple[str, ...]) -> tuple[runners.ProtonBuild, ...]:
+        return tuple(runners.ProtonBuild(tag, installed, installed) for tag in available)
+
+    async def list_releases() -> tuple[str, ...]:
+        return (version,)
+
+    async def install_runner(name: str, tag: str, *, interaction: runners.RunnerInstallInteraction) -> None:
+        nonlocal installed
+        assert (name, tag) == ("wine", version)
+        interaction.progress("Downloading…", 0.5)
+        installed = True
+
+    async def uninstall_runner(name: str, tag: str) -> None:
+        nonlocal installed
+        assert (name, tag) == ("wine", version) and installed
+        installed = False
+
+    monkeypatch.setattr(runners, "list_runner_catalog", list_catalog)
+    monkeypatch.setattr(runners, "list_proton_builds", list_builds)
+    monkeypatch.setattr(runners, "list_ge_proton_releases", list_releases)
+    monkeypatch.setattr(runners, "install_runner", install_runner)
+    monkeypatch.setattr(runners, "uninstall_runner", uninstall_runner)
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        try:
+            await settle(window)
+            action = window.window.findChild(QObject, "openPreferences")
+            assert action is not None and QMetaObject.invokeMethod(action, "triggered")
+            pages = window.window.findChild(QObject, "preferencesPages")
+            assert pages is not None and pages.setProperty("currentIndex", 6)
+            dialog = window.window.findChild(QObject, "preferencesDialog")
+            assert dialog is not None
+            content = dialog.property("contentItem")
+
+            async def click(name: str) -> None:
+                await wait_for_qml(
+                    qt_application,
+                    lambda: bool(
+                        (button := find_item(content, name))
+                        and button.property("visible")
+                        and button.property("enabled")
+                    ),
+                )
+                button = find_item(content, name)
+                assert button is not None and QMetaObject.invokeMethod(button, "clicked")
+
+            await click("runnerVersions_wine")
+            await click(f"runnerInstall_{version}")
+            await click(f"runnerRemove_{version}")
+            prompt = window.window.findChild(QObject, "lutrisInput")
+            assert prompt is not None
+            await wait_for_qml(qt_application, lambda: bool(prompt.property("visible")))
+            assert QMetaObject.invokeMethod(prompt, "reject")
+            await wait_for_qml(qt_application, lambda: not window.controller._runner_manager.property("busy"))
+            assert installed
+
+            await click(f"runnerRemove_{version}")
+            await wait_for_qml(qt_application, lambda: bool(prompt.property("visible")))
+            assert QMetaObject.invokeMethod(prompt, "accept")
+            await wait_for_qml(qt_application, lambda: not installed)
         finally:
             window.shutdown()
 

@@ -1,5 +1,6 @@
 """Bridge synchronous launch prompts to QML dialogs."""
 
+import asyncio
 from collections import deque
 from collections.abc import Callable
 from gettext import gettext as _
@@ -28,6 +29,7 @@ class PromptController(QObject):
         self._loop: QEventLoop | None = None
         self._answer: str | LaunchChoice | None = None
         self._answered = False
+        self._pending_input: asyncio.Future[str | None] | None = None
 
     def notice(self, message: str, secondary: str = "", *, title: str = "Lutris", rich: bool = True) -> None:
         self._notices.append((title, message, secondary, rich))
@@ -48,6 +50,17 @@ class PromptController(QObject):
         answer = self._wait_for_answer(lambda: self.inputRequested.emit(kind, title, message, initial))
         return answer if isinstance(answer, str) else None
 
+    async def ask_async(self, kind: str, title: str, message: str) -> str | None:
+        if self._loop is not None or self._pending_input is not None:
+            return None
+        answer: asyncio.Future[str | None] = asyncio.get_running_loop().create_future()
+        self._pending_input = answer
+        try:
+            self.inputRequested.emit(kind, title, message, "")
+            return await answer
+        finally:
+            self._pending_input = None
+
     def choose_configuration(
         self, title: str, names: tuple[str, ...], current_index: int | None
     ) -> LaunchChoice | None:
@@ -57,7 +70,7 @@ class PromptController(QObject):
         return answer if isinstance(answer, LaunchChoice) else None
 
     def _wait_for_answer(self, request: Callable[[], None]) -> str | LaunchChoice | None:
-        if self._loop is not None:
+        if self._loop is not None or self._pending_input is not None:
             return None
         loop = QEventLoop()
         self._loop = loop
@@ -74,7 +87,11 @@ class PromptController(QObject):
 
     @Slot(bool, str)
     def answer(self, accepted: bool, value: str) -> None:
-        self._finish_answer(value if accepted else None)
+        answer = value if accepted else None
+        if self._pending_input is not None and not self._pending_input.done():
+            self._pending_input.set_result(answer)
+        else:
+            self._finish_answer(answer)
 
     @Slot(int, bool)
     def answer_configuration(self, index: int, remember: bool) -> None:
