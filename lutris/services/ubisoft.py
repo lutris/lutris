@@ -15,7 +15,7 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field, update_existing
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.services.base import SERVICE_LOGIN, SERVICE_LOGOUT, OnlineService
+from lutris.services.base import SERVICE_LOGIN, SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -182,7 +182,7 @@ class UbisoftConnectService(OnlineService):
             self.client.authorise_with_stored_credentials(self.load_credentials())
         except RuntimeError as ex:
             logger.error("Failed to authorize with API: %s. Re-login required." % ex)
-            AsyncCall(self.logout, lambda _result, _error: self.login())
+            AsyncCall(self.logout, lambda _result, _error: SERVICE_LOGIN_REQUIRED.fire(self))
             return
         response = self.client.get_club_titles()
         games = response["data"]["viewer"]["ownedGames"].get("nodes", [])

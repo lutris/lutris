@@ -4,15 +4,12 @@ import datetime
 import json
 import os
 from gettext import gettext as _
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import quote_plus, urlencode
-
-from gi.repository import Gtk
 
 from lutris import settings
 from lutris.database import games as games_db
 from lutris.exceptions import UnavailableGameError
-from lutris.gui.dialogs import InputDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import get_runner_human_name
@@ -24,6 +21,9 @@ from lutris.util.downloader import SimpleDownloader
 from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+
+if TYPE_CHECKING:
+    from lutris.delegates import ServiceLoginUIDelegate
 
 
 class ItchIoCoverart(ServiceMedia):
@@ -120,8 +120,8 @@ class ItchIoService(OnlineService):
         "other",
     )
 
-    def login(self, parent=None):
-        # The InputDialog doesn't keep any state we need to protect,
+    def login(self, ui_delegate: "ServiceLoginUIDelegate") -> None:
+        # Asking for the key doesn't keep any state we need to protect,
         # but we used to so we'll clear this persistent flag.
         self.is_login_in_progress = False
 
@@ -131,23 +131,7 @@ class ItchIoService(OnlineService):
             "You should give Lutris its own API key instead of sharing them."
         )
 
-        api_key_dialog = InputDialog(
-            {
-                "parent": parent,
-                "question": question,
-                "title": _("Itch.io API key"),
-                "initial_value": "",
-            }
-        )
-
-        result = api_key_dialog.run()
-        if result != Gtk.ResponseType.OK:
-            api_key_dialog.destroy()
-            self.logout()
-            return
-
-        api_key = api_key_dialog.user_value
-
+        api_key = ui_delegate.ask_for_text(_("Itch.io API key"), question)
         if api_key:
             with open(self.api_key_path, "w") as key_file:
                 key_file.write(api_key)

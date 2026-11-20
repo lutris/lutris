@@ -40,7 +40,11 @@ from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.edit_saved_search import SearchFiltersBox
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, get_error_handler, register_error_handler
-from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
+from lutris.gui.dialogs.delegates import (
+    DialogInstallUIDelegate,
+    DialogLaunchUIDelegate,
+    DialogServiceLoginUIDelegate,
+)
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.download_queue import DownloadQueue
 from lutris.gui.style_manager import THEME_CHANGED
@@ -67,7 +71,7 @@ from lutris.gui.widgets.utils import load_icon_theme, open_uri, set_cursor_by_na
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
-from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
+from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService, sync_media
 from lutris.util import datapath
 from lutris.util.busy import BUSY_STARTED, BUSY_STOPPED
@@ -83,7 +87,9 @@ from lutris.util.wine.wine import clear_wine_version_cache
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "lutris-window.ui"))
-class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate):  # type:ignore[misc]
+class LutrisWindow(  # type:ignore[misc]
+    Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallUIDelegate, DialogServiceLoginUIDelegate
+):
     """Handler class for main window signals."""
 
     default_view_type = "grid"
@@ -211,6 +217,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         BUSY_STARTED.register(self.on_busy_started)
         BUSY_STOPPED.register(self.on_busy_stopped)
         SERVICE_LOGIN.register(self.on_service_login)
+        SERVICE_LOGIN_REQUIRED.register(self.on_service_login_required)
         SERVICE_LOGOUT.register(self.on_service_logout)
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
         CATEGORIES_UPDATED.register(self.on_categories_updated)
@@ -1177,6 +1184,9 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
         self.update_notification()
         service.start_reload(self._service_reloaded_cb)
         return True
+
+    def on_service_login_required(self, service):
+        service.login(self)
 
     def _service_reloaded_cb(self, error):
         if error:

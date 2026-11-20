@@ -4,12 +4,10 @@ import concurrent.futures
 import json
 import os
 from gettext import gettext as _
-
-from gi.repository import Gtk
+from typing import TYPE_CHECKING
 
 from lutris import settings
 from lutris.exceptions import UnavailableGameError
-from lutris.gui.dialogs import HumbleBundleCookiesDialog, QuestionDialog
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE
 from lutris.installer.installer_file import InstallerFile
 from lutris.runners import get_runner_human_name
@@ -19,6 +17,9 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util import linux
 from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
+
+if TYPE_CHECKING:
+    from lutris.delegates import ServiceLoginUIDelegate
 
 
 class HumbleBundleIcon(ServiceMedia):
@@ -81,34 +82,32 @@ class HumbleBundleService(OnlineService):
 
     supported_platforms = ("linux", "windows")
 
-    def login(self, parent=None):
+    def login(self, ui_delegate: "ServiceLoginUIDelegate") -> None:
         # Clear any stale login-in-progress flag from a previous
-        # abandoned WebConnect login attempt; the cookie path below
-        # bypasses WebConnectDialog entirely.
+        # abandoned web login attempt; the cookie path below
+        # bypasses the web login entirely.
         self.is_login_in_progress = False
 
-        dialog = QuestionDialog(
-            {
-                "title": _("Workaround for Humble Bundle authentication"),
-                "question": _(
-                    "Humble Bundle is restricting API calls from software like Lutris and GameHub.\n"
-                    "Authentication to the service will likely fail.\n"
-                    "There is a workaround involving copying cookies "
-                    "from Firefox, do you want to do this instead?"
-                ),
-                "parent": parent,
-            }
+        use_cookies = ui_delegate.ask_question(
+            _("Workaround for Humble Bundle authentication"),
+            _(
+                "Humble Bundle is restricting API calls from software like Lutris and GameHub.\n"
+                "Authentication to the service will likely fail.\n"
+                "There is a workaround involving copying cookies "
+                "from Firefox, do you want to do this instead?"
+            ),
         )
-        if dialog.result == Gtk.ResponseType.YES:
-            dialog = HumbleBundleCookiesDialog()
-            if dialog.cookies_content:
-                with open(self.cookies_path, "w", encoding="utf-8") as cookies_file:
-                    cookies_file.write(dialog.cookies_content)
-                SERVICE_LOGIN.fire(self)
-            else:
-                self.logout()
+        if not use_cookies:
+            super().login(ui_delegate)
+            return
+
+        cookies_content = ui_delegate.ask_for_humble_bundle_cookies()
+        if cookies_content:
+            with open(self.cookies_path, "w", encoding="utf-8") as cookies_file:
+                cookies_file.write(cookies_content)
+            SERVICE_LOGIN.fire(self)
         else:
-            return super().login(parent=parent)
+            self.logout()
 
     def login_callback(self, url):
         """Called after the user has logged in successfully"""

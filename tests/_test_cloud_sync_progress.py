@@ -12,6 +12,7 @@ from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
 
+from lutris.gui.dialogs.cloud_sync import ask_cloud_sync_conflict
 from lutris.gui.dialogs.cloud_sync_progress import CloudSyncCancelled, CloudSyncProgressAdapter
 from lutris.services.gog_cloud import SyncResult
 from lutris.util.progress_info import ProgressInfo  # noqa: F401
@@ -132,7 +133,7 @@ class TestCloudSyncProgressAdapterCancel(unittest.TestCase):
     def test_run_handles_cancellation_gracefully(self):
         game = _make_game()
 
-        def fake_sync(g, cb):
+        def fake_sync(g, cb, resolve_conflict):
             cb(0, 3, "file1.dat")
             # Simulate cancel happening between callbacks
             raise CloudSyncCancelled()
@@ -158,7 +159,8 @@ class TestCloudSyncProgressAdapterRun(unittest.TestCase):
 
         self.assertEqual(result, expected)
         self.assertEqual(adapter.results, expected)
-        sync_func.assert_called_once_with(game, adapter.progress_callback)
+        # The GTK frontend resolves conflicts with its dialog
+        sync_func.assert_called_once_with(game, adapter.progress_callback, ask_cloud_sync_conflict)
         self.assertTrue(adapter._finished)
 
     def test_run_sets_error_on_exception(self):

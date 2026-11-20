@@ -67,10 +67,24 @@ Notifications: ``lutris.util.notifications``
 
 Delegates: ``lutris.delegates``
     When the core needs the user (confirm a launch, pick a launch
-    configuration, answer an installer question, provide a file), it calls a
-    delegate passed in by the caller. The base classes make the
-    non-interactive choice; ``lutris.gui.dialogs.delegates`` implements them
-    with GTK dialogs, and a Qt frontend would do the same with its own.
+    configuration, answer an installer question, provide a file, log in to a
+    service), it calls a delegate passed in by the caller. The base
+    ``Delegate`` has the general questions (``show_notice``, ``ask_question``,
+    ``ask_for_text``, ``ask_for_file``); ``LaunchUIDelegate``,
+    ``InstallUIDelegate`` and ``ServiceLoginUIDelegate`` add what launching,
+    installing and logging in need. The base classes make the non-interactive
+    choice; ``lutris.gui.dialogs.delegates`` implements them with GTK dialogs,
+    and the main window is the delegate the GTK frontend passes around. A Qt
+    frontend would do the same with its own dialogs.
+
+    Operations that take a callback instead of a delegate follow the same
+    idea: cloud save sync takes a ``ConflictResolver`` to ask which saves to
+    keep, and skips conflicts when given none.
+
+    When the core needs the user and no one asked it to do anything (a
+    service's login expiring in the background), it fires a notification
+    instead (``SERVICE_LOGIN_REQUIRED``) and a frontend answers it by
+    starting the operation with its own delegate.
 
 Models instead of widgets
     When the core produces something a frontend displays as it changes, it
@@ -96,13 +110,6 @@ Remaining work for stage 1
 
 Grouped by what has to be built, roughly in the order planned:
 
-Dialogs opened by the core
-    Error, notice, question, input and file dialogs are opened straight from
-    core code (``installer/errors.py``, ``runners/wine.py``, ``services/*``,
-    and the cloud save conflict dialog). These become delegate calls: an
-    interaction delegate for the general cases, and a way for services to ask
-    for a web login (today ``WebConnectDialog``).
-
 Media
     Services build game artwork with helpers from ``gui/widgets/utils.py`` and
     ``gui/views/media_loader.py``. The parts that only download and process
@@ -114,10 +121,13 @@ Errors
     core announces errors with a notification (``GAME_UNHANDLED_ERROR`` already
     exists).
 
-The game and the application object
+The game, services and the application object
     ``game.py`` reaches for ``LutrisApplication`` and the main window (to show
-    windows, hide on launch, show cloud sync progress). Those become
-    notifications and delegate calls.
+    windows, hide on launch, show cloud sync progress), and services open the
+    installer window through ``Gio.Application.get_default()``
+    (``services/base.py``, ``services/lutris.py``, ``services/ubisoft.py``).
+    Those become notifications and delegate calls. The test above doesn't
+    catch these, as they go through ``Gio``.
 
 Display information
     ``util/display.py`` reads monitors and resolutions through ``Gdk`` and

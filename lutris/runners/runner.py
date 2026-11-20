@@ -57,6 +57,8 @@ class Runner:  # pylint: disable=too-many-public-methods
     game_options = []
     runner_options = []
     system_options_override = []
+    # Actions offered for this runner's games, as (name, label, callback); each callback
+    # is called with a lutris.delegates.Delegate it can ask the user things through
     context_menu_entries = []
     require_libs = []
     runner_executable = None

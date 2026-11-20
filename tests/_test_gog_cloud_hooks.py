@@ -8,6 +8,7 @@ import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
+import lutris.gui.dialogs.cloud_sync as cloud_sync_dialogs
 import lutris.services.gog_cloud_hooks as _mod
 from lutris.services.gog_cloud import (
     CloudSaveLocation,
@@ -396,9 +397,8 @@ class TestSyncBeforeLaunchBranches(unittest.TestCase):
             patch.object(_mod, "_get_gog_service", return_value=mock_service),
             patch.object(_mod, "_resolve_save_locations", return_value=save_locations),
             patch.object(_mod, "GOGCloudSync", return_value=mock_sync),
-            patch.object(_mod, "_show_conflict_dialog", return_value="download"),
         ):
-            results = sync_before_launch(game)
+            results = sync_before_launch(game, resolve_conflict=lambda _game, _location: "download")
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].action, SyncAction.DOWNLOAD)
         self.assertEqual(mock_sync.sync_saves.call_count, 2)
@@ -414,12 +414,26 @@ class TestSyncBeforeLaunchBranches(unittest.TestCase):
             patch.object(_mod, "_get_gog_service", return_value=mock_service),
             patch.object(_mod, "_resolve_save_locations", return_value=save_locations),
             patch.object(_mod, "GOGCloudSync", return_value=mock_sync),
-            patch.object(_mod, "_show_conflict_dialog", return_value=None),
         ):
-            results = sync_before_launch(game)
+            results = sync_before_launch(game, resolve_conflict=lambda _game, _location: None)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].action, SyncAction.CONFLICT)
         # Only one call since user skipped
+        self.assertEqual(mock_sync.sync_saves.call_count, 1)
+
+    def test_conflict_is_skipped_with_no_one_to_ask(self):
+        game = self._make_game()
+        mock_sync = MagicMock()
+        mock_sync.sync_saves.return_value = SyncResult(action=SyncAction.CONFLICT)
+        save_locations = [{"name": "saves", "save_path": "/tmp/saves", "platform": "windows"}]
+
+        with (
+            patch.object(_mod, "_get_gog_service", return_value=MagicMock()),
+            patch.object(_mod, "_resolve_save_locations", return_value=save_locations),
+            patch.object(_mod, "GOGCloudSync", return_value=mock_sync),
+        ):
+            results = sync_before_launch(game)
+        self.assertEqual(results[0].action, SyncAction.CONFLICT)
         self.assertEqual(mock_sync.sync_saves.call_count, 1)
 
     def test_none_result(self):
@@ -480,9 +494,8 @@ class TestSyncAfterQuitBranches(unittest.TestCase):
             patch.object(_mod, "_get_gog_service", return_value=mock_service),
             patch.object(_mod, "_resolve_save_locations", return_value=save_locations),
             patch.object(_mod, "GOGCloudSync", return_value=mock_sync),
-            patch.object(_mod, "_show_conflict_dialog", return_value="upload"),
         ):
-            results = sync_after_quit(game)
+            results = sync_after_quit(game, resolve_conflict=lambda _game, _location: "upload")
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].action, SyncAction.UPLOAD)
         self.assertEqual(mock_sync.sync_saves.call_count, 2)
@@ -498,9 +511,8 @@ class TestSyncAfterQuitBranches(unittest.TestCase):
             patch.object(_mod, "_get_gog_service", return_value=mock_service),
             patch.object(_mod, "_resolve_save_locations", return_value=save_locations),
             patch.object(_mod, "GOGCloudSync", return_value=mock_sync),
-            patch.object(_mod, "_show_conflict_dialog", return_value=None),
         ):
-            results = sync_after_quit(game)
+            results = sync_after_quit(game, resolve_conflict=lambda _game, _location: None)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].action, SyncAction.CONFLICT)
         self.assertEqual(mock_sync.sync_saves.call_count, 1)
@@ -522,16 +534,13 @@ class TestSyncAfterQuitBranches(unittest.TestCase):
         self.assertEqual(results[0].action, SyncAction.NONE)
 
 
-class TestShowConflictDialog(unittest.TestCase):
-    """Test _show_conflict_dialog helper.
+class TestAskCloudSyncConflict(unittest.TestCase):
+    """Test the GTK frontend's conflict resolver, ask_cloud_sync_conflict.
 
-    The function now marshals the GTK dialog to the main thread via
-    ``GLib.idle_add`` and waits on a ``threading.Event``.  In tests we
-    mock ``GLib.idle_add`` to invoke the callback immediately so the
-    event gets set without a real GTK main loop.
+    It marshals the dialog to the main thread via ``GLib.idle_add`` and waits
+    on a ``threading.Event``. In tests we make ``GLib.idle_add`` invoke the
+    callback immediately so the event gets set without a real GTK main loop.
     """
-
-    _show_conflict_dialog = staticmethod(_mod._show_conflict_dialog)
 
     @staticmethod
     def _immediate_idle_add(callback, *args):
@@ -539,39 +548,21 @@ class TestShowConflictDialog(unittest.TestCase):
         callback(*args)
         return 0  # dummy source id
 
-    def test_returns_none_on_import_error(self):
-        """When GTK isn't available, should return None gracefully."""
-        mock_glib = MagicMock()
-        mock_glib.idle_add = self._immediate_idle_add
-
-        with patch.dict(
-            sys.modules,
-            {
-                "lutris.gui.dialogs.cloud_sync": None,
-                "gi.repository": MagicMock(GLib=mock_glib),
-            },
+    def test_returns_none_when_the_dialog_fails(self):
+        with (
+            patch.object(cloud_sync_dialogs.GLib, "idle_add", self._immediate_idle_add),
+            patch.object(cloud_sync_dialogs, "CloudSyncConflictDialog", side_effect=RuntimeError("no display")),
         ):
-            result = self._show_conflict_dialog("Game", "saves")
+            result = cloud_sync_dialogs.ask_cloud_sync_conflict("Game", "saves")
         self.assertIsNone(result)
 
     def test_returns_dialog_action(self):
-        """When dialog can be constructed, returns its action."""
-        mock_dialog = MagicMock()
-        mock_dialog.action = "download"
-        mock_dialog_cls = MagicMock(return_value=mock_dialog)
-        mock_module = MagicMock(CloudSyncConflictDialog=mock_dialog_cls)
-
-        mock_glib = MagicMock()
-        mock_glib.idle_add = self._immediate_idle_add
-
-        with patch.dict(
-            sys.modules,
-            {
-                "lutris.gui.dialogs.cloud_sync": mock_module,
-                "gi.repository": MagicMock(GLib=mock_glib),
-            },
+        mock_dialog_cls = MagicMock(return_value=MagicMock(action="download"))
+        with (
+            patch.object(cloud_sync_dialogs.GLib, "idle_add", self._immediate_idle_add),
+            patch.object(cloud_sync_dialogs, "CloudSyncConflictDialog", mock_dialog_cls),
         ):
-            result = self._show_conflict_dialog("Game", "saves")
+            result = cloud_sync_dialogs.ask_cloud_sync_conflict("Game", "saves")
         self.assertEqual(result, "download")
         mock_dialog_cls.assert_called_once_with("Game", "saves")
 
@@ -607,8 +598,9 @@ class TestSyncLocation(unittest.TestCase):
         ]
         loc = {"name": "saves", "save_path": "/tmp/saves", "platform": "windows"}
 
-        with patch.object(_mod, "_show_conflict_dialog", return_value="upload"):
-            result = self._sync_location(mock_sync, game, loc, "download", "test")
+        result = self._sync_location(
+            mock_sync, game, loc, "download", "test", resolve_conflict=lambda _game, _location: "upload"
+        )
         self.assertEqual(result.action, SyncAction.UPLOAD)
         self.assertEqual(mock_sync.sync_saves.call_count, 2)
 
@@ -618,8 +610,9 @@ class TestSyncLocation(unittest.TestCase):
         mock_sync.sync_saves.return_value = SyncResult(action=SyncAction.CONFLICT)
         loc = {"name": "saves", "save_path": "/tmp/saves", "platform": "windows"}
 
-        with patch.object(_mod, "_show_conflict_dialog", return_value=None):
-            result = self._sync_location(mock_sync, game, loc, "download", "test")
+        result = self._sync_location(
+            mock_sync, game, loc, "download", "test", resolve_conflict=lambda _game, _location: None
+        )
         self.assertEqual(result.action, SyncAction.CONFLICT)
         mock_sync.sync_saves.assert_called_once()
 

@@ -21,7 +21,6 @@ from lutris.exceptions import (
     UnspecifiedVersionError,
 )
 from lutris.game import Game
-from lutris.gui.dialogs import FileDialog
 from lutris.runners import RunnerInstallationError
 from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-import
     create_prefix,
@@ -73,6 +72,7 @@ from lutris.util.wine.wine import (
 
 if TYPE_CHECKING:
     from lutris.api import RunnerVersionDict
+    from lutris.delegates import Delegate
     from lutris.monitored_command import MonitoredCommand
 
 
@@ -1049,10 +1049,9 @@ class wine(Runner):
             runner=self,
         )
 
-    def run_wineexec(self, *args):
+    def run_wineexec(self, ui_delegate: "Delegate", *args):
         """Ask the user for an arbitrary exe file to run in the game's prefix"""
-        dlg = FileDialog(_("Select an EXE or MSI file"), default_path=self.game_path)
-        filename = dlg.filename
+        filename = ui_delegate.ask_for_file(_("Select an EXE or MSI file"), default_path=self.game_path)
         if not filename:
             return
         self.prelaunch()

@@ -2,7 +2,7 @@ import json
 import os
 from collections.abc import Iterable
 from gettext import gettext as _
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from gi.repository import Gio
 
@@ -11,10 +11,8 @@ from lutris.api import get_api_games, get_game_installers, read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.gui import dialogs
 from lutris.gui.views.media_loader import download_media
 from lutris.services.base import (
-    SERVICE_LOGIN,
     LutrisBanner,
     LutrisCoverart,
     LutrisCoverartMedium,
@@ -25,6 +23,9 @@ from lutris.services.service_game import ServiceGame
 from lutris.util import http
 from lutris.util.busy import BusyAsyncCall
 from lutris.util.log import logger
+
+if TYPE_CHECKING:
+    from lutris.delegates import ServiceLoginUIDelegate
 
 
 class LutrisGame(ServiceGame):
@@ -78,14 +79,9 @@ class LutrisService(OnlineService):
         """Is the service connected?"""
         return self.is_authenticated()
 
-    def login(self, parent=None):
+    def login(self, ui_delegate: "ServiceLoginUIDelegate") -> None:
         """Connect to Lutris"""
-        login_dialog = dialogs.ClientLoginDialog(parent=parent)
-        login_dialog.connect("connected", self.on_connect_success)
-
-    def on_connect_success(self, _widget, _username):
-        """Handles connection success"""
-        SERVICE_LOGIN.fire(self)
+        ui_delegate.show_lutris_account_login(self)
 
     def get_library(self):
         """Return the remote library as a list of dicts."""

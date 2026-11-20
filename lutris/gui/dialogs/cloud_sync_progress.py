@@ -10,6 +10,7 @@ from collections.abc import Callable
 from gettext import gettext as _
 from typing import TYPE_CHECKING
 
+from lutris.gui.dialogs.cloud_sync import ask_cloud_sync_conflict
 from lutris.services.gog_cloud import SyncResult
 from lutris.util.log import logger
 from lutris.util.progress_info import ProgressInfo
@@ -17,6 +18,7 @@ from lutris.util.strings import gtk_safe
 
 if TYPE_CHECKING:
     from lutris.game import Game
+    from lutris.services.gog_cloud_hooks import ConflictResolver
 
 
 class CloudSyncCancelled(Exception):
@@ -47,7 +49,7 @@ class CloudSyncProgressAdapter:
     def __init__(
         self,
         game: "Game",
-        sync_func: Callable[["Game", Callable[[int, int, str], None] | None], list[SyncResult]],
+        sync_func: Callable[["Game", Callable[[int, int, str], None] | None, "ConflictResolver"], list[SyncResult]],
         direction: str = "pre-launch",
     ) -> None:
         self.game = game
@@ -110,7 +112,7 @@ class CloudSyncProgressAdapter:
     def run(self) -> list[SyncResult]:
         """Run on a worker thread — performs the actual sync."""
         try:
-            self.results = self._sync_func(self.game, self.progress_callback)
+            self.results = self._sync_func(self.game, self.progress_callback, ask_cloud_sync_conflict)
             return self.results
         except CloudSyncCancelled:
             logger.info("Cloud sync (%s) cancelled for %s", self._direction, self.game.name)

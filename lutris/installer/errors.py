@@ -1,12 +1,9 @@
 """Installer specific exceptions"""
 
-import sys
 from gettext import gettext as _
 
 from lutris.exceptions import LutrisError
-from lutris.gui.dialogs import ErrorDialog
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe
 
 
 class ScriptingError(LutrisError):
@@ -48,20 +45,3 @@ class MissingGameDependencyError(LutrisError):
         if not message:
             message = _("This game requires %s.") % slug
         super().__init__(message, *args, **kwargs)
-
-
-_excepthook = sys.excepthook  # pylint: disable=invalid-name
-
-
-def error_handler(error_type, value, traceback):
-    """Intercept all possible exceptions and raise them as ScriptingErrors"""
-    if error_type == ScriptingError:
-        message = value.message
-        if value.faulty_data:
-            message += "\n<b>%s</b>" % gtk_safe(value.faulty_data)
-        ErrorDialog(message)
-    else:
-        _excepthook(error_type, value, traceback)
-
-
-sys.excepthook = error_handler

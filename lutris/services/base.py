@@ -4,7 +4,7 @@ import os
 import shutil
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from gi.repository import Gio
 
@@ -15,8 +15,6 @@ from lutris.database import sql
 from lutris.database.games import add_game, get_game_by_field, get_game_for_service, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import GAME_UPDATED, Game
-from lutris.gui.dialogs import NoticeDialog
-from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.gui.views.media_loader import download_media
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
 from lutris.services.service_media import ServiceMedia
@@ -27,6 +25,9 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.notifications import NotificationSource
 from lutris.util.strings import slugify
+
+if TYPE_CHECKING:
+    from lutris.delegates import ServiceLoginUIDelegate
 
 
 class AuthTokenExpiredError(Exception):
@@ -80,6 +81,9 @@ SERVICE_GAMES_LOADING = NotificationSource()
 SERVICE_GAMES_LOADED = NotificationSource()
 SERVICE_LOGIN = NotificationSource()
 SERVICE_LOGOUT = NotificationSource()
+# Fired with a service that needs the user to log in again, outside of any
+# login the user started; a frontend answers it by calling service.login()
+SERVICE_LOGIN_REQUIRED = NotificationSource()
 
 
 class BaseService:
@@ -465,27 +469,19 @@ class OnlineService(BaseService):
         """Return a list of all files used for authentication"""
         return [self.cookies_path]
 
-    def login(self, parent=None):
+    def login(self, ui_delegate: "ServiceLoginUIDelegate") -> None:
+        """Log in, asking the user through `ui_delegate`; SERVICE_LOGIN fires once logged in."""
         if self.client_installer and not self.is_launcher_installed():
-            NoticeDialog(
-                _(
-                    "This service requires a game launcher. The following steps will install it.\n"
-                    "Once the client is installed, you can login to %s."
-                )
-                % self.name
-            )
-            application = Gio.Application.get_default()
-            application.show_lutris_installer_window(game_slug=self.client_installer)
+            ui_delegate.install_service_launcher(self)
             return
         logger.debug("Connecting to %s", self.name)
-        dialog = WebConnectDialog(self, parent)
-        dialog.run()
+        ui_delegate.show_web_login(self)
 
     @property
     def is_login_in_progress(self) -> bool:
         """Set to true if the login process is underway; the credential files may be created at this
         time, but that does not count as 'authenticated' until the login process is over. This is used
-        by WebConnectDialog since it creates its cookies before the login is actually complete.
+        by web logins, which create their cookies before the login is actually complete.
 
         This is recorded with a file in ~/.cache/lutris so it will persist across Lutris
         restarts, just as the credentials themselves do. For this reason, we need to allow

@@ -167,7 +167,7 @@ class ServiceSidebarRow(SidebarRow):
         button.set_sensitive(False)
         if self.service.online and not self.service.is_connected():
             self.service.logout()
-            self.service.login(parent=self.get_toplevel())  # login will trigger reload if successful
+            self.service.login(self.get_toplevel())  # login will trigger reload if successful
             return
         self.service.start_reload(self.service_reloaded_cb)
 
@@ -175,7 +175,7 @@ class ServiceSidebarRow(SidebarRow):
         if error:
             if isinstance(error, AuthTokenExpiredError):
                 self.service.logout()
-                self.service.login(parent=self.get_toplevel())  # login will trigger reload if successful
+                self.service.login(self.get_toplevel())  # login will trigger reload if successful
             else:
                 display_error(error, parent=self.get_toplevel())
         schedule_at_idle(self.enable_refresh_button, delay_seconds=2.0)
@@ -209,7 +209,7 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
         if self.service.is_authenticated():
             self.service.logout()
         else:
-            self.service.login(parent=self.get_toplevel())
+            self.service.login(self.get_toplevel())
         self.create_button_box()
 
 

@@ -2,20 +2,73 @@ from collections.abc import Callable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, cast
 
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gio, Gtk
 
-from lutris.delegates import InstallUIDelegate, LaunchUIDelegate
+from lutris.delegates import Delegate, InstallUIDelegate, LaunchUIDelegate, ServiceLoginUIDelegate
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.download import DownloadDialog
+from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
+from lutris.services.base import SERVICE_LOGIN
 from lutris.util.downloader import BaseDownloader
 
 if TYPE_CHECKING:
     from lutris.config import LaunchConfigDict
+    from lutris.gui.application import LutrisApplication
     from lutris.gui.lutriswindow import LutrisWindow
+    from lutris.services.base import OnlineService
 
 
-class DialogInstallUIDelegate(InstallUIDelegate):
+class DialogDelegate(Delegate):
+    """Asks the user through GTK dialogs. Windows inherit this (through the delegates
+    below), so the dialogs are parented to `self`."""
+
+    def show_notice(self, message_markup: str, secondary: str | None = None) -> None:
+        dialogs.NoticeDialog(message_markup, secondary, parent=cast(Gtk.Widget, self))
+
+    def ask_question(self, title: str, question_markup: str) -> bool:
+        dialog = dialogs.QuestionDialog({"parent": self, "question": question_markup, "title": title})
+        return dialog.result == Gtk.ResponseType.YES
+
+    def ask_for_text(self, title: str, question_markup: str, initial_value: str = "") -> str | None:
+        dialog = dialogs.InputDialog(
+            {"parent": self, "question": question_markup, "title": title, "initial_value": initial_value}
+        )
+        if dialog.run() != Gtk.ResponseType.OK:
+            return None
+        return dialog.user_value
+
+    def ask_for_file(self, message: str, default_path: str | None = None) -> str | None:
+        return dialogs.FileDialog(message, default_path=default_path, parent=cast(Gtk.Window, self)).filename
+
+
+class DialogServiceLoginUIDelegate(DialogDelegate, ServiceLoginUIDelegate):
+    """This provides UI for logging in to services via dialogs."""
+
+    def install_service_launcher(self, service: "OnlineService") -> None:
+        self.show_notice(
+            _(
+                "This service requires a game launcher. The following steps will install it.\n"
+                "Once the client is installed, you can login to %s."
+            )
+            % service.name
+        )
+        if service.client_installer:
+            application = cast("LutrisApplication", Gio.Application.get_default())
+            application.show_lutris_installer_window(game_slug=service.client_installer)
+
+    def show_web_login(self, service: "OnlineService") -> None:
+        WebConnectDialog(service, cast(Gtk.Window, self)).run()
+
+    def show_lutris_account_login(self, service: "OnlineService") -> None:
+        login_dialog = dialogs.ClientLoginDialog(parent=cast(Gtk.Window, self))
+        login_dialog.connect("connected", lambda _dialog, _username: SERVICE_LOGIN.fire(service))
+
+    def ask_for_humble_bundle_cookies(self) -> str | None:
+        return dialogs.HumbleBundleCookiesDialog(parent=cast(Gtk.Widget, self)).cookies_content
+
+
+class DialogInstallUIDelegate(DialogDelegate, InstallUIDelegate):
     """This provides UI for runner installation via dialogs."""
 
     def show_install_yesno_inquiry(self, question: str, title: str) -> bool:
@@ -47,7 +100,7 @@ class DialogInstallUIDelegate(InstallUIDelegate):
         return dialog.downloader.state == BaseDownloader.COMPLETED
 
 
-class DialogLaunchUIDelegate(LaunchUIDelegate):
+class DialogLaunchUIDelegate(DialogDelegate, LaunchUIDelegate):
     """This provides UI for game launch via dialogs."""
 
     def check_game_launchable(self, game: Game) -> bool:

@@ -261,7 +261,9 @@ class GameBar(Gtk.Box):
         if self.game.has_runner and self.game.is_installed:
             runner = runners.import_runner(self.game.runner_name)(self.game.config)
             for _name, label, callback in runner.context_menu_entries:
-                button = self.get_link_button(label, callback)
+                # Runner actions are given the window to ask the user things through
+                action = (lambda _button, callback=callback: callback(self.get_toplevel())) if callback else None
+                button = self.get_link_button(label, action)
                 buttons.append(button)
         return buttons
 

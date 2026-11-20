@@ -9,7 +9,6 @@ When a conflict is detected the user is prompted via a GTK dialog.
 """
 
 import os
-import threading
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
@@ -144,38 +143,11 @@ def _resolve_save_locations(
     return result
 
 
-def _show_conflict_dialog(game_name: str, location_name: str) -> str | None:
-    """Show a GTK conflict resolution dialog and return the user's choice.
-
-    This function is safe to call from any thread.  The GTK dialog is
-    always created on the main thread via ``GLib.idle_add`` and the
-    calling thread blocks on a :class:`threading.Event` until the user
-    responds.
-
-    Returns:
-        ``"download"``, ``"upload"``, or ``None`` (skip).
-    """
-    result_holder: list[str | None] = [None]
-    event = threading.Event()
-
-    def _create_dialog() -> bool:
-        """Run on the GTK main thread."""
-        try:
-            from lutris.gui.dialogs.cloud_sync import CloudSyncConflictDialog  # noqa: PLC0415
-
-            dialog = CloudSyncConflictDialog(game_name, location_name)
-            result_holder[0] = dialog.action
-        except Exception as ex:
-            logger.debug("Could not show conflict dialog: %s", ex)
-        finally:
-            event.set()
-        return False  # do not repeat
-
-    from gi.repository import GLib  # noqa: PLC0415
-
-    GLib.idle_add(_create_dialog)
-    event.wait()
-    return result_holder[0]
+# Asked which saves to keep when local and cloud saves conflict: called (on the
+# sync's thread) with the game's and the save location's names, it returns
+# "download" to keep the cloud saves, "upload" to keep the local ones, or None
+# to leave both alone
+ConflictResolver = Callable[[str, str], str | None]
 
 
 def _sync_location(
@@ -186,13 +158,15 @@ def _sync_location(
     direction_label: str,
     progress_callback: Callable[[int, int, str], None] | None = None,
     auto_resolve_upload: bool = False,
+    resolve_conflict: ConflictResolver | None = None,
 ) -> SyncResult:
-    """Sync a single save location, handling conflicts via dialog.
+    """Sync a single save location, asking `resolve_conflict` about conflicts.
 
     Args:
         auto_resolve_upload: If True and the conflict is a pure upload
             (no cloud-only files would be lost), automatically resolve
             as upload without prompting the user.
+        resolve_conflict: Decides other conflicts; with none, they're skipped.
     """
     result = sync.sync_saves(
         game.appid,
@@ -210,8 +184,10 @@ def _sync_location(
             # so we can safely upload without asking.
             user_choice = "upload"
             logger.info("Auto-resolving conflict as upload for %s (no cloud-only files)", loc["name"])
+        elif resolve_conflict:
+            user_choice = resolve_conflict(game.name, loc["name"])
         else:
-            user_choice = _show_conflict_dialog(game.name, loc["name"])
+            user_choice = None
         if user_choice:
             logger.info("User chose '%s' for conflict on %s", user_choice, loc["name"])
             # Convert "upload"/"download" to "forceupload"/"forcedownload" for conflict resolution
@@ -243,17 +219,19 @@ def _sync_location(
 def sync_before_launch(
     game: "Game",
     progress_callback: Callable[[int, int, str], None] | None = None,
+    resolve_conflict: ConflictResolver | None = None,
 ) -> list[SyncResult]:
     """Sync cloud saves before launching a GOG game (download direction).
 
     This fetches any newer saves from GOG cloud storage to the local
     filesystem before the game starts.  If a conflict is detected,
-    a dialog is shown so the user can choose which version to keep.
+    `resolve_conflict` chooses which version to keep.
 
     Args:
         game: The Game instance about to be launched.
         progress_callback: Optional callable invoked after each file is
             processed, with arguments (current_index, total_files, filename).
+        resolve_conflict: Asks the user about conflicts; without it they're skipped.
 
     Returns:
         A list of SyncResult objects (one per save location).
@@ -281,7 +259,9 @@ def sync_before_launch(
 
     for loc in save_locations:
         logger.info("Cloud sync (pre-launch): %s -> %s", loc["name"], loc["save_path"])
-        result = _sync_location(sync, game, loc, "download", "pre-launch", progress_callback)
+        result = _sync_location(
+            sync, game, loc, "download", "pre-launch", progress_callback, resolve_conflict=resolve_conflict
+        )
         results.append(result)
 
     return results
@@ -290,17 +270,19 @@ def sync_before_launch(
 def sync_after_quit(
     game: "Game",
     progress_callback: Callable[[int, int, str], None] | None = None,
+    resolve_conflict: ConflictResolver | None = None,
 ) -> list[SyncResult]:
     """Sync cloud saves after a GOG game quits (upload direction).
 
     This uploads any newer local saves to GOG cloud storage after
-    the game has exited.  If a conflict is detected, a dialog is
-    shown so the user can choose which version to keep.
+    the game has exited.  If a conflict is detected, `resolve_conflict`
+    chooses which version to keep.
 
     Args:
         game: The Game instance that just quit.
         progress_callback: Optional callable invoked after each file is
             processed, with arguments (current_index, total_files, filename).
+        resolve_conflict: Asks the user about conflicts; without it they're skipped.
 
     Returns:
         A list of SyncResult objects (one per save location).
@@ -336,6 +318,7 @@ def sync_after_quit(
             "post-exit",
             progress_callback,
             auto_resolve_upload=game.skip_cloud_sync,
+            resolve_conflict=resolve_conflict,
         )
         results.append(result)
 

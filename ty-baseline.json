@@ -3007,12 +3007,6 @@
         "lineCount": 1
       },
       {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 52,
-        "lineCount": 1
-      },
-      {
         "rule": "invalid-argument-type",
         "startColumn": 29,
         "endColumn": 44,
@@ -3358,12 +3352,6 @@
       }
     ],
     "lutris/services/lutris.py": [
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 49,
-        "endColumn": 62,
-        "lineCount": 1
-      },
       {
         "rule": "incompatible-method-override",
         "startColumn": 8,

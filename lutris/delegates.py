@@ -1,8 +1,9 @@
 """What the core asks of whatever UI is driving it.
 
-Launching a game or installing a runner sometimes needs the user: to confirm,
-pick a configuration or provide a file. Rather than open dialogs itself, core
-code calls one of these delegates. The defaults here need no UI and make the
+Launching a game, installing a runner or logging in to a service sometimes
+needs the user: to confirm, pick a configuration, type something or provide a
+file. Rather than open dialogs itself, core code calls a delegate, passed in by
+whoever started the operation. The defaults here need no UI and make the
 choices a non-interactive caller would; a frontend subclasses them to ask the
 user (lutris.gui.dialogs.delegates does that for GTK).
 """
@@ -14,18 +15,42 @@ from typing import TYPE_CHECKING
 from lutris.exceptions import UnavailableRunnerError
 from lutris.services import SERVICES
 from lutris.util.downloader import SimpleDownloader
+from lutris.util.log import logger
 
 if TYPE_CHECKING:
     from lutris.config import LaunchConfigDict
     from lutris.game import Game
-    from lutris.services.base import BaseService
+    from lutris.services.base import BaseService, OnlineService
 
 
 class Delegate:
+    """The questions any operation may need to put to the user.
+
+    Messages and questions are Pango markup (a small subset of HTML), which a
+    frontend renders or strips.
+    """
+
     def get_service(self, service_id: str) -> "BaseService":
         """Returns a new service object by its id. This seems dumb, but it is a work-around
         for Python's circular import limitations."""
         return SERVICES[service_id]()
+
+    def show_notice(self, message_markup: str, secondary: str | None = None) -> None:
+        """Tell the user something. The default only logs it."""
+        logger.info("%s %s", message_markup, secondary or "")
+
+    def ask_question(self, title: str, question_markup: str) -> bool:
+        """Ask the user a yes or no question. The default answers no."""
+        logger.info("Not asking '%s' with no user to answer; assuming no", title)
+        return False
+
+    def ask_for_text(self, title: str, question_markup: str, initial_value: str = "") -> str | None:
+        """Ask the user to type something; returns None if they cancel. The default cancels."""
+        return None
+
+    def ask_for_file(self, message: str, default_path: str | None = None) -> str | None:
+        """Ask the user to pick a file; returns None if they cancel. The default cancels."""
+        return None
 
 
 class LaunchUIDelegate(Delegate):
@@ -131,3 +156,31 @@ class CommandLineUIDelegate(LaunchUIDelegate):
                 return config
 
         raise RuntimeError("The launch configuration '%s' could not be found." % self.launch_config_name)
+
+
+class ServiceLoginUIDelegate(Delegate):
+    """Provides the UI a service needs to log in; passed to OnlineService.login().
+
+    Logging in always needs a user, so the defaults only log that they can't.
+    """
+
+    def install_service_launcher(self, service: "OnlineService") -> None:
+        """The service's own game launcher must be installed before logging in to it;
+        tell the user, and install it (service.client_installer names its installer)."""
+        logger.warning("%s needs its launcher installed before logging in", service.name)
+
+    def show_web_login(self, service: "OnlineService") -> None:
+        """Show the service's login web page (service.login_url) and let the user log in.
+        When the page reaches one of service.redirect_uris, call service.login_callback()
+        with its URL."""
+        logger.warning("Can't log in to %s without a user to show its login page to", service.name)
+
+    def show_lutris_account_login(self, service: "OnlineService") -> None:
+        """Ask for a lutris.net username and password and connect with lutris.api.connect();
+        on success, fire SERVICE_LOGIN for the service."""
+        logger.warning("Can't log in to Lutris without a user")
+
+    def ask_for_humble_bundle_cookies(self) -> str | None:
+        """Ask the user for their Humble Bundle cookies, exported from a browser in which
+        they're logged in. Returns the cookies file's contents, or None if they cancel."""
+        return None

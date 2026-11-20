@@ -44,6 +44,7 @@ from lutris.gui.installerwindow import INSTALLATION_COMPLETED, INSTALLATION_FAIL
 from lutris.gui.style_manager import StyleManager
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.installer import InstallationKind, get_installers
+from lutris.installer.errors import ScriptingError
 from lutris.migrations import migrate
 from lutris.monitored_command import exec_command
 from lutris.runners import InvalidRunnerError, RunnerInstallationError, get_runner_names, import_runner
@@ -55,6 +56,7 @@ from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_steamapps_dirs
+from lutris.util.strings import gtk_safe
 
 from ..util.busy import BusyAsyncCall
 from ..util.standalone_scripts import generate_script
@@ -71,6 +73,22 @@ if TYPE_CHECKING:
     GtkWindowType = TypeVar("GtkWindowType", bound=Gtk.Window)
 
 
+def _show_uncaught_scripting_errors() -> None:
+    """Show an installer script's errors in a dialog when nothing else caught them."""
+    original_excepthook = sys.excepthook
+
+    def excepthook(error_type, value, traceback):
+        if error_type == ScriptingError:
+            message = value.message
+            if value.faulty_data:
+                message += "\n<b>%s</b>" % gtk_safe(value.faulty_data)
+            ErrorDialog(message)
+        else:
+            original_excepthook(error_type, value, traceback)
+
+    sys.excepthook = excepthook
+
+
 class LutrisApplication(Gtk.Application):
     def __init__(self) -> None:
         super().__init__(
@@ -82,6 +100,7 @@ class LutrisApplication(Gtk.Application):
         # Prepare the backstop logic just before the first emission hook (or connection) is
         # established; this will apply to all connections from this point forward.
         init_exception_backstops()
+        _show_uncaught_scripting_errors()
 
         GAME_START.register(self.on_game_start)
         GAME_STOPPED.register(self.on_game_stopped)

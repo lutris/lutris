@@ -4,11 +4,13 @@ Provides dialogs for conflict resolution and sync status notifications
 during game launch and quit.
 """
 
+import threading
 from gettext import gettext as _
 
-from gi.repository import Gtk
+from gi.repository import GLib, Gtk
 
 from lutris.gui.dialogs import ModalDialog
+from lutris.util.log import logger
 
 
 class CloudSyncConflictDialog(ModalDialog):
@@ -70,3 +72,31 @@ class CloudSyncConflictDialog(ModalDialog):
         elif response == Gtk.ResponseType.NO:
             self.action = "upload"
         # else: None (skip)
+
+
+def ask_cloud_sync_conflict(game_name: str, location_name: str) -> str | None:
+    """Ask which saves to keep, with a CloudSyncConflictDialog; a ConflictResolver
+    (lutris.services.gog_cloud_hooks) for the sync's worker thread.
+
+    The dialog is created on the main thread, while the calling thread waits for the
+    user's answer, so this must not be called on the main thread itself.
+
+    Returns:
+        ``"download"``, ``"upload"``, or ``None`` (skip).
+    """
+    result_holder: list[str | None] = [None]
+    event = threading.Event()
+
+    def _create_dialog() -> bool:
+        try:
+            dialog = CloudSyncConflictDialog(game_name, location_name)
+            result_holder[0] = dialog.action
+        except Exception as ex:
+            logger.debug("Could not show conflict dialog: %s", ex)
+        finally:
+            event.set()
+        return False  # Do not repeat
+
+    GLib.idle_add(_create_dialog)
+    event.wait()
+    return result_holder[0]
