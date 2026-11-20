@@ -2,8 +2,9 @@ import os
 import tempfile
 import unittest
 from pathlib import PureWindowsPath
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
+from lutris.runners.wine import wine
 from lutris.util.wine import prefix
 from lutris.util.wine.prefix import WinePrefixManager
 
@@ -132,3 +133,54 @@ class TestDesktopIntegration(unittest.TestCase):
         folders = WinePrefixManager(self.prefix_path).get_desktop_folders()
 
         self.assertEqual(folders[prefix.DESKTOP_XDG.index("PICTURES")], "Pictures")
+
+
+USER_REG_WITH_DPI = """WINE REGISTRY Version 2
+;; All keys relative to \\\\User\\\\S-1-5-21
+
+#arch=win64
+
+[Control Panel\\\\Desktop] 1700000000
+#time=1
+"LogPixels"=dword:00000090
+
+[Software\\\\Wine\\\\Fonts] 1700000000
+#time=1
+"LogPixels"=dword:00000090
+"""
+
+
+class TestDpi(unittest.TestCase):
+    def setUp(self):
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        os.makedirs(os.path.join(temp_dir.name, "drive_c"))
+        # As if the user had set 144 DPI in winecfg
+        with open(os.path.join(temp_dir.name, "user.reg"), "w", encoding="utf-8") as reg_file:
+            reg_file.write(USER_REG_WITH_DPI)
+        self.prefix = WinePrefixManager(temp_dir.name)
+        self.key = self.prefix.hkcu_prefix + "/Control Panel/Desktop"
+
+    def get_dpi(self, runner_config):
+        with patch.object(wine, "runner_config", new_callable=PropertyMock, return_value=runner_config):
+            return wine().get_dpi()
+
+    def test_dpi_scaling_off_leaves_wine_in_control(self):
+        self.assertIsNone(self.get_dpi({"Dpi": False}))
+
+    def test_dpi_scaling_on_uses_explicit_dpi(self):
+        self.assertEqual(self.get_dpi({"Dpi": True, "ExplicitDpi": "120"}), 120)
+
+    def test_dpi_scaling_on_falls_back_for_auto(self):
+        with patch("lutris.runners.wine.get_default_dpi", return_value=192):
+            self.assertEqual(self.get_dpi({"Dpi": True, "ExplicitDpi": "auto"}), 192)
+
+    def test_launch_keeps_the_users_dpi(self):
+        self.prefix.set_dpi(self.get_dpi({"Dpi": False}))
+        self.assertEqual(self.prefix.get_registry_key(self.key, "LogPixels"), 144)
+
+    def test_turning_dpi_scaling_off_undoes_what_lutris_set(self):
+        self.prefix.set_dpi(self.get_dpi({"Dpi": True, "ExplicitDpi": "120"}))
+        self.assertEqual(self.prefix.get_registry_key(self.key, "LogPixels"), 120)
+        self.prefix.set_dpi(self.get_dpi({"Dpi": False}))
+        self.assertEqual(self.prefix.get_registry_key(self.key, "LogPixels"), 96)

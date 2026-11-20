@@ -21,6 +21,9 @@ if TYPE_CHECKING:
 
 DEFAULT_GAMEID = "umu-default"
 
+# umu's game database names some stores differently from the Lutris services for them
+UMU_STORE_NAMES = {"humblebundle": "humble", "ea_app": "ea"}
+
 GE_PROTON_RELEASE_URL = "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/tags/%s"
 
 # A GE-Proton release tag such as 'GE-Proton11-7'; unlike the lower-case 'ge-proton'
@@ -367,13 +370,8 @@ def get_game_id(game, env) -> str:
     with open(games_path, "r", encoding="utf-8") as games_file:
         umu_games = json.load(games_file)
 
+    store = UMU_STORE_NAMES.get(game.service, game.service)
     for umu_game in umu_games:
-        if (
-            umu_game["store"]
-            and (
-                umu_game["store"] == game.service or (umu_game["store"] == "humble" and game.service == "humblebundle")
-            )
-            and umu_game["appid"] == game.appid
-        ):
+        if umu_game["store"] and umu_game["store"] == store and umu_game["appid"] == game.appid:
             return umu_game["umu_id"]
     return DEFAULT_GAMEID

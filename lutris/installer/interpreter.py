@@ -88,8 +88,6 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.current_resolution = DISPLAY_MANAGER.get_current_resolution()
         self.installer = LutrisInstaller(installer, self, service=self.service, appid=_appid)
 
-        if not self.installer.script:
-            raise ScriptingError(_("This installer doesn't have a 'script' section"))
         if not self.service and self.installer.service:
             self.service = self.installer.service
         script_errors = self.installer.get_errors()
@@ -193,18 +191,21 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
                 installed_games = [dep for dep in [self._get_game_dependency(dep) for dep in dependency] if dep]
                 if not installed_games:
                     if len(dependency) == 1:
-                        raise MissingGameDependencyError(slug=dependency)
+                        raise MissingGameDependencyError(slug=dependency[0])
                     raise ScriptingError(error_message.format(_(" or ").join(dependency)))
-                if index == 0:
-                    self.target_path = installed_games[0]["directory"]
-                    self.requires = installed_games[0]["installer_slug"]
+                game = installed_games[0]
             else:
                 game = self._get_game_dependency(dependency)
                 if not game:
                     raise MissingGameDependencyError(slug=dependency)
-                if index == 0:
-                    self.target_path = game["directory"]
-                    self.requires = game["installer_slug"]
+            if index == 0:
+                self.target_path = game["directory"]
+                if not self.installer.extends:
+                    # A 'requires' script is set up on top of the required game's config,
+                    # which the installer looks up by this; it must name the game we
+                    # picked, not the list of alternatives. An 'extends' script just adds
+                    # files to the game it extends, and never looks at 'requires'.
+                    self.installer.requires = game["installer_slug"]
 
     def get_extras(self):
         """Get extras and store them to move them at the end of the install"""

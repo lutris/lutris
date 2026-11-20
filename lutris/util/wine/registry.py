@@ -113,20 +113,25 @@ class WineRegistry:
         current_key = None
         add_next_to_value = False
         additional_values = []
+
+        def flush_additional_values():
+            # Continuation lines are held back until the value they belong to is complete
+            if current_key and additional_values:
+                current_key.add_to_last("\n".join(additional_values))
+                additional_values.clear()
+
         for line in registry_lines:
             line = line.rstrip("\n")
 
             if line.startswith("["):
+                flush_additional_values()
                 current_key = WineRegistryKey(key_def=line)
                 self.keys[current_key.name] = current_key
             elif current_key:
                 if add_next_to_value:
                     additional_values.append(line)
-                elif not add_next_to_value:
-                    if additional_values:
-                        additional_values = "\n".join(additional_values)
-                        current_key.add_to_last(additional_values)
-                        additional_values = []
+                else:
+                    flush_additional_values()
                     current_key.parse(line)
                 add_next_to_value = line.endswith("\\")
             elif line.startswith(self.version_header):
@@ -135,6 +140,8 @@ class WineRegistry:
                 self.relative_to = line[len(self.relative_to_header) :]
             elif line.startswith("#arch"):
                 self.arch = line.split("=")[1]
+        # The last value in the file has no line after it to trigger this
+        flush_additional_values()
 
     def render(self):
         content = "{}{}\n".format(self.version_header, self.version)
