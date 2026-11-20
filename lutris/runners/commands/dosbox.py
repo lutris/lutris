@@ -9,6 +9,9 @@ from lutris.runners import import_runner
 from lutris.util import system
 from lutris.util.log import logger
 
+# These functions are called by name by installer scripts using the 'task' action;
+# they can't safely be removed even if Lutris does not call them.
+
 
 def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, working_dir=None):
     """Execute Dosbox with given config_file."""
