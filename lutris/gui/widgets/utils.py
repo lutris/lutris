@@ -9,9 +9,9 @@ from gi.repository import Gdk, GdkPixbuf, Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.exceptions import MissingMediaError
-from lutris.gui.widgets import NotificationSource
 from lutris.util import datapath, magic, system
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 
 if TYPE_CHECKING:
     from lutris.gui.application import LutrisApplication

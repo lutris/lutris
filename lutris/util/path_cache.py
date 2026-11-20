@@ -7,10 +7,10 @@ import time
 from lutris import settings
 from lutris.database.games import get_games
 from lutris.game import GAME_START, GAME_UPDATED, Game
-from lutris.gui.widgets import NotificationSource
 from lutris.util import cache_single
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 
 GAME_PATH_CACHE_PATH = os.path.join(settings.CACHE_DIR, "game-paths.json")
 

@@ -228,3 +228,9 @@ Build tooling
 * ``packaging/flatpak`` holds the Flatpak manifest, derived from Flathub's;
   ``shared-modules`` is a git submodule of Flathub's shared modules.
 * The root ``Makefile`` holds the developer and Flatpak build tasks.
+
+The code is being split into a core that knows nothing about the user
+interface and frontends (GTK today, Qt next) that drive it. Read
+``docs/architecture.rst`` before adding code that touches both: in short,
+nothing outside ``lutris/gui`` may import ``lutris.gui`` or GTK, and
+``tests/_test_architecture.py`` checks that.

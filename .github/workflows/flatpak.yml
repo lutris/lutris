@@ -47,9 +47,11 @@ jobs:
           else
             is_prerelease=true
           fi
-          echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
-          echo "artifact_version=$artifact_version" >> "$GITHUB_OUTPUT"
-          echo "is_prerelease=$is_prerelease" >> "$GITHUB_OUTPUT"
+          {
+            echo "app_version=$app_version"
+            echo "artifact_version=$artifact_version"
+            echo "is_prerelease=$is_prerelease"
+          } >> "$GITHUB_OUTPUT"
 
   build:
     name: Build

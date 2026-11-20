@@ -7,7 +7,7 @@ from gi.repository import Gtk, Pango
 from lutris import runners, services
 from lutris.database.games import get_game_for_service
 from lutris.game import GAME_INSTALLED, GAME_START, GAME_STARTED, GAME_STOPPED, GAME_UPDATED, Game
-from lutris.game_actions import get_game_actions
+from lutris.gui.game_actions import get_game_actions
 from lutris.gui.widgets.contextual_menu import update_action_widget_visibility
 from lutris.util.strings import gtk_safe
 

@@ -1563,6 +1563,32 @@
         "lineCount": 1
       }
     ],
+    "lutris/gui/style_manager.py": [
+      {
+        "rule": "unused-type-ignore-comment",
+        "startColumn": 28,
+        "endColumn": 42,
+        "lineCount": 1
+      },
+      {
+        "rule": "unused-type-ignore-comment",
+        "startColumn": 29,
+        "endColumn": 43,
+        "lineCount": 1
+      },
+      {
+        "rule": "unused-type-ignore-comment",
+        "startColumn": 26,
+        "endColumn": 40,
+        "lineCount": 1
+      },
+      {
+        "rule": "missing-union-attribute",
+        "startColumn": 8,
+        "endColumn": 37,
+        "lineCount": 1
+      }
+    ],
     "lutris/gui/views/base.py": [
       {
         "rule": "missing-attribute",
@@ -3537,32 +3563,6 @@
         "lineCount": 1
       }
     ],
-    "lutris/style_manager.py": [
-      {
-        "rule": "unused-type-ignore-comment",
-        "startColumn": 28,
-        "endColumn": 42,
-        "lineCount": 1
-      },
-      {
-        "rule": "unused-type-ignore-comment",
-        "startColumn": 29,
-        "endColumn": 43,
-        "lineCount": 1
-      },
-      {
-        "rule": "unused-type-ignore-comment",
-        "startColumn": 26,
-        "endColumn": 40,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 8,
-        "endColumn": 37,
-        "lineCount": 1
-      }
-    ],
     "lutris/util/__init__.py": [
       {
         "rule": "missing-attribute",
@@ -3738,12 +3738,6 @@
       }
     ],
     "lutris/util/jobs.py": [
-      {
-        "rule": "not-callable",
-        "startColumn": 27,
-        "endColumn": 70,
-        "lineCount": 1
-      },
       {
         "rule": "missing-attribute",
         "startColumn": 8,

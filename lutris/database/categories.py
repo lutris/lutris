@@ -6,7 +6,7 @@ from typing import Any, TypeAlias
 from lutris import settings
 from lutris.database import games as games_db
 from lutris.database import sql
-from lutris.gui.widgets import NotificationSource
+from lutris.util.notifications import NotificationSource
 
 CATEGORIES_UPDATED = NotificationSource()
 

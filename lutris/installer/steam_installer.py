@@ -5,11 +5,11 @@ import time
 from gettext import gettext as _
 
 from lutris.config import LutrisConfig
-from lutris.gui.widgets import NotificationSource
 from lutris.installer.errors import ScriptingError
 from lutris.runners import steam
 from lutris.util.jobs import AsyncCall, schedule_repeating_at_idle
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 from lutris.util.steam.log import get_app_state_log
 
 

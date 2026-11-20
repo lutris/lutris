@@ -8,8 +8,9 @@ from typing import TYPE_CHECKING
 from gi.repository import Gdk, GObject, Gtk, Pango
 
 from lutris.gui.dialogs import FileDialog
-from lutris.gui.widgets.log_text_view import LogTextView
+from lutris.gui.widgets.log_text_view import LogTextView, mirror_log_buffer
 from lutris.util import datapath
+from lutris.util.log_buffer import LogBuffer
 
 if TYPE_CHECKING:
     from lutris.game import Game
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class LogWindow(GObject.Object):
-    def __init__(self, game: "Game", buffer: Gtk.TextBuffer, application: "LutrisApplication | None" = None):
+    def __init__(self, game: "Game", log_buffer: LogBuffer, application: "LutrisApplication | None" = None):
         super().__init__()
         ui_filename = os.path.join(datapath.get(), "ui/log-window.ui")
         builder = Gtk.Builder()
@@ -28,8 +29,8 @@ class LogWindow(GObject.Object):
         self.title = _("Log for {}").format(game)
         self.window.set_title(self.title)
 
-        self.buffer = buffer
-        self.logtextview = LogTextView(self.buffer)
+        self.log_buffer = log_buffer
+        self.logtextview = LogTextView(mirror_log_buffer(log_buffer, owner=self.window))
 
         scrolled_window: Gtk.ScrolledWindow = builder.get_object("scrolled_window")
         scrolled_window.add(self.logtextview)
@@ -70,9 +71,8 @@ class LogWindow(GObject.Object):
         if not log_path:
             return None
 
-        text = self.buffer.get_text(self.buffer.get_start_iter(), self.buffer.get_end_iter(), True)
         with open(log_path, "w", encoding="utf-8") as log_file:
-            log_file.write(text)
+            log_file.write(self.log_buffer.text)
 
     def on_zoom_in_clicked(self, _button: Gtk.Button) -> None:
         """Increase font size"""

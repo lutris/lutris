@@ -3,6 +3,24 @@ from typing import Any
 # Third Party Libraries
 from gi.repository import Gtk
 
+from lutris.util.log_buffer import LogBuffer
+
+
+def mirror_log_buffer(log_buffer: LogBuffer, owner: Gtk.Widget) -> Gtk.TextBuffer:
+    """Return a Gtk.TextBuffer showing `log_buffer`, kept up to date until `owner` is destroyed."""
+    text_buffer = Gtk.TextBuffer()
+    text_buffer.set_text(log_buffer.text)
+
+    def on_changed(text: str, replaced: bool) -> None:
+        if replaced:
+            text_buffer.set_text(text)
+        else:
+            text_buffer.insert(text_buffer.get_end_iter(), text, -1)
+
+    registration = log_buffer.changed.register(on_changed)
+    owner.connect("destroy", lambda *_args: registration.unregister())
+    return text_buffer
+
 
 class LogTextView(Gtk.TextView):
     # pylint: disable=no-member

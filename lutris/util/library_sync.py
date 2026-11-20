@@ -12,9 +12,9 @@ from lutris.database.categories import (
 )
 from lutris.database.games import add_game, get_games, get_games_where
 from lutris.game import Game
-from lutris.gui.widgets import NotificationSource
 from lutris.util import http
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 
 LIBRARY_URL = settings.SITE_URL + "/api/users/library"
 LOCAL_LIBRARY_SYNCING = NotificationSource()

@@ -34,13 +34,14 @@ from lutris import settings
 from lutris.api import get_runners, parse_installer_url
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
+from lutris.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
 from lutris.exception_backstops import init_exception_backstops
 from lutris.game import GAME_START, GAME_STOPPED, Game, export_game, import_game
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
-from lutris.gui.dialogs.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
 from lutris.gui.installerwindow import INSTALLATION_COMPLETED, INSTALLATION_FAILED, InstallerWindow
+from lutris.gui.style_manager import StyleManager
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.installer import InstallationKind, get_installers
 from lutris.migrations import migrate
@@ -48,7 +49,6 @@ from lutris.monitored_command import exec_command
 from lutris.runners import InvalidRunnerError, RunnerInstallationError, get_runner_names, import_runner
 from lutris.services import get_enabled_services
 from lutris.startup import init_lutris, run_all_checks
-from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, resources, system
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import file_handler, logger

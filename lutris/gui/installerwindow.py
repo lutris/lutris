@@ -22,9 +22,8 @@ from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
 from lutris.gui.installer.files_box import InstallerFilesBox
 from lutris.gui.installer.script_picker import InstallerPicker
-from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import FileChooserEntry
-from lutris.gui.widgets.log_text_view import LogTextView
+from lutris.gui.widgets.log_text_view import LogTextView, mirror_log_buffer
 from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.gui.widgets.utils import get_main_window
 from lutris.installer import InstallationKind, interpreter
@@ -34,6 +33,8 @@ from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall, schedule_repeating_at_idle
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import get_log_contents, logger
+from lutris.util.log_buffer import LogBuffer
+from lutris.util.notifications import NotificationSource
 from lutris.util.steam import shortcut as steam_shortcut
 from lutris.util.strings import gtk_safe, human_size
 from lutris.util.system import is_removeable
@@ -157,7 +158,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.installer_files_box.connect("files-available", self.on_files_available)
         self.installer_files_box.connect("files-ready", self.on_files_ready)
 
-        self.log_buffer = Gtk.TextBuffer()
+        self.log_buffer = LogBuffer()
         self.error_details_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, no_show_all=True)
         self.error_details_buffer = Gtk.TextBuffer()
         self.error_reporter = self.load_error_page
@@ -808,8 +809,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack.jump_to_page(self.present_log_page)
 
     def create_log_page(self):
-        log_textview = LogTextView(self.log_buffer)
-        return Gtk.ScrolledWindow(hexpand=True, vexpand=True, child=log_textview, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        scrolled_window = Gtk.ScrolledWindow(hexpand=True, vexpand=True, shadow_type=Gtk.ShadowType.ETCHED_IN)
+        scrolled_window.add(LogTextView(mirror_log_buffer(self.log_buffer, owner=scrolled_window)))
+        return scrolled_window
 
     def present_log_page(self):
         """Creates a TextBuffer and attach it to a command"""

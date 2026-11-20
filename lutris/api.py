@@ -17,12 +17,12 @@ from typing import Any, TypeAlias, cast
 import requests
 
 from lutris import settings
-from lutris.gui.widgets import NotificationSource
 from lutris.util import http, system
 from lutris.util.graphics.gpu import get_gpus_info
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 from lutris.util.strings import time_ago
 
 API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")

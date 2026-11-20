@@ -1,17 +1,29 @@
+"""Running work off the main thread, and scheduling it back onto the main loop.
+
+Everything here runs on whichever loop lutris.util.mainloop has installed, so
+code using it doesn't depend on the UI toolkit.
+"""
+
 import sys
 import threading
+import time
 import traceback
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, TypeVar
-
-from gi.repository import GLib
+from typing import Any, Protocol, TypeVar
 
 from lutris.util.log import logger
-
-if TYPE_CHECKING:
-    from gi.repository import Gtk
+from lutris.util.mainloop import get_main_loop
 
 ResultType = TypeVar("ResultType")
+
+
+class DestroyNotifier(Protocol):
+    """An object (typically a widget) that can tell when it's destroyed."""
+
+    def call_when_destroyed(self, callback: Callable[[], None]) -> Callable[[], None]:
+        """Call `callback` when this object is destroyed; returns a function that
+        cancels that."""
+        ...
 
 
 class AsyncCall(threading.Thread):
@@ -20,12 +32,12 @@ class AsyncCall(threading.Thread):
         func: Callable[..., ResultType],
         callback: Callable[[ResultType, Exception], None] | None,
         *args: Any,
-        callback_target: "Gtk.Widget | None" = None,
+        callback_target: DestroyNotifier | None = None,
         **kwargs: Any,
     ):
         """Execute `function` in a new thread then schedule `callback` for
-        execution in the main loop. If 'callback_target' is a widget and it is destroyed
-        in the meantime, the callback is cancelled.
+        execution in the main loop. If 'callback_target' (by default the object the
+        callback is a method of) is destroyed in the meantime, the callback is cancelled.
         """
         self.callback_task = None
         self.stop_request = threading.Event()
@@ -40,7 +52,7 @@ class AsyncCall(threading.Thread):
         self.start()
 
     def _protect_callback(
-        self, callback: Callable[[Any, Exception], None], callback_target: "Gtk.Widget | None" = None
+        self, callback: Callable[[Any, Exception], None], callback_target: DestroyNotifier | None = None
     ) -> Callable[[Any, Exception], None]:
         """Wraps and hooks up an on-destroyed handler on the callback_target that
         removes the callback; this prevents an AsyncJob from completing on a
@@ -95,28 +107,28 @@ class IdleTask:
     def __init__(self) -> None:
         """Initializes a task with no connection to a source, but also not completed; this can be
         connected to a source via the connect() method, unless it is completed first."""
-        self.source_id: int | None = None
+        self.handle: object | None = None
         self._is_completed = False
 
     def unschedule(self) -> None:
         """Call this to prevent the idle task from running, if it has not already run."""
-        if self.source_id is not None:
-            GLib.source_remove(self.source_id)
+        if self.handle is not None:
+            get_main_loop().cancel(self.handle)
             self.disconnect()
 
     def is_completed(self) -> bool:
         """True if the idle task has completed; that is, if mark_completed() was called on it."""
         return self._is_completed
 
-    def connect(self, source_id: int) -> None:
-        """Connects this task to a source to be unscheduled; but if the task is already
-        completed, this does nothing."""
+    def connect(self, handle: object) -> None:
+        """Connects this task to the main loop's handle for it, so it can be unscheduled;
+        but if the task is already completed, this does nothing."""
         if not self._is_completed:
-            self.source_id = source_id
+            self.handle = handle
 
     def disconnect(self) -> None:
         """Break the link to the idle task, so it can't be unscheduled."""
-        self.source_id = None
+        self.handle = None
 
     def mark_completed(self) -> None:
         """Marks the task as completed, and also disconnect it."""
@@ -136,42 +148,38 @@ def schedule_at_idle(func: Callable[..., None], *args: Any, delay_seconds: float
 
     task = IdleTask()
 
-    def wrapper(*a: Any, **kw: Any) -> bool:
+    def wrapper() -> bool:
         try:
-            func(*a, **kw)
+            func(*args)
             return False
         finally:
             task.disconnect()
 
+    # Error reporting (exception_backstops) finds the window an error belongs to
+    # through the handler's object
     handler_object = func.__self__ if hasattr(func, "__self__") else None
     if handler_object:
         wrapper.__self__ = handler_object  # type: ignore[attr-defined]
 
-    if delay_seconds >= 0.0:
-        milliseconds = int(delay_seconds * 1000)
-        source_id = GLib.timeout_add(milliseconds, wrapper, *args)
-    else:
-        source_id = GLib.idle_add(wrapper, *args)
-
-    task.connect(source_id)
+    task.connect(get_main_loop().schedule(wrapper, delay_seconds))
     return task
 
 
 def run_until_complete(
     async_func: Callable[..., None], *args: Any, timeout_seconds: float = 30.0, **kwargs: Any
 ) -> None:
-    """Iterate the GLib main context until an async operation completes.
+    """Iterate the main loop until an async operation completes.
 
     This is intended for CLI code paths where no main loop is running, or
-    where nesting a second GLib.MainLoop would interfere with the
-    Gtk.Application lifecycle. The async_func receives two extra keyword
+    where nesting a second main loop would interfere with the application's
+    lifecycle. The async_func receives two extra keyword
     arguments — ``completion_function`` and ``error_function`` — which it
     must call when the operation finishes.
 
     Raises whatever exception is passed to error_function, or TimeoutError
     if timeout_seconds elapses first.
     """
-    context = GLib.MainContext.default()
+    main_loop = get_main_loop()
     done = False
     error_holder: list[Exception | None] = [None]
 
@@ -184,13 +192,13 @@ def run_until_complete(
         error_holder[0] = ex
         done = True
 
-    deadline = GLib.get_monotonic_time() + int(timeout_seconds * 1_000_000)
+    deadline = time.monotonic() + timeout_seconds
     async_func(*args, completion_function=on_complete, error_function=on_error, **kwargs)
 
     while not done:
-        if GLib.get_monotonic_time() >= deadline:
+        if time.monotonic() >= deadline:
             raise TimeoutError(f"Async operation timed out after {timeout_seconds}s")
-        context.iteration(True)
+        main_loop.iterate()
 
     if error_holder[0]:
         raise error_holder[0]
@@ -207,10 +215,10 @@ def schedule_repeating_at_idle(
 
     task = IdleTask()
 
-    def wrapper(*a: Any, **kw: Any) -> bool:
+    def wrapper() -> bool:
         repeat = False
         try:
-            repeat = func(*a, **kw)
+            repeat = func(*args)
             return repeat
         finally:
             if not repeat:
@@ -220,11 +228,5 @@ def schedule_repeating_at_idle(
     if handler_object:
         wrapper.__self__ = handler_object  # type: ignore[attr-defined]
 
-    if interval_seconds >= 0.0:
-        milliseconds = int(interval_seconds * 1000)
-        source_id = GLib.timeout_add(milliseconds, wrapper, *args)
-    else:
-        source_id = GLib.idle_add(wrapper, *args)
-
-    task.connect(source_id)
+    task.connect(get_main_loop().schedule(wrapper, interval_seconds))
     return task

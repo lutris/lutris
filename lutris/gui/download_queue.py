@@ -5,12 +5,12 @@ from typing import Any
 
 from gi.repository import Gtk  # type: ignore
 
-from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.progress_box import ProgressBox
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 
 DOWNLOAD_QUEUE_COMPLETED = NotificationSource()
 

@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from lutris.gui.widgets import NotificationSource
 from lutris.util.jobs import AsyncCall
+from lutris.util.notifications import NotificationSource
 
 BUSY_STARTED = NotificationSource()
 BUSY_STOPPED = NotificationSource()

@@ -1,8 +1,8 @@
 from gi.repository import Gio, GLib, GObject, Gtk
 
 from lutris import settings
-from lutris.gui.widgets import NotificationSource
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 
 PORTAL_BUS_NAME = "org.freedesktop.portal.Desktop"
 PORTAL_OBJECT_PATH = "/org/freedesktop/portal/desktop"

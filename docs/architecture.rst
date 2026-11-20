@@ -1,0 +1,141 @@
+Architecture
+============
+
+Where this is going
+-------------------
+
+Lutris is being split into a **core** that knows nothing about any user
+interface, and **frontends** that drive it. The GTK interface in
+``lutris/gui`` is the only frontend today. The aim is to make a second one, in
+Qt through PySide6, a matter of writing widgets rather than untangling
+application logic, and eventually to run the core as a separate process, a
+server, that several frontends (Qt, a gamepad interface, the command line) can
+talk to.
+
+That happens in three stages:
+
+1. **Separate the core in-process.** The core stops importing the GUI and GTK.
+   It reports what happens through notifications and asks the user things
+   through delegates; the GTK frontend implements both. This is the stage in
+   progress, and the one that matters most for Qt.
+2. **Give the core a front door.** A small API of plain-data calls and events
+   (list games, launch, install, log in to a service, ...) that frontends use
+   instead of reaching into ``Game``, runner and service objects.
+3. **Move the core out of process**, by putting that API behind IPC. It only
+   becomes possible once frontends use nothing but the API.
+
+The Qt frontend can start as soon as stage 1 is done, and grows alongside
+stage 2.
+
+The rule
+--------
+
+**Code outside a frontend package never imports from a frontend, nor a GUI
+toolkit.** Concretely, nothing outside ``lutris/gui`` may import
+``lutris.gui``, or the ``Gtk``, ``Gdk``, ``GdkPixbuf``, ``GnomeDesktop``,
+``WebKit2`` (and similar) introspection namespaces. ``GLib``, ``GObject`` and
+``Gio`` are allowed: they aren't UI, and Qt's event loop on Linux is GLib's.
+
+``tests/_test_architecture.py`` enforces this. It lists the couplings that
+predate the rule, fails on any new one, and fails when a listed one has been
+removed but is still listed, so the list only shrinks. That list is also the
+to-do list for stage 1.
+
+How the core reaches a frontend
+-------------------------------
+
+The core never calls into a frontend directly. These are the ways it gets one
+to do something, and new code should use them:
+
+The main loop: ``lutris.util.mainloop``
+    All deferred work (``schedule_at_idle``, ``AsyncCall`` callbacks,
+    notifications) runs on the installed ``MainLoop``. The default is GLib's;
+    a Qt frontend installs one built on ``QTimer`` with ``set_main_loop()``
+    before it starts.
+
+Background work: ``lutris.util.jobs``
+    ``AsyncCall`` runs a function on a thread and delivers its result on the
+    main loop. ``callback_target`` cancels delivery if its object reports being
+    destroyed (anything with ``call_when_destroyed``; the GTK frontend adds that
+    to widgets, a Qt one would to ``QObject``).
+
+Notifications: ``lutris.util.notifications``
+    ``NotificationSource`` is how the core announces that something happened:
+    ``GAME_STARTED``, ``GAME_UPDATED``, ``SERVICE_GAMES_LOADED``,
+    ``CATEGORIES_UPDATED`` and so on. Handlers always run on the main loop,
+    never inline. These are what will become the server's event stream.
+
+Delegates: ``lutris.delegates``
+    When the core needs the user (confirm a launch, pick a launch
+    configuration, answer an installer question, provide a file), it calls a
+    delegate passed in by the caller. The base classes make the
+    non-interactive choice; ``lutris.gui.dialogs.delegates`` implements them
+    with GTK dialogs, and a Qt frontend would do the same with its own.
+
+Models instead of widgets
+    When the core produces something a frontend displays as it changes, it
+    keeps it in a plain object with a notification, and the frontend adapts
+    that to its own widgets. ``lutris.util.log_buffer.LogBuffer`` is the
+    example: games and installer commands write their output to one, and the
+    GTK frontend mirrors it into a ``Gtk.TextBuffer``
+    (``lutris.gui.widgets.log_text_view.mirror_log_buffer``).
+
+Remaining work for stage 1
+--------------------------
+
+Grouped by what has to be built, roughly in the order planned:
+
+Progress
+    The installer creates GTK progress widgets itself
+    (``installer/installer_file.py``, ``installer_file_collection.py``,
+    ``runtime.py``). It should expose progress as data (bytes done, total,
+    state) and let the frontend choose how to show it.
+
+Dialogs opened by the core
+    Error, notice, question, input and file dialogs are opened straight from
+    core code (``installer/errors.py``, ``runners/wine.py``, ``services/*``,
+    and the cloud save conflict dialog). These become delegate calls: an
+    interaction delegate for the general cases, and a way for services to ask
+    for a web login (today ``WebConnectDialog``).
+
+Media
+    Services build game artwork with helpers from ``gui/widgets/utils.py`` and
+    ``gui/views/media_loader.py``. The parts that only download and process
+    images (with Pillow) move into the core; only drawing stays in the GUI.
+
+Errors
+    ``exception_backstops.py`` both reports unhandled errors with GTK dialogs
+    and wraps GLib callbacks. The reporting moves into the GTK frontend; the
+    core announces errors with a notification (``GAME_UNHANDLED_ERROR`` already
+    exists).
+
+The game and the application object
+    ``game.py`` reaches for ``LutrisApplication`` and the main window (to show
+    windows, hide on launch, show cloud sync progress). Those become
+    notifications and delegate calls.
+
+Display information
+    ``util/display.py`` reads monitors and resolutions through ``Gdk`` and
+    ``GnomeDesktop`` and is used by runners. It needs a small display
+    interface the frontend (or a toolkit-free backend such as xrandr)
+    provides.
+
+Leftovers
+    The installer interpreter's GObject signals become notifications;
+    ``startup.py`` stops checking ``GdkPixbuf`` formats; once nothing in the
+    core imports GTK, ``lutris/__init__.py`` stops pinning the GTK version and
+    the GTK frontend does it instead.
+
+Command line
+    The command line (``lutris -l``, ``--install``, ``--export`` and so on) is
+    handled inside the GTK ``Gtk.Application``. It should become its own small
+    frontend over the core, so it works with no GUI toolkit installed.
+
+Stage 2 and 3
+-------------
+
+The API's calls and events will carry plain data (ids, dictionaries,
+dataclasses), never live ``Game`` or service objects, so that the same API can
+later be served over IPC unchanged. Which IPC to use (D-Bus, which Lutris
+already uses, or JSON-RPC over a Unix socket) is decided at stage 3, when the
+API's shape is known.

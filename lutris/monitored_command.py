@@ -17,11 +17,10 @@ from gi.repository import GLib
 from lutris import settings
 from lutris.util import system
 from lutris.util.log import logger
+from lutris.util.log_buffer import LogBuffer
 from lutris.util.shell import get_terminal_script
 
 if TYPE_CHECKING:
-    from gi.repository import Gtk
-
     from lutris.runners.runner import Runner
 
 
@@ -59,7 +58,7 @@ class MonitoredCommand:
         cwd: str | None = None,
         include_processes: list[str] | None = None,
         exclude_processes: list[str] | None = None,
-        log_buffer: "Gtk.TextBuffer | None" = None,
+        log_buffer: LogBuffer | None = None,
         title: str | None = None,
     ):  # pylint: disable=too-many-arguments
         self.ready_state = True
@@ -135,8 +134,8 @@ class MonitoredCommand:
         script_path = get_terminal_script(self.command, self.cwd, self.env)
         return wrapper_command + [terminal_path, "-e", script_path]
 
-    def set_log_buffer(self, log_buffer: "Gtk.TextBuffer | None") -> None:
-        """Attach a TextBuffer to this command enables the buffer handler"""
+    def set_log_buffer(self, log_buffer: LogBuffer | None) -> None:
+        """Have this command also write its output to `log_buffer`."""
         if not log_buffer:
             return None
         self.log_buffer = log_buffer
@@ -243,7 +242,7 @@ class MonitoredCommand:
 
     def log_handler_buffer(self, line: str) -> None:
         """Add the line to the associated LogBuffer object"""
-        self.log_buffer.insert(self.log_buffer.get_end_iter(), line, -1)
+        self.log_buffer.append(line)
 
     def log_handler_console_output(self, line: str) -> None:
         """Print the line to stdout"""

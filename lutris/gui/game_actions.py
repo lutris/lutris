@@ -13,13 +13,13 @@ from gi.repository import Gio, Gtk
 from lutris.config import duplicate_game_config
 from lutris.database import games
 from lutris.database.games import add_game, get_game_by_field
+from lutris.delegates import LaunchUIDelegate
 from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.config.edit_game import EditGameConfigDialog
 from lutris.gui.config.edit_game_categories import EditGameCategoriesDialog
 from lutris.gui.dialogs import InputDialog
-from lutris.gui.dialogs.delegates import LaunchUIDelegate
 from lutris.gui.dialogs.log import LogWindow
 from lutris.gui.dialogs.uninstall_dialog import UninstallDialog
 from lutris.gui.widgets.utils import open_uri
@@ -359,10 +359,7 @@ class SingleGameActions(GameActions):
     def on_show_logs(self, _widget: Gtk.Widget) -> None:
         """Display game log"""
         game = self.game
-        _buffer = game.log_buffer
-        if not _buffer:
-            logger.info("No log for game %s", game)
-        LogWindow(game=game, buffer=_buffer, application=self.application)
+        LogWindow(game=game, log_buffer=game.log_buffer, application=self.application)
 
     def on_edit_game_configuration(self, _widget: Gtk.Widget) -> None:
         """Edit game preferences"""

@@ -43,6 +43,7 @@ from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, g
 from lutris.gui.dialogs.delegates import DialogInstallUIDelegate, DialogLaunchUIDelegate
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.download_queue import DownloadQueue
+from lutris.gui.style_manager import THEME_CHANGED
 from lutris.gui.views import (
     COL_INSTALLED_AT,
     COL_INSTALLED_AT_TEXT,
@@ -68,7 +69,6 @@ from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGOUT
 from lutris.services.lutris import LutrisService, sync_media
-from lutris.style_manager import THEME_CHANGED
 from lutris.util import datapath
 from lutris.util.busy import BUSY_STARTED, BUSY_STOPPED
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle

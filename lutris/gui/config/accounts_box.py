@@ -7,7 +7,6 @@ from lutris.api import disconnect, read_user_info
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.updates_box import UpdateButtonBox
 from lutris.gui.dialogs import ClientLoginDialog, QuestionDialog
-from lutris.gui.widgets import EMPTY_NOTIFICATION_REGISTRATION
 from lutris.services.lutris import sync_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.library_sync import (
@@ -16,6 +15,7 @@ from lutris.util.library_sync import (
     LibrarySyncer,
     is_local_library_syncing,
 )
+from lutris.util.notifications import EMPTY_NOTIFICATION_REGISTRATION
 from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
 from lutris.util.strings import time_ago
 

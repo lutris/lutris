@@ -26,8 +26,8 @@ from lutris.util.sniper import get_sniper_ld_library_path, get_sniper_run_comman
 if TYPE_CHECKING:
     from lutris.api import RunnerVersionDict
     from lutris.config import GameConfigDict, LaunchConfigDict, RunnerConfigDict, SystemConfigDict
+    from lutris.delegates import InstallUIDelegate
     from lutris.game import Game
-    from lutris.gui.dialogs.delegates import InstallUIDelegate
     from lutris.installer.installer import LutrisInstaller
     from lutris.installer.interpreter import ScriptInterpreter
 

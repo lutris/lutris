@@ -4,7 +4,7 @@ from typing import Any
 
 from lutris import settings
 from lutris.database import sql
-from lutris.gui.widgets import NotificationSource
+from lutris.util.notifications import NotificationSource
 
 SAVED_SEARCHES_UPDATED = NotificationSource()
 

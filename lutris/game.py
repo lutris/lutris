@@ -11,7 +11,7 @@ import time
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any, cast
 
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import Gio, GLib
 
 from lutris import settings
 from lutris.config import LutrisConfig
@@ -20,7 +20,6 @@ from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.exception_backstops import watch_game_errors
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
-from lutris.gui.widgets import NotificationSource
 from lutris.installer import InstallationKind, get_entry_point_path
 from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
@@ -36,17 +35,22 @@ from lutris.util.display import (
 )
 from lutris.util.graphics.xrandr import turn_off_except
 from lutris.util.linux import LINUX_SYSTEM
-from lutris.util.log import LOG_BUFFERS, logger
+from lutris.util.log import logger
+from lutris.util.log_buffer import LogBuffer
+from lutris.util.notifications import NotificationSource
 from lutris.util.steam.shortcut import remove_shortcut as remove_steam_shortcut
 from lutris.util.system import fix_path_case
 from lutris.util.timer import Timer
 from lutris.util.yaml import write_yaml_to_file
 
 if TYPE_CHECKING:
+    from lutris.delegates import LaunchUIDelegate
     from lutris.gui.application import LutrisApplication
-    from lutris.gui.dialogs.delegates import LaunchUIDelegate
 
 HEARTBEAT_DELAY = 2000
+
+# Each game's output since it last launched, by game id
+LOG_BUFFERS: dict[str, LogBuffer] = {}
 
 GAME_START = NotificationSource()
 GAME_STARTED = NotificationSource()
@@ -263,16 +267,15 @@ class Game:
                 self.remove_category(".hidden")
 
     @property
-    def log_buffer(self) -> Gtk.TextBuffer:
-        """Access the log buffer object, creating it if necessary"""
+    def log_buffer(self) -> LogBuffer:
+        """The game's output since it last launched, creating the buffer if necessary"""
         _log_buffer = LOG_BUFFERS.get(self.id)
         if _log_buffer:
             return _log_buffer
-        _log_buffer = Gtk.TextBuffer()
-        _log_buffer.create_tag("warning", foreground="red")
+        _log_buffer = LogBuffer()
         if self.game_thread:
-            self.game_thread.set_log_buffer(_log_buffer)
             _log_buffer.set_text(self.game_thread.stdout)
+            self.game_thread.set_log_buffer(_log_buffer)
         LOG_BUFFERS[self.id] = _log_buffer
         return _log_buffer
 
@@ -481,8 +484,7 @@ class Game:
         self._runner = None
 
         if self.id in LOG_BUFFERS:  # Reset game logs on removal
-            log_buffer = LOG_BUFFERS[self.id]
-            log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
+            LOG_BUFFERS[self.id].clear()
 
     def delete(self) -> None:
         """Delete a game from the library; must be uninstalled first."""
@@ -816,8 +818,7 @@ class Game:
             self.reload_config()  # Reload the config before launching it.
 
             if self.id in LOG_BUFFERS:  # Reset game logs on each launch
-                log_buffer = LOG_BUFFERS[self.id]
-                log_buffer.delete(log_buffer.get_start_iter(), log_buffer.get_end_iter())
+                LOG_BUFFERS[self.id].clear()
 
             self.state = self.STATE_LAUNCHING
             self.prelaunch_pids = system.get_running_pid_list()

@@ -5,12 +5,12 @@ from gi.repository import Gdk, GObject, Gtk
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
 from lutris.game import GAME_START, Game
-from lutris.game_actions import GameActions, get_game_actions
-from lutris.gui.widgets import EMPTY_NOTIFICATION_REGISTRATION
+from lutris.gui.game_actions import GameActions, get_game_actions
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_application
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
+from lutris.util.notifications import EMPTY_NOTIFICATION_REGISTRATION
 from lutris.util.path_cache import MISSING_GAMES
 
 

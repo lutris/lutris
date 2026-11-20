@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, Any
 from gi.repository import Gdk, Gtk  # type: ignore
 
 from lutris.config import LutrisConfig
-from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.common import EditableGrid, FileChooserEntry, Label
 from lutris.gui.widgets.searchable_entrybox import SearchableEntrybox
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 from lutris.util.strings import gtk_safe
 
 if TYPE_CHECKING:

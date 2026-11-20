@@ -18,7 +18,6 @@ from lutris.game import GAME_UPDATED, Game
 from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.gui.views.media_loader import download_media
-from lutris.gui.widgets import NotificationSource
 from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
@@ -26,6 +25,7 @@ from lutris.util.busy import BusyAsyncCall
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 from lutris.util.strings import slugify
 
 

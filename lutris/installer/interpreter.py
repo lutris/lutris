@@ -8,8 +8,8 @@ from gi.repository import GObject
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
+from lutris.delegates import Delegate
 from lutris.exceptions import AuthenticationError, MisconfigurationError, UnavailableGameError
-from lutris.gui.dialogs.delegates import Delegate
 from lutris.installer import get_entry_point_path
 from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError

@@ -6,7 +6,7 @@ from lutris.game import Game
 
 if TYPE_CHECKING:
     from lutris.database.games import DbGameDict
-    from lutris.gui.dialogs.delegates import LaunchUIDelegate
+    from lutris.delegates import LaunchUIDelegate
 
 
 def generate_script(
