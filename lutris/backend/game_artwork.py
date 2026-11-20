@@ -138,7 +138,7 @@ async def list_steamgriddb_artwork(game_id: str, kind: str) -> tuple[ArtworkChoi
 
     def search() -> tuple[ArtworkChoice, ...]:
         client = SteamGridDB(api_key)
-        steam_appid = str(row.get("service_id") or "") if row.get("service") in ("steam", "steamwindows") else ""
+        steam_appid = str(row.get("service_id") or "") if row.get("service") == "steam" else ""
         sgdb_id = client.find_game(row.get("name") or row["slug"], steam_appid)
         if sgdb_id is None:
             return ()

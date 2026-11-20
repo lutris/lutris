@@ -1285,14 +1285,6 @@
         "lineCount": 1
       }
     ],
-    "lutris/services/steamwindows.py": [
-      {
-        "rule": "incompatible-method-override",
-        "startColumn": 8,
-        "endColumn": 53,
-        "lineCount": 1
-      }
-    ],
     "lutris/services/ubisoft.py": [
       {
         "rule": "invalid-argument-type",

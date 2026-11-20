@@ -19,7 +19,6 @@ from lutris.services.ea_app import EAAppService
 from lutris.services.egs import EpicGamesStoreService
 from lutris.services.gog import GOGService
 from lutris.services.itchio import ItchIoService
-from lutris.services.steamfamily import SteamFamilyService
 from lutris.services.ubisoft import UbisoftConnectService
 from lutris.services.zoom import ZoomService
 from lutris.util.cookies import WebkitCookieJar
@@ -36,7 +35,6 @@ _COOKIE_DOMAINS = {
     "gog": "gog.com",
     "humblebundle": "humblebundle.com",
     "ea_app": "ea.com",
-    "steamfamily": "steampowered.com",
     "gamejolt": "gamejolt.com",
     "dlsite": "dlsite.com",
 }
@@ -232,7 +230,7 @@ def _import_cookies(service: OnlineService, source: Path, domain: str, *, gog_re
         staged.chmod(0o600)
         service.cookies_path = str(staged)
         try:
-            if isinstance(service, EAAppService | SteamFamilyService):
+            if isinstance(service, EAAppService):
                 service.fetch_access_token()
             elif isinstance(service, GOGService):
                 service.login_callback(gog_redirect)

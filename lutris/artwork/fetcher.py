@@ -29,7 +29,7 @@ from lutris.util.log import logger
 type ArtworkKind = Literal["cover", "banner", "icon"]
 
 KINDS: tuple[ArtworkKind, ...] = ("cover", "banner", "icon")
-STEAM_SERVICES = ("steam", "steamwindows", "steamfamily")
+STEAM_SERVICES = ("steam",)
 MISS_LIFETIME_SECONDS = 7 * 24 * 3600
 MAX_WORKERS = 4
 TIMEOUT_SECONDS = 20

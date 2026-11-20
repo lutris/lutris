@@ -36,7 +36,7 @@ def store_artwork(service: str, appid: str) -> ArtworkUrls:
     """Return what the game's store offers; nothing for a game from no known store."""
     if not service or not appid:
         return ArtworkUrls()
-    if service in ("steam", "steamwindows", "steamfamily"):
+    if service == "steam":
         # The 2x cover is the actual 600x900 one, and the header has a 920x430 grid's shape
         return ArtworkUrls(
             cover=_urls(STEAM_URL % (appid, "library_600x900_2x.jpg"), STEAM_URL % (appid, "library_600x900.jpg")),

@@ -17,8 +17,6 @@ from lutris.services.itchio import ItchIoService
 from lutris.services.mame import MAMEService
 from lutris.services.scummvm import SCUMMVM_CONFIG_FILE, ScummvmService
 from lutris.services.steam import SteamService
-from lutris.services.steamfamily import SteamFamilyService
-from lutris.services.steamwindows import SteamWindowsService
 from lutris.services.ubisoft import UbisoftConnectService
 from lutris.services.xdg import XDGService
 from lutris.services.zoom import ZoomService
@@ -51,8 +49,6 @@ def get_services() -> dict[str, "type[BaseService]"]:
         _services["xdg"] = XDGService
     if LINUX_SYSTEM.has_steam():
         _services["steam"] = SteamService
-    _services["steamwindows"] = SteamWindowsService
-    _services["steamfamily"] = SteamFamilyService
     if system.path_exists(DOLPHIN_GAME_CACHE_FILE):
         _services["dolphin"] = DolphinService
     if system.path_exists(SCUMMVM_CONFIG_FILE):
