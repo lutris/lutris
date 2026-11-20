@@ -73,6 +73,13 @@ time, and the libraries Lutris loads through GObject introspection (GTK 3,
 WebKitGTK 4.1, ...) come from your system. `INSTALL.rst` lists the packages
 for both on Fedora, Debian/Ubuntu and Arch.
 
+The Qt Quick frontend that is replacing the GTK one (see
+`docs/architecture.rst`) needs PySide6 from the optional `qt` extra.
+`make run-qt` installs it and starts that frontend from your checkout, using
+your normal Lutris profile. Give the extra to any `uv run` or `uv sync` while
+you work on it (`uv run --extra qt pytest tests/qt`), because a sync without it
+removes PySide6 again.
+
 To try your changes inside the sandbox users get, `make flatpak` builds the
 Flatpak from your working tree and installs it for your user (see
 `INSTALL.rst`; the first build is long).

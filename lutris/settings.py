@@ -54,6 +54,8 @@ for test_module in test_modules:
         # TemporaryDirectory is garbage collected, so it has to live as long as DB_PATH.
         _TEST_TEMP_DIR = TemporaryDirectory()
         DB_PATH = os.path.join(_TEST_TEMP_DIR.name, "pga.db")
+        # Settings the tests change are written there too, not to the user's profile
+        sio.config_file = os.path.join(_TEST_TEMP_DIR.name, "lutris.conf")
         break
 
 

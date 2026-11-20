@@ -21,6 +21,7 @@ help:
 	@echo "  make dev            Create or refresh the virtualenv (.venv)"
 	@echo "  make upgrade        Upgrade every locked dependency to its newest version"
 	@echo "  make run            Run Lutris from the checkout in debug mode"
+	@echo "  make run-qt         Run the Qt Quick frontend from the checkout in debug mode"
 	@echo "  make test           Run the unit test suite"
 	@echo "  make smoke          Run the end-to-end release smoke test"
 	@echo "  make cover          Run the test suite with a coverage report"
@@ -68,6 +69,10 @@ upgrade:
 
 run:
 	$(RUN) bin/lutris -d
+
+# The qt extra must be named, or uv's sync removes PySide6 from the virtualenv
+run-qt:
+	LUTRIS_FRONTEND=qt $(RUN) --extra qt bin/lutris -d
 
 # ============
 # Style checks
