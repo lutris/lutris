@@ -5,7 +5,7 @@ from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import pytest
-from PySide6.QtCore import QMetaObject, QObject, QPointF, Qt, QTimer
+from PySide6.QtCore import QCoreApplication, QEvent, QMetaObject, QObject, QPointF, Qt, QTimer, QUrl
 from PySide6.QtGui import QColor, QGuiApplication, QImage
 from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
@@ -15,9 +15,11 @@ from lutris.backend import events, game_actions, shortcuts
 from lutris.backend.launch_configurations import LaunchChoice
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.database import sql
 from lutris.game import LOG_BUFFERS, Game
 from lutris.qt.main_window import MainWindow
 from lutris.services.base import LutrisBanner, LutrisCoverart
+from lutris.util import path_cache
 from lutris.util.test_config import setup_test_environment
 from tests.conftest import FakeMainLoop
 
@@ -267,6 +269,90 @@ async def open_game_action(window: MainWindow, application: QGuiApplication, gam
     assert item is not None and item.property("enabled")
     assert QMetaObject.invokeMethod(item, "triggered")
     assert QMetaObject.invokeMethod(menu, "close")
+
+
+def test_qml_move_uninstall_and_remove_from_library(
+    qt_application: QGuiApplication,
+    library: list[str],
+    fake_main_loop: FakeMainLoop,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = library[0]
+    source = tmp_path / "Installed Game"
+    destination = tmp_path / "Target Folder"
+    source.mkdir()
+    destination.mkdir()
+    (source / "play.sh").touch()
+    config = tmp_path / "games" / "qt-maintenance.yml"
+    config.parent.mkdir()
+    config.write_text("game:\n  exe: play.sh\n", encoding="utf-8")
+    monkeypatch.setattr(settings, "CONFIG_DIR", str(tmp_path))
+    monkeypatch.setattr(path_cache, "GAME_PATH_CACHE_PATH", str(tmp_path / "path-cache.json"))
+    read_bool_setting = settings.read_bool_setting
+    monkeypatch.setattr(
+        settings,
+        "read_bool_setting",
+        lambda key, *args, **kwargs: key != "library_sync_enabled" and read_bool_setting(key, *args, **kwargs),
+    )
+    sql.db_update(settings.DB_PATH, "games", {"directory": str(source), "configpath": "qt-maintenance"}, {"id": target})
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        try:
+            window.controller.set_installed_only(False)
+            await settle(window)
+            await open_game_action(window, qt_application, target, "moveGame")
+            confirm = window.window.findChild(QObject, "confirmGameMove")
+            assert confirm is not None
+            upkeep = window.controller._maintenance
+            await wait_for_qml(qt_application, lambda: bool(upkeep.property("ready")))
+            assert not confirm.property("enabled")
+            upkeep.choose_destination(QUrl.fromLocalFile(str(destination)))
+            assert upkeep.property("moveTarget") == str(destination / source.name)
+            assert confirm.property("enabled") and QMetaObject.invokeMethod(confirm, "clicked")
+            await wait_for_qml(qt_application, lambda: not bool(upkeep.property("working")))
+            assert (destination / source.name / "play.sh").exists() and not source.exists()
+            assert not upkeep.property("ready")
+
+            await open_game_action(window, qt_application, target, "uninstallGame")
+            uninstall = window.window.findChild(QObject, "confirmGameUninstall")
+            trash = window.window.findChild(QObject, "trashGameFiles")
+            remove = window.window.findChild(QObject, "removeGameEntry")
+            assert uninstall is not None and trash is not None and remove is not None
+            await wait_for_qml(qt_application, lambda: bool(uninstall.property("enabled")))
+            assert trash.property("enabled") and not trash.property("checked") and not remove.property("checked")
+            assert QMetaObject.invokeMethod(uninstall, "clicked")
+            await wait_for_qml(qt_application, lambda: not bool(upkeep.property("working")))
+            QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+            assert (destination / source.name / "play.sh").exists()
+            assert not config.exists() and not Game(target).is_installed
+
+            for _ in range(3):
+                fake_main_loop.run_pending()
+
+            def entry_is_uninstalled() -> bool:
+                controller = window.controller
+                game = controller.model.game_at(controller.model.find_row(target))
+                return bool(game and not game.installed)
+
+            await wait_for_qml(qt_application, entry_is_uninstalled)
+            await open_game_action(window, qt_application, target, "uninstallGame")
+            remove_entry = window.window.findChild(QObject, "confirmGameUninstall")
+            assert remove_entry is not None
+            await wait_for_qml(qt_application, lambda: bool(remove_entry.property("enabled")))
+            assert remove_entry.property("text") == "Remove"
+            assert QMetaObject.invokeMethod(remove_entry, "clicked")
+            await wait_for_qml(qt_application, lambda: not bool(upkeep.property("working")))
+            for _ in range(3):
+                fake_main_loop.run_pending()
+            await wait_for_qml(qt_application, lambda: window.controller.model.find_row(target) < 0)
+            assert (destination / source.name / "play.sh").exists()
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
 
 
 def test_qml_log_tracks_output_and_resets_on_relaunch(

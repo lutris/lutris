@@ -261,6 +261,13 @@ launch installed library games, including the launch target encoded in a shortcu
 A shortcut uses the running instance if there is one. On a fresh launch,
 ``LUTRIS_FRONTEND=qt`` selects Qt as usual. Log updates use ``GAME_LOG_CHANGED`` and ``games.get_game_log``.
 
+Game Actions can move a local installation to another folder, uninstall it,
+or remove its library entry. Uninstalling keeps the files and library entry
+unless the user selects otherwise. The ``game_maintenance`` backend checks
+again before moving or trashing files and blocks protected, overlapping, and
+externally managed installations. Qt refreshes the library on ``GAME_CHANGED``
+or ``GAME_REMOVED``.
+
 The library opens in a cover grid. The View menu switches to banners or a list
 and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
 row. The backend resolves files from the Lutris and service caches. The same
@@ -269,8 +276,8 @@ grid reloads its thumbnails when it receives ``ARTWORK_CHANGED``.
 
 What it needs next, roughly in order, each with the backend calls it takes:
 
-* **Game actions** still need install, uninstall, and move flows. The standalone Steam
-  Big Picture shortcut still needs a Qt entry point. The launch configuration
+* **Game actions** still need installation entry points and the standalone Steam
+  Big Picture shortcut. The launch configuration
   prompt receives ``GameInfo`` and configuration names. The remaining launch
   delegate methods still need the same plain-data boundary.
 * **Configuration**: game, runner and system options, as data, with a widget

@@ -2,6 +2,8 @@
 
 import asyncio
 import os
+from collections.abc import Generator
+from contextlib import contextmanager
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
 
@@ -70,6 +72,20 @@ def game_info_from(game: "Game") -> GameInfo:
 
 # The games launched in this process and not stopped yet, by id
 _running_games: dict[str, Game] = {}
+_games_in_maintenance: set[str] = set()
+
+
+@contextmanager
+def _reserve_game_for_maintenance(game_id: str) -> Generator[None]:
+    if game_id in _running_games:
+        raise LutrisError(_("Stop the game before moving or removing it."))
+    if _games_in_maintenance:
+        raise LutrisError(_("Wait for the current game operation to finish."))
+    _games_in_maintenance.add(game_id)
+    try:
+        yield
+    finally:
+        _games_in_maintenance.remove(game_id)
 
 
 def _on_game_launching(game: Game) -> None:
@@ -89,7 +105,7 @@ GAME_STOPPED.register(_on_game_stopped)
 async def launch_game(game_id: str, launch_ui_delegate: "LaunchUIDelegate") -> bool:
     """Launch a game; the events in lutris.backend.events follow how it goes. Returns
     False if it can't be launched (it isn't installed, say), with nothing to follow."""
-    if game_id in _running_games:
+    if game_id in _running_games or game_id in _games_in_maintenance:
         return False
     game = Game(game_id)
     _running_games[game_id] = game

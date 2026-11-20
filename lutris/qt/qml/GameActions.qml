@@ -80,6 +80,57 @@ ToolButton {
             text: qsTr("Browse Files")
             onTriggered: actions.controller.browse_files(actions.targetGameId)
         }
+
+        MenuSeparator {}
+
+        MenuItem {
+            objectName: "moveGame"
+            text: qsTr("Move Game…")
+            enabled: actions.targetInstalled && actions.controller.canMaintain
+            onTriggered: {
+                actions.controller.gameMaintenance.open_maintenance(actions.targetGameId)
+                moveLoader.active = true
+            }
+        }
+
+        MenuItem {
+            objectName: "uninstallGame"
+            text: actions.targetInstalled ? qsTr("Uninstall Game…") : qsTr("Remove from Library…")
+            enabled: actions.controller.canMaintain
+            onTriggered: {
+                actions.controller.gameMaintenance.open_maintenance(actions.targetGameId)
+                uninstallLoader.active = true
+            }
+        }
+    }
+
+    Loader {
+        id: moveLoader
+        active: false
+        sourceComponent: MoveGameDialog {
+            controller: actions.controller.gameMaintenance
+            gameName: actions.targetGameName
+            onClosed: {
+                controller.close_maintenance()
+                moveLoader.active = false
+            }
+        }
+        onLoaded: if (status === Loader.Ready) (item as MoveGameDialog).open()
+    }
+
+    Loader {
+        id: uninstallLoader
+        active: false
+        sourceComponent: UninstallGameDialog {
+            controller: actions.controller.gameMaintenance
+            gameName: actions.targetGameName
+            installed: actions.targetInstalled
+            onClosed: {
+                controller.close_maintenance()
+                uninstallLoader.active = false
+            }
+        }
+        onLoaded: if (status === Loader.Ready) (item as UninstallGameDialog).open()
     }
 
     Loader {

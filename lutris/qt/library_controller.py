@@ -18,6 +18,7 @@ from lutris.exceptions import LutrisError
 from lutris.qt.category_model import CategoryModel
 from lutris.qt.delegates import PromptController, QtLaunchUIDelegate
 from lutris.qt.game_log import GameLogController
+from lutris.qt.game_maintenance import GameMaintenanceController
 from lutris.qt.game_shortcuts import GameShortcutController
 from lutris.qt.library_model import LibraryModel
 from lutris.qt.sidebar import ALL_GAMES, SidebarModel
@@ -45,6 +46,8 @@ class LibraryController(QObject):
         self.sidebar = SidebarModel()
         self.categories = CategoryModel()
         self._log = GameLogController(prompts, self)
+        self._maintenance = GameMaintenanceController(prompts, self)
+        self._maintenance.stateChanged.connect(self.selectionChanged.emit)
         self._shortcuts = GameShortcutController(prompts, self)
         self.model.setParent(self)
         self.sidebar.setParent(self)
@@ -82,6 +85,7 @@ class LibraryController(QObject):
         self._registrations = [
             events.GAME_CHANGED.register(self._on_game_changed),
             events.GAME_INSTALLED.register(self._on_game_changed),
+            events.GAME_REMOVED.register(self._on_game_removed),
             events.GAME_LAUNCHING.register(self._on_game_launching),
             events.GAME_STOPPED.register(self._on_game_stopped),
             events.GAME_FAILED.register(self._on_game_failed),
@@ -108,6 +112,10 @@ class LibraryController(QObject):
     @Property(QObject, constant=True)
     def gameLog(self) -> GameLogController:  # noqa: N802
         return self._log
+
+    @Property(QObject, constant=True)
+    def gameMaintenance(self) -> GameMaintenanceController:  # noqa: N802
+        return self._maintenance
 
     @Property(QObject, constant=True)
     def gameShortcuts(self) -> GameShortcutController:  # noqa: N802
@@ -191,7 +199,15 @@ class LibraryController(QObject):
     @Property(bool, notify=selectionChanged)
     def canPlay(self) -> bool:  # noqa: N802
         game = self.selected_game
-        return bool(game and game.game_id and game.installed and not self._is_running(game.game_id))
+        return bool(game and game.installed and self._can_maintain(game.game_id))
+
+    @Property(bool, notify=selectionChanged)
+    def canMaintain(self) -> bool:  # noqa: N802
+        game = self.selected_game
+        return bool(game and self._can_maintain(game.game_id))
+
+    def _can_maintain(self, game_id: str | None) -> bool:
+        return bool(game_id and not self._is_running(game_id) and not self._maintenance.is_working)
 
     @Property(bool, notify=selectionChanged)
     def canStop(self) -> bool:  # noqa: N802
@@ -374,7 +390,7 @@ class LibraryController(QObject):
 
     @Slot(str, bool)
     def launch(self, game_id: str, choose_again: bool) -> None:
-        if not game_id or self._is_running(game_id):
+        if not self._can_maintain(game_id):
             return
         self._launch_requests.add(game_id)
         self._update_running_state()
@@ -395,6 +411,10 @@ class LibraryController(QObject):
             self._start_task(games.stop_game(game.game_id))
 
     def _on_game_changed(self, _game: GameInfo) -> None:
+        if not self._closed:
+            self._refresh_timer.start()
+
+    def _on_game_removed(self, _game_id: str) -> None:
         if not self._closed:
             self._refresh_timer.start()
 
@@ -468,6 +488,7 @@ class LibraryController(QObject):
     def shutdown(self) -> None:
         self._closed = True
         self._log.close_log()
+        self._maintenance.close_maintenance()
         for registration in self._registrations:
             registration.unregister()
         self._refresh_timer.stop()

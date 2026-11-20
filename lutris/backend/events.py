@@ -19,6 +19,8 @@ from lutris.util.notifications import NotificationSource
 GAME_CHANGED = NotificationSource()
 # Fired with a GameInfo when a game has been installed
 GAME_INSTALLED = NotificationSource()
+# Fired with the id of a game removed from the library
+GAME_REMOVED = NotificationSource()
 # Fired with a GameInfo when a game's launch begins; GAME_STARTED or GAME_STOPPED follows,
 # whether the game starts or the launch is cancelled or fails
 GAME_LAUNCHING = NotificationSource()
