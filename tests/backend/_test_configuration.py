@@ -101,6 +101,35 @@ def test_unsaved_changes_are_discarded(game_id: str, config_dir: Path) -> None:
     asyncio.run(run())
 
 
+def test_linux_runtime_can_override_runner_default(game_id: str) -> None:
+    async def run() -> None:
+        key = "steam_linux_runtime"
+        default_form = await configuration.open_runner_config("linux")
+        await configuration.set_option(default_form.id, "runner", key, "sniper")
+        await configuration.save_config(default_form.id)
+        await configuration.close_config(default_form.id)
+
+        game_form = await configuration.open_game_config(game_id)
+        inherited = find(game_form, "runner", key)
+        assert inherited.value == "sniper" and not inherited.set_here
+        system_page = next(page for page in game_form.pages if page.section == "system")
+        assert {"disable_runtime", "prefer_system_libs", "use_sniper_runtime"}.isdisjoint(
+            option.key for option in system_page.options
+        )
+        game_form = await configuration.set_option(game_form.id, "runner", key, "none")
+        assert find(game_form, "runner", key).value == "none"
+        await configuration.save_config(game_form.id)
+        await configuration.close_config(game_form.id)
+
+        game_form = await configuration.open_game_config(game_id)
+        assert find(game_form, "runner", key).value == "none"
+        game_form = await configuration.reset_option(game_form.id, "runner", key)
+        assert find(game_form, "runner", key).value == "sniper"
+        await configuration.close_config(game_form.id)
+
+    asyncio.run(run())
+
+
 def test_values_are_checked_against_the_option_type(game_id: str) -> None:
     async def run() -> None:
         form = await configuration.open_game_config(game_id)

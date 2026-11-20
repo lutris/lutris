@@ -341,6 +341,20 @@ Qt shows the details on a Game Info tab before the option pages. Qt's ``ConfigOp
 so editing doesn't reset the view, and ``ConfigOption.qml`` picks an editor per
 option type.
 
+For native Linux games, Runner Options → Steam Linux Runtime takes effect
+for the game or as the Linux runner's default. None uses the system libraries.
+The other choices use Valve's 1.0 (Scout), 2.0 (Soldier), 3.0 (Sniper), or 4.0
+container. Lutris finds the launchers in Steam libraries or in umu's runtime
+directory. Scout uses the Steam compatibility tool inside Soldier. If a
+runtime is missing, the launch error gives its Steam install URI. The runner
+applies the choice to primary and alternate launch configurations, including
+standalone shortcuts. Legacy Lutris Runtime settings do not affect Linux game
+launches.
+
+The dedicated Flatpak runner and Flathub game source have been removed.
+Existing library records can still be removed without changing the installed
+apps.
+
 Runtime updates run in the backend (``runtime_updates.update_runtime``), which
 announces each component's progress with ``RUNTIME_UPDATE_CHANGED``. Qt runs
 them at startup when the last check is stale, shows their progress in the status

@@ -190,7 +190,6 @@ lutris/runners/dolphin.py
 lutris/runners/dosbox.py
 lutris/runners/duckstation.py
 lutris/runners/easyrpg.py
-lutris/runners/flatpak.py
 lutris/runners/fsuae.py
 lutris/runners/hatari.py
 lutris/runners/json.py
@@ -239,7 +238,6 @@ lutris/services/dlsite.py
 lutris/services/dolphin.py
 lutris/services/ea_app.py
 lutris/services/egs.py
-lutris/services/flathub.py
 lutris/services/gamejolt.py
 lutris/services/gog.py
 lutris/services/gog_cloud.py
@@ -335,6 +333,7 @@ lutris/util/steam/__init__.py
 lutris/util/steam/appmanifest.py
 lutris/util/steam/config.py
 lutris/util/steam/log.py
+lutris/util/steam/runtime.py
 lutris/util/steam/shortcut.py
 lutris/util/steam/steamid.py
 lutris/util/steam/vdf/__init__.py

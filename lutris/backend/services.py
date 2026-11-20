@@ -18,6 +18,8 @@ async def list_services() -> list[ServiceInfo]:
 async def list_service_games(service: str | None = None, installed_only: bool = False) -> list[ServiceGameInfo]:
     """Return the games one service offers, or all services if service is None, with
     whether each is installed in the library."""
+    if service == "flathub":
+        return []
     installed = {
         (game["service"], game.get("service_id"))
         for game in games_db.get_games(filters={"installed": 1})
@@ -26,7 +28,7 @@ async def list_service_games(service: str | None = None, installed_only: bool = 
     if service:
         db_games = ServiceGameCollection.get_for_service(service)
     else:
-        db_games = ServiceGameCollection.get_service_games()
+        db_games = ServiceGameCollection.get_service_games(excludes={"service": "flathub"})
     games = [
         ServiceGameInfo(
             id=str(db_game["id"]),

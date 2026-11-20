@@ -19,7 +19,7 @@ from lutris.exceptions import LutrisError
 from lutris.installer import get_installers
 from lutris.installer.errors import MissingGameDependencyError
 from lutris.installer.interpreter import ScriptInterpreter
-from lutris.runners import get_runner_human_name
+from lutris.runners import get_runner_human_name, is_valid_runner_name
 from lutris.util.http import HTTPError
 from lutris.util.log import logger
 
@@ -97,6 +97,9 @@ def _is_usable(script: _Script) -> bool:
     missing = [field for field in _REQUIRED_FIELDS if not script.get(field)]
     if missing:
         logger.warning("Skipping install script %s, missing %s", script.get("slug"), ", ".join(missing))
+        return False
+    if not is_valid_runner_name(script["runner"]):
+        logger.warning("Skipping install script %s for unsupported runner %s", script["slug"], script["runner"])
         return False
     if not isinstance(script["script"], dict):
         logger.warning("Skipping install script %s, its script isn't a mapping", script["slug"])

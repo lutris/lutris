@@ -245,6 +245,10 @@ class Runner:  # pylint: disable=too-many-public-methods
         with the command list. Subclasses must override this."""
         raise NotImplementedError(f"Runner: {self} doesn't have a play method.")
 
+    def prepare_game_command(self, command: list[str], env: dict[str, str]) -> list[str]:
+        """Apply runner-specific wrapping after launch configuration and environment overrides."""
+        return command
+
     def get_executable(self) -> str:
         if "runner_executable" in self.runner_config:
             runner_executable: str = self.runner_config["runner_executable"]

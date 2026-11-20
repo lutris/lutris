@@ -55,6 +55,7 @@ def scripts(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
         make_script("Native"),
         {"name": "Broken", "version": "Missing fields"},
         make_script("Extra", files=[{"one": "a", "two": "b"}]),
+        {**make_script("Flatpak"), "runner": "flatpak"},
         make_script("Requires", requires="backend-installers-base-game"),
     ]
     requested: list[str] = []

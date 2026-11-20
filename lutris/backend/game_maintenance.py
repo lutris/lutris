@@ -22,6 +22,7 @@ from lutris.util.log import logger
 from lutris.util.path_cache import remove_from_path_cache
 from lutris.util.yaml import write_yaml_to_file
 
+# Keep protecting installations created by the retired Flatpak runner
 _EXTERNALLY_MANAGED_RUNNERS = {"steam", "flatpak", "web"}
 
 

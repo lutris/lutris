@@ -3,11 +3,15 @@
 import os
 import shlex
 import stat
+from typing import TYPE_CHECKING
 
 from lutris.util import cache_single, system
 from lutris.util.graphics.gpu import get_gpus
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+
+if TYPE_CHECKING:
+    from lutris.runners.runner import GamePlayInfoDict, Runner
 
 
 def get_mangohud_conf(system_config):
@@ -20,10 +24,10 @@ def get_mangohud_conf(system_config):
     return None, None
 
 
-def get_launch_parameters(runner, gameplay_info):
+def get_launch_parameters(runner: "Runner", gameplay_info: "GamePlayInfoDict") -> tuple[list[str], dict[str, str]]:
     system_config = runner.system_config
-    launch_arguments = gameplay_info["command"]
-    env = {}
+    env: dict[str, str] = {}
+    mango_args = None
 
     # MangoHud
     if runner.name == "steam":
@@ -34,8 +38,20 @@ def get_launch_parameters(runner, gameplay_info):
     else:
         mango_args, mango_env = get_mangohud_conf(system_config)
         if mango_args:
-            launch_arguments = mango_args + launch_arguments
             env.update(mango_env)
+
+    env.update(runner.get_env())
+    env.update(gameplay_info.get("env") or {})
+
+    if ld_preload := gameplay_info.get("ld_preload"):
+        env["LD_PRELOAD"] = ld_preload
+    if game_ld_library_path := gameplay_info.get("ld_library_path"):
+        ld_library_path = env.get("LD_LIBRARY_PATH")
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [game_ld_library_path, ld_library_path]))
+
+    launch_arguments = runner.prepare_game_command(list(gameplay_info["command"]), env)
+    if mango_args:
+        launch_arguments = mango_args + launch_arguments
 
     prefix_command = system_config.get("prefix_command") or ""
     if prefix_command:
@@ -54,23 +70,6 @@ def get_launch_parameters(runner, gameplay_info):
         launch_arguments.insert(0, "0-%d" % (limit_cpu_count - 1))
         launch_arguments.insert(0, "-c")
         launch_arguments.insert(0, "taskset")
-
-    env.update(runner.get_env())
-
-    env.update(gameplay_info.get("env") or {})
-
-    # Set environment variables dependent on gameplay info
-
-    # LD_PRELOAD
-    ld_preload = gameplay_info.get("ld_preload")
-    if ld_preload:
-        env["LD_PRELOAD"] = ld_preload
-
-    # LD_LIBRARY_PATH
-    game_ld_library_path = gameplay_info.get("ld_library_path")
-    if game_ld_library_path:
-        ld_library_path = env.get("LD_LIBRARY_PATH")
-        env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [game_ld_library_path, ld_library_path]))
 
     # Feral gamemode
     gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()

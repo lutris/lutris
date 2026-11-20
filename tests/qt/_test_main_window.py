@@ -5,7 +5,7 @@ from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import pytest
-from PySide6.QtCore import QCoreApplication, QEvent, QMetaObject, QObject, QPointF, Qt, QTimer, QUrl
+from PySide6.QtCore import Q_ARG, QCoreApplication, QEvent, QMetaObject, QObject, QPointF, Qt, QTimer, QUrl
 from PySide6.QtGui import QColor, QGuiApplication, QImage
 from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
@@ -522,20 +522,21 @@ def test_qml_configures_a_game_and_the_global_options(
             await wait_for_qml(qt_application, lambda: bool(config.property("modified")) and args.property("setHere"))
             assert args.property("optionValue") == "--fullscreen"
 
-            config.select_page(3)
-            await wait_for_qml(
-                qt_application, lambda: find_item(options, "optionSwitch_prefer_system_libs") is not None
-            )
-            switch = find_item(options, "optionSwitch_prefer_system_libs")
-            assert switch is not None
-            switch.setProperty("checked", not switch.property("checked"))
-            assert QMetaObject.invokeMethod(switch, "toggled")
+            config.select_page(2)
+            choice_name = "optionChoice_steam_linux_runtime"
+            await wait_for_qml(qt_application, lambda: find_item(options, choice_name) is not None)
+            choice = find_item(options, choice_name)
+            assert choice is not None and choice.property("count") == 5
+            assert choice.property("currentValue") == "none"
+            choice.setProperty("currentIndex", 4)
+            assert QMetaObject.invokeMethod(choice, "activated", Q_ARG(int, 4))
             await wait_for_qml(
                 qt_application,
                 lambda: bool(
-                    (reset := find_item(options, "resetOption_prefer_system_libs")) and reset.property("visible")
+                    (reset := find_item(options, "resetOption_steam_linux_runtime")) and reset.property("visible")
                 ),
             )
+            assert choice.property("currentValue") == "steamrt4"
 
             save = window.window.findChild(QObject, "configSave")
             assert save is not None and save.property("enabled") and QMetaObject.invokeMethod(save, "clicked")
@@ -544,7 +545,7 @@ def test_qml_configures_a_game_and_the_global_options(
             assert row is not None
             saved = read_yaml_from_file(str(config_dir / "games" / f"{row['configpath']}.yml"))
             assert saved["game"] == {"exe": "/games/run.sh", "args": "--fullscreen"}
-            assert "prefer_system_libs" in saved["system"]
+            assert saved["linux"] == {"steam_linux_runtime": "steamrt4"}
 
             action = window.window.findChild(QObject, "globalOptions")
             assert action is not None and QMetaObject.invokeMethod(action, "triggered")

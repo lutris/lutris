@@ -557,6 +557,8 @@ class Game:
             logger.error("%s (%s) not installed", self, self.id)
             raise GameConfigError(_("Tried to launch a game that isn't installed."))
         if not self.has_runner:
+            if self.runner_name == "flatpak":
+                raise GameConfigError(_("The Flatpak runner has been removed. Open this game from your desktop."))
             raise GameConfigError(_("Invalid game configuration: Missing runner"))
 
         return True

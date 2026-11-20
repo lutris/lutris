@@ -5,10 +5,14 @@ import dataclasses
 
 import pytest
 
-from lutris.backend import games, services
+from lutris import settings
+from lutris.backend import game_maintenance, games, preferences, runners, services
 from lutris.backend.models import GameInfo
 from lutris.database import games as games_db
+from lutris.database import sql
 from lutris.database.services import ServiceGameCollection
+from lutris.exceptions import GameConfigError
+from lutris.game import Game
 from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
@@ -81,3 +85,34 @@ def test_service_games_know_whether_they_are_installed(library, monkeypatch):
     listed = asyncio.run(services.list_service_games("steam"))
     assert [(game.appid, game.installed) for game in listed] == [("4242", True), ("7", False)]
     assert [game.appid for game in asyncio.run(services.list_service_games("steam", installed_only=True))] == ["4242"]
+
+
+def test_retired_flatpak_integration_leaves_existing_game_records() -> None:
+    game_id = str(
+        games_db.add_game(
+            name="Previous Flatpak Game",
+            slug="previous-flatpak-game",
+            runner="flatpak",
+            service="flathub",
+            configpath="previous-flatpak-game",
+            installed=1,
+        )
+    )
+    service_id = sql.db_insert(
+        settings.DB_PATH,
+        "service_games",
+        {"service": "flathub", "appid": "org.example.Game", "name": "Previous Flatpak Game", "slug": "flatpak-test"},
+    )
+    try:
+        assert "flatpak" not in asyncio.run(runners.list_runners())
+        assert "flathub" not in {source.id for source in asyncio.run(preferences.list_sources())}
+        assert not asyncio.run(services.list_service_games("flathub"))
+        assert "flathub" not in {game.service for game in asyncio.run(services.list_service_games())}
+        assert asyncio.run(games.get_game(game_id)) is not None
+        info = asyncio.run(game_maintenance.get_maintenance_info(game_id))
+        assert info.files_unavailable_reason == "This installation is managed outside Lutris."
+        with pytest.raises(GameConfigError, match="Flatpak runner has been removed"):
+            Game(game_id).check_launchable()
+    finally:
+        sql.db_delete(settings.DB_PATH, "service_games", "id", service_id)
+        games_db.delete_game(game_id)

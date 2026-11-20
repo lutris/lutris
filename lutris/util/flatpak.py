@@ -70,25 +70,6 @@ def is_app_installed(appid: str | None) -> bool:
     return False
 
 
-def get_run_command(
-    appid: str, arch: str | None = None, fcommand: str | None = None, branch: str | None = None
-) -> list[str]:
+def get_run_command(appid: str) -> list[str]:
     """Return command to launch a Flatpak app"""
-    command = get_bare_run_command(arch, fcommand, branch)
-    command.append(appid)
-    return command
-
-
-def get_bare_run_command(arch: str | None = None, fcommand: str | None = None, branch: str | None = None) -> list[str]:
-    """Return command to launch a Flatpak app, without the app-id at the end;
-    this is the 'command' of the flatpak runner itself, and a program's
-    appid must be appended to it."""
-    command = get_command()
-    command.append("run")
-    if arch:
-        command.append(f"--arch={arch}")
-    if fcommand:
-        command.append(f"--command={fcommand}")
-    if branch:
-        command.append(f"--branch={branch}")
-    return command
+    return [*get_command(), "run", appid]

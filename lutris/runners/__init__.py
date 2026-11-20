@@ -8,7 +8,6 @@ __all__ = [
     "dosbox",
     "duckstation",
     "easyrpg",
-    "flatpak",
     "fsuae",
     "hatari",
     "jzintv",
@@ -62,7 +61,7 @@ class RunnerInstallationError(LutrisError):
 
 
 class NonInstallableRunnerError(LutrisError):
-    """Raised if installed a runner that Lutris cannot install, like Flatpak.
+    """Raised for a runner that Lutris cannot install, like Steam.
     These must be installed separately."""
 
 

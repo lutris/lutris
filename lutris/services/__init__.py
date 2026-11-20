@@ -10,7 +10,6 @@ from lutris.services.dlsite import DlsiteService
 from lutris.services.dolphin import DolphinService
 from lutris.services.ea_app import EAAppService
 from lutris.services.egs import EpicGamesStoreService
-from lutris.services.flathub import FlathubService
 from lutris.services.gamejolt import GameJoltService
 from lutris.services.gog import GOGService
 from lutris.services.humblebundle import HumbleBundleService
@@ -45,7 +44,6 @@ def get_services() -> dict[str, "type[BaseService]"]:
         "ea_app": EAAppService,
         "ubisoft": UbisoftConnectService,
         "amazon": AmazonService,
-        "flathub": FlathubService,
         "dlsite": DlsiteService,
     }
     _services["battlenet"] = BattleNetService
