@@ -15,7 +15,6 @@ from lutris.services.gamejolt import GameJoltService
 from lutris.services.gog import GOGService
 from lutris.services.humblebundle import HumbleBundleService
 from lutris.services.itchio import ItchIoService
-from lutris.services.lutris import LutrisService
 from lutris.services.mame import MAMEService
 from lutris.services.scummvm import SCUMMVM_CONFIG_FILE, ScummvmService
 from lutris.services.steam import SteamService
@@ -60,8 +59,6 @@ def get_services() -> dict[str, "type[BaseService]"]:
         _services["dolphin"] = DolphinService
     if system.path_exists(SCUMMVM_CONFIG_FILE):
         _services["scummvm"] = ScummvmService
-    if os.environ.get("LUTRIS_SERVICE_ENABLED") == "1":
-        _services["lutris"] = LutrisService
     return _services
 
 

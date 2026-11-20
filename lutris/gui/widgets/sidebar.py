@@ -35,7 +35,6 @@ from lutris.services.base import (
     AuthTokenExpiredError,
 )
 from lutris.util.jobs import schedule_at_idle
-from lutris.util.library_sync import LOCAL_LIBRARY_SYNCED, LOCAL_LIBRARY_SYNCING
 from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key
 
@@ -500,8 +499,6 @@ class LutrisSidebar(Gtk.ListBox):
         SERVICE_LOGOUT.register(self.on_service_auth_changed)
         SERVICE_GAMES_LOADING.register(self.on_service_games_loading)
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
-        LOCAL_LIBRARY_SYNCING.register(self.on_local_library_syncing)
-        LOCAL_LIBRARY_SYNCED.register(self.on_local_library_synced)
         self.set_filter_func(self._filter_func)
         self.show_all()
 
@@ -842,11 +839,3 @@ class LutrisSidebar(Gtk.ListBox):
         else:
             logger.warning("Service %s is not found", service.id)
         return True
-
-    def on_local_library_syncing(self):
-        self.games_row.is_updating = True
-        self.games_row.update_buttons()
-
-    def on_local_library_synced(self):
-        self.games_row.is_updating = False
-        self.games_row.update_buttons()

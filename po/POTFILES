@@ -4,7 +4,6 @@ share/applications/net.lutris.Lutris.desktop
 share/metainfo/net.lutris.Lutris.metainfo.xml
 
 share/lutris/ui/about-dialog.ui
-share/lutris/ui/dialog-lutris-login.ui
 share/lutris/ui/download-queue.ui
 share/lutris/ui/log-window.ui
 share/lutris/ui/lutris-window.ui
@@ -146,6 +145,7 @@ lutris/migrations/migrate_multi_system_runners_to_use_platform_dict.py
 lutris/migrations/migrate_proton_to_wine_dir.py
 lutris/migrations/migrate_sortname.py
 lutris/migrations/migrate_steam_appids.py
+lutris/migrations/remove_lutris_account.py
 lutris/migrations/retrieve_discord_appids.py
 lutris/monitored_command.py
 lutris/qt/__init__.py
@@ -295,7 +295,6 @@ lutris/util/i18n.py
 lutris/util/images.py
 lutris/util/jobs.py
 lutris/util/joypad.py
-lutris/util/library_sync.py
 lutris/util/libretro.py
 lutris/util/linux.py
 lutris/util/log.py

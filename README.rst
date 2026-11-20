@@ -36,15 +36,12 @@ available online at `lutris.net <https://lutris.net>`_.
 Game library
 ============
 
-Optional accounts can be created at `lutris.net
-<https://lutris.net>`_ and linked with Lutris clients.
-This enables your client to automatically sync fetch library from the website.
-Via the website, it is also possible to sync your Steam library to your Lutris
-library.
-
-The Lutris client only stores a token when connected with the website, and your
-login credentials are never saved.
-This token is stored in ``~/.cache/lutris/auth-token``.
+Your library is kept locally. This fork doesn't connect to Lutris.net
+accounts, so it never logs in to the website or uploads your library or play
+time. It still downloads public data from Lutris.net that needs no account:
+install scripts, artwork, runner builds and runtime versions. Upgrading from a
+version that was connected deletes the stored token
+(``~/.cache/lutris/auth-token``).
 
 Configuration files
 ===================

@@ -196,11 +196,6 @@ class ServiceLoginUIDelegate(Delegate):
         with its URL."""
         logger.warning("Can't log in to %s without a user to show its login page to", service.name)
 
-    def show_lutris_account_login(self, service: "OnlineService") -> None:
-        """Ask for a lutris.net username and password and connect with lutris.api.connect();
-        on success, fire SERVICE_LOGIN for the service."""
-        logger.warning("Can't log in to Lutris without a user")
-
     def ask_for_humble_bundle_cookies(self) -> str | None:
         """Ask the user for their Humble Bundle cookies, exported from a browser in which
         they're logged in. Returns the cookies file's contents, or None if they cancel."""

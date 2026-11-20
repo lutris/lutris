@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Dict, TypeVar, cast
 
 from gi.repository import Gdk, GObject, Gtk
 
-from lutris import api, settings
+from lutris import settings
 from lutris.exceptions import LutrisError
 from lutris.gui.widgets.log_text_view import LogTextView
 from lutris.gui.widgets.utils import get_widget_children, get_widget_window
@@ -632,53 +632,6 @@ class LaunchConfigSelectDialog(ModalDialog):
 
     def on_dont_show_checkbutton_toggled(self, _button: Gtk.CheckButton) -> None:
         self.dont_show_again = _button.get_active()
-
-
-class ClientLoginDialog(GtkBuilderDialog):
-    glade_file = "dialog-lutris-login.ui"
-    dialog_object = "lutris-login"
-    __gsignals__ = {
-        "connected": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
-        "cancel": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
-    }
-
-    def __init__(self, parent: Gtk.Window):
-        super().__init__(parent=parent)
-
-        self.parent = parent
-        self.username_entry: Gtk.Entry = self.builder.get_object("username_entry")
-        self.password_entry: Gtk.Entry = self.builder.get_object("password_entry")
-
-        cancel_button: Gtk.Button = self.builder.get_object("cancel_button")
-        cancel_button.connect("clicked", self.on_close)
-        connect_button: Gtk.Button = self.builder.get_object("connect_button")
-        connect_button.connect("clicked", self.on_connect)
-
-    def get_credentials(self) -> tuple[str, str]:
-        username = self.username_entry.get_text()
-        password = self.password_entry.get_text()
-        return username, password
-
-    def on_username_entry_activate(self, _widget: Gtk.Entry) -> None:
-        if all(self.get_credentials()):
-            self.on_connect(None)
-        else:
-            self.password_entry.grab_focus()
-
-    def on_password_entry_activate(self, _widget: Gtk.Entry) -> None:
-        if all(self.get_credentials()):
-            self.on_connect(None)
-        else:
-            self.username_entry.grab_focus()
-
-    def on_connect(self, _widget: Gtk.Button | None) -> None:
-        username, password = self.get_credentials()
-        token = api.connect(username, password)
-        if not token:
-            NoticeDialog(_("Login failed"), parent=self.parent)
-        else:
-            self.dialog.destroy()
-            self.emit("connected", username)
 
 
 class InstallerSourceDialog(ModelessDialog):

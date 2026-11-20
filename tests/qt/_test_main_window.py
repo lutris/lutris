@@ -658,12 +658,6 @@ def test_qml_move_uninstall_and_remove_from_library(
     config.write_text("game:\n  exe: play.sh\n", encoding="utf-8")
     monkeypatch.setattr(settings, "CONFIG_DIR", str(tmp_path))
     monkeypatch.setattr(path_cache, "GAME_PATH_CACHE_PATH", str(tmp_path / "path-cache.json"))
-    read_bool_setting = settings.read_bool_setting
-    monkeypatch.setattr(
-        settings,
-        "read_bool_setting",
-        lambda key, *args, **kwargs: key != "library_sync_enabled" and read_bool_setting(key, *args, **kwargs),
-    )
     sql.db_update(settings.DB_PATH, "games", {"directory": str(source), "configpath": "qt-maintenance"}, {"id": target})
 
     async def run() -> None:

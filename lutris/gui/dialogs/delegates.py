@@ -11,7 +11,6 @@ from lutris.gui.dialogs.cloud_sync import ask_cloud_sync_conflict
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.installer import InstallationKind, install_from_lutris
-from lutris.services.base import SERVICE_LOGIN
 from lutris.util.downloader import BaseDownloader
 
 if TYPE_CHECKING:
@@ -70,10 +69,6 @@ class DialogServiceLoginUIDelegate(DialogDelegate, ServiceLoginUIDelegate):
 
     def show_web_login(self, service: "OnlineService") -> None:
         WebConnectDialog(service, cast(Gtk.Window, self)).run()
-
-    def show_lutris_account_login(self, service: "OnlineService") -> None:
-        login_dialog = dialogs.ClientLoginDialog(parent=cast(Gtk.Window, self))
-        login_dialog.connect("connected", lambda _dialog, _username: SERVICE_LOGIN.fire(service))
 
     def ask_for_humble_bundle_cookies(self) -> str | None:
         return dialogs.HumbleBundleCookiesDialog(parent=cast(Gtk.Widget, self)).cookies_content

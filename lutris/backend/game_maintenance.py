@@ -18,7 +18,6 @@ from lutris.database import sql
 from lutris.exceptions import LutrisError
 from lutris.game import GAME_UPDATED, Game
 from lutris.util import system
-from lutris.util.library_sync import LibrarySyncer
 from lutris.util.log import logger
 from lutris.util.path_cache import remove_from_path_cache
 from lutris.util.yaml import write_yaml_to_file
@@ -203,7 +202,6 @@ async def _uninstall_game(
         await _trash_directory(current.directory)
     if not current.installed and not remove_from_library:
         return
-    record = games_db.get_game_by_field(game_id, "id") if remove_from_library else None
     try:
         if game.is_installed:
             await asyncio.to_thread(game.uninstall)
@@ -215,11 +213,6 @@ async def _uninstall_game(
             events.GAME_REMOVED.fire(game_id)
         else:
             GAME_UPDATED.fire(_load_game(game_id))
-    if record and settings.read_bool_setting("library_sync_enabled", True):
-        try:
-            await asyncio.to_thread(lambda: LibrarySyncer().delete_from_remote_library([record]))
-        except Exception:
-            logger.exception("Could not remove game %s from the remote library", game_id)
 
 
 def _forget_cached_path(game: Game) -> None:

@@ -14,12 +14,7 @@ from urllib.parse import unquote, urlparse
 from gi.repository import Gdk, Gio, GLib, Gtk
 
 from lutris import services, settings
-from lutris.api import (
-    LUTRIS_ACCOUNT_CONNECTED,
-    LUTRIS_ACCOUNT_DISCONNECTED,
-    get_runtime_versions,
-    read_api_key,
-)
+from lutris.api import get_runtime_versions
 from lutris.backend import events, library
 from lutris.backend.library import LibraryQuery, LibrarySort
 from lutris.backend.models import GameInfo
@@ -36,7 +31,7 @@ from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
 from lutris.gui.config.edit_saved_search import SearchFiltersBox
 from lutris.gui.config.preferences_dialog import PreferencesDialog
-from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, get_error_handler, register_error_handler
+from lutris.gui.dialogs import ErrorDialog, QuestionDialog, get_error_handler, register_error_handler
 from lutris.gui.dialogs.delegates import (
     DialogInstallUIDelegate,
     DialogLaunchUIDelegate,
@@ -69,11 +64,10 @@ from lutris.gui.widgets.utils import load_icon_theme, open_uri, set_cursor_by_na
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT
 from lutris.services.gog_cloud_operation import CLOUD_SYNC_ENDED, CLOUD_SYNC_STARTED, CloudSyncOperation
-from lutris.services.lutris import LutrisService, sync_media
+from lutris.services.lutris import LutrisMedia
 from lutris.util import datapath
 from lutris.util.busy import BUSY_STARTED, BUSY_STOPPED
 from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
-from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.path_cache import MISSING_GAMES
@@ -106,8 +100,6 @@ class LutrisWindow(  # type:ignore[misc]
     viewtype_icon: Gtk.Image = GtkTemplate.Child()
     download_revealer: Gtk.Revealer = GtkTemplate.Child()
     game_view_spinner: Gtk.Spinner = GtkTemplate.Child()
-    login_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
-    lutris_log_in_label: Gtk.Label = GtkTemplate.Child()
     version_notification_revealer: Gtk.Revealer = GtkTemplate.Child()
     version_notification_label: Gtk.Label = GtkTemplate.Child()
     show_hidden_games_button: Gtk.ModelButton = GtkTemplate.Child()
@@ -203,7 +195,6 @@ class LutrisWindow(  # type:ignore[misc]
         self.game_revealer.add(self.revealer_box)
 
         self.update_action_state()
-        self.update_notification()
 
         BUSY_STARTED.register(self.on_busy_started)
         BUSY_STOPPED.register(self.on_busy_stopped)
@@ -215,23 +206,17 @@ class LutrisWindow(  # type:ignore[misc]
         SAVED_SEARCHES_UPDATED.register(self.on_categories_updated)
         events.GAME_CHANGED.register(self.on_game_updated)
         events.GAME_STOPPED.register(self.on_game_stopped)
-        events.GAME_INSTALLED.register(self.on_game_installed)
         events.GAME_FAILED.register(self.on_game_unhandled_error)
         events.GAME_LAUNCH_STATUS.register(self.on_game_launch_status)
         CLOUD_SYNC_STARTED.register(self.on_cloud_sync_started)
         CLOUD_SYNC_ENDED.register(self.on_cloud_sync_ended)
         settings.SETTINGS_CHANGED.register(self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
-        LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
-        LUTRIS_ACCOUNT_DISCONNECTED.register(self.on_lutris_account_disconnected)
-        LOCAL_LIBRARY_UPDATED.register(self.on_local_library_updated)
         THEME_CHANGED.register(self.on_theme_changed)
 
         # Finally trigger the initialization of the view here
         selected_category = settings.read_setting("selected_category", default="runner:all")
         self.sidebar.selected_category = selected_category.split(":", maxsplit=1) if selected_category else None
-
-        schedule_at_idle(self.sync_library, delay_seconds=1.0)
 
     def on_busy_started(self):
         self._is_busy = True
@@ -332,17 +317,6 @@ class LutrisWindow(  # type:ignore[misc]
             self.add_action(action)
             if value.accel:
                 app.add_accelerator(value.accel, "win." + name)
-
-    def sync_library(self, force: bool = False) -> None:
-        """Tasks that can be run after the UI has been initialized."""
-
-        def on_library_synced(_result, error):
-            """Sync media after the library is loaded"""
-            if not error:
-                AsyncCall(sync_media, None)
-
-        if settings.read_bool_setting("library_sync_enabled", True):
-            AsyncCall(LibrarySyncer().sync_local_library, on_library_synced if force else None, force=force)
 
     def update_action_state(self):
         """This invokes the functions to update the enabled states of all the actions
@@ -530,7 +504,7 @@ class LutrisWindow(  # type:ignore[misc]
 
     def get_service_media(self, icon_type):
         """Return the ServiceMedia class used for this view"""
-        service = self.service if self.service else LutrisService
+        service = self.service if self.service else LutrisMedia
         medias = service.medias
         if icon_type in medias:
             return medias[icon_type]()
@@ -650,7 +624,6 @@ class LutrisWindow(  # type:ignore[misc]
         else:
             await self.show_empty_label()
 
-        self.update_notification()
         self.update_action_state()
 
     @staticmethod
@@ -663,7 +636,7 @@ class LutrisWindow(  # type:ignore[misc]
 
     def _bind_zoom_adjustment(self):
         """Bind the zoom slider to the supported banner sizes"""
-        service = self.service if self.service else LutrisService
+        service = self.service if self.service else LutrisMedia
         icon_type = self.load_icon_type()
         self.zoom_adjustment.set_lower(0)
         self.zoom_adjustment.set_upper(len(service.medias) - 1)
@@ -683,7 +656,7 @@ class LutrisWindow(  # type:ignore[misc]
         """Handler for zoom modification"""
         media_index = round(adjustment.props.value)
         adjustment.props.value = media_index
-        service = self.service if self.service else LutrisService
+        service = self.service if self.service else LutrisMedia
         media_services = list(service.medias.keys())
         if len(media_services) <= media_index:
             media_index = media_services.index(service.default_format)
@@ -868,29 +841,6 @@ class LutrisWindow(  # type:ignore[misc]
         settings.write_setting("filter_installed", bool(filter_installed))
         self.filters["installed"] = filter_installed
 
-    def update_notification(self):
-        show_notification = (
-            self.is_showing_splash()
-            and not read_api_key()
-            and not settings.read_bool_setting("dismissed_login_notification")
-        )
-        if show_notification:
-            self.lutris_log_in_label.show()
-        self.login_notification_revealer.set_reveal_child(show_notification)
-
-    @GtkTemplate.Callback
-    def on_lutris_log_in_label_activate_link(self, _label, _url):
-        def on_connect_success(widget, _username):
-            self.sync_library(force=True)
-
-        self.login_notification_revealer.set_reveal_child(False)
-        login_dialog = ClientLoginDialog(parent=self)
-        login_dialog.connect("connected", on_connect_success)
-
-    def on_login_notification_close_button_clicked(self, _button):
-        settings.write_setting("dismissed_login_notification", True)
-        self.login_notification_revealer.set_reveal_child(False)
-
     def on_version_notification_close_button_clicked(self, _button):
         dialog = QuestionDialog(
             {
@@ -936,7 +886,6 @@ class LutrisWindow(  # type:ignore[misc]
             self.move(int(self.window_x), int(self.window_y))
 
     def on_service_login(self, service):
-        self.update_notification()
         service.start_reload(self._service_reloaded_cb)
         return True
 
@@ -948,20 +897,9 @@ class LutrisWindow(  # type:ignore[misc]
             dialogs.display_error(error, parent=self)
 
     def on_service_logout(self, service):
-        self.update_notification()
         if self.service and service.id == self.service.id:
             self.update_store()
         return True
-
-    def on_lutris_account_connected(self):
-        self.update_notification()
-        self.sync_library(force=True)
-
-    def on_lutris_account_disconnected(self):
-        self.update_notification()
-
-    def on_local_library_updated(self):
-        self.redraw_view()
 
     @GtkTemplate.Callback
     def on_resize(self, widget, *_args):
@@ -1171,7 +1109,6 @@ class LutrisWindow(  # type:ignore[misc]
             self.update_store()
         else:
             self.update_view_settings()
-        self.update_notification()
         return True
 
     def on_game_updated(self, game):
@@ -1240,9 +1177,6 @@ class LutrisWindow(  # type:ignore[misc]
         self.download_queue.remove_progress_box(operation.get_progress)
         # As if the queue had run the sync, so that what waits for the queue checks again
         DOWNLOAD_QUEUE_COMPLETED.fire()
-
-    def on_game_installed(self, game):
-        self.sync_library()
 
     def on_game_removed(self):
         """Simple method used to refresh the view"""

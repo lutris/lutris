@@ -22,11 +22,7 @@ from lutris.util.graphics.gpu import get_gpus_info
 from lutris.util.http import HTTPError, Request
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.notifications import NotificationSource
 from lutris.util.strings import time_ago
-
-API_KEY_FILE_PATH = os.path.join(settings.CACHE_DIR, "auth-token")
-USER_INFO_FILE_PATH = os.path.join(settings.CACHE_DIR, "user.json")
 
 ApiGameDict: TypeAlias = dict[str, Any]
 GamesPageDict: TypeAlias = dict[str, Any]
@@ -35,7 +31,6 @@ InstallerInfoDict: TypeAlias = dict[str, str]
 RunnerDict: TypeAlias = dict[str, Any]
 RunnerVersionDict: TypeAlias = dict[str, str | bool]
 RuntimeVersionsDict: TypeAlias = dict[str, Any]
-UserInfoDict: TypeAlias = dict[str, Any]
 
 
 def get_time_from_api_date(date_string: str) -> time.struct_time:
@@ -95,85 +90,6 @@ def get_runtime_versions() -> RuntimeVersionsDict:
         return {}
     with open(settings.RUNTIME_VERSIONS_PATH, mode="r", encoding="utf-8") as runtime_file:
         return cast(RuntimeVersionsDict, json.load(runtime_file))
-
-
-def read_api_key() -> dict[str, str] | None:
-    """Read the API token from disk"""
-    if not system.path_exists(API_KEY_FILE_PATH):
-        return None
-    with open(API_KEY_FILE_PATH, "r", encoding="utf-8") as token_file:
-        api_string = token_file.read()
-    try:
-        username, token = api_string.split(":")
-    except ValueError:
-        logger.error("Unable to read Lutris token in %s", API_KEY_FILE_PATH)
-        return None
-    return {"token": token, "username": username}
-
-
-LUTRIS_ACCOUNT_CONNECTED = NotificationSource()
-LUTRIS_ACCOUNT_DISCONNECTED = NotificationSource()
-
-
-def connect(username: str, password: str) -> str | bool | None:
-    """Connect to the Lutris API"""
-    login_url = settings.SITE_URL + "/api/accounts/token"
-    credentials = {"username": username, "password": password}
-    try:
-        proxies = http.get_request_proxies(login_url)
-        response = requests.post(url=login_url, data=credentials, timeout=10, proxies=proxies)
-        response.raise_for_status()
-        json_dict = response.json()
-        if "token" in json_dict:
-            token: str = json_dict["token"]
-            with open(API_KEY_FILE_PATH, "w", encoding="utf-8") as token_file:
-                token_file.write("%s:%s" % (username, token))
-            account_info = fetch_user_info()
-
-            if not account_info:
-                logger.warning("Unable to fetch user info")
-            else:
-                with open(USER_INFO_FILE_PATH, "w", encoding="utf-8") as token_file:
-                    json.dump(account_info, token_file, indent=2)
-            LUTRIS_ACCOUNT_CONNECTED.fire()
-            return token
-        return None
-    except (
-        requests.RequestException,
-        requests.ConnectionError,
-        requests.HTTPError,
-        requests.TooManyRedirects,
-        requests.Timeout,
-    ) as ex:
-        logger.error("Unable to connect to server (%s): %s", login_url, ex)
-        return False
-
-
-def disconnect() -> None:
-    """Removes the API token, disconnecting the user"""
-    for file_path in [API_KEY_FILE_PATH, USER_INFO_FILE_PATH]:
-        if system.path_exists(file_path):
-            os.remove(file_path)
-    LUTRIS_ACCOUNT_DISCONNECTED.fire()
-
-
-def fetch_user_info() -> UserInfoDict | None:
-    """Retrieves the user info to cache it locally"""
-    credentials = read_api_key()
-    if not credentials:
-        return None
-    url = settings.SITE_URL + "/api/users/me"
-    request = http.Request(url, headers={"Authorization": "Token " + credentials["token"]})
-    response = request.get()
-    return cast(UserInfoDict, response.json)
-
-
-def read_user_info() -> UserInfoDict:
-    if not os.path.exists(USER_INFO_FILE_PATH):
-        return {}
-    with open(USER_INFO_FILE_PATH, encoding="utf-8") as user_info_file:
-        user_info: UserInfoDict = json.load(user_info_file)
-    return user_info
 
 
 def get_runners(runner_name: str) -> RunnerDict:

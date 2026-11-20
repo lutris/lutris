@@ -6,15 +6,13 @@ from gettext import ngettext
 
 from gi.repository import GObject, Gtk
 
-from lutris import settings
-from lutris.database.games import get_game_by_field, get_games
+from lutris.database.games import get_games
 from lutris.game import Game
 from lutris.gui.dialogs import QuestionDialog
 from lutris.gui.widgets.gi_composites import GtkTemplate
 from lutris.gui.widgets.utils import get_required_main_window, get_widget_children
 from lutris.util import datapath
 from lutris.util.jobs import AsyncCall
-from lutris.util.library_sync import LibrarySyncer
 from lutris.util.log import logger
 from lutris.util.path_cache import remove_from_path_cache
 from lutris.util.strings import get_natural_sort_key, gtk_safe, human_size
@@ -291,24 +289,8 @@ class UninstallDialog(Gtk.Dialog):
             if dlg.result != Gtk.ResponseType.YES:
                 return
 
-        library_sync_enabled = settings.read_bool_setting("library_sync_enabled", True)
-        games_removed_from_library = []
-        library_syncer = LibrarySyncer() if library_sync_enabled else None
-
         for row in rows:
-            if library_syncer and row.remove_from_library:
-                db_game = get_game_by_field(row.game._id, "id")
-                if db_game:
-                    games_removed_from_library.append(db_game)
             row.perform_removal()
-
-        if library_syncer and games_removed_from_library:
-
-            def sync_local_library():
-                library_syncer.sync_local_library()
-                library_syncer.delete_from_remote_library(games_removed_from_library)
-
-            AsyncCall(sync_local_library, None)
 
         get_required_main_window().on_game_removed()
         self.destroy()

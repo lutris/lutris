@@ -57,9 +57,6 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
         "lutris.util.http",
     },
     "lutris/gui/config/accounts_box.py": {
-        "lutris.api",
-        "lutris.services.lutris",
-        "lutris.util.library_sync",
         "lutris.util.steam.config",
     },
     "lutris/gui/config/add_game_dialog.py": {"lutris.config", "lutris.game"},
@@ -103,7 +100,7 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
     "lutris/gui/config/sysinfo_box.py": {"lutris.util.linux", "lutris.util.system", "lutris.util.wine.wine"},
     "lutris/gui/config/updates_box.py": {"lutris.runtime", "lutris.services.lutris"},
     "lutris/gui/config/widget_generator.py": {"lutris.config"},
-    "lutris/gui/dialogs/__init__.py": {"lutris.api", "lutris.config", "lutris.game"},
+    "lutris/gui/dialogs/__init__.py": {"lutris.config", "lutris.game"},
     "lutris/gui/dialogs/cache.py": {"lutris.cache"},
     "lutris/gui/dialogs/delegates.py": {
         "lutris.config",
@@ -138,7 +135,6 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
     "lutris/gui/dialogs/uninstall_dialog.py": {
         "lutris.database.games",
         "lutris.game",
-        "lutris.util.library_sync",
         "lutris.util.path_cache",
         "lutris.util.system",
     },
@@ -188,7 +184,6 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
         "lutris.services.gog_cloud_operation",
         "lutris.services.lutris",
         "lutris.util.busy",
-        "lutris.util.library_sync",
         "lutris.util.linux",
         "lutris.util.path_cache",
         "lutris.util.progress_info",
@@ -229,7 +224,6 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
         "lutris.runners",
         "lutris.services",
         "lutris.services.base",
-        "lutris.util.library_sync",
     },
     "lutris/gui/widgets/status_icon.py": {
         "lutris.database.categories",

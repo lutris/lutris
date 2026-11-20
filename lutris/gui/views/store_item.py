@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from lutris.database.services import ServiceGameCollection
 from lutris.services import SERVICES
-from lutris.services.lutris import LutrisService
+from lutris.services.lutris import LutrisMedia
 from lutris.services.service_media import MediaPath
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime, gtk_safe
@@ -142,7 +142,7 @@ class StoreItem:
         if any(mp for mp in possible_paths if mp.exists):
             return possible_paths
 
-        service = self._service_obj or LutrisService
+        service = self._service_obj or LutrisMedia
         services = [(service, lambda: self.slug)]
 
         game_service_name = self._game.service
