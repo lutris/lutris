@@ -67,3 +67,66 @@ class TestCreateProtonPrefix(TestCase):
     def test_raises_if_umu_exits_without_creating_prefix(self):
         with self.assertRaises(RuntimeError):
             self.create_prefix(FakeUmuCommand(polls_before_exit=0))
+
+    def test_relative_prefix_link_is_followed_from_its_own_directory(self):
+        # The registry files are where the link really points, not where its
+        # target would be if read relative to the current directory
+        os.makedirs(os.path.join(self.prefix, "shared"))
+        os.makedirs(os.path.join(self.prefix, "game"))
+        os.symlink("../shared", os.path.join(self.prefix, "game", "pfx"))
+        link = os.path.join(self.prefix, "game", "pfx")
+        for name in ("user.reg", "userdef.reg", "system.reg"):
+            with open(os.path.join(self.prefix, "shared", name), "w", encoding="utf-8"):
+                pass
+        self.prefix = link
+        self.create_prefix(FakeUmuCommand(polls_before_exit=0))
+
+
+class TestSetRegedit(TestCase):
+    def get_reg_file(self, value_type):
+        contents = []
+
+        def read_reg_file(path, **_kwargs):
+            with open(path, encoding="utf-8") as reg_file:
+                contents.append(reg_file.read())
+
+        with patch.object(wine_commands, "set_regedit_file", side_effect=read_reg_file):
+            wine_commands.set_regedit("HKEY_CURRENT_USER\\\\Software\\\\Test", "Value", "41,00,00,00", type=value_type)
+        return contents[0]
+
+    def test_value_types_are_written_with_their_numbers(self):
+        # REG_EXPAND_SZ is type 2 and REG_MULTI_SZ is type 7
+        self.assertIn('"Value"=hex(2):41,00,00,00', self.get_reg_file("REG_EXPAND_SZ"))
+        self.assertIn('"Value"=hex(7):41,00,00,00', self.get_reg_file("REG_MULTI_SZ"))
+
+
+class TestWineexecArguments(TestCase):
+    def run_wineexec(self, executable, args):
+        runner = SimpleNamespace(
+            system_config={"disable_runtime": True, "prefer_system_libs": True},
+            get_env=lambda disable_runtime: {},
+            prelaunch=lambda: None,
+        )
+        with (
+            patch.object(wine_commands, "is_prefix_directory", return_value=True),
+            patch.object(wine_commands.proton, "is_proton_path", return_value=False),
+            patch.object(wine_commands.proton, "is_umu_path", return_value=False),
+            patch.object(wine_commands.system, "execute_with_error", return_value=("", "")) as execute,
+        ):
+            wine_commands.wineexec(
+                executable,
+                prefix="/tmp/prefix",
+                args=args,
+                wine_path="/opt/wine/bin/wine",
+                runner=runner,
+                blocking=True,
+            )
+        return execute.call_args.args[0]
+
+    def test_msi_keeps_the_scripts_arguments(self):
+        command = self.run_wineexec("/games/setup.msi", "/qn")
+        self.assertEqual(command, ["/opt/wine/bin/wine", "msiexec", "/i", "/games/setup.msi", "/qn"])
+
+    def test_exe_arguments_are_passed_as_given(self):
+        command = self.run_wineexec("/games/setup.exe", "/S /VERYSILENT")
+        self.assertEqual(command, ["/opt/wine/bin/wine", "/games/setup.exe", "/S", "/VERYSILENT"])

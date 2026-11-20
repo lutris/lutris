@@ -57,8 +57,9 @@ def set_regedit(
             "REG_SZ": '"%s"' % value,
             "REG_DWORD": "dword:" + value,
             "REG_BINARY": "hex:" + value.replace(" ", ","),
-            "REG_MULTI_SZ": "hex(2):" + value,
-            "REG_EXPAND_SZ": "hex(7):" + value,
+            # .reg files give these as hex(N), N being the type's number
+            "REG_EXPAND_SZ": "hex(2):" + value,
+            "REG_MULTI_SZ": "hex(7):" + value,
         }
     # Make temporary reg file
     reg_path = os.path.join(settings.CACHE_DIR, "winekeys.reg")
@@ -143,7 +144,8 @@ def create_prefix(
 
     # Follow symlinks, don't delete existing ones as it would break some setups
     if os.path.islink(prefix):
-        prefix = os.readlink(prefix)
+        # A relative target is relative to the link's directory, not to ours
+        prefix = os.path.join(os.path.dirname(prefix), os.readlink(prefix))
 
     if not runner:
         runner = import_runner("wine")(prefix=prefix, wine_arch=arch)
@@ -205,10 +207,8 @@ def create_prefix(
 
     if install_gecko == "False":
         wineenv["WINE_SKIP_GECKO_INSTALLATION"] = "1"
-        overrides["mshtml"] = "disabled"
     if install_mono == "False":
         wineenv["WINE_SKIP_MONO_INSTALLATION"] = "1"
-        overrides["mscoree"] = "disabled"
 
     if proton.is_umu_path(wine_path) or proton.is_proton_path(wine_path):
         # All proton path prefixes are created via Umu; if you aren't using
@@ -408,7 +408,8 @@ def wineexec(
 
     executable, _args, working_dir = get_real_executable(executable, working_dir)
     if _args:
-        args = '{} "{}"'.format(_args[0], _args[1])
+        # Running an .msi, .bat or .lnk takes arguments of its own, ahead of the caller's
+        args = ('{} "{}" {}'.format(_args[0], _args[1], args)).strip()
 
     wineenv = {"WINEARCH": arch}
     if winetricks_wine and winetricks_wine is not wine_path and not proton.is_proton_path(wine_path):
