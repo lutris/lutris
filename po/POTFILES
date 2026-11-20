@@ -20,6 +20,7 @@ lutris/backend/configuration.py
 lutris/backend/errors.py
 lutris/backend/events.py
 lutris/backend/game_actions.py
+lutris/backend/game_artwork.py
 lutris/backend/game_maintenance.py
 lutris/backend/games.py
 lutris/backend/installations.py
@@ -160,6 +161,7 @@ lutris/qt/config_model.py
 lutris/qt/configuration.py
 lutris/qt/delegates.py
 lutris/qt/display_backend.py
+lutris/qt/game_artwork.py
 lutris/qt/game_log.py
 lutris/qt/game_maintenance.py
 lutris/qt/game_shortcuts.py
@@ -369,6 +371,7 @@ lutris/qt/qml/CategoryDialog.qml
 lutris/qt/qml/ConfigDialog.qml
 lutris/qt/qml/ConfigOption.qml
 lutris/qt/qml/GameActions.qml
+lutris/qt/qml/GameArtworkEditor.qml
 lutris/qt/qml/GameCard.qml
 lutris/qt/qml/GameGrid.qml
 lutris/qt/qml/GameInfoPage.qml

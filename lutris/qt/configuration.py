@@ -11,6 +11,7 @@ from lutris.backend import configuration
 from lutris.backend.models import ConfigForm, ConfigOptionInfo, ConfigPage
 from lutris.qt.config_model import ConfigOptionModel
 from lutris.qt.delegates import PromptController
+from lutris.qt.game_artwork import GameArtworkController
 from lutris.qt.tasks import start_task
 from lutris.util.notifications import NotificationRegistration
 
@@ -34,6 +35,11 @@ class ConfigController(QObject):
         self._registration: NotificationRegistration | None = None
         self.model = ConfigOptionModel()
         self.model.setParent(self)
+        self.artwork_controller = GameArtworkController(prompts, self)
+
+    @Property(QObject, constant=True)
+    def artwork(self) -> GameArtworkController:
+        return self.artwork_controller
 
     @Property(QObject, constant=True)
     def options(self) -> ConfigOptionModel:
@@ -165,6 +171,7 @@ class ConfigController(QObject):
             self._busy = False
         self._show_advanced = form.show_advanced
         self._apply(form)
+        self.artwork_controller.open_game(self._game_id)
 
     def _on_form_changed(self, form_id: str) -> None:
         if self._form and form_id == self._form.id:
@@ -256,6 +263,7 @@ class ConfigController(QObject):
             start_task(configuration.close_config(self._form.id), self._prompts.error)
         self._form = None
         self._game_id = ""
+        self.artwork_controller.open_game("")
         self._page = 0
         self._search = ""
         self._modified = False

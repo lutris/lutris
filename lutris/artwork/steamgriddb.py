@@ -74,29 +74,41 @@ class SteamGridDB:
         exact = [result for result in results if str(result.get("name", "")).casefold() == wanted]
         return int((exact or results)[0]["id"])
 
+    def grids(self, game_id: int, dimensions: str) -> list[dict[str, Any]]:
+        """Return the static grids of some dimensions, best first."""
+        params = {
+            "dimensions": dimensions,
+            "types": "static",
+            "mimes": "image/png,image/jpeg",
+            "nsfw": "false",
+            "humor": "false",
+        }
+        return _images(self._get(f"/grids/game/{game_id}", params))
+
+    def icons(self, game_id: int) -> list[dict[str, Any]]:
+        params = {"types": "static", "mimes": "image/png", "nsfw": "false", "humor": "false"}
+        return _images(self._get(f"/icons/game/{game_id}", params))
+
     def grid_url(self, game_id: int, dimensions: tuple[str, ...]) -> str | None:
         """Return the URL of the best static grid, trying each set of dimensions in turn."""
         for sizes in dimensions:
-            params = {
-                "dimensions": sizes,
-                "types": "static",
-                "mimes": "image/png,image/jpeg",
-                "nsfw": "false",
-                "humor": "false",
-            }
-            if url := self._first_url(self._get(f"/grids/game/{game_id}", params)):
+            if url := self._first_url(self.grids(game_id, sizes)):
                 return url
         return None
 
     def icon_url(self, game_id: int) -> str | None:
-        params = {"types": "static", "mimes": "image/png", "nsfw": "false", "humor": "false"}
-        return self._first_url(self._get(f"/icons/game/{game_id}", params))
+        return self._first_url(self.icons(game_id))
 
     @staticmethod
-    def _first_url(images: Any) -> str | None:
-        if isinstance(images, list):
-            for image in images:
-                if isinstance(image, dict) and image.get("url"):
-                    return str(image["url"])
+    def _first_url(images: list[dict[str, Any]]) -> str | None:
+        if images:
+            return str(images[0]["url"])
         logger.debug("SteamGridDB has no matching image")
         return None
+
+
+def _images(data: Any) -> list[dict[str, Any]]:
+    """Return the images in a response that have a URL."""
+    if not isinstance(data, list):
+        return []
+    return [image for image in data if isinstance(image, dict) and image.get("url")]

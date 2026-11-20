@@ -363,16 +363,22 @@ replaced, and what no source has is remembered for a week in
 ``artwork-misses.json``, kept apart for with and without SteamGridDB, so that adding
 a key retries at once.
 
+The Game Info tab also shows the game's own cover, banner and icon
+(``game_artwork``). Choosing a file prepares it in Qt: ``QImage`` loads and
+scales it down to the size it's stored at off the GUI thread (``QPixmap`` only
+works on it) and saves PNG or JPEG, which ``set_custom_artwork`` stores.
+``list_steamgriddb_artwork`` and ``use_artwork_url`` offer SteamGridDB's images
+to choose from. Chosen artwork is marked custom in the library, so it stays,
+and ``reset_artwork`` removes it, forgets past misses and fetches the automatic
+artwork again.
+
 What it needs next, roughly in order, each with the backend calls it takes:
 
 * **Game actions** still need service installation entry points. The launch
   configuration prompt receives ``GameInfo`` and configuration names. The
   remaining launch delegate methods still need the same plain-data boundary.
-* **Custom artwork**: setting, choosing from SteamGridDB and removing a game's
-  own cover, banner and icon. GTK transcodes them with GdkPixbuf in
-  ``game_info_box``; Qt can scale them with ``QImage`` off the GUI thread and
-  show them as ``QPixmap``. The preferred launch configuration reset from the
-  same tab is also left.
+* **Game info leftovers**: the preferred launch configuration reset, and moving
+  the game from the Game Info tab (Game Actions → Move already does).
 * **Preferences**: the other tabs of GTK's preferences dialog (interface,
   runners, sources, accounts, updates, storage, system info). Global system
   options already work.

@@ -325,3 +325,24 @@ class ArtworkSettings:
     steamgriddb_key_from_environment: bool
     # Where users create their SteamGridDB API key
     steamgriddb_key_page: str
+
+
+@dataclass(frozen=True)
+class GameArtworkImage:
+    """One of a game's images: "cover", "banner" or "icon"."""
+
+    kind: str
+    # The file, if the game has this artwork
+    path: str | None
+    # Whether the user chose it, so it's kept until reset
+    custom: bool
+
+
+@dataclass(frozen=True)
+class ArtworkChoice:
+    """An image the user can choose for a game, such as one of SteamGridDB's."""
+
+    url: str
+    thumbnail_url: str
+    width: int
+    height: int

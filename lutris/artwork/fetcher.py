@@ -85,6 +85,12 @@ class _Misses:
             self._misses[self._key(slug, kind, with_steamgriddb)] = time.time()
             self._changed = True
 
+    def forget(self, slug: str) -> None:
+        with self._lock:
+            for key in [key for key in self._misses if key.startswith(slug + ":")]:
+                del self._misses[key]
+                self._changed = True
+
     def save(self) -> None:
         if not self._changed:
             return
@@ -104,24 +110,52 @@ def _image_extension(content: bytes) -> str | None:
     return None
 
 
+def artwork_path(kind: ArtworkKind, slug: str) -> str | None:
+    """Return the file a game's artwork of this kind is in, if it has one."""
+    for path in _media(kind).get_possible_media_paths(slug):
+        if path.exists:
+            return path.path
+    return None
+
+
+def remove_artwork(kind: ArtworkKind, slug: str) -> None:
+    for path in _media(kind).get_possible_media_paths(slug):
+        if os.path.exists(path.path):
+            os.remove(path.path)
+
+
+def save_image(kind: ArtworkKind, slug: str, content: bytes) -> str:
+    """Store a PNG or JPEG image as a game's artwork, replacing what it had; icons must
+    be PNG. Raises ValueError for anything else."""
+    extension = _image_extension(content)
+    if not extension or (kind == "icon" and extension != ".png"):
+        raise ValueError("Not a PNG or JPEG image" if kind != "icon" else "Not a PNG image")
+    folder = str(_media(kind).dest_path)
+    filename = f"lutris_{slug}.png" if kind == "icon" else f"{slug}{extension}"
+    destination = os.path.join(folder, filename)
+    os.makedirs(folder, exist_ok=True)
+    remove_artwork(kind, slug)
+    temporary = destination + ".tmp"
+    with open(temporary, "wb") as image_file:
+        image_file.write(content)
+    os.replace(temporary, destination)
+    return destination
+
+
 def _download(url: str, kind: ArtworkKind, slug: str) -> bool:
     try:
         response = requests.get(url, timeout=TIMEOUT_SECONDS, proxies=get_request_proxies(url))
     except requests.RequestException as error:
         logger.debug("Could not download %s: %s", url, error)
         return False
-    extension = _image_extension(response.content) if response.ok else None
-    if not extension or (kind == "icon" and extension != ".png"):
-        logger.debug("No usable %s image at %s (status %s)", kind, url, response.status_code)
+    if not response.ok:
+        logger.debug("No %s image at %s (status %s)", kind, url, response.status_code)
         return False
-    folder = str(_media(kind).dest_path)
-    filename = f"lutris_{slug}.png" if kind == "icon" else f"{slug}{extension}"
-    destination = os.path.join(folder, filename)
-    os.makedirs(folder, exist_ok=True)
-    temporary = destination + ".tmp"
-    with open(temporary, "wb") as image_file:
-        image_file.write(response.content)
-    os.replace(temporary, destination)
+    try:
+        save_image(kind, slug, response.content)
+    except ValueError as error:
+        logger.debug("No usable %s image at %s: %s", kind, url, error)
+        return False
     logger.debug("Saved the %s of %s from %s", kind, slug, url)
     return True
 
@@ -228,6 +262,13 @@ def fetch_artwork(targets: Iterable[ArtworkTarget]) -> int:
 def sync_artwork(slugs: Iterable[str] | None = None) -> int:
     """Download the missing artwork of the library's games, or of those with these slugs."""
     return fetch_artwork(library_targets(slugs))
+
+
+def forget_misses(slug: str) -> None:
+    """Let the next fetch ask every source again for a game's artwork."""
+    misses = _Misses()
+    misses.forget(slug)
+    misses.save()
 
 
 def fetch_game_artwork(slug: str) -> int:
