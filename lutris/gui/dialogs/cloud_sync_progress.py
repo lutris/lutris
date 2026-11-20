@@ -10,9 +10,9 @@ from collections.abc import Callable
 from gettext import gettext as _
 from typing import TYPE_CHECKING
 
-from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.services.gog_cloud import SyncResult
 from lutris.util.log import logger
+from lutris.util.progress_info import ProgressInfo
 from lutris.util.strings import gtk_safe
 
 if TYPE_CHECKING:

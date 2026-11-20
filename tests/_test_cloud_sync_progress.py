@@ -13,8 +13,8 @@ from lutris.util.test_config import setup_test_environment
 setup_test_environment()
 
 from lutris.gui.dialogs.cloud_sync_progress import CloudSyncCancelled, CloudSyncProgressAdapter
-from lutris.gui.widgets.progress_box import ProgressInfo  # noqa: F401
 from lutris.services.gog_cloud import SyncResult
+from lutris.util.progress_info import ProgressInfo  # noqa: F401
 
 # ---------------------------------------------------------------------------
 # Helpers

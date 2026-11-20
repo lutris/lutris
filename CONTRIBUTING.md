@@ -171,7 +171,7 @@ as they could potentially introduce breaking changes from a simple oversight.
 Submitting your changes
 -----------------------
 
-Make a new git branch based of `master` in most cases. Send a pull request
+Make a new git branch based off `main` in most cases. Send a pull request
 through GitHub describing what issue the patch solves.
 If the PR is related to and existing bug report, you can add `(Closes #nnnn)`
 or `(Fixes #nnnn)` to your PR title or message, where `nnnn` is the ticket

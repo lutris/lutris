@@ -4,8 +4,8 @@ from gettext import gettext as _
 from urllib.parse import urlparse
 
 from lutris.cache import has_valid_custom_cache_path
-from lutris.gui.widgets.download_collection_progress_box import DownloadCollectionProgressBox
 from lutris.util import system
+from lutris.util.file_downloads import FileCollectionDownload
 from lutris.util.strings import gtk_safe_urls
 
 AMAZON_DOMAIN = "a2z.com"
@@ -133,8 +133,9 @@ class InstallerFileCollection:
             for installer_file in self.files_list:
                 installer_file.prepare()
 
-    def create_download_progress_box(self):
-        return DownloadCollectionProgressBox(self)
+    def create_download(self) -> FileCollectionDownload:
+        """Return the download that fetches every file of this collection."""
+        return FileCollectionDownload(self)
 
     def is_ready(self, provider):
         """Is the file already present at the destination (if applicable)?"""

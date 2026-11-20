@@ -17,7 +17,7 @@ on:
         value: ${{ jobs.prepare.outputs.is_prerelease }}
   workflow_dispatch:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
 
 concurrency:

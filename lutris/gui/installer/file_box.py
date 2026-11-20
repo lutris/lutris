@@ -7,6 +7,7 @@ from gi.repository import GObject, Gtk
 
 from lutris.gui.installer.widgets import InstallerLabel
 from lutris.gui.widgets.common import FileChooserEntry
+from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.installer.steam_installer import SteamInstaller
 from lutris.util import system
@@ -44,7 +45,7 @@ class InstallerFileBox(Gtk.VBox):
 
     def get_download_progress(self):
         """Return the widget for the download progress bar"""
-        download_progress = self.installer_file.create_download_progress_box()
+        download_progress = DownloadProgressBox(self.installer_file.create_download())
         download_progress.connect("complete", self.on_download_complete)
         download_progress.connect("cancel", self.on_download_cancelled)
         download_progress.connect("error", self.on_download_error)

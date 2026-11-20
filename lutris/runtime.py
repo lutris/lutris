@@ -14,13 +14,13 @@ from lutris.api import (
     get_runtime_versions,
     get_time_from_api_date,
 )
-from lutris.gui.widgets.progress_box import ProgressInfo
 from lutris.util import http, system
 from lutris.util.downloader import SimpleDownloader
 from lutris.util.extract import extract_archive
 from lutris.util.jobs import AsyncCall
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
+from lutris.util.progress_info import ProgressInfo
 from lutris.util.strings import parse_version
 from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager

@@ -20,7 +20,7 @@ and ``flatpak-builder`` (either the distribution package or the
 
 ``make flatpak-bundle`` instead produces a single ``lutris.flatpak`` file that
 can be installed elsewhere with ``flatpak install lutris.flatpak``. Every CI
-build of ``master`` publishes that bundle as a workflow artifact, and every
+build of ``main`` publishes that bundle as a workflow artifact, and every
 release has it attached.
 
 The first build takes a long time, as it compiles the bundled tools (Qt,

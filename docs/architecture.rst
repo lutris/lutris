@@ -75,21 +75,26 @@ Delegates: ``lutris.delegates``
 Models instead of widgets
     When the core produces something a frontend displays as it changes, it
     keeps it in a plain object with a notification, and the frontend adapts
-    that to its own widgets. ``lutris.util.log_buffer.LogBuffer`` is the
-    example: games and installer commands write their output to one, and the
-    GTK frontend mirrors it into a ``Gtk.TextBuffer``
-    (``lutris.gui.widgets.log_text_view.mirror_log_buffer``).
+    that to its own widgets. Two examples:
+
+    * ``lutris.util.log_buffer.LogBuffer``: games and installer commands write
+      their output to one, and the GTK frontend mirrors it into a
+      ``Gtk.TextBuffer`` (``lutris.gui.widgets.log_text_view.mirror_log_buffer``).
+    * ``lutris.util.file_downloads``: ``SingleFileDownload`` and
+      ``FileCollectionDownload`` run an installer's downloads (queueing,
+      retries, the download cache) and publish their progress as
+      ``DownloadStatus`` data; ``lutris.gui.widgets.download_progress_box`` only
+      displays it. ``ProgressInfo`` (``lutris.util.progress_info``) does the
+      same for the sidebar's progress bars.
+
+    Notifications are delivered later, on the main loop, so a model that
+    changes quickly should pass a snapshot of its state with each one rather
+    than have handlers read its current state (the downloads do).
 
 Remaining work for stage 1
 --------------------------
 
 Grouped by what has to be built, roughly in the order planned:
-
-Progress
-    The installer creates GTK progress widgets itself
-    (``installer/installer_file.py``, ``installer_file_collection.py``,
-    ``runtime.py``). It should expose progress as data (bytes done, total,
-    state) and let the frontend choose how to show it.
 
 Dialogs opened by the core
     Error, notice, question, input and file dialogs are opened straight from

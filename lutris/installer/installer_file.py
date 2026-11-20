@@ -5,10 +5,10 @@ from gettext import gettext as _
 from urllib.parse import urlparse
 
 from lutris.cache import get_url_cache_path, has_valid_custom_cache_path, save_to_cache
-from lutris.gui.widgets.download_progress_box import DownloadProgressBox
 from lutris.installer.errors import ScriptingError
 from lutris.util import system
 from lutris.util.downloader import BaseDownloader
+from lutris.util.file_downloads import SingleFileDownload
 from lutris.util.log import logger
 from lutris.util.strings import gtk_safe_urls
 
@@ -246,8 +246,9 @@ class InstallerFile:
         if not self.is_dest_file_overridden:
             get_url_cache_path(self.url, self.id, self.game_slug, prepare=True)
 
-    def create_download_progress_box(self):
-        return DownloadProgressBox(
+    def create_download(self) -> SingleFileDownload:
+        """Return the download that fetches this file to its destination."""
+        return SingleFileDownload(
             url=self.url, dest=self.dest_file, temp=self.download_file, referer=self.referer, downloader=self.downloader
         )
 

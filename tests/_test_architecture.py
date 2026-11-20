@@ -39,10 +39,7 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
     "lutris/exception_backstops.py": {"gi.repository.Gtk", "lutris.gui.dialogs", "lutris.gui.widgets.utils"},
     "lutris/game.py": {"lutris.gui.application", "lutris.gui.dialogs.cloud_sync_progress", "lutris.gui.widgets.utils"},
     "lutris/installer/errors.py": {"lutris.gui.dialogs"},
-    "lutris/installer/installer_file.py": {"lutris.gui.widgets.download_progress_box"},
-    "lutris/installer/installer_file_collection.py": {"lutris.gui.widgets.download_collection_progress_box"},
     "lutris/runners/wine.py": {"lutris.gui.dialogs"},
-    "lutris/runtime.py": {"lutris.gui.widgets.progress_box"},
     "lutris/services/base.py": {
         "lutris.gui.dialogs",
         "lutris.gui.dialogs.webconnect_dialog",

@@ -5,8 +5,7 @@ simultaneously across multiple threads, significantly improving download
 speeds for large GOG installer files.
 
 This downloader shares the BaseDownloader public interface with
-SimpleDownloader, maintaining API compatibility with DownloadProgressBox and
-DownloadCollectionProgressBox.
+SimpleDownloader, so the downloads in lutris.util.file_downloads can use it.
 """
 
 import os
@@ -34,7 +33,7 @@ class GOGDownloader(BaseDownloader):
     or the file is too small to benefit from parallelism.
 
     Shares the BaseDownloader public interface with SimpleDownloader so it
-    works seamlessly with DownloadProgressBox and DownloadCollectionProgressBox.
+    works seamlessly with SingleFileDownload and FileCollectionDownload.
     """
 
     DEFAULT_WORKERS = 4
