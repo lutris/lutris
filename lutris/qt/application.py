@@ -17,7 +17,7 @@ from gi.repository import Gio, GLib
 from PySide6.QtGui import QGuiApplication
 
 from lutris import settings
-from lutris.backend import events, games
+from lutris.backend import events, games, installers
 from lutris.backend.errors import LutrisError
 from lutris.backend.models import GameInfo
 from lutris.cli.commands import INTERRUPTED_STATUS, handle_command_line, start_lutris
@@ -31,7 +31,7 @@ from lutris.util.display_backend import set_display_backend
 from lutris.util.log import logger
 
 # Options that need a part of the GUI the Qt frontend doesn't have yet
-_UNSUPPORTED_OPTIONS = ("install", "reinstall", "submit-issue")
+_UNSUPPORTED_OPTIONS = ("submit-issue",)
 
 
 class QtLutrisApplication(Gio.Application):
@@ -110,9 +110,14 @@ class QtLutrisApplication(Gio.Application):
         status = 1
         output = CommandOutput(command_line)
         try:
-            game_id = await games.launch_from_uri(uri)
-            # The launch event runs at idle, after this command releases its application hold
-            self._hold_for_game(game_id)
+            if target := installers.get_store_install_target(uri):
+                self.show_window()
+                if self.window:
+                    await self.window.controller.open_store_install(*target)
+            else:
+                game_id = await games.launch_from_uri(uri)
+                # The launch event runs at idle, after this command releases its application hold
+                self._hold_for_game(game_id)
             status = 0
         except asyncio.CancelledError:
             status = INTERRUPTED_STATUS

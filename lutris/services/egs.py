@@ -4,7 +4,7 @@ import json
 import os
 from collections import defaultdict
 from gettext import gettext as _
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import Any, Optional, cast
 
 import requests
 from PIL import Image
@@ -14,7 +14,6 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.installer import install_from_lutris
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
@@ -24,9 +23,6 @@ from lutris.util.egs.egs_launcher import EGSLauncher
 from lutris.util.images import paste_overlay, thumbnail_image
 from lutris.util.log import logger
 from lutris.util.strings import slugify
-
-if TYPE_CHECKING:
-    from lutris.delegates import Delegate
 
 EGS_LOGO_PATH = os.path.join(settings.CACHE_DIR, "egs/game_logo")
 
@@ -563,15 +559,8 @@ class EpicGamesStoreService(OnlineService):
     def get_installed_runner_name(self, db_game: dict[str, Any]) -> str:
         return self.runner
 
-    def install(self, db_game: dict[str, Any], ui_delegate: "Delegate", update: bool = False) -> None:
-        egs_game = get_game_by_field(self.client_installer, "slug")
-        if not egs_game or not egs_game.get("installed"):
-            logger.warning("EGS (%s) not installed", self.client_installer)
-            install_from_lutris(self.client_installer, ui_delegate)
-        else:
-            ui_delegate.start_installer(
-                [self.generate_installer(db_game, egs_game)], service=self, appid=db_game["appid"]
-            )
+    def generate_installers(self, db_game: dict[str, Any]) -> list[dict[str, Any]]:
+        return [self.generate_installer(db_game, self.get_installation_launcher())]
 
     @staticmethod
     def get_launch_arguments(

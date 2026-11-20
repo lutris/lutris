@@ -186,8 +186,7 @@ class ServiceLoginUIDelegate(Delegate):
     """
 
     def install_service_launcher(self, service: "OnlineService") -> None:
-        """The service's own game launcher must be installed before logging in to it;
-        tell the user, and install it (service.client_installer names its installer)."""
+        """Help the user register the game's launcher before signing in to the service."""
         logger.warning("%s needs its launcher installed before logging in", service.name)
 
     def show_web_login(self, service: "OnlineService") -> None:

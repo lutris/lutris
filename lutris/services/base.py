@@ -7,11 +7,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from lutris import api, settings
-from lutris.api import get_game_installers
 from lutris.config import write_game_config
 from lutris.database import sql
 from lutris.database.games import add_game, get_game_by_field, get_game_for_service, get_games
 from lutris.database.services import ServiceGameCollection
+from lutris.exceptions import LutrisError
 from lutris.game import GAME_UPDATED, Game
 from lutris.services.service_media import BANNER_SIZE, ICON_SIZE, ServiceMedia, download_media
 from lutris.util import system
@@ -94,7 +94,7 @@ class BaseService:
     online = False
     local = False
     drm_free = False  # DRM free games can be added to Lutris from an existing install
-    client_installer = None  # ID of a script needed to install the client used by the service
+    client_installer = None  # Library slug of the client used by the service
     medias = {}
     extra_medias = {}
     default_format = "icon"
@@ -197,20 +197,13 @@ class BaseService:
         installer = self.generate_installer(db_game)
         return [installer] if installer else []
 
-    def install_from_api(self, db_game, ui_delegate: "Delegate", appid=None):
-        """Install a game, using the API or generate_installer() to obtain the installer."""
-        if not appid:
-            appid = db_game["appid"]
-
-        def on_installers_ready(service_installers, error):
-            if error:
-                raise error  # bounce any error off the backstop
-
-            if not service_installers:
-                service_installers = self.generate_installers(db_game)
-            ui_delegate.start_installer(service_installers, service=self, appid=appid)
-
-        BusyAsyncCall(self.get_installers_from_api, on_installers_ready, appid)
+    def get_installation_launcher(self) -> dict[str, Any]:
+        """Look up the existing launcher a store-generated installer needs."""
+        for field in ("installer_slug", "slug"):
+            for launcher in get_games(filters={field: self.client_installer, "installed": 1}):
+                if launcher["directory"] and launcher["configpath"]:
+                    return launcher
+        raise LutrisError(_("Install the %s launcher and add it to Lutris first.") % self.name)
 
     def get_installer_files(self, installer, installer_file_id):
         """Used to obtain the content files from the service, when an 'N/A' file is left in
@@ -282,18 +275,6 @@ class BaseService:
             sql.db_update(settings.DB_PATH, "service_games", {"lutris_slug": game.slug}, {"id": service_game["id"]})
             return game
 
-    def get_installers_from_api(self, appid):
-        """Query the lutris API for an appid and get existing installers for the service"""
-        lutris_games = api.get_api_games([appid], service=self.id)
-        service_installers = []
-        if lutris_games:
-            lutris_game = lutris_games[0]
-            installers = get_game_installers(lutris_game["slug"])
-            for installer in installers:
-                if self.matcher in installer["version"].lower():
-                    service_installers.append(installer)
-        return service_installers
-
     def get_installed_slug(self, db_game):
         """Returns the slug the game will have after installation, by default. This
         is Lutris's slug, not the one for the service. By default, we derive it from
@@ -307,10 +288,9 @@ class BaseService:
 
     def get_service_installers(self, db_game, update):
         appid = db_game["appid"]
-        if update:
-            service_installers = self.get_update_installers(db_game)
-        else:
-            service_installers = self.get_installers_from_api(appid)
+        service_installers = (
+            (self.get_update_installers(db_game) or []) if update else self.generate_installers(db_game)
+        )
         # Check if the game is not already installed
         for service_installer in service_installers:
             existing_game = self.match_existing_game(
@@ -321,12 +301,6 @@ class BaseService:
             if existing_game:
                 logger.debug("Found existing game, aborting install")
                 return None, None, existing_game
-        installers = self.generate_installers(db_game) if not update else []
-        if installers:
-            if service_installers:
-                for installer in installers:
-                    installer["version"] = installer["version"] + " (auto-generated)"
-            service_installers.extend(installers)
         if not service_installers:
             logger.error("No installer found for %s", db_game)
         return service_installers, db_game, None
@@ -335,8 +309,7 @@ class BaseService:
         """Install a service game, or starts the installer of the game.
 
         Args:
-            db_game (dict or str): Database fields of the game to add, or (for Lutris service only
-                the slug of the game.)
+            db_game (dict): Database fields of the game to add.
             ui_delegate (Delegate): Starts the installer, if the game needs one.
 
         Returns:

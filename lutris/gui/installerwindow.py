@@ -437,16 +437,7 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                     script = _script
             self.interpreter = interpreter.ScriptInterpreter(script, self)
         except MissingGameDependencyError as ex:
-            dlg = QuestionDialog(
-                {
-                    "parent": self,
-                    "question": _("This game requires %s. Do you want to install it?") % ex.slug,
-                    "title": _("Missing dependency"),
-                }
-            )
-            if dlg.result == Gtk.ResponseType.YES:
-                application = Gio.Application.get_default()
-                application.show_lutris_installer_window(game_slug=ex.slug)
+            self.load_error_page(ex)
             return
 
         self.set_title(_("Installing {}").format(self.interpreter.installer.game_name))

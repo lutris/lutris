@@ -36,7 +36,6 @@ FRONTEND_API = (
 
 KNOWN_VIOLATIONS: dict[str, set[str]] = {
     "lutris/gui/addgameswindow.py": {
-        "lutris.api",
         "lutris.config",
         "lutris.installer",
         "lutris.scanners.playtron",
@@ -53,8 +52,6 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
         "lutris.services",
         "lutris.services.base",
         "lutris.services.gog_cloud_operation",
-        "lutris.util.busy",
-        "lutris.util.http",
     },
     "lutris/gui/config/accounts_box.py": {
         "lutris.util.steam.config",

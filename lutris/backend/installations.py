@@ -14,6 +14,7 @@ import re
 import traceback
 from collections.abc import Callable, Coroutine
 from gettext import gettext as _
+from time import monotonic
 from typing import Any
 from uuid import uuid4
 
@@ -24,18 +25,21 @@ from lutris.backend.models import (
     InstallerExtraInfo,
     InstallerFileInfo,
     InstallerMenuOption,
+    InstallerRunnerPrompt,
 )
 from lutris.config import LutrisConfig
 from lutris.database import games as games_db
 from lutris.delegates import InstallUIDelegate
 from lutris.exceptions import LutrisError
+from lutris.installer import InstallationKind
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer_file import InstallerFile
 from lutris.installer.installer_file_collection import InstallerFileCollection
 from lutris.installer.interpreter import ScriptInterpreter
+from lutris.installer.steam_installer import SteamInstaller
 from lutris.runners import NonInstallableRunnerError, RunnerInstallationError
 from lutris.util import system
-from lutris.util.downloader import SimpleDownloader
+from lutris.util.downloader import BaseDownloader, SimpleDownloader
 from lutris.util.file_downloads import DownloadState, DownloadStatus, FileDownload
 from lutris.util.log import logger
 from lutris.util.log_buffer import LogBuffer
@@ -54,7 +58,17 @@ SHORTCUT_KINDS = ("desktop", "menu")
 
 type InstallerFileType = InstallerFile | InstallerFileCollection
 
-_ACTIVE_STAGES = {"preparing", "extras", "files", "downloading", "installing", "menu", "disc", "cancelling"}
+_ACTIVE_STAGES = {
+    "preparing",
+    "runner_prompt",
+    "extras",
+    "files",
+    "downloading",
+    "installing",
+    "menu",
+    "disc",
+    "cancelling",
+}
 
 
 def _plain(markup: str) -> str:
@@ -67,14 +81,39 @@ class _RunnerDelegate(InstallUIDelegate):
 
     def __init__(self, installation: "_Installation") -> None:
         self._installation = installation
+        self._last_progress = 0.0
+
+    def show_install_yesno_inquiry(self, question: str, title: str) -> bool:
+        return self._ask(InstallerRunnerPrompt(_plain(title), _plain(question))) is not None
+
+    def show_install_file_inquiry(self, question: str, title: str, message: str) -> str | None:
+        return self._ask(InstallerRunnerPrompt(_plain(title), _plain(question), _plain(message)))
+
+    def _ask(self, prompt: InstallerRunnerPrompt) -> str | None:
+        installation = self._installation
+        return asyncio.run_coroutine_threadsafe(installation.ask_runner(prompt), installation.loop).result()
 
     def download_install_file(self, url: str, destination: str) -> bool:
         downloader = SimpleDownloader(url, destination, overwrite=True)
-        self._installation.on_thread(lambda: self._installation.set_runner_download(downloader))
+        self._last_progress = 0.0
         downloader.start()
-        result = downloader.join()
-        self._installation.on_thread(lambda: self._installation.set_runner_download(None))
-        return result
+        self._installation.on_thread(lambda: self._installation.set_runner_download(downloader))
+        try:
+            return downloader.join(self._download_progress)
+        finally:
+            self._installation.on_thread(lambda: self._installation.set_runner_download(None))
+
+    def _download_progress(self, downloader: BaseDownloader) -> None:
+        now = monotonic()
+        if not downloader.full_size or now - self._last_progress < 0.1:
+            return
+        self._last_progress = now
+        fraction = min(1.0, downloader.progress_fraction)
+        progress = _("%(downloaded)s of %(total)s") % {
+            "downloaded": human_size(downloader.downloaded_size),
+            "total": human_size(downloader.full_size),
+        }
+        self._installation.on_thread(lambda: self._installation.set_progress(fraction, progress))
 
 
 class _MenuAnswer:
@@ -133,10 +172,13 @@ class _FileEntry:
         self.status = DownloadStatus()
         self.error = ""
         self.download: FileDownload | None = None
+        self.steam_task: asyncio.Task[None] | None = None
         self.registration: NotificationRegistration | None = None
 
     @property
     def providers(self) -> tuple[str, ...]:
+        if self.file.default_provider == "steam":
+            return ("steam",)
         found = self.file.providers
         if not (isinstance(self.file, InstallerFileCollection) and self.file.service == "amazon"):
             found = found | {"user"}
@@ -151,13 +193,15 @@ class _FileEntry:
     def info(self) -> InstallerFileInfo:
         status = self.status
         progress = ""
-        if self.state == "downloading" and status.full_size:
+        if self.state == "downloading" and self.provider == "steam":
+            progress = _("Confirm the installation in Steam. Lutris will continue when Steam finishes.")
+        elif self.state == "downloading" and status.full_size:
             progress = _("{downloaded} / {size}, {time} remaining").format(
                 downloaded=human_size(status.downloaded_size), size=human_size(status.full_size), time=status.time_left
             )
         return InstallerFileInfo(
             id=self.file.id,
-            label=_plain(self.file.get_label()),
+            label=_("Steam game data") if self.provider == "steam" else _plain(self.file.get_label()),
             hint=_plain(self.file.human_url),
             details=self.file.auxiliary_info or "",
             providers=self.providers,
@@ -180,6 +224,7 @@ class _Installation:
         delegate: _InterpreterDelegate,
         directory: str,
         shortcut_kinds: tuple[str, ...],
+        kind: InstallationKind,
     ) -> None:
         self.id = uuid4().hex
         self.loop = asyncio.get_running_loop()
@@ -189,7 +234,8 @@ class _Installation:
         delegate.attach(self)
         if self.interpreter.installer.creates_game_folder and directory:
             self.interpreter.target_path = os.path.expanduser(directory)
-        self.shortcut_kinds = shortcut_kinds
+        self.kind = kind
+        self.shortcut_kinds = shortcut_kinds if kind == InstallationKind.INSTALL else ()
         self.stage = "preparing"
         self.status = _("Preparing Lutris for installation")
         self.progress: float | None = -1.0
@@ -204,6 +250,8 @@ class _Installation:
         self.game_id = ""
         self.error_details = ""
         self.runner_download: SimpleDownloader | None = None
+        self.runner_prompt: InstallerRunnerPrompt | None = None
+        self.runner_answer: asyncio.Future[str | None] | None = None
         # Set when the frontend closed it while it was being reverted
         self.closing = False
         self.tasks: set[asyncio.Task[None]] = set()
@@ -234,6 +282,7 @@ class _Installation:
             menu_preselect=preselect,
             disc_requires=self.disc[0] if self.disc else "",
             disc_can_eject=bool(self.disc and self.disc[1]),
+            runner_prompt=self.runner_prompt,
             has_log=self.has_log,
             can_remove_files=self._can_remove_files(),
             game_id=self.game_id,
@@ -258,7 +307,10 @@ class _Installation:
     def _can_remove_files(self) -> bool:
         target = self.interpreter.target_path
         return bool(
-            target and self.interpreter.game_dir_created and system.is_removeable(target, LutrisConfig().system_config)
+            self.kind == InstallationKind.INSTALL
+            and target
+            and self.interpreter.game_dir_created
+            and system.is_removeable(target, LutrisConfig().system_config)
         )
 
     # Progress reported by the interpreter
@@ -275,7 +327,33 @@ class _Installation:
             self.changed()
 
     def set_runner_download(self, downloader: SimpleDownloader | None) -> None:
+        if downloader and self.stage != "preparing":
+            if downloader.state == downloader.DOWNLOADING:
+                downloader.cancel()
+            return
         self.runner_download = downloader
+        self.set_progress(-1.0, _("Downloading…") if downloader else "")
+
+    async def ask_runner(self, prompt: InstallerRunnerPrompt) -> str | None:
+        if self.stage != "preparing":
+            return None
+        previous_status = self.status
+        answer = self.loop.create_future()
+        self.runner_answer = answer
+        self.runner_prompt = prompt
+        self._enter("runner_prompt", prompt.title)
+        try:
+            return await answer
+        finally:
+            self.runner_answer = None
+            self.runner_prompt = None
+            if self.stage == "runner_prompt":
+                self._enter("preparing", previous_status, progress=-1.0)
+
+    def answer_runner(self, answer: str | None) -> None:
+        self._require_stage("runner_prompt")
+        if self.runner_answer and not self.runner_answer.done():
+            self.runner_answer.set_result(answer)
 
     def show_log(self) -> None:
         if not self.has_log:
@@ -301,16 +379,23 @@ class _Installation:
         runners = await asyncio.to_thread(interpreter.get_runners_to_install)
         for runner in runners:
             self.set_status(_("Installing %s") % runner.human_name)
-            version = runner.get_installer_runner_version(interpreter.installer)
+            version = await asyncio.to_thread(runner.get_installer_runner_version, interpreter.installer)
+            if not self.active:
+                return
             try:
                 await asyncio.to_thread(runner.install, _RunnerDelegate(self), version=version)
             except (NonInstallableRunnerError, RunnerInstallationError) as error:
                 raise ScriptingError.wrap(error) from error
             if not self.active:
                 return
-            if not runner.is_installed_for(interpreter):
+            if not await asyncio.to_thread(runner.is_installed_for, interpreter):
                 raise ScriptingError(_("%s was not installed.") % runner.human_name)
 
+        if not self.active:
+            return
+        if self.kind != InstallationKind.INSTALL:
+            await self.prepare_files([])
+            return
         self.set_status(_("Looking for extra content"))
         all_extras = await asyncio.to_thread(interpreter.get_extras)
         if not self.active:
@@ -331,15 +416,14 @@ class _Installation:
     async def prepare_files(self, extras: list[dict[str, Any]]) -> None:
         self._enter("preparing", _("Preparing game files"), progress=-1.0)
         installer = self.interpreter.installer
-        await asyncio.to_thread(installer.prepare_game_files, extras)
+        patch_version = installer.version if self.kind == InstallationKind.UPDATE else None
+        await asyncio.to_thread(installer.prepare_game_files, extras, patch_version=patch_version)
         if not self.active:
             return
         if not installer.files:
             self.launch_commands()
             return
         for file in installer.files:
-            if file.default_provider == "steam":
-                raise ScriptingError(_("Files from Steam can't be installed from the Qt frontend yet."))
             self.files[file.id] = _FileEntry(file)
         self._enter("files", _("Review the files needed for the installation, then start it."))
 
@@ -362,19 +446,27 @@ class _Installation:
             raise LutrisError(_("Choose where each file comes from before installing."))
         self._enter("downloading", _("Downloading game data"), progress=None)
         for entry in self.files.values():
-            if entry.provider == "download":
+            if entry.provider in ("download", "steam"):
                 continue
             entry.file.prepare()
             entry.state = "available"
             if entry.cache:
                 entry.file.save_to_cache()
         self._start_queued_downloads()
+        self.changed()
         self._check_files_available()
 
     def retry_file(self, file_id: str) -> None:
         self._require_stage("downloading")
         entry = self._file(file_id)
-        if entry.state in ("failed", "cancelled") and entry.download:
+        if entry.state not in ("failed", "cancelled"):
+            return
+        if entry.provider == "steam":
+            entry.state = "pending"
+            entry.error = ""
+            self._start_queued_downloads()
+            self.changed()
+        elif entry.download:
             entry.state = "downloading"
             entry.error = ""
             entry.download.retry()
@@ -385,7 +477,13 @@ class _Installation:
         for entry in self.files.values():
             if downloading >= MAX_DOWNLOADS:
                 break
-            if entry.provider == "download" and entry.state == "pending":
+            if entry.state != "pending":
+                continue
+            if entry.provider == "steam" and isinstance(entry.file, InstallerFile):
+                entry.state = "downloading"
+                downloading += 1
+                entry.steam_task = self.loop.create_task(self._wait_for_steam(entry, entry.file))
+            elif entry.provider == "download":
                 entry.file.prepare()
                 entry.file.remove_previous()
                 entry.download = entry.file.create_download()
@@ -395,6 +493,25 @@ class _Installation:
                 entry.state = "downloading"
                 downloading += 1
                 entry.download.start()
+
+    async def _wait_for_steam(self, entry: _FileEntry, file: InstallerFile) -> None:
+        try:
+            root, data_path = await SteamInstaller(file.url, file.id).wait_for_data()
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            entry.state = "failed"
+            entry.error = str(error)
+        else:
+            file.dest_file = data_path
+            if self.interpreter.installer.runner == "steam":
+                self.interpreter.target_path = root
+            entry.state = "available"
+        finally:
+            entry.steam_task = None
+        self._start_queued_downloads()
+        self.changed()
+        self._check_files_available()
 
     def _on_download_changed(
         self, entry: _FileEntry, state: DownloadState, status: DownloadStatus, error: BaseException | None
@@ -559,7 +676,11 @@ class _Installation:
             logger.warning("Could not clean up the installer cache: %s", error)
 
     def _stop_downloads(self) -> None:
+        if self.runner_answer and not self.runner_answer.done():
+            self.runner_answer.set_result(None)
         for entry in self.files.values():
+            if entry.steam_task:
+                entry.steam_task.cancel()
             if entry.download and entry.state == "downloading":
                 entry.download.cancel()
             if entry.registration:
@@ -614,10 +735,9 @@ async def start_installation(
     unknown = set(shortcut_kinds) - set(SHORTCUT_KINDS)
     if unknown:
         raise LutrisError(_("Unknown shortcut destinations: %s") % ", ".join(sorted(unknown)))
-    script = installers.copy_script(catalog_id, choice_id)
     delegate = _InterpreterDelegate()
-    interpreter = await asyncio.to_thread(ScriptInterpreter, script, delegate)
-    installation = _Installation(interpreter, delegate, directory, shortcut_kinds)
+    interpreter, kind = await installers.build_interpreter(catalog_id, choice_id, delegate)
+    installation = _Installation(interpreter, delegate, directory, shortcut_kinds, kind)
     _installations[installation.id] = installation
     installation.start(installation.prepare())
     return installation.info()
@@ -658,6 +778,10 @@ async def retry_file(installation_id: str, file_id: str) -> None:
 
 async def answer_menu(installation_id: str, option_id: str) -> None:
     _get(installation_id).answer_menu(option_id)
+
+
+async def answer_runner(installation_id: str, answer: str | None) -> None:
+    _get(installation_id).answer_runner(answer)
 
 
 async def answer_disc(installation_id: str, path: str = "") -> None:

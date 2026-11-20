@@ -10,8 +10,8 @@ re-implementations and compatibility layers, it gives you a central interface
 to launch all your games.
 
 The client can connect with existing services like Humble Bundle, GOG and Steam
-to make your game libraries easily available. Game downloads and installations
-are automated and can be modified through user made scripts.
+to make your game libraries easily available. Connected stores supply the game
+files and installation options.
 
 Running Lutris
 ==============
@@ -25,21 +25,20 @@ can use the following command:
 
 ``gdb -ex r --args "/usr/bin/python3" "./bin/lutris"``
 
-Installer scripts
-=================
+Installing games
+================
 
-Lutris installations are fully automated through scripts, which can be written
-in either JSON or YAML.
-The scripting syntax is described in ``docs/installers.rst``, and is also
-available online at `lutris.net <https://lutris.net>`_.
+Sync a store library, select a game, and choose **Game Actions → Install**.
+For a local Windows setup executable, choose **Library → Run Windows Setup** in
+the Qt frontend. Use **Add Game** to configure a game that is already installed.
 
 Game library
 ============
 
 Your library is kept locally. This fork doesn't connect to Lutris.net
 accounts, so it never logs in to the website or uploads your library or play
-time. It still downloads public data from Lutris.net that needs no account:
-install scripts, runner builds and runtime versions.
+time. It still downloads public data from Lutris.net for runner builds and
+runtime versions.
 
 Artwork comes from each game's store (Steam, Epic, GOG...), and from
 `SteamGridDB <https://www.steamgriddb.com>`_ for what stores lack and for games
@@ -82,7 +81,6 @@ The following command line arguments are available::
 
 -v, --version                    Print the version of Lutris and exit
 -d, --debug                      Show debug messages
--i, --install                    Install a game from a yml file
 -b, --output-script              Generate a bash script to run a game without the client
 -e, --exec                       Execute a program with the lutris runtime
 -l, --list-games                 List all games in database
@@ -96,19 +94,18 @@ The following command line arguments are available::
 -r, --install-runner             Install a Runner
 -u, --uninstall-runner           Uninstall a Runner
 -j, --json                       Display the list of games in JSON format
---reinstall                      Reinstall game
 --display=DISPLAY                X display to use
 --export <game>                  Exports specified game (requires --dest)
 --import <game.7z>               Import games from exportfile (requires --dest)
 --dest <folder>                  Specifies Export/Import destination folder
 
-Additionally, you can pass a ``lutris:`` protocol link followed by a game
-identifier on the command line such as::
+Use a ``lutris:`` link to launch an installed game by slug or library ID::
 
-    lutris lutris:quake
+    lutris lutris:rungame/quake
+    lutris lutris:rungameid/42
 
-This will install the game if it is not already installed, otherwise it will
-launch the game. The game will always be installed if the ``--reinstall`` flag is passed.
+To open the installer for a synced store game, use
+``lutris:install/<source>:<app-id>``.
 
 Support the project
 ===================

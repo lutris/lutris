@@ -91,129 +91,9 @@
         "lineCount": 1
       },
       {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 45,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 41,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 34,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 46,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 8,
-        "endColumn": 36,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 11,
-        "endColumn": 42,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 36,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 37,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 8,
-        "endColumn": 32,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 8,
-        "endColumn": 32,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 47,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 47,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 47,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 19,
-        "endColumn": 51,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 12,
-        "endColumn": 35,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 8,
-        "endColumn": 37,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 8,
-        "endColumn": 30,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 8,
-        "endColumn": 42,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 8,
-        "endColumn": 48,
-        "lineCount": 1
-      },
-      {
         "rule": "missing-attribute",
         "startColumn": 8,
         "endColumn": 41,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 45,
         "lineCount": 1
       },
       {
@@ -958,12 +838,6 @@
         "rule": "lost-keyword-for-regular-parameter",
         "startColumn": 8,
         "endColumn": 78,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 16,
-        "endColumn": 56,
         "lineCount": 1
       },
       {
@@ -1792,14 +1666,6 @@
         "rule": "missing-union-attribute",
         "startColumn": 8,
         "endColumn": 23,
-        "lineCount": 1
-      }
-    ],
-    "lutris/installer/__init__.py": [
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 31,
-        "endColumn": 50,
         "lineCount": 1
       }
     ],
@@ -2690,12 +2556,6 @@
         "rule": "not-subscriptable",
         "startColumn": 96,
         "endColumn": 114,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 50,
-        "endColumn": 65,
         "lineCount": 1
       },
       {

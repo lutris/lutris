@@ -61,12 +61,6 @@ install_subdir(
 )
 
 install_subdir(
-  'share/mime',
-  install_dir: join_paths(datadir, 'mime'),
-  strip_directory: true,
-)
-
-install_subdir(
   'share/lutris',
   install_dir: join_paths(datadir, 'lutris'),
   strip_directory: true,
@@ -93,25 +87,6 @@ if desktop_file_validate.found()
     'Validate desktop file',
     desktop_file_validate,
     args: [ desktop_file.full_path() ],
-  )
-endif
-
-desktop_file_association = i18n.merge_file(
-  input: files('share/applications/net.lutris.Lutris1.desktop'),
-  output: 'net.lutris.Lutris1.desktop',
-  type: 'desktop',
-  po_dir: podir,
-  install: true,
-  install_dir: join_paths(datadir, 'applications'),
-)
-
-# Validate the desktop file
-desktop_file_association_validate = find_program('desktop-file-validate', required:false)
-if desktop_file_association_validate.found()
-  test (
-    'Validate desktop file',
-    desktop_file_association_validate,
-    args: [ desktop_file_association.full_path() ],
   )
 endif
 

@@ -15,7 +15,7 @@ import pytest
 
 from lutris import settings
 from lutris.backend import events, installations, installers, runners
-from lutris.backend.models import GameInfo, InstallationInfo
+from lutris.backend.models import GameInfo, InstallationInfo, InstallerCatalog
 from lutris.database import games as games_db
 from lutris.delegates import InstallUIDelegate
 from lutris.exceptions import LutrisError
@@ -154,7 +154,7 @@ def game_id(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
     games_db.delete_game(new_id)
 
 
-def use_script(monkeypatch: pytest.MonkeyPatch, files: list[dict[str, str]], commands: list[Any]) -> None:
+def make_catalog(files: list[dict[str, str]], commands: list[Any]) -> InstallerCatalog:
     script = {
         "name": "Installations Test",
         "game_slug": SLUG,
@@ -163,7 +163,7 @@ def use_script(monkeypatch: pytest.MonkeyPatch, files: list[dict[str, str]], com
         "runner": "linux",
         "script": {"game": {"exe": "$GAMEDIR/payload.txt"}, "files": files, "installer": commands},
     }
-    monkeypatch.setattr(installers, "get_installers", lambda game_slug: [script])
+    return installers._catalog_from_scripts([script])
 
 
 class Tracker:
@@ -199,18 +199,16 @@ class Tracker:
             registration.unregister()
 
 
-async def start(game_id: str, directory: Path) -> InstallationInfo:
-    catalog = await installers.find_game_installers(game_id)
+async def start(catalog: InstallerCatalog, directory: Path) -> InstallationInfo:
     return await installations.start_installation(catalog.id, catalog.choices[0].id, str(directory))
 
 
 def test_installs_downloaded_and_chosen_files_and_asks_the_script_menu(
-    game_id: str, server: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fake_main_loop: FakeMainLoop
+    game_id: str, server: str, tmp_path: Path, fake_main_loop: FakeMainLoop
 ) -> None:
     manual = tmp_path / "manual.txt"
     manual.write_text("chosen by the user", encoding="utf-8")
-    use_script(
-        monkeypatch,
+    catalog = make_catalog(
         [{"payload": server + "/payload.txt"}, {"manual": "N/A:Select the game manual"}],
         [
             {"input_menu": {"id": "LANG", "options": [{"en": "English"}, {"fr": "French"}], "preselect": "en"}},
@@ -223,7 +221,7 @@ def test_installs_downloaded_and_chosen_files_and_asks_the_script_menu(
     tracker = Tracker(fake_main_loop)
 
     async def run() -> None:
-        info = await start(game_id, target)
+        info = await start(catalog, target)
         files = (await tracker.wait_for_stage("files")).files
         assert [(file.id, file.provider, file.ready) for file in files] == [
             ("payload", "download", True),
@@ -266,10 +264,9 @@ def test_installs_downloaded_and_chosen_files_and_asks_the_script_menu(
 
 
 def test_cancelling_reverts_without_marking_the_game_installed(
-    game_id: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fake_main_loop: FakeMainLoop
+    game_id: str, tmp_path: Path, fake_main_loop: FakeMainLoop
 ) -> None:
-    use_script(
-        monkeypatch,
+    catalog = make_catalog(
         [],
         [
             {"write_file": {"file": "$GAMEDIR/started.txt", "content": "yes"}},
@@ -281,7 +278,7 @@ def test_cancelling_reverts_without_marking_the_game_installed(
     tracker = Tracker(fake_main_loop)
 
     async def run() -> None:
-        info = await start(game_id, target)
+        info = await start(catalog, target)
         await tracker.wait_for_stage("menu")
         await installations.cancel_installation(info.id, remove_files=False)
         await tracker.wait_for_stage("cancelled")
@@ -299,14 +296,12 @@ def test_cancelling_reverts_without_marking_the_game_installed(
     assert row is not None and not row["installed"]
 
 
-def test_failed_commands_report_the_error(
-    game_id: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fake_main_loop: FakeMainLoop
-) -> None:
-    use_script(monkeypatch, [], [{"move": {"src": "$GAMEDIR/missing", "dst": "$GAMEDIR/elsewhere"}}])
+def test_failed_commands_report_the_error(game_id: str, tmp_path: Path, fake_main_loop: FakeMainLoop) -> None:
+    catalog = make_catalog([], [{"move": {"src": "$GAMEDIR/missing", "dst": "$GAMEDIR/elsewhere"}}])
     tracker = Tracker(fake_main_loop)
 
     async def run() -> None:
-        info = await start(game_id, tmp_path / "Games" / SLUG)
+        info = await start(catalog, tmp_path / "Games" / SLUG)
         failed = await tracker.wait_for(lambda info: info.stage == "failed")
         assert "missing" in failed.status
         await installations.close_installation(info.id)
@@ -315,3 +310,107 @@ def test_failed_commands_report_the_error(
         asyncio.run(run())
     finally:
         tracker.close()
+
+
+@pytest.mark.parametrize("cancel", [False, True])
+def test_steam_install_waits_for_manifest_and_keeps_steam_data(
+    cancel: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fake_main_loop: FakeMainLoop
+) -> None:
+    from lutris.installer import steam_installer
+    from lutris.services.steam import SteamService
+    from lutris.util.steam.vdfutils import vdf_write
+
+    appid = "298341"
+    steamapps = tmp_path / "steamapps"
+    target = steamapps / "common" / "Fixture"
+    target.mkdir(parents=True)
+    payload = target / "game.bin"
+    payload.touch()
+    manifest = steamapps / f"appmanifest_{appid}.acf"
+    vdf_write(str(manifest), {"AppState": {"installdir": target.name, "StateFlags": 2}})
+    (tmp_path / "config" / "games").mkdir(parents=True)
+    monkeypatch.setattr(settings, "CONFIG_DIR", str(tmp_path / "config"))
+    monkeypatch.setattr(settings, "INSTALLER_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setattr(interpreter, "fetch_game_artwork", lambda slug: 0)
+    monkeypatch.setattr(LutrisInstaller, "_get_discord_id_from_api", lambda self: None)
+    monkeypatch.setattr(steam_installer, "get_steamapps_dirs", lambda: [str(steamapps)])
+    monkeypatch.setattr(steam_installer.steam.steam, "is_installed", lambda self: True)
+    service = SteamService()
+    script = service.generate_installer({"appid": appid, "name": "Steam Fixture", "slug": "steam-fixture"})
+    catalog = installers._catalog_from_scripts([script], installers._Origin(service, appid))
+    tracker = Tracker(fake_main_loop)
+
+    async def run() -> None:
+        loop = asyncio.get_running_loop()
+        requested = asyncio.Event()
+
+        def request_install(_steam: steam_installer.steam.steam, requested_appid: str) -> None:
+            assert requested_appid == appid
+            loop.call_soon_threadsafe(requested.set)
+
+        monkeypatch.setattr(steam_installer.steam.steam, "install_game", request_install)
+        info = await start(catalog, tmp_path)
+        try:
+            files = (await tracker.wait_for_stage("files")).files
+            assert [(file.provider, file.ready) for file in files] == [("steam", True)]
+            await installations.start_files(info.id)
+            await asyncio.wait_for(requested.wait(), timeout=2)
+            assert (await installations.get_installation(info.id)).stage == "downloading"
+            if cancel:
+                await installations.cancel_installation(info.id)
+                await tracker.wait_for_stage("cancelled")
+                assert not games_db.get_games(filters={"service": "steam", "service_id": appid})
+            else:
+                vdf_write(str(manifest), {"AppState": {"installdir": target.name, "StateFlags": 4}})
+                result = await tracker.wait_for_stage("finished")
+                row = games_db.get_game_by_field(result.game_id, "id")
+                assert row is not None and row["directory"] == str(target) and row["service_id"] == appid
+        finally:
+            await installations.close_installation(info.id)
+            for row in games_db.get_games(filters={"service": "steam", "service_id": appid}):
+                games_db.delete_game(row["id"])
+
+    try:
+        asyncio.run(run())
+    finally:
+        tracker.close()
+    assert payload.is_file()
+
+
+def test_runner_prompt_releases_the_worker_on_cancel(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fake_main_loop: FakeMainLoop
+) -> None:
+    answers: list[bool] = []
+
+    class PromptRunner(Runner):
+        name = "firmware"
+
+        def install(
+            self,
+            install_ui_delegate: InstallUIDelegate,
+            version: str | None = None,
+            callback: Callable[[], None] | None = None,
+        ) -> None:
+            answers.append(install_ui_delegate.show_install_yesno_inquiry("Install firmware?", "Firmware"))
+
+    monkeypatch.setattr(settings, "INSTALLER_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setattr(interpreter.ScriptInterpreter, "get_runners_to_install", lambda self: [PromptRunner()])
+    catalog = make_catalog([], [{"write_file": {"file": "$GAMEDIR/game.txt", "content": "test"}}])
+    tracker = Tracker(fake_main_loop)
+
+    async def run() -> None:
+        info = await start(catalog, tmp_path / "game")
+        try:
+            prompt = (await tracker.wait_for_stage("runner_prompt")).runner_prompt
+            assert prompt and prompt.question == "Install firmware?"
+            await installations.cancel_installation(info.id)
+            await tracker.wait_for_stage("cancelled")
+        finally:
+            await installations.close_installation(info.id)
+
+    try:
+        asyncio.run(run())
+    finally:
+        tracker.close()
+    assert answers == [False]
+    assert not (tmp_path / "game").exists()

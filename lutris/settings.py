@@ -61,9 +61,6 @@ for test_module in test_modules:
 
 SITE_URL = sio.read_setting("website") or "https://lutris.net"
 
-INSTALLER_URL = SITE_URL + "/api/installers/%s"
-
-INSTALLER_REVISION_URL = SITE_URL + "/api/installers/game/%s/revisions/%s"
 GAME_URL = SITE_URL + "/games/%s/"
 RUNTIME_URL = SITE_URL + "/api/runtimes"
 

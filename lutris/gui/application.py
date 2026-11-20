@@ -19,7 +19,6 @@
 import os
 import signal
 import sys
-import tempfile
 import types
 from collections.abc import Callable
 from gettext import gettext as _
@@ -36,7 +35,7 @@ from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.delegates import CommandLineUIDelegate, LaunchUIDelegate
 from lutris.game import GAME_START, GAME_STOPPED, Game
-from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
+from lutris.gui.dialogs import NoticeDialog
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.display_backend import GtkDisplayBackend
 from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
@@ -45,15 +44,13 @@ from lutris.gui.installerwindow import INSTALLATION_COMPLETED, INSTALLATION_FAIL
 from lutris.gui.style_manager import StyleManager
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.gui.widgets.utils import check_pixbuf_formats
-from lutris.installer import InstallationKind, get_installers
+from lutris.installer import InstallationKind
 from lutris.services import get_enabled_services
 from lutris.services.gog_cloud_operation import CLOUD_SYNC_ENDED, CloudSyncOperation, is_cloud_sync_running
 from lutris.util import datapath
 from lutris.util.display_backend import set_display_backend
-from lutris.util.http import HTTPError, Request
 from lutris.util.log import file_handler, logger
 
-from ..util.busy import BusyAsyncCall
 from .lutriswindow import LutrisWindow
 
 LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATURES_ENABLED") == "1"
@@ -199,17 +196,6 @@ class LutrisApplication(Gtk.Application):
             InstallerWindow, installers=installers, service=service, appid=appid, installation_kind=installation_kind
         )
 
-    def show_lutris_installer_window(self, game_slug: str) -> None:
-        def on_installers_ready(installers: list[dict[str, Any]], error: BaseException) -> None:
-            if error and self.window:
-                display_error(error, parent=self.window)
-            elif installers:
-                self.show_installer_window(installers)
-            else:
-                ErrorDialog(_("No installer available."), parent=self.window)
-
-        BusyAsyncCall(get_installers, on_installers_ready, game_slug=game_slug)
-
     def on_app_window_destroyed(self, app_window: Gtk.Window, window_key: str) -> bool:
         """Remove the reference to the window when it has been destroyed"""
         window_key = str(app_window.__class__.__name__) + window_key
@@ -258,107 +244,40 @@ class LutrisApplication(Gtk.Application):
         appid = installer_info["appid"]
         launch_config_name = installer_info["launch_config_name"]
 
-        revision = installer_info["revision"]
-
-        installer_file = None
-        if option := options.lookup_value("install"):
-            installer_file = option.get_string()
-            if installer_file.startswith(("http:", "https:")):
-                try:
-                    request = Request(installer_file).get()
-                except HTTPError:
-                    output.print_error(_("Failed to download %s") % installer_file)
-                    return 1
-                try:
-                    headers = dict(request.response_headers or {})
-                    file_name = headers["Content-Disposition"].split("=", 1)[-1]
-                except KeyError, IndexError:
-                    file_name = os.path.basename(installer_file)
-                file_path = os.path.join(tempfile.gettempdir(), file_name)
-                output.print(_("download {url} to {file} started").format(url=installer_file, file=file_path))
-                with open(file_path, "wb") as dest_file:
-                    dest_file.write(request.content)
-                installer_file = file_path
-                action = "install"
-            else:
-                installer_file = output.get_path(installer_file)
-                action = "install"
-
-            if not os.path.isfile(installer_file):
-                output.print_error(_("No such file: %s") % installer_file)
-                return 1
+        if action == "install" or service:
+            source_class = get_enabled_services().get(service or "")
+            service_game = ServiceGameCollection.get_game(service, appid) if service and appid else None
+            if source_class and service_game:
+                self.set_tray_icon()
+                self.activate()
+                source_class().install(service_game, self.launch_ui_delegate)
+                return 0
+            output.print_error(_("Choose a game from one of your library sources to install."))
+            return 1
 
         db_game = None
-        if game_slug and not service:
+        if game_slug:
             if action == "rungameid":
-                # Force db_game to use game id
-                if not self.has_tray_icon() and (not self.window or not self.window.is_visible()):
-                    self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "id")
             elif action == "rungame":
-                # Force db_game to use game slug
-                if not self.has_tray_icon() and (not self.window or not self.window.is_visible()):
-                    self.quit_on_game_exit = True
                 db_game = games_db.get_game_by_field(game_slug, "slug")
-            elif action == "install":
-                # Installers can use game or installer slugs
-                if not self.has_tray_icon() and (not self.window or not self.window.is_visible()):
-                    self.quit_on_game_exit = True
-                db_game = games_db.get_game_by_field(game_slug, "slug") or games_db.get_game_by_field(
-                    game_slug, "installer_slug"
-                )
-            else:
-                # Dazed and confused, try anything that might works
-                db_game = (
-                    games_db.get_game_by_field(game_slug, "id")
-                    or games_db.get_game_by_field(game_slug, "slug")
-                    or games_db.get_game_by_field(game_slug, "installer_slug")
-                )
+            elif not action:
+                db_game = games_db.get_game_by_field(game_slug, "id") or games_db.get_game_by_field(game_slug, "slug")
+                if not db_game or not db_game["installed"]:
+                    output.print_error(_("No installed game matches %s.") % game_slug)
+                    return 1
+                action = "rungame"
 
-        # If reinstall flag is passed, force the action to install
-        if options.contains("reinstall"):
-            action = "install"
-
-        # Graphical commands
+        if (
+            action in ("rungame", "rungameid")
+            and not self.has_tray_icon()
+            and (not self.window or not self.window.is_visible())
+        ):
+            self.quit_on_game_exit = True
         self.set_tray_icon()
         self.activate()
 
-        if not action:
-            if db_game and db_game["installed"]:
-                # Game found but no action provided, ask what to do
-                dlg = InstallOrPlayDialog(str(db_game["name"]))
-                if not dlg.action:
-                    action = "cancel"
-                elif dlg.action == "play":
-                    action = "rungame"
-                elif dlg.action == "install":
-                    action = "install"
-            elif game_slug or installer_file or service:
-                # No game found, default to install if a game_slug or
-                # installer_file is provided
-                action = "install"
-
-        if service and appid:
-            service_game = ServiceGameCollection.get_game(service, appid)
-            if service_game:
-                service = get_enabled_services()[service]()
-                service.install(service_game, self.launch_ui_delegate)
-                return 0
-
-        if action == "cancel":
-            if self.window and not self.window.is_visible():
-                self.quit()
-            return 0
-
-        if action == "install":
-            installers = get_installers(
-                game_slug=game_slug,
-                installer_file=installer_file,
-                revision=revision,
-            )
-            if installers:
-                self.show_installer_window(installers)
-        elif action in ("rungame", "rungameid"):
+        if action in ("rungame", "rungameid"):
             if not db_game or not db_game["id"]:
                 logger.warning("No game found in library")
                 if self.window and not self.window.is_visible():

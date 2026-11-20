@@ -78,7 +78,7 @@ class InstallerFileBox(Gtk.VBox):
             steam_installer.game_installed.register(self.on_steam_game_installed)
             steam_installer.game_state_changed.register(self.on_steam_game_state_changed)
             self.start_func = steam_installer.install_steam_game
-            self.stop_func = steam_installer.stop_func
+            self.stop_func = steam_installer.stop_waiting
 
             steam_box = Gtk.HBox(spacing=6)
             info_box = Gtk.VBox(spacing=6)

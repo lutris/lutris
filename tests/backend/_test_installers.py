@@ -2,15 +2,13 @@
 
 import asyncio
 import os
-from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
 import pytest
 
 from lutris.backend import installers
-from lutris.database import games as games_db
 from lutris.exceptions import LutrisError
-from lutris.util.http import HTTPError
 from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
@@ -38,38 +36,18 @@ def make_script(version: str, **script: Any) -> dict[str, Any]:
 
 
 @pytest.fixture
-def library() -> Iterator[dict[str, str]]:
-    ids = {
-        "uninstalled": str(games_db.add_game(name="Installer Test", slug=SLUG, runner="linux", installed=0)),
-        "installed": str(games_db.add_game(name="Installed Test", slug=SLUG, runner="linux", installed=1)),
-        "service": str(games_db.add_game(name="Service Test", slug=SLUG, service="gog", installed=0)),
-    }
-    yield ids
-    for game_id in ids.values():
-        games_db.delete_game(game_id)
-
-
-@pytest.fixture
-def scripts(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, Any]]:
-    found = [
+def scripts() -> list[dict[str, Any]]:
+    return [
         make_script("Native"),
         {"name": "Broken", "version": "Missing fields"},
         make_script("Extra", files=[{"one": "a", "two": "b"}]),
         {**make_script("Flatpak"), "runner": "flatpak"},
         make_script("Requires", requires="backend-installers-base-game"),
     ]
-    requested: list[str] = []
-
-    def get_installers(game_slug: str) -> list[dict[str, Any]]:
-        requested.append(game_slug)
-        return found
-
-    monkeypatch.setattr(installers, "get_installers", get_installers)
-    return found
 
 
-def test_catalog_lists_usable_scripts_as_plain_choices(library: dict[str, str], scripts: list[dict[str, Any]]) -> None:
-    catalog = asyncio.run(installers.find_game_installers(library["uninstalled"]))
+def test_catalog_lists_usable_plans_as_plain_choices(scripts: list[dict[str, Any]]) -> None:
+    catalog = installers._catalog_from_scripts(scripts)
 
     assert catalog.game_name == "Installer Test"
     assert catalog.game_slug == SLUG
@@ -83,30 +61,16 @@ def test_catalog_lists_usable_scripts_as_plain_choices(library: dict[str, str], 
     asyncio.run(installers.close_catalog(catalog.id))
 
 
-@pytest.mark.parametrize("kind", ["installed", "service"])
-def test_installed_and_store_games_are_not_offered_scripts(
-    library: dict[str, str], scripts: list[dict[str, Any]], kind: str
-) -> None:
-    with pytest.raises(LutrisError):
-        asyncio.run(installers.find_game_installers(library[kind]))
-
-
-def test_fetch_failures_and_empty_catalogs_are_user_errors(monkeypatch: pytest.MonkeyPatch) -> None:
-    def unreachable(game_slug: str) -> list[dict[str, Any]]:
-        raise HTTPError("Unreachable")
-
-    monkeypatch.setattr(installers, "get_installers", unreachable)
-    with pytest.raises(LutrisError, match="could not be downloaded"):
-        asyncio.run(installers.find_installers(SLUG))
-
-    monkeypatch.setattr(installers, "get_installers", lambda game_slug: [])
+def test_unknown_sources_and_empty_catalogs_are_user_errors() -> None:
+    with pytest.raises(LutrisError, match="source is unavailable"):
+        asyncio.run(installers.find_store_installers("unknown-store", "42"))
     with pytest.raises(LutrisError, match="No installer available"):
-        asyncio.run(installers.find_installers(SLUG))
+        installers._catalog_from_scripts([])
 
 
-def test_selecting_checks_the_script_without_running_it(library: dict[str, str], scripts: list[dict[str, Any]]) -> None:
+def test_selecting_checks_the_script_without_running_it(scripts: list[dict[str, Any]]) -> None:
     async def run() -> None:
-        catalog = await installers.find_game_installers(library["uninstalled"])
+        catalog = installers._catalog_from_scripts(scripts)
         selection = await installers.select_installer(catalog.id, catalog.choices[0].id)
 
         assert selection.catalog_id == catalog.id
@@ -124,9 +88,9 @@ def test_selecting_checks_the_script_without_running_it(library: dict[str, str],
     assert "requires" not in scripts[0]["script"]
 
 
-def test_selection_reports_a_missing_required_game(library: dict[str, str], scripts: list[dict[str, Any]]) -> None:
+def test_selection_reports_a_missing_required_game(scripts: list[dict[str, Any]]) -> None:
     async def run() -> None:
-        catalog = await installers.find_game_installers(library["uninstalled"])
+        catalog = installers._catalog_from_scripts(scripts)
         selection = await installers.select_installer(catalog.id, catalog.choices[1].id)
 
         assert selection.required_game_slug == "backend-installers-base-game"
@@ -138,16 +102,84 @@ def test_selection_reports_a_missing_required_game(library: dict[str, str], scri
 
 def test_closed_and_evicted_catalogs_are_forgotten(scripts: list[dict[str, Any]]) -> None:
     async def run() -> None:
-        first = await installers.find_installers(SLUG)
+        first = installers._catalog_from_scripts(scripts)
         await installers.close_catalog(first.id)
         with pytest.raises(LutrisError, match="no longer available"):
             await installers.select_installer(first.id, "0")
 
-        oldest = await installers.find_installers(SLUG)
-        newer = [await installers.find_installers(SLUG) for _ in range(installers._CATALOG_LIMIT)]
+        oldest = installers._catalog_from_scripts(scripts)
+        newer = [installers._catalog_from_scripts(scripts) for _ in range(installers._CATALOG_LIMIT)]
         with pytest.raises(LutrisError, match="no longer available"):
             await installers.select_installer(oldest.id, "0")
         for catalog in newer:
+            await installers.close_catalog(catalog.id)
+
+    asyncio.run(run())
+
+
+def test_store_content_targets_the_selected_installation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from lutris.database import games as games_db
+    from lutris.installer import InstallationKind
+    from lutris.installer.interpreter import ScriptInterpreter
+    from lutris.services.gog import GOGService
+
+    slug = "shared-install-slug"
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    first.mkdir()
+    second.mkdir()
+    wrong = games_db.add_game(name="Other", slug=slug, installed=1, directory=str(first))
+    expected = games_db.add_game(
+        name="GOG game", slug=slug, installed=1, directory=str(second), service="gog", service_id="4780", runner="linux"
+    )
+    script = {**make_script("Patch", extends=slug), "game_slug": slug}
+    monkeypatch.setattr(GOGService, "is_authenticated", lambda self: True)
+    monkeypatch.setattr(GOGService, "get_update_installers", lambda self, row: [script])
+
+    async def run() -> None:
+        catalog = await installers.find_store_installers("gog", "4780", str(expected), InstallationKind.UPDATE)
+        try:
+            selection = await installers.select_installer(catalog.id, "0")
+            assert not selection.creates_game_folder and selection.default_directory == str(second)
+            interpreter, kind = await installers.build_interpreter(
+                catalog.id, "0", ScriptInterpreter.InterpreterUIDelegate()
+            )
+            assert kind == InstallationKind.UPDATE
+            assert interpreter.installer.save() == (str(expected), None)
+        finally:
+            await installers.close_catalog(catalog.id)
+
+    try:
+        asyncio.run(run())
+    finally:
+        games_db.delete_game(str(wrong))
+        games_db.delete_game(str(expected))
+
+
+@pytest.mark.parametrize(("windows_version", "locale"), [("win10", ""), ("win7", "ja_JP.utf8")])
+def test_windows_setup_preserves_a_literal_executable_path(tmp_path: Path, windows_version: str, locale: str) -> None:
+    from lutris.installer.interpreter import ScriptInterpreter
+
+    executable = tmp_path / "Setup $GAMEDIR.exe"
+    executable.touch()
+
+    async def run() -> None:
+        catalog = await installers.prepare_windows_setup("Test Game", str(executable), windows_version, locale)
+        try:
+            interpreter, _ = await installers.build_interpreter(
+                catalog.id, "0", ScriptInterpreter.InterpreterUIDelegate()
+            )
+            assert interpreter.installer.runner == "wine"
+            assert interpreter.installer.creates_game_folder
+            assert interpreter._substitute("$SETUP_EXE") == str(executable)
+            tasks = [step["task"] for step in interpreter.installer.script["installer"]]
+            assert tasks[-1] == {"name": "wineexec", "executable": "$SETUP_EXE", "arch": "win64"}
+            assert interpreter.script_env == ({"LC_ALL": locale} if locale else {})
+            if windows_version == "win10":
+                assert len(tasks) == 1
+            else:
+                assert tasks[0] == {"name": "winetricks", "app": windows_version, "arch": "win64"}
+        finally:
             await installers.close_catalog(catalog.id)
 
     asyncio.run(run())

@@ -36,6 +36,7 @@ from lutris.installer.installer import LutrisInstaller
 from lutris.qt import store_sources
 from lutris.qt.main_window import MainWindow
 from lutris.services.base import LutrisBanner, LutrisCoverart
+from lutris.services.gog import GOGService
 from lutris.util import path_cache
 from lutris.util.test_config import setup_test_environment
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
@@ -298,8 +299,30 @@ def find_item(root: QQuickItem, name: str) -> QQuickItem | None:
     return None
 
 
+@pytest.fixture
+def store_appid(monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
+    appid = "111824"
+    row_id = sql.db_insert(
+        settings.DB_PATH,
+        "service_games",
+        {
+            "service": "gog",
+            "appid": appid,
+            "slug": PREFIX + "uninstalled",
+            "name": PREFIX + "Uninstalled",
+            "details": "{}",
+        },
+    )
+    monkeypatch.setattr(GOGService, "is_authenticated", lambda self: True)
+    monkeypatch.setattr(GOGService, "has_extras", False)
+    yield appid
+    sql.db_delete(settings.DB_PATH, "service_games", "id", row_id)
+    for row in games_db.get_games(filters={"service": "gog", "service_id": appid}):
+        games_db.delete_game(row["id"])
+
+
 def test_qml_lists_and_selects_installers_without_running_them(
-    qt_application: QGuiApplication, library: list[str], monkeypatch: pytest.MonkeyPatch
+    qt_application: QGuiApplication, library: list[str], store_appid: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     base_slug = PREFIX + "base"
 
@@ -321,14 +344,12 @@ def test_qml_lists_and_selects_installers_without_running_them(
             },
         }
 
-    catalogs = {
-        PREFIX + "uninstalled": [
-            script(PREFIX + "Uninstalled", PREFIX + "uninstalled", "Native"),
-            script(PREFIX + "Uninstalled", PREFIX + "uninstalled", "Expansion", requires=base_slug),
-        ],
-        base_slug: [script(PREFIX + "Base", base_slug, "Base")],
-    }
-    monkeypatch.setattr(installers, "get_installers", lambda game_slug: catalogs[game_slug])
+    games_db.update_existing(id=library[1], service="gog", service_id=store_appid)
+    choices = [
+        script(PREFIX + "Uninstalled", PREFIX + "uninstalled", "Native"),
+        script(PREFIX + "Uninstalled", PREFIX + "uninstalled", "Expansion", requires=base_slug),
+    ]
+    monkeypatch.setattr(GOGService, "generate_installers", lambda self, row: choices)
 
     async def run() -> None:
         window = MainWindow()
@@ -369,10 +390,8 @@ def test_qml_lists_and_selects_installers_without_running_them(
 
             await choose("1")
             assert dialog_controller.property("requiredGame") == base_slug
-            required = window.window.findChild(QObject, "showRequiredGameInstallers")
-            assert required is not None and QMetaObject.invokeMethod(required, "clicked")
-            await wait_for_qml(qt_application, lambda: dialog_controller.property("gameName") == PREFIX + "Base")
-            assert [choice["version"] for choice in dialog_controller.property("choices")] == ["Base"]
+            start = window.window.findChild(QObject, "installerStart")
+            assert start is not None and not start.property("visible")
 
             catalog = dialog_controller._catalog
             assert catalog is not None and catalog.id in installers._catalogs
@@ -385,9 +404,9 @@ def test_qml_lists_and_selects_installers_without_running_them(
     asyncio.run(run())
 
 
-def test_qml_runs_an_install_script_to_the_end(
+def test_qml_installs_a_synced_store_game_without_a_library_entry(
     qt_application: QGuiApplication,
-    library: list[str],
+    store_appid: str,
     fake_main_loop: FakeMainLoop,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -417,7 +436,7 @@ def test_qml_runs_an_install_script_to_the_end(
             ],
         },
     }
-    monkeypatch.setattr(installers, "get_installers", lambda game_slug: [script])
+    monkeypatch.setattr(GOGService, "generate_installers", lambda self, row: [script])
 
     async def run() -> None:
         window = MainWindow()
@@ -427,7 +446,13 @@ def test_qml_runs_an_install_script_to_the_end(
         try:
             controller.set_installed_only(False)
             await settle(window)
-            await open_game_action(window, qt_application, library[1], "installGame")
+            source_row = controller.sidebar.find_row({"service": "gog"})
+            assert source_row >= 0
+            controller.select_view(source_row)
+            await settle(window)
+            game = controller.model.game_at(controller.model.find_row(store_appid))
+            assert game is not None and game.game_id is None
+            await open_game_action(window, qt_application, store_appid, "installGame")
             choices = window.window.findChild(QQuickItem, "installerChoices")
             assert choices is not None
             await wait_for_qml(qt_application, lambda: find_item(choices, "chooseInstaller0") is not None)
@@ -472,7 +497,7 @@ def test_qml_runs_an_install_script_to_the_end(
             def installed_in_library() -> bool:
                 fake_main_loop.run_pending()
                 model = controller.model
-                game = model.game_at(model.find_row(library[1]))
+                game = model.game_at(model.find_row(store_appid))
                 return bool(game and game.installed)
 
             await wait_for_qml(qt_application, installed_in_library)

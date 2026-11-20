@@ -10,22 +10,37 @@ ToolButton {
     required property QtObject controller
     property string targetGameId: ""
     property string targetGameName: ""
+    property string targetService: ""
+    property string targetAppId: ""
     property bool targetCanPlay: false
     property bool targetInstalled: false
+    property bool targetCanMaintain: false
     property bool targetCanLinkLocalGame: false
     property bool targetCanInstall: false
+    property bool targetCanUpdate: false
+    property bool targetCanInstallDlc: false
 
     text: qsTr("Game Actions")
-    enabled: controller.selectedGameId.length > 0
+    enabled: controller.selectedGameId.length > 0 || controller.canInstall
     onClicked: {
         targetGameId = controller.selectedGameId
         targetGameName = controller.selectedGameName
+        targetService = controller.selectedGameService
+        targetAppId = controller.selectedGameAppId
         targetCanPlay = controller.canPlay
         targetInstalled = controller.selectedGameInstalled
+        targetCanMaintain = controller.canMaintain
         targetCanLinkLocalGame = controller.canLinkLocalGame
         targetCanInstall = controller.canInstall
-        controller.load_organization(targetGameId)
+        targetCanUpdate = controller.canUpdateGame
+        targetCanInstallDlc = controller.canInstallDlc
+        if (targetGameId.length > 0)
+            controller.load_organization(targetGameId)
         gameMenu.open()
+    }
+
+    function openInstaller(operation: string) {
+        controller.installers.open_installers(targetService, targetAppId, targetGameId, targetGameName, operation)
     }
 
     Menu {
@@ -36,19 +51,20 @@ ToolButton {
         MenuItem {
             objectName: "toggleFavorite"
             text: actions.controller.favorite ? qsTr("Remove from Favorites") : qsTr("Add to Favorites")
-            enabled: actions.controller.organizationReady
+            enabled: actions.targetGameId.length > 0 && actions.controller.organizationReady
             onTriggered: actions.controller.set_favorite(actions.targetGameId, !actions.controller.favorite)
         }
 
         MenuItem {
             text: actions.controller.hidden ? qsTr("Unhide Game") : qsTr("Hide Game")
-            enabled: actions.controller.organizationReady
+            enabled: actions.targetGameId.length > 0 && actions.controller.organizationReady
             onTriggered: actions.controller.set_hidden(actions.targetGameId, !actions.controller.hidden)
         }
 
         MenuItem {
             objectName: "editGameCategories"
             text: qsTr("Edit Categories…")
+            enabled: actions.targetGameId.length > 0
             onTriggered: categoryLoader.active = true
         }
 
@@ -58,7 +74,19 @@ ToolButton {
             objectName: "installGame"
             text: qsTr("Install…")
             visible: actions.targetCanInstall
-            onTriggered: actions.controller.installers.open_installers(actions.targetGameId, actions.targetGameName)
+            onTriggered: actions.openInstaller("install")
+        }
+
+        MenuItem {
+            text: qsTr("Update or Repair…")
+            visible: actions.targetCanUpdate
+            onTriggered: actions.openInstaller("update")
+        }
+
+        MenuItem {
+            text: qsTr("Install DLC…")
+            visible: actions.targetCanInstallDlc
+            onTriggered: actions.openInstaller("dlc")
         }
 
         MenuItem {
@@ -103,6 +131,7 @@ ToolButton {
 
         MenuItem {
             text: qsTr("Browse Files")
+            enabled: actions.targetInstalled
             onTriggered: actions.controller.browse_files(actions.targetGameId)
         }
 
@@ -111,7 +140,7 @@ ToolButton {
         MenuItem {
             objectName: "moveGame"
             text: qsTr("Move Game…")
-            enabled: actions.targetInstalled && actions.controller.canMaintain
+            enabled: actions.targetInstalled && actions.targetCanMaintain
             onTriggered: {
                 actions.controller.gameMaintenance.open_maintenance(actions.targetGameId)
                 moveLoader.active = true
@@ -121,7 +150,7 @@ ToolButton {
         MenuItem {
             objectName: "uninstallGame"
             text: actions.targetInstalled ? qsTr("Uninstall Game…") : qsTr("Remove from Library…")
-            enabled: actions.controller.canMaintain
+            enabled: actions.targetCanMaintain
             onTriggered: {
                 actions.controller.gameMaintenance.open_maintenance(actions.targetGameId)
                 uninstallLoader.active = true

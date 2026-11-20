@@ -4,18 +4,18 @@ from gettext import ngettext
 
 from gi.repository import GdkPixbuf, Gio, Gtk
 
-from lutris import api, sysoptions
+from lutris import sysoptions
 from lutris.config import LutrisConfig
 from lutris.gui.config.add_game_dialog import AddGameDialog
 from lutris.gui.dialogs import ErrorDialog, ModelessDialog
 from lutris.gui.dialogs.game_import import ImportGameDialog
 from lutris.gui.widgets.common import FileChooserEntry
 from lutris.gui.widgets.navigation_stack import NavigationStack
-from lutris.installer import AUTO_WIN32_EXE, get_installers
+from lutris.installer import AUTO_WIN32_EXE
 from lutris.scanners import playtron as playtron_scanner
 from lutris.util import datapath
-from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
-from lutris.util.strings import gtk_safe, slugify
+from lutris.util.jobs import AsyncCall
+from lutris.util.strings import slugify
 from lutris.util.wine.proton import is_proton_version
 from lutris.util.wine.wine import GE_PROTON_LATEST
 
@@ -25,25 +25,11 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
 
     sections = [
         (
-            "system-search-symbolic",
-            "go-next-symbolic",
-            _("Search the Lutris website for installers"),
-            _("Query our website for community installers"),
-            "search_installers",
-        ),
-        (
             "application-x-executable-symbolic",
             "go-next-symbolic",
             _("Install a Windows game from an executable"),
             _("Launch a Windows executable (.exe) installer"),
             "install_from_setup",
-        ),
-        (
-            "x-office-document-symbolic",
-            "go-next-symbolic",
-            _("Install from a local install script"),
-            _("Run a YAML install script"),
-            "install_from_script",
         ),
         (
             "application-x-firmware-symbolic",
@@ -71,15 +57,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
     def __init__(self, **kwargs):
         ModelessDialog.__init__(self, title=_("Add games to Lutris"), use_header_bar=True, **kwargs)
         self.set_default_size(640, 450)
-        self.search_entry = None
-        self.search_frame = None
-        self.search_explanation_label = None
-        self.search_listbox = None
-        self.search_timer_task = COMPLETED_IDLE_TASK
-        self.search_spinner = None
-        self.text_query = None
-        self.search_result_label = None
-
         content_area = self.get_content_area()
 
         self.page_title_label = Gtk.Label(visible=True)
@@ -135,8 +112,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.installer_locale = Gtk.ListStore(str, str)
         self.install_locale_dropdown = Gtk.ComboBox.new_with_model(self.installer_locale)
 
-        self.install_script_file_chooser = FileChooserEntry(title=_("Select script"), action=Gtk.FileChooserAction.OPEN)
-
         self.import_rom_file_chooser = FileChooserEntry(
             title=_("Select ROMs"), action=Gtk.FileChooserAction.SELECT_FOLDER
         )
@@ -144,9 +119,7 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         self.import_playtron_result_label = Gtk.Label()
 
         self.stack.add_named_factory("initial", self.create_initial_page)
-        self.stack.add_named_factory("search_installers", self.create_search_installers_page)
         self.stack.add_named_factory("install_from_setup", self.create_install_from_setup_page)
-        self.stack.add_named_factory("install_from_script", self.create_install_from_script_page)
         self.stack.add_named_factory("import_rom", self.create_import_rom_page)
         self.stack.add_named_factory("import_playtron", self.create_import_playtron_page)
 
@@ -190,111 +163,6 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         if row.callback_name:
             callback = getattr(self, row.callback_name)
             callback()
-
-    # Search Installers Page
-
-    def search_installers(self):
-        """Search installers with the Lutris API"""
-        if self.search_entry:
-            self.search_entry.set_text("")
-            self.search_result_label.set_text("")
-            self.search_result_label.hide()
-            self.search_frame.hide()
-            self.search_explanation_label.show()
-        self.stack.navigate_to_page(self.present_search_installers_page)
-
-    def create_search_installers_page(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, no_show_all=True, spacing=6, visible=True)
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, visible=True)
-        self.search_entry = Gtk.SearchEntry(visible=True)
-        hbox.pack_start(self.search_entry, True, True, 0)
-        self.search_spinner = Gtk.Spinner(visible=False)
-        hbox.pack_end(self.search_spinner, False, False, 6)
-        vbox.pack_start(hbox, False, False, 0)
-        self.search_result_label = self._get_label("")
-        self.search_result_label.hide()
-        vbox.pack_start(self.search_result_label, False, False, 0)
-        self.search_entry.connect("changed", self._on_search_updated)
-
-        explanation = _(
-            "Lutris will search Lutris.net for games matching the terms you enter, and any "
-            "that it finds will appear here.\n\n"
-            "When you click on a game that it found, the installer window will appear to "
-            "perform the installation."
-        )
-
-        self.search_explanation_label = self._get_explanation_label(explanation)
-        vbox.add(self.search_explanation_label)
-
-        self.search_frame = Gtk.Frame(shadow_type=Gtk.ShadowType.ETCHED_IN)
-        self.search_listbox = Gtk.ListBox(visible=True)
-        self.search_listbox.connect("row-activated", self._on_game_selected)
-        scroll = Gtk.ScrolledWindow(visible=True)
-        scroll.set_vexpand(True)
-        scroll.add(self.search_listbox)
-        self.search_frame.add(scroll)
-
-        vbox.pack_start(self.search_frame, True, True, 0)
-        return vbox
-
-    def present_search_installers_page(self):
-        self.set_page_title_markup(_("<b>Search Lutris.net</b>"))
-        self.stack.present_page("search_installers")
-        self.search_entry.grab_focus()
-        self.display_cancel_button()
-
-    def _on_search_updated(self, entry):
-        self.search_timer_task.unschedule()
-        self.text_query = entry.get_text().strip()
-        self.search_timer_task = schedule_at_idle(self.update_search_results, delay_seconds=0.75)
-
-    def update_search_results(self) -> None:
-        # Don't start a search while another is going; defer it instead.
-        if self.search_spinner.get_visible():
-            self.search_timer_task = schedule_at_idle(self.update_search_results, delay_seconds=0.75)
-            return
-
-        if self.text_query:
-            self.search_spinner.show()
-            self.search_spinner.start()
-            AsyncCall(api.search_games, self.update_search_results_cb, self.text_query)
-
-    def update_search_results_cb(self, api_games, error):
-        if error:
-            raise error
-
-        self.search_spinner.stop()
-        self.search_spinner.hide()
-        total_count = api_games.get("count", 0)
-        count = len(api_games.get("results", []))
-
-        if not count:
-            self.search_result_label.set_markup(_("No results"))
-        elif count == total_count:
-            text = ngettext("Showing <b>%d</b> result", "Showing <b>%d</b> results", count) % count
-            self.search_result_label.set_markup(text)
-        else:
-            self.search_result_label.set_markup(_("<b>%s</b> results, only displaying first %s") % (total_count, count))
-        for row in self.search_listbox.get_children():
-            row.destroy()
-        for game in api_games.get("results", []):
-            platforms = ",".join(gtk_safe(platform["name"]) for platform in game["platforms"])
-            year = game["year"] or ""
-            if platforms and year:
-                platforms = ", " + platforms
-
-            row = self._get_listbox_row("", gtk_safe(game["name"]), f"{year}{platforms}")
-            row.api_info = game
-            self.search_listbox.add(row)
-        self.search_result_label.show()
-        self.search_frame.show()
-        self.search_explanation_label.hide()
-
-    def _on_game_selected(self, listbox, row):
-        game_slug = row.api_info["slug"]
-        application = Gio.Application.get_default()
-        application.show_lutris_installer_window(game_slug=game_slug)
-        self.destroy()
 
     # Install from Setup Page
 
@@ -429,51 +297,10 @@ class AddGamesWindow(ModelessDialog):  # pylint: disable=too-many-public-methods
         application.show_installer_window([installer])
         self.destroy()
 
-    # Install from Script Page
-
-    def install_from_script(self):
-        """Install from a YAML file"""
-        self.stack.navigate_to_page(self.present_install_from_script_page)
-
-    def create_install_from_script_page(self):
-        grid = Gtk.Grid(row_spacing=6, column_spacing=6)
-        label = self._get_label(_("Script file"))
-        grid.attach(label, 0, 0, 1, 1)
-        grid.attach(self.install_script_file_chooser, 1, 0, 1, 1)
-        self.install_script_file_chooser.set_hexpand(True)
-
-        explanation = _(
-            "Lutris install scripts are YAML files that guide Lutris through "
-            "the installation process.\n\n"
-            "They can be obtained on Lutris.net, or written by hand.\n\n"
-            "When you click 'Install' below, the installer window will "
-            "appear and load the script, and it will guide the process from there."
-        )
-
-        grid.attach(self._get_explanation_label(explanation), 0, 1, 2, 1)
-        return grid
-
-    def present_install_from_script_page(self):
-        self.set_page_title_markup(_("<b>Select a Lutris installer</b>"))
-        self.stack.present_page("install_from_script")
-        self.display_continue_button(self.on_continue_install_from_script_clicked, label=_("_Install"))
-
-    def on_continue_install_from_script_clicked(self, _widget):
-        path = self.install_script_file_chooser.get_text()
-        if not path:
-            ErrorDialog(_("You must select a script file to install."), parent=self)
-        elif not os.path.isfile(path):
-            ErrorDialog(_("No file exists at '%s'.") % path, parent=self)
-        else:
-            installers = get_installers(installer_file=path)
-            application = Gio.Application.get_default()
-            application.show_installer_window(installers)
-            self.destroy()
-
     # Install ROM Page
 
     def import_rom(self):
-        """Install from a YAML file"""
+        """Open the ROM import page."""
         self.stack.navigate_to_page(self.present_import_rom_page)
 
     def create_import_rom_page(self):

@@ -9,7 +9,7 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.cloud_sync import ask_cloud_sync_conflict
 from lutris.gui.dialogs.download import DownloadDialog
-from lutris.installer import InstallationKind, install_from_lutris
+from lutris.installer import InstallationKind
 from lutris.util.downloader import BaseDownloader
 
 if TYPE_CHECKING:
@@ -56,15 +56,7 @@ class DialogServiceLoginUIDelegate(DialogDelegate, ServiceLoginUIDelegate):
     """This provides UI for logging in to services via dialogs."""
 
     def install_service_launcher(self, service: "OnlineService") -> None:
-        self.show_notice(
-            _(
-                "This service requires a game launcher. The following steps will install it.\n"
-                "Once the client is installed, you can login to %s."
-            )
-            % service.name
-        )
-        if service.client_installer:
-            install_from_lutris(service.client_installer, self)
+        self.show_notice(_("Install the %s launcher and add it to Lutris first.") % service.name)
 
     def show_web_login(self, service: "OnlineService") -> None:
         self.show_notice(_("Use the Qt frontend to sign in to %s in your browser.") % service.name)

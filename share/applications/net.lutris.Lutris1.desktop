@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=Lutris
-Type=Application
-Exec=lutris --install %f
-MimeType=application/x-lutris
-Icon=net.lutris.Lutris
-NoDisplay=true
-StartupNotify=true

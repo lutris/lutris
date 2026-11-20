@@ -16,7 +16,7 @@ Dialog {
     anchors.centerIn: parent
     width: Math.min(640, parent.width - 32)
     height: Math.min(520, parent.height - 32)
-    title: qsTr("Install %1").arg(controller.gameName)
+    title: controller.title
     modal: true
     closePolicy: installation.running ? Popup.NoAutoClose : Popup.CloseOnEscape
 
@@ -145,13 +145,6 @@ Dialog {
                 wrapMode: Text.WordWrap
             }
 
-            Button {
-                objectName: "showRequiredGameInstallers"
-                visible: dialog.controller.requiredGame.length > 0
-                text: qsTr("Show Its Installers")
-                onClicked: dialog.controller.open_required_game()
-            }
-
             Label {
                 visible: dialog.controller.createsGameFolder
                 text: qsTr("Installation folder")
@@ -188,7 +181,7 @@ Dialog {
             CheckBox {
                 id: desktopShortcut
                 objectName: "installerDesktopShortcut"
-                visible: dialog.controller.requiredGame.length === 0
+                visible: dialog.controller.createsShortcuts && dialog.controller.requiredGame.length === 0
                 checked: dialog.installation.desktopShortcutDefault
                 text: qsTr("Create desktop shortcut")
             }
@@ -196,7 +189,7 @@ Dialog {
             CheckBox {
                 id: menuShortcut
                 objectName: "installerMenuShortcut"
-                visible: dialog.controller.requiredGame.length === 0
+                visible: dialog.controller.createsShortcuts && dialog.controller.requiredGame.length === 0
                 checked: dialog.installation.menuShortcutDefault
                 text: qsTr("Create application menu shortcut")
             }

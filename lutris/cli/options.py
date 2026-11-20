@@ -35,7 +35,6 @@ TEXT_COMMANDS = (
 _OPTIONS: list[tuple[str, str, GLib.OptionArg, str, str | None]] = [
     ("version", "v", GLib.OptionArg.NONE, _("Print the version of Lutris and exit"), None),
     ("debug", "d", GLib.OptionArg.NONE, _("Show debug messages"), None),
-    ("install", "i", GLib.OptionArg.STRING, _("Install a game from a yml file"), None),
     ("force", "f", GLib.OptionArg.NONE, _("Force updates"), None),
     ("output-script", "b", GLib.OptionArg.STRING, _("Generate a bash script to run a game without the client"), None),
     ("exec", "e", GLib.OptionArg.STRING, _("Execute a program with the Lutris Runtime"), None),
@@ -62,7 +61,6 @@ _EXPERIMENTAL_OPTIONS: list[tuple[str, str, GLib.OptionArg, str, str | None]] = 
 _FINAL_OPTIONS: list[tuple[str, str, GLib.OptionArg, str, str | None]] = [
     ("dest", "", GLib.OptionArg.STRING, _("Destination path for export"), None),
     ("json", "j", GLib.OptionArg.NONE, _("Display the list of games in JSON format"), None),
-    ("reinstall", "", GLib.OptionArg.NONE, _("Reinstall game"), None),
     ("submit-issue", "", GLib.OptionArg.NONE, _("Submit an issue"), None),
     (GLib.OPTION_REMAINING, "", GLib.OptionArg.STRING_ARRAY, _("URI to open"), "URI"),
 ]
@@ -76,7 +74,7 @@ def add_options(application: Gio.Application) -> None:
             "If several games share the same identifier you can use the numerical ID "
             "(displayed when running lutris --list-games) and add "
             "lutris:rungameid/numerical-id.\n"
-            "To install a game, add lutris:install/game-identifier."
+            "Install a synced store game with lutris:install/source:app-id."
         )
     )
     options = _OPTIONS + (_EXPERIMENTAL_OPTIONS if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED else []) + _FINAL_OPTIONS

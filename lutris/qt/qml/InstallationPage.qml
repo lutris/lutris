@@ -39,6 +39,12 @@ ColumnLayout {
         onAccepted: page.installation.choose_disc(selectedFolder)
     }
 
+    NativeDialogs.FileDialog {
+        id: runnerFilePicker
+        title: page.installation.runnerFileTitle
+        onAccepted: page.installation.choose_runner_file(selectedFile)
+    }
+
     Label {
         objectName: "installationStatus"
         Layout.fillWidth: true
@@ -62,6 +68,33 @@ ColumnLayout {
         text: page.installation.progressText
         textFormat: Text.PlainText
         elide: Text.ElideRight
+    }
+
+    Label {
+        Layout.fillWidth: true
+        visible: page.stage === "runner_prompt"
+        text: page.installation.runnerQuestion
+        textFormat: Text.PlainText
+        wrapMode: Text.Wrap
+    }
+
+    RowLayout {
+        visible: page.stage === "runner_prompt"
+
+        Button {
+            text: page.installation.runnerFileTitle.length > 0 ? qsTr("Choose File…") : qsTr("Yes")
+            onClicked: {
+                if (page.installation.runnerFileTitle.length > 0)
+                    runnerFilePicker.open()
+                else
+                    page.installation.answer_runner(true)
+            }
+        }
+
+        Button {
+            text: page.installation.runnerFileTitle.length > 0 ? qsTr("Skip") : qsTr("No")
+            onClicked: page.installation.answer_runner(false)
+        }
     }
 
     // Extras
@@ -180,7 +213,9 @@ ColumnLayout {
 
                 ProgressBar {
                     Layout.fillWidth: true
-                    visible: page.stage === "downloading" && file.modelData.provider === "download"
+                    visible: page.stage === "downloading" && (file.modelData.provider === "download"
+                             || file.modelData.provider === "steam" && file.modelData.state === "downloading")
+                    indeterminate: file.modelData.provider === "steam"
                     value: file.modelData.state === "available" ? 1 : file.modelData.fraction
                     Accessible.name: qsTr("Download of %1").arg(file.modelData.label)
                 }

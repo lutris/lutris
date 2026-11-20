@@ -6,7 +6,7 @@ from gettext import gettext as _
 from lutris import settings
 from lutris.artwork import fetch_game_artwork
 from lutris.config import LutrisConfig
-from lutris.database.games import get_game_by_field
+from lutris.database.games import DbGameDict, get_games
 from lutris.delegates import Delegate
 from lutris.exceptions import AuthenticationError, MisconfigurationError, UnavailableGameError
 from lutris.installer import get_entry_point_path
@@ -32,9 +32,10 @@ class ScriptInterpreter(CommandsMixin):
         """This is a base class for objects that provide UI services
         for running scripts. The InstallerWindow inherits from this."""
 
-        def __init__(self, service=None, appid=None):
+        def __init__(self, service=None, appid=None, installed_game: DbGameDict | None = None):
             self.service = service
             self.appid = appid
+            self.installed_game = installed_game
 
         def report_error(self, error):
             """Called to report an error during installation. The installation will then stop."""
@@ -143,16 +144,13 @@ class ScriptInterpreter(CommandsMixin):
         }
 
     @staticmethod
-    def _get_game_dependency(dependency):
-        """Return a game database row from a dependency name"""
-        game = get_game_by_field(dependency, field="installer_slug")
-        if not game:
-            game = get_game_by_field(dependency, "slug")
-
-        # Game must be installed and have a directory
-        # set so we can use that as the destination
-        if game and game["installed"] and game["directory"]:
-            return game
+    def _get_game_dependency(dependency: str) -> DbGameDict | None:
+        """Find an installed game matching a dependency slug."""
+        for field in ("installer_slug", "slug"):
+            for game in get_games(filters={field: dependency, "installed": 1}):
+                if game["directory"]:
+                    return game
+        return None
 
     def _check_binary_dependencies(self):
         """Check if all required binaries are installed on the system.
@@ -180,6 +178,10 @@ class ScriptInterpreter(CommandsMixin):
         the installed on.
         """
         if self.installer.extends:
+            if game := self.interpreter_ui_delegate.installed_game:
+                self.target_path = game["directory"]
+                self.installer.game_id = game["id"]
+                return
             dependencies = [self.installer.extends]
         else:
             dependencies = unpack_dependencies(self.installer.requires)
@@ -199,11 +201,10 @@ class ScriptInterpreter(CommandsMixin):
             if index == 0:
                 self.target_path = game["directory"]
                 if not self.installer.extends:
-                    # A 'requires' script is set up on top of the required game's config,
-                    # which the installer looks up by this; it must name the game we
-                    # picked, not the list of alternatives. An 'extends' script just adds
-                    # files to the game it extends, and never looks at 'requires'.
-                    self.installer.requires = game["installer_slug"]
+                    self.installer.required_game = game
+                    self.installer.requires = game["installer_slug"] or game["slug"]
+                else:
+                    self.installer.game_id = game["id"]
 
     def get_extras(self):
         """Get extras and store them to move them at the end of the install"""
@@ -497,7 +498,6 @@ class ScriptInterpreter(CommandsMixin):
 
         replacements = {
             "GAMEDIR": self.target_path,
-            "SCRIPTDIR": self.installer.scriptdir,
             "CACHE": self.cache_path,
             "HOME": os.path.expanduser("~"),
             "STEAM_DATA_DIR": steam.steam().steam_data_dir,

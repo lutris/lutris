@@ -176,7 +176,7 @@ class InstallerFileInfo:
     hint: str
     # Extra details, such as the file's size
     details: str
-    # The sources the file can come from: "download", "pga" (the cache) or "user"
+    # The sources the file can come from: "download", "pga" (the cache), "user" or "steam"
     providers: tuple[str, ...]
     provider: str
     # The file the user chose, for the "user" provider
@@ -206,12 +206,19 @@ class InstallerMenuOption:
 
 
 @dataclass(frozen=True)
+class InstallerRunnerPrompt:
+    title: str
+    question: str
+    file_title: str = ""
+
+
+@dataclass(frozen=True)
 class InstallationInfo:
     """A snapshot of an installation in progress, sent with INSTALLATION_CHANGED."""
 
     id: str
     game_name: str
-    # "preparing", "extras", "files", "downloading", "installing", "menu", "disc",
+    # "preparing", "runner_prompt", "extras", "files", "downloading", "installing", "menu", "disc",
     # "cancelling", "finished", "failed" or "cancelled"
     stage: str
     # Whether the installation is still going, rather than finished, failed or cancelled
@@ -226,6 +233,7 @@ class InstallationInfo:
     menu_preselect: str = ""
     disc_requires: str = ""
     disc_can_eject: bool = False
+    runner_prompt: InstallerRunnerPrompt | None = None
     # Whether installer commands have written output, which get_installation_log returns
     has_log: bool = False
     # Whether cancelling can remove the folder the installation created

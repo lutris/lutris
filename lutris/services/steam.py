@@ -272,7 +272,10 @@ class SteamService(BaseService):
             "game_slug": self.get_installed_slug(db_game),
             "runner": self.get_installed_runner_name(db_game),
             "appid": db_game["appid"],
-            "script": {"game": {"appid": db_game["appid"]}},
+            "script": {
+                "game": {"appid": db_game["appid"]},
+                "files": [{"steam_game": f"$STEAM:{db_game['appid']}:."}],
+            },
         }
 
     def get_installed_runner_name(self, db_game):
@@ -287,4 +290,4 @@ class SteamService(BaseService):
             game = Game(existing_game.id)
             game.save()
             return
-        self.install_from_api(db_game, ui_delegate, appid)
+        super().install(db_game, ui_delegate, update)

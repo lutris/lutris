@@ -26,7 +26,6 @@ from lutris.util.strings import time_ago
 
 ApiGameDict: TypeAlias = dict[str, Any]
 GamesPageDict: TypeAlias = dict[str, Any]
-InstallerDict: TypeAlias = dict[str, Any]
 InstallerInfoDict: TypeAlias = dict[str, str]
 RunnerDict: TypeAlias = dict[str, Any]
 RunnerVersionDict: TypeAlias = dict[str, str | bool]
@@ -312,30 +311,6 @@ def get_api_games(
     return results
 
 
-def get_game_installers(game_slug: str, revision: str | None = None) -> list[InstallerDict]:
-    """Get installers for a single game"""
-    if not game_slug:
-        raise ValueError("No game_slug provided. Can't query an installer")
-    if revision:
-        installer_url = settings.INSTALLER_REVISION_URL % (game_slug, revision)
-    else:
-        installer_url = settings.INSTALLER_URL % game_slug
-
-    logger.debug("Fetching installer %s", installer_url)
-    request = http.Request(installer_url)
-    request.get()
-    response = request.json
-    if response is None:
-        raise RuntimeError("Couldn't get installer at %s" % installer_url)
-
-    # Revision requests return a single installer
-    if revision:
-        installers = [response]
-    else:
-        installers = response["results"]
-    return [normalize_installer(i) for i in installers]
-
-
 def get_game_details(slug: str) -> ApiGameDict:
     url = settings.SITE_URL + "/api/games/%s" % slug
     request = http.Request(url)
@@ -345,39 +320,6 @@ def get_game_details(slug: str) -> ApiGameDict:
         logger.debug("Unable to load %s: %s", slug, ex)
         return {}
     return cast(ApiGameDict, response.json)
-
-
-def normalize_installer(installer: InstallerDict, **additionnal: Any) -> InstallerDict:
-    """Adjusts an installer dict so it is in the correct form, with values
-    of the expected types. ``additionnal`` kwargs will be added to the result as is."""
-
-    def must_be_str(key: str) -> None:
-        if key in installer:
-            installer[key] = str(installer[key])
-
-    must_be_str("name")
-    must_be_str("version")
-    must_be_str("os")
-    must_be_str("slug")
-    must_be_str("game_slug")
-    must_be_str("dlcid")
-    must_be_str("runner")
-    installer.update(additionnal)
-    return installer
-
-
-def search_games(query: str) -> GamesPageDict:
-    if not query:
-        return {}
-    query = query.lower().strip()[:255]
-    url = "/api/games?%s" % urllib.parse.urlencode({"search": query, "with-installers": True})
-    response = http.Request(settings.SITE_URL + url, headers={"Content-Type": "application/json"})
-    try:
-        response.get()
-    except http.HTTPError as ex:
-        logger.error("Unable to get games from API: %s", ex)
-        return {}
-    return cast(GamesPageDict, response.json)
 
 
 def parse_installer_url(url: str) -> InstallerInfoDict:

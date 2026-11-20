@@ -31,6 +31,12 @@ ApplicationWindow {
                 onTriggered: window.controller.localGames.open_registration("", "")
             }
 
+            MenuItem {
+                text: qsTr("Run Windows Setup…")
+                enabled: !window.controller.installers.installation.active
+                onTriggered: windowsSetup.open()
+            }
+
             MenuSeparator {}
 
             MenuItem {
@@ -55,6 +61,11 @@ ApplicationWindow {
     }
 
     PromptHost { prompts: window.prompts }
+
+    WindowsSetupDialog {
+        id: windowsSetup
+        controller: window.controller.installers
+    }
 
     Connections {
         target: window.controller.storeSources

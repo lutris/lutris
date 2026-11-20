@@ -1,5 +1,6 @@
 """Expose a running installation's progress and questions to Qt Quick."""
 
+import asyncio
 from collections.abc import Coroutine
 from typing import Any
 
@@ -25,6 +26,7 @@ class InstallationController(QObject):
         self._prompts = prompts
         self._info: InstallationInfo | None = None
         self._starting = False
+        self._start_task: asyncio.Task[None] | None = None
         self._log = ""
         self._default_shortcuts: tuple[str, ...] = ()
         self._registrations: list[NotificationRegistration] = []
@@ -119,6 +121,14 @@ class InstallationController(QObject):
     def discCanEject(self) -> bool:  # noqa: N802
         return bool(self._info and self._info.disc_can_eject)
 
+    @Property(str, notify=stateChanged)
+    def runnerQuestion(self) -> str:  # noqa: N802
+        return self._info.runner_prompt.question if self._info and self._info.runner_prompt else ""
+
+    @Property(str, notify=stateChanged)
+    def runnerFileTitle(self) -> str:  # noqa: N802
+        return self._info.runner_prompt.file_title if self._info and self._info.runner_prompt else ""
+
     @Property(bool, notify=stateChanged)
     def hasLog(self) -> bool:  # noqa: N802
         return bool(self._info and self._info.has_log)
@@ -147,7 +157,7 @@ class InstallationController(QObject):
     def menuShortcutDefault(self) -> bool:  # noqa: N802
         return "menu" in self._default_shortcuts
 
-    def start(self, catalog_id: str, choice_id: str, directory: str, shortcut_kinds: tuple[str, ...]) -> None:
+    def start(self, catalog_id: str, choice_id: str, directory: str, shortcut_kinds: tuple[str, ...] | None) -> None:
         if self.active:
             return
         self._starting = True
@@ -158,22 +168,28 @@ class InstallationController(QObject):
         ]
         self.stateChanged.emit()
         self.logChanged.emit()
-        start_task(self._start(catalog_id, choice_id, directory, shortcut_kinds), self._prompts.error)
+        self._start_task = start_task(
+            self._start(catalog_id, choice_id, directory, shortcut_kinds), self._prompts.error
+        )
 
-    async def _start(self, catalog_id: str, choice_id: str, directory: str, shortcut_kinds: tuple[str, ...]) -> None:
+    async def _start(
+        self, catalog_id: str, choice_id: str, directory: str, shortcut_kinds: tuple[str, ...] | None
+    ) -> None:
         try:
-            await installations.set_default_shortcuts(shortcut_kinds)
-            self._default_shortcuts = shortcut_kinds
-            info = await installations.start_installation(catalog_id, choice_id, directory, shortcut_kinds)
+            if shortcut_kinds is not None:
+                await installations.set_default_shortcuts(shortcut_kinds)
+                self._default_shortcuts = shortcut_kinds
+            info = await installations.start_installation(catalog_id, choice_id, directory, shortcut_kinds or ())
         except BaseException:
             self._unregister()
             raise
+        else:
+            # Preserve a newer snapshot if the backend reported a change while starting
+            if not self._info or self._info.id != info.id:
+                self._info = info
         finally:
             self._starting = False
-            self.stateChanged.emit()
-        # A change fired while starting is newer than the snapshot the call returned
-        if not self._info or self._info.id != info.id:
-            self._info = info
+            self._start_task = None
             self.stateChanged.emit()
 
     def _on_changed(self, info: InstallationInfo) -> None:
@@ -241,6 +257,16 @@ class InstallationController(QObject):
     def choose_disc(self, url: QUrl) -> None:
         self.answer_disc(url.toLocalFile())
 
+    @Slot(bool)
+    def answer_runner(self, accepted: bool) -> None:
+        if (installation_id := self._id()) and self.stage == "runner_prompt":
+            self._call(installations.answer_runner(installation_id, "yes" if accepted else None))
+
+    @Slot(QUrl)
+    def choose_runner_file(self, url: QUrl) -> None:
+        if (installation_id := self._id()) and self.stage == "runner_prompt":
+            self._call(installations.answer_runner(installation_id, url.toLocalFile() or None))
+
     @Slot()
     def eject_disc(self) -> None:
         if installation_id := self._id():
@@ -259,6 +285,10 @@ class InstallationController(QObject):
     @Slot()
     def close(self) -> None:
         """Forget the installation, cancelling it if it's still running."""
+        if self._start_task:
+            self._start_task.cancel()
+            self._start_task = None
+            self._starting = False
         self._unregister()
         self._log_timer.stop()
         if self._info:

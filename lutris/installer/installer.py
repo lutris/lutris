@@ -4,13 +4,12 @@ import json
 import re
 from functools import cached_property
 from gettext import gettext as _
-from pathlib import Path
 
 import requests
 
 from lutris.api import get_game_details
 from lutris.config import LutrisConfig, write_game_config
-from lutris.database.games import add_or_update, get_game_by_field, get_games
+from lutris.database.games import DbGameDict, add_or_update, get_game_by_field, get_games
 from lutris.exceptions import AuthenticationError, UnavailableGameError
 from lutris.installer import AUTO_ELF_EXE, AUTO_WIN32_EXE, ENTRY_POINT_KEYS
 from lutris.installer.errors import ScriptingError
@@ -31,7 +30,6 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
     def __init__(self, installer, interpreter, service, appid):
         self.interpreter = interpreter
-        self.installer = installer
 
         try:
             self.version = installer["version"]
@@ -58,20 +56,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         self.files = []
         self.extra_file_paths = []
         self.requires = self.script.get("requires")
+        self.required_game: DbGameDict | None = None
         self.extends = self.script.get("extends")
         self.game_id = self.get_game_id()
         self.post_install_hooks = []
         self.discord_id = installer.get("discord_id")
-
-    @cached_property
-    def scriptdir(self):
-        installer_file = self.installer.get("installer_file")
-        if not installer_file:
-            return ""
-        file = Path(installer_file).resolve()
-        if not file.exists():
-            return ""
-        return str(file.parent) if file.is_file() else str(file)
 
     def get_service(self, initial=None):
         if initial:
@@ -125,19 +114,14 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
 
     def get_game_id(self):
         """Return the ID of the game in the local DB if one exists"""
-        # If the game is in the library and uninstalled, the first installation
-        # updates it
+        if self.service and self.service_appid and not self.extends:
+            for service_game in get_games(filters={"service": self.service.id, "service_id": self.service_appid}):
+                if not service_game["installed"] or self.runner == "steam":
+                    return service_game["id"]
+            return None
         existing_game = get_game_by_field(self.game_slug, "slug")
         if existing_game and (self.extends or not existing_game["installed"]):
             return existing_game["id"]
-
-        # The library entry of a service game may have a different slug than the
-        # one lutris.net now gives that game; install into it rather than adding a
-        # second entry that leaves the library one uninstalled.
-        if self.service and self.service_appid:
-            for service_game in get_games(filters={"service": self.service.id, "service_id": self.service_appid}):
-                if not service_game["installed"]:
-                    return service_game["id"]
         return None
 
     @property
@@ -308,12 +292,11 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
     def get_game_config(self):
         """Return the game configuration"""
         if self.requires:
-            # Load the base game config
-            required_game = get_game_by_field(self.requires, field="installer_slug")
+            required_game = self.required_game or get_game_by_field(self.requires, field="installer_slug")
             if not required_game:
                 required_game = get_game_by_field(self.requires, field="slug")
             if not required_game:
-                raise ValueError("No game matched '%s' on installer_slug or slug" % self.requires)
+                raise ScriptingError(_("The required game '%s' could not be found.") % self.requires)
             base_config = LutrisConfig(runner_slug=self.runner, game_config_id=required_game["configpath"])
             config = base_config.game_level
         else:
@@ -382,6 +365,9 @@ class LutrisInstaller:  # pylint: disable=too-many-instance-attributes
         for hook in self.post_install_hooks:
             hook(self)
 
+        if self.runner == "steam" and not self.game_id:
+            # Steam library sync may have registered the game while it downloaded
+            self.game_id = self.get_game_id()
         game_config = self.get_game_config()
         configpath = write_game_config(self.slug, game_config)
         discord_id = self.discord_id

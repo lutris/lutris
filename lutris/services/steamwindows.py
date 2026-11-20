@@ -1,19 +1,12 @@
 import os
 from gettext import gettext as _
-from typing import TYPE_CHECKING
+from typing import Any
 
-from lutris.database.games import get_game_by_field, get_games
+from lutris.database.games import get_game_by_field
 from lutris.game import Game
-from lutris.installer import install_from_lutris
 from lutris.services.steam import SteamGame, SteamService
 from lutris.util import system
-from lutris.util.log import logger
 from lutris.util.strings import slugify
-
-if TYPE_CHECKING:
-    from lutris.delegates import Delegate
-
-STEAM_INSTALLER = "steam-wine"  # Lutris installer used to setup the Steam client
 
 
 class SteamWindowsGame(SteamGame):
@@ -53,27 +46,14 @@ class SteamWindowsService(SteamService):
         return self.runner
 
     def get_steam(self):
-        db_entry = get_game_by_field(self.client_installer, "installer_slug")
+        db_entry = get_game_by_field(self.client_installer, "installer_slug") or get_game_by_field(
+            self.client_installer, "slug"
+        )
         if db_entry:
             return Game(db_entry["id"])
 
-    def install(self, db_game, ui_delegate: "Delegate", update=False):
-        steam_game = self.get_steam()
-        if not steam_game:
-            install_from_lutris(self.client_installer, ui_delegate)
-            return
-
-        installers = [self.generate_installer(db_game, steam_game)]
-        appid = db_game["appid"]
-        db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.id})
-        existing_game = self.match_existing_game(db_games, appid)
-        if existing_game:
-            logger.debug("Found steam game: %s", existing_game)
-            game = Game(existing_game.id)
-            game.save()
-            return
-
-        ui_delegate.start_installer(installers, service=self, appid=appid)
+    def generate_installers(self, db_game: dict[str, Any]) -> list[dict[str, Any]]:
+        return [self.generate_installer(db_game, Game(self.get_installation_launcher()["id"]))]
 
     @property
     def steamapps_paths(self):

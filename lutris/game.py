@@ -20,7 +20,7 @@ from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
 from lutris.game_errors import watch_game_errors
-from lutris.installer import InstallationKind, get_entry_point_path, install_from_lutris
+from lutris.installer import InstallationKind, get_entry_point_path
 from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner, is_valid_runner_name
@@ -399,15 +399,12 @@ class Game:
             raise ValueError("Invalid game passed: %s" % self)
 
         if not self.service or self.service == "lutris":
-            install_from_lutris(self.slug, launch_ui_delegate)
-            return
+            raise GameConfigError(_("Choose a game from one of your library sources to install."))
 
         service = launch_ui_delegate.get_service(self.service)
         db_game = service.get_service_db_game(self)
         if not db_game:
-            logger.error("Can't find %s for %s, trying to fall back to Lutris installers", self.name, service.name)
-            install_from_lutris(self.slug, launch_ui_delegate)
-            return
+            raise GameConfigError(_("Sync %s to find this game in your library.") % service.name)
 
         try:
             game_id = service.install(db_game, launch_ui_delegate)

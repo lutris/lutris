@@ -226,7 +226,6 @@ lutris/runners/zdoom.py
 lutris/runtime.py
 lutris/scanners/__init__.py
 lutris/scanners/default_installers.py
-lutris/scanners/lutris.py
 lutris/scanners/playtron.py
 lutris/scanners/retroarch.py
 lutris/scanners/tosec.py

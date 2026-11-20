@@ -176,6 +176,9 @@ class LibraryController(QObject):
     def installers(self) -> InstallerController:
         return self._installers
 
+    async def open_store_install(self, service: str, appid: str) -> None:
+        await self._installers.open_store_uri(service, appid)
+
     @Property(QObject, constant=True)
     def gamesModel(self) -> LibraryModel:  # noqa: N802
         return self.model
@@ -265,9 +268,37 @@ class LibraryController(QObject):
         game = self.selected_game
         return bool(
             game
-            and self._can_maintain(game.game_id)
-            and installers.can_install_game(game.installed, game.slug, game.service)
+            and (not game.game_id or self._can_maintain(game.game_id))
+            and installers.can_install_game(game.installed, game.service, game.appid or game.service_id)
         )
+
+    @Property(bool, notify=selectionChanged)
+    def canUpdateGame(self) -> bool:  # noqa: N802
+        game = self.selected_game
+        return bool(
+            game
+            and self._can_maintain(game.game_id)
+            and installers.can_update_game(game.installed, game.service, game.appid or game.service_id)
+        )
+
+    @Property(bool, notify=selectionChanged)
+    def canInstallDlc(self) -> bool:  # noqa: N802
+        game = self.selected_game
+        return bool(
+            game
+            and self._can_maintain(game.game_id)
+            and installers.can_install_dlc(game.installed, game.service, game.appid or game.service_id)
+        )
+
+    @Property(str, notify=selectionChanged)
+    def selectedGameService(self) -> str:  # noqa: N802
+        game = self.selected_game
+        return (game.service or "") if game else ""
+
+    @Property(str, notify=selectionChanged)
+    def selectedGameAppId(self) -> str:  # noqa: N802
+        game = self.selected_game
+        return (game.appid or game.service_id or "") if game else ""
 
     @Property(bool, notify=selectionChanged)
     def canPlay(self) -> bool:  # noqa: N802
@@ -572,6 +603,7 @@ class LibraryController(QObject):
     def shutdown(self) -> None:
         self._closed = True
         self._store_sources.close_login()
+        self._installers.close_installers()
         self.runtime_updates_controller.shutdown()
         self._log.close_log()
         self._maintenance.close_maintenance()

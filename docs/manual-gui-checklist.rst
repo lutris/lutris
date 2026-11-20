@@ -240,21 +240,19 @@ and the category survives a restart.
 
 **If it fails:** note which entry is missing or misrendered and what triggered it.
 
-Item 7 - Install from the website (only if the release can affect installers)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Item 7 - Install a store game or run a local Windows setup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Do:** "Add Game" → **Search the Lutris website for installers** → pick any small
-installer that works today, install it end to end, then remove it.
+**Do:** start with ``LUTRIS_FRONTEND=qt``. Sync a store library, select a small
+uninstalled game, and choose **Game Actions → Install**. A local setup can be
+run through **Library → Run Windows Setup**. Choose a Windows version and
+locale, then select the setup executable.
 
-**Pass:** the installer window opens and shows its steps, the download and install
-finish, the game appears with its media and **Play** works.
+**Pass:** the installer shows its steps, downloads any required files and
+registers the game. **Launch** starts it from the completion page.
 
-**If it fails:** run the same installer with the previous release before calling it
-a blocker. A broken installer on lutris.net or a dead mirror is not a client
-regression.
-
-**Skip it** with a note when the release does not touch the installer, download or
-media code.
+**Skip it** with a note when the release does not touch the installer, download
+or media code.
 
 Item 8 - Service sync (only if the release can affect services)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
