@@ -117,7 +117,7 @@ def parse_version(version: str) -> tuple[list[int], str, str]:
     return [int(p) for p in version_number.split(".")], suffix, prefix
 
 
-def unpack_dependencies(string: str) -> list[str | tuple[str, ...]]:
+def unpack_dependencies(string: str | None) -> list[str | tuple[str, ...]]:
     """Parse a string to allow for complex dependencies
     Works in a similar fashion as Debian dependencies, separate dependencies
     are comma separated and multiple choices for satisfying a dependency are

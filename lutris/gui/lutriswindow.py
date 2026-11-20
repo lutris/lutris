@@ -1321,7 +1321,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
 
     def on_icontype_state_change(self, action, value):
         action.set_state(value)
-        self._set_icon_type(value.get_string())
+        self.save_icon_type(value.get_string())
 
     def on_view_sorting_state_change(self, action, value):
         self.actions["view-sorting"].set_state(value)

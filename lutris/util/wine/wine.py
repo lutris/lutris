@@ -1,7 +1,6 @@
 """Utilities for manipulating Wine"""
 
 import os
-import re
 import signal
 from collections import OrderedDict
 from gettext import gettext as _
@@ -314,23 +313,35 @@ def get_overrides_env(overrides: dict[str, str]) -> str:
     return ";".join(override_strings)
 
 
-WINE_PROCESS_PATTERN = re.compile(r"(wine|processid|\.exe)", re.IGNORECASE)
+# Every process running under Wine, the Windows programs included, is running one of
+# these; matching names or command lines instead also catches programs that just mention
+# 'wine' or '.exe' (an editor with a file open, say).
+WINE_BINARIES = {"wine", "wine64", "wine-preloader", "wine64-preloader", "wineserver", "wineserver64"}
 
 
-def kill_all_wine_processes():
+def is_wine_process(pid: int) -> bool:
+    """True if the process 'pid' is running one of Wine's own binaries."""
+    try:
+        executable = os.readlink("/proc/%s/exe" % pid)
+    except OSError:
+        return False  # it has exited, or isn't ours to inspect
+    # Linux marks a binary replaced on disk while it runs, as a Proton update might do
+    executable = executable.removesuffix(" (deleted)")
+    return os.path.basename(executable) in WINE_BINARIES
+
+
+def kill_all_wine_processes() -> int:
     """Kill all Wine-related processes on the system.
 
     Returns the number of processes killed."""
     killed = 0
     for pid in system.get_running_pid_list():
+        if not is_wine_process(pid):
+            continue
         try:
-            proc = Process(pid)
-            name = proc.name or ""
-            cmdline = proc.cmdline or ""
-            if WINE_PROCESS_PATTERN.search(name) or WINE_PROCESS_PATTERN.search(cmdline):
-                logger.info("Killing Wine process %s (%s)", pid, name)
-                os.kill(pid, signal.SIGKILL)
-                killed += 1
+            logger.info("Killing Wine process %s (%s)", pid, Process(pid).name)
+            os.kill(pid, signal.SIGKILL)
+            killed += 1
         except (ProcessLookupError, PermissionError):
             continue
     logger.info("Killed %d Wine processes", killed)

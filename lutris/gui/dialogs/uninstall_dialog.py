@@ -18,7 +18,17 @@ from lutris.util.library_sync import LibrarySyncer
 from lutris.util.log import logger
 from lutris.util.path_cache import remove_from_path_cache
 from lutris.util.strings import get_natural_sort_key, gtk_safe, human_size
-from lutris.util.system import get_disk_size, is_removeable
+from lutris.util.system import get_disk_size, is_removeable, path_contains
+
+
+def get_installed_games_in_directory(directory: str) -> set[str]:
+    """Return the IDs of the installed games whose directory is 'directory' or anywhere
+    under it; all of these would go if 'directory' were deleted."""
+    return {
+        game["id"]
+        for game in get_games(filters={"installed": 1})
+        if game["directory"] and path_contains(directory, game["directory"])
+    }
 
 
 @GtkTemplate(ui=os.path.join(datapath.get(), "ui", "uninstall-dialog.ui"))
@@ -81,7 +91,7 @@ class UninstallDialog(Gtk.Dialog):
         self.any_protected = False
 
         def is_shared(directory: str) -> bool:
-            dir_users = set(g["id"] for g in get_games(filters={"directory": directory, "installed": 1}))
+            dir_users = get_installed_games_in_directory(directory)
             for g in self.games:
                 dir_users.discard(g.id)
             return bool(dir_users)

@@ -51,6 +51,11 @@ class TestScriptInterpreter(TestCase):
         self.assertEqual(interpreter.installer.game_name, "Doom")
         self.assertFalse(interpreter.installer.get_errors())
 
+    def test_installer_without_script_section_is_a_scripting_error(self):
+        installer = {key: value for key, value in TEST_INSTALLER.items() if key != "script"}
+        with self.assertRaises(ScriptingError):
+            ScriptInterpreter(installer, None)
+
     def test_move_requires_src_and_dst(self):
         script = {
             "foo": "bar",
@@ -116,6 +121,47 @@ class TestScriptInterpreter(TestCase):
         with patch("lutris.installer.installer.ModDB.transform_url", side_effect=RuntimeError("Invalid ModDB URL")):
             with self.assertRaises(RuntimeError):
                 interpreter.installer.prepare_game_files([])
+
+    def test_execute_accepts_a_command_string(self):
+        interpreter = ScriptInterpreter(TEST_INSTALLER, None)
+        interpreter.target_path = "/tmp"
+        with (
+            patch("lutris.installer.commands.MonitoredCommand") as monitored_command,
+            patch("lutris.installer.commands.schedule_repeating_at_idle"),
+        ):
+            self.assertEqual(interpreter.execute("echo hello"), "STOP")
+        self.assertEqual(monitored_command.return_value.accepted_return_code, "0")
+
+    def test_scripting_errors_keep_faulty_data_out_of_the_markup(self):
+        interpreter = ScriptInterpreter(TEST_INSTALLER, None)
+        params = {"src": "/nonexistent/lutris-test-source", "dst": "/tmp"}
+        with self.assertRaises(ScriptingError) as context:
+            interpreter.merge(params)
+        self.assertIsNone(context.exception.message_markup)
+        self.assertEqual(context.exception.faulty_data, params)
+
+
+class TestAlternativeDependencies(TestCase):
+    def setUp(self):
+        self.game_id = add_game(
+            name="Quake (GOG)",
+            slug="quake",
+            installer_slug="quake-gog",
+            runner="linux",
+            directory="/tmp",
+            installed=1,
+            configpath="quake-gog",
+        )
+
+    def tearDown(self):
+        delete_game(self.game_id)
+
+    def test_installs_into_whichever_alternative_is_installed(self):
+        script = {"requires": "quake-steam | quake-gog", "game": {"exe": "quake-mod"}}
+        interpreter = ScriptInterpreter({**TEST_INSTALLER, "script": script}, None)
+        self.assertEqual(interpreter.target_path, "/tmp")
+        self.assertEqual(interpreter.installer.requires, "quake-gog")
+        self.assertEqual(interpreter.installer.get_game_config()["requires"], "quake-gog")
 
 
 class TestCreatesGameFolder(TestCase):
