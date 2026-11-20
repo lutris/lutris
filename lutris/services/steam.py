@@ -2,13 +2,14 @@
 
 import json
 import os
+import time
 from collections import defaultdict
 from gettext import gettext as _
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database import sql
-from lutris.database.games import add_game, get_game_by_field, get_games
+from lutris.database.games import add_game, get_games, update_existing
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer.installer_file import InstallerFile
@@ -128,7 +129,7 @@ class SteamService(BaseService):
         return [file]
 
     def install_from_steam(self, manifest):
-        """Create a new Lutris game based on an existing Steam install"""
+        """Create a Lutris game for an existing Steam install, or mark an uninstalled one as installed again"""
         if not manifest.is_installed():
             return
         appid = manifest.steamid
@@ -139,12 +140,24 @@ class SteamService(BaseService):
             if not service_game:
                 return
             lutris_game_id = "%s-%s" % (self.id, appid)
-            existing_game = get_game_by_field(lutris_game_id, "installer_slug")
-            if existing_game:
+            existing_games = get_games(filters={"installer_slug": lutris_game_id})
+            if any(game["installed"] for game in existing_games):
                 return
             game_config = LutrisConfig().game_level
             game_config["game"]["appid"] = appid
             configpath = write_game_config(lutris_game_id, game_config)
+            if existing_games:
+                # Steam has the game again after Lutris uninstalled it. Only put back the runner
+                # and config so the name and categories set by the user are kept.
+                existing_game = existing_games[0]
+                update_existing(
+                    id=existing_game["id"],
+                    runner="steam",
+                    installed=1,
+                    installed_at=int(time.time()),
+                    configpath=configpath,
+                )
+                return existing_game["slug"]
             slug = self.get_installed_slug(service_game)
             add_game(
                 name=service_game["name"],
