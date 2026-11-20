@@ -1,7 +1,7 @@
 project(
   'lutris',
   license: 'GPL-3.0-or-later',
-  meson_version: '>=0.46.0',
+  meson_version: '>=0.56.0',
 )
 
 # Find Python installation
@@ -17,9 +17,20 @@ mandir = get_option('mandir')
 lutrisdir = join_paths(pylibdir, 'lutris')
 podir = join_paths(meson.source_root(), 'po')
 
+# The version's canonical place is pyproject.toml (bumped with `uv version`)
+lutris_version = run_command(
+  python,
+  '-c',
+  'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb"))["project"]["version"])',
+  join_paths(meson.current_source_dir(), 'pyproject.toml'),
+  check: true,
+).stdout().strip()
+message('Lutris version: ' + lutris_version)
+
 # Generate configuration files
 config = configuration_data()
 config.set('localedir_path', join_paths(prefix, localedir))
+config.set('version', lutris_version)
 
 configure_file(
   input: 'optional_settings.py.in',

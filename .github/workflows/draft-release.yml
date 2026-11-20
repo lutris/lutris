@@ -1,0 +1,40 @@
+name: Build Draft Release
+
+# Run by hand once the version in pyproject.toml is bumped (`uv version --bump ...`)
+# and pushed: builds the Flatpak and drafts a v<version> release with it attached,
+# ready to review and publish
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-flatpak:
+    name: Build the Flatpak
+    uses: ./.github/workflows/flatpak.yml
+
+  draft-release:
+    name: Create draft release
+    needs: build-flatpak
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download the bundle
+        uses: actions/download-artifact@v8
+        with:
+          pattern: Lutris-v${{ needs.build-flatpak.outputs.artifact_version }}-*
+          path: release-files
+          merge-multiple: true
+          skip-decompress: true
+      - name: Create draft GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ needs.build-flatpak.outputs.app_version }}
+          target_commitish: ${{ github.sha }}
+          name: Lutris v${{ needs.build-flatpak.outputs.app_version }}
+          draft: true
+          prerelease: ${{ needs.build-flatpak.outputs.is_prerelease == 'true' }}
+          generate_release_notes: true
+          files: release-files/*
+          fail_on_unmatched_files: true

@@ -6,9 +6,9 @@ authors = [
 ]
 description = "Video game preservation platform"
 readme = "README.rst"
-# 3.14 is what the Flatpak's GNOME runtime ships; development defaults to 3.15
-# (.python-version)
-requires-python = ">=3.14"
+# Locked to the Python the Flatpak's GNOME runtime ships, so development and CI
+# run exactly what users do; move it when the runtime moves
+requires-python = "==3.14.*"
 
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
@@ -29,12 +29,14 @@ dependencies = [
     # icons extracted from Windows executables, and WebDAV save sync
     "pefile>=2024.8.26",
     "webdav4>=0.11.0",
+    "packaging>=26.3",
 ]
 
 [project.urls]
 Homepage = "https://lutris.net/"
-Repository = "https://github.com/lutris/lutris"
-Issues = "https://github.com/lutris/lutris/issues"
+Repository = "https://github.com/jedace07/lutris"
+Issues = "https://github.com/jedace07/lutris/issues"
+Releases = "https://github.com/jedace07/lutris/releases"
 
 [dependency-groups]
 # Split so CI jobs can install only what they run (`uv sync --only-group lint`
@@ -111,11 +113,6 @@ ignore = [
 ]
 fixable = ["ALL"]
 unfixable = []
-
-[tool.ty.environment]
-# The oldest Python Lutris supports (the Flatpak runtime's), so APIs newer
-# than that get flagged
-python-version = "3.14"
 
 [tool.ty.src]
 exclude = ["**/*_pb2.py"]

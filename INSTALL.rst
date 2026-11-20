@@ -20,7 +20,8 @@ and ``flatpak-builder`` (either the distribution package or the
 
 ``make flatpak-bundle`` instead produces a single ``lutris.flatpak`` file that
 can be installed elsewhere with ``flatpak install lutris.flatpak``. Every CI
-build of ``master`` and every release also publishes that bundle.
+build of ``master`` publishes that bundle as a workflow artifact, and every
+release has it attached.
 
 The first build takes a long time, as it compiles the bundled tools (Qt,
 DOSBox Staging, Mono and others); later builds reuse flatpak-builder's cache.
@@ -61,7 +62,7 @@ Then::
     uv sync --no-dev        # or `make dev` to include the development tools
     uv run bin/lutris
 
-uv downloads its own build of Python 3.15 for this; your system's Python isn't
+uv downloads its own build of Python 3.14 for this; your system's Python isn't
 used, so it doesn't matter which version (if any) your distribution ships.
 After pulling new changes, ``uv run`` brings the environment up to date by
 itself.

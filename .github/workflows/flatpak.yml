@@ -1,53 +1,111 @@
 name: Flatpak
 
 # Builds the Flatpak from packaging/flatpak and uploads the single-file bundle
-# as a workflow artifact. On a published release the bundle is also attached
-# to that release
+# as a workflow artifact. The Build Draft Release workflow calls this one and
+# attaches the bundle to a draft release
 on:
+  workflow_call:
+    outputs:
+      app_version:
+        description: Lutris version from pyproject.toml
+        value: ${{ jobs.prepare.outputs.app_version }}
+      artifact_version:
+        description: Version label of the bundle's filename
+        value: ${{ jobs.prepare.outputs.artifact_version }}
+      is_prerelease:
+        description: Whether the version is a prerelease
+        value: ${{ jobs.prepare.outputs.is_prerelease }}
+  workflow_dispatch:
   push:
     branches: [master]
   pull_request:
-  release:
-    types: [released, prereleased]
-  workflow_dispatch:
 
 concurrency:
-  group: flatpak-${{ github.ref }}
+  group: flatpak-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  prepare:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      app_version: ${{ steps.version.outputs.app_version }}
+      artifact_version: ${{ steps.version.outputs.artifact_version }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.3.3
+      - name: Resolve build versions
+        id: version
+        run: |
+          app_version="$(uv version --short)"
+          artifact_version="$(uv run --no-project --with packaging python lutris/version.py --artifact-version "$app_version")"
+          if [ "$app_version" = "$artifact_version" ]; then
+            is_prerelease=false
+          else
+            is_prerelease=true
+          fi
+          echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
+          echo "artifact_version=$artifact_version" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=$is_prerelease" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-51
-      options: --privileged
+    needs: prepare
+    # Straight on the runner rather than in a Flatpak CI image: updating the
+    # runtimes such an image ships fails ("Invalid cross-device link")
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      BUNDLE: Lutris-v${{ needs.prepare.outputs.artifact_version }}-x86_64.flatpak
     steps:
+      - name: Free disk space
+        # The full build (Qt, Mono, DOSBox Staging, ...) needs far more room
+        # than a runner leaves free by default
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
       - uses: actions/checkout@v7
         with:
           submodules: true
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.8
-        with:
-          manifest-path: packaging/flatpak/net.lutris.Lutris.yml
-          bundle: lutris.flatpak
-          artifact-name: lutris-flatpak
-          # Everything but the lutris module is rebuilt only when the manifest changes
-          cache-key: flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}
-
-  attach-to-release:
-    name: Attach to release
-    if: github.event_name == 'release'
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v7
-        with:
-          name: lutris-flatpak
-      - name: Upload the bundle to the release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install flatpak-builder
         run: |
-          mv lutris.flatpak "Lutris-${GITHUB_REF_NAME#v}-x86_64.flatpak"
-          gh release upload "$GITHUB_REF_NAME" Lutris-*-x86_64.flatpak --repo "$GITHUB_REPOSITORY"
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          # bubblewrap needs unprivileged user namespaces, which Ubuntu restricts
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+      - name: Restore the flatpak-builder cache
+        uses: actions/cache/restore@v6
+        with:
+          path: build-flatpak/state
+          key: flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}-${{ github.sha }}
+          restore-keys: |
+            flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}-
+            flatpak-builder-
+      - name: Build
+        run: >
+          flatpak-builder --user --install-deps-from=flathub --disable-rofiles-fuse --force-clean
+          --state-dir=build-flatpak/state --repo=build-flatpak/repo
+          build-flatpak/build packaging/flatpak/net.lutris.Lutris.yml
+      - name: Save the flatpak-builder cache
+        # Also after a failure or timeout, so the next run resumes from the
+        # modules that did build
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: build-flatpak/state
+          key: flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}-${{ github.sha }}
+      - name: Bundle
+        run: |
+          flatpak build-bundle build-flatpak/repo "$BUNDLE" net.lutris.Lutris \
+            --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo
+      - name: Upload the bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.BUNDLE }}
+          path: ${{ env.BUNDLE }}
+          archive: false
+          if-no-files-found: error

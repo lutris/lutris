@@ -2,3 +2,6 @@
 
 # Paths
 LOCALE_DIR = "@localedir_path@"
+
+# Version, from pyproject.toml when this build was configured
+VERSION = "@version@"

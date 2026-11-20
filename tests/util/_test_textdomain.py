@@ -46,7 +46,8 @@ class TestImportIsolation(unittest.TestCase):
         translated, loaded = completed.stdout.splitlines()
 
         self.assertEqual(int(translated), 0, "strings were translated before the domain was bound")
-        self.assertEqual(loaded.split(), ["lutris", "lutris.util", "lutris.util.textdomain"])
+        # lutris.version comes with the package itself and translates nothing
+        self.assertEqual(loaded.split(), ["lutris", "lutris.util", "lutris.util.textdomain", "lutris.version"])
 
     def test_no_module_level_lutris_imports(self):
         """The forbidden imports may appear inside functions, never at module level."""

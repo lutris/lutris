@@ -12,15 +12,17 @@ Preparation
   (about 10 minutes, sandbox, a genuine first start).
 - Only when the release touches installers, services or the library views: part B
   of the same checklist (about 15 minutes, your own profile after a backup).
-- Bump ``version`` in ``pyproject.toml`` and ``__version__`` in ``lutris/__init__.py``
-- Create git tag: ``git tag vX.Y.Z``
+- Bump the version with ``uv version --bump patch`` (or ``minor``, ``beta``, ...;
+  see "Versioning and releases" in ``CONTRIBUTING.md``) and commit
+  ``pyproject.toml`` and ``uv.lock``
+- Add a ``<release>`` entry to ``share/metainfo/net.lutris.Lutris.metainfo.xml``
 
 GitHub Release
 --------------
-- Draft new release: https://github.com/jedace07/lutris/releases/new
-- Copy changelog to release notes
-- Publishing the release runs the Flatpak workflow, which attaches
-  ``Lutris-X.Y.Z-x86_64.flatpak`` to it; check that it's there
+- Push, then run the **Build Draft Release** workflow from the Actions tab. It
+  builds the Flatpak and drafts a ``vX.Y.Z`` release (tag included) with
+  ``Lutris-vX.Y.Z-x86_64.flatpak`` attached
+- Edit the draft's notes (copy in the changelog) and publish it
 
 Website
 -------

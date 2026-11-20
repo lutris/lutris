@@ -62,9 +62,9 @@ pinned in `uv.lock`. Install uv, then:
     make dev    # creates .venv with `uv sync` and installs the git pre-commit hook
     make run    # same as `uv run bin/lutris -d`
 
-uv downloads and uses its own build of Python 3.15 (`.python-version`), never
-the system's; Lutris also supports 3.14, the Flatpak runtime's version, and CI
-tests both. Any `uv run <command>` runs
+uv downloads and uses its own build of Python 3.14 (`.python-version`), never
+the system's. Lutris is locked to 3.14 because that's what the Flatpak's GNOME
+runtime ships, so you develop on what users run. Any `uv run <command>` runs
 in the project environment and brings it up to date first; you can also
 `source .venv/bin/activate` and run `./bin/lutris -d` directly.
 
@@ -92,6 +92,39 @@ which is committed. CI installs with `--locked` and fails if the two disagree.
 Development tools are split into dependency groups so CI jobs install only
 what they run: `lint` (ruff), `typing` (ty and stubs) and `test` (pytest).
 `dev` includes all three and is what `uv sync` installs by default.
+
+Versioning and releases
+-----------------------
+
+The version's one canonical place is `version` in `pyproject.toml`. Lutris
+reads it from there when running from a checkout, and meson copies it into the
+Flatpak build, so never write it anywhere else. Change it with `uv version`,
+which updates `pyproject.toml` and `uv.lock` together:
+
+```bash
+# Stable patch: 0.5.23 -> 0.5.24
+uv version --bump patch
+
+# First beta of the next minor: 0.5.23 -> 0.6.0b1
+uv version --bump minor --bump beta
+
+# Subsequent beta: 0.6.0b1 -> 0.6.0b2
+uv version --bump beta
+
+# Promote a prerelease: 0.6.0b2 -> 0.6.0
+uv version --bump stable
+```
+
+Flatpak bundles built by CI are named after the version. Prereleases also get
+the commit they were built from (`Lutris-v0.6.0b1+g1a2b3c4-x86_64.flatpak`), or
+`+local` when built elsewhere, so two builds of the same beta can be told apart.
+
+To release, bump the version, add a `<release>` entry to
+`share/metainfo/net.lutris.Lutris.metainfo.xml`, push, then run the **Build
+Draft Release** workflow from the Actions tab. It builds the Flatpak and drafts
+a `v<version>` release (marked as a prerelease for alphas, betas and release
+candidates) with the bundle attached; review the notes and publish it. See
+`docs/release-guidelines.rst` for the checks to run first.
 
 This project includes .editorconfig so you're good to go if you're using any
 editor/IDE that supports this. Otherwise make sure to configure your max line

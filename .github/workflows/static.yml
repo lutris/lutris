@@ -3,37 +3,33 @@ on: [push, pull_request]
 name: Static Analysis
 
 # Every job installs its Python tooling from uv.lock; `--locked` fails the job
-# if pyproject.toml was changed without re-running `uv lock`. Jobs run on the
-# Python in .python-version unless they say otherwise
+# if pyproject.toml was changed without re-running `uv lock`. Every job runs on
+# the Python in .python-version
 env:
   UV_LOCKED: "1"
 
 jobs:
   syntax-compat:
-    name: Syntax Compatibility (Python ${{ matrix.python-version }})
+    name: Syntax
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # The oldest Python Lutris supports: the Flatpak runtime's
-        python-version: ["3.14"]
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - name: Set up uv
         uses: astral-sh/setup-uv@v10.3.3
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Check syntax compatibility
-        run: uv run --no-project python -m compileall -q lutris/
+      - name: Check syntax
+        run: uv run --no-project python -m compileall -q lutris/ tests/
 
   type-checker:
     name: ty
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - name: Install Ubuntu dependencies
         run: |
-          sudo apt update
-          sudo apt-get install libdbus-1-dev pkg-config libgirepository-2.0-dev libcairo2-dev
+          sudo apt-get update
+          sudo apt-get install -y libdbus-1-dev pkg-config libgirepository-2.0-dev libcairo2-dev
       - name: Set up uv
         uses: astral-sh/setup-uv@v10.3.3
         with:
@@ -49,10 +45,13 @@ jobs:
   po-checker:
     name: Translation files
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - name: Install gettext
-        run: sudo apt-get install -y gettext
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext
       - name: Validate .po files
         run: |
           for f in po/*.po; do
@@ -62,6 +61,7 @@ jobs:
   ruff-checker:
     name: Ruff
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - name: Set up uv
@@ -78,24 +78,20 @@ jobs:
         run: uv run --only-group lint ruff format . --check
 
   unit-test:
-    name: UnitTest (Python ${{ matrix.python-version }})
+    name: UnitTest
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # 3.14 is what the Flatpak runs, 3.15 is the development default
-        python-version: ["3.14", "3.15"]
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - name: Install Ubuntu dependencies
         run: |
-          sudo apt update
-          sudo apt-get install libdbus-1-dev pkg-config libgirepository-2.0-dev libcairo2-dev libgtk-3-dev libgdk-pixbuf-2.0-dev libgnome-desktop-3-dev libwebkit2gtk-4.1-dev gettext
+          sudo apt-get update
+          sudo apt-get install -y libdbus-1-dev pkg-config libgirepository-2.0-dev libcairo2-dev libgtk-3-dev \
+            libgdk-pixbuf-2.0-dev libgnome-desktop-3-dev libwebkit2gtk-4.1-dev gettext
       - name: Set up uv
         uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
-          python-version: ${{ matrix.python-version }}
       - name: Install Python dependencies
         run: uv sync --no-default-groups --group test
       - name: Run Unit Test

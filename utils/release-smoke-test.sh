@@ -141,7 +141,8 @@ else
     exit 2
 fi
 
-EXPECTED_VERSION=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' "$REPO_ROOT/lutris/__init__.py")
+EXPECTED_VERSION=$("$PY" -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb"))["project"]["version"])' \
+    "$REPO_ROOT/pyproject.toml")
 EXPECTED_MIGRATION_VERSION=$(sed -n 's/^MIGRATION_VERSION = \([0-9]\{1,\}\).*/\1/p' \
     "$REPO_ROOT/lutris/migrations/__init__.py")
 if [ -z "$EXPECTED_VERSION" ] || [ -z "$EXPECTED_MIGRATION_VERSION" ]; then
