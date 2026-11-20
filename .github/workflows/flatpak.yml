@@ -76,10 +76,12 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: build-flatpak/state
-          key: flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}-${{ github.sha }}
+          # The prefix names the build setup, so caches from another one (such as the
+          # old Ubuntu flatpak-builder's, whose git mirrors this one can't use) never match
+          key: flatpak-builder-fedora-${{ hashFiles('packaging/flatpak/**') }}-${{ github.sha }}
           restore-keys: |
-            flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}-
-            flatpak-builder-
+            flatpak-builder-fedora-${{ hashFiles('packaging/flatpak/**') }}-
+            flatpak-builder-fedora-
       - name: Build
         # In a Fedora container with its current flatpak-builder, through the same script
         # as local builds: Ubuntu's older flatpak-builder lets meson install into lib64,
@@ -95,7 +97,7 @@ jobs:
         uses: actions/cache/save@v6
         with:
           path: build-flatpak/state
-          key: flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}-${{ github.sha }}
+          key: flatpak-builder-fedora-${{ hashFiles('packaging/flatpak/**') }}-${{ github.sha }}
       - name: Smoke test
         # Install the bundle in a clean container and check that Lutris starts in it,
         # so a bundle that builds but doesn't run is never uploaded

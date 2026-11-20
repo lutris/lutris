@@ -16,6 +16,9 @@ bundle=${2:-}
 # flatpak-builder applies patches and unpacks some archives with the host's tools
 dnf install -y --setopt=install_weak_deps=False flatpak flatpak-builder git-core patch tar bzip2 xz unzip
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+# The checkout and a restored flatpak-builder cache (with its git mirrors) belong
+# to the host user, and git won't use repositories another user owns otherwise
+git config --global --add safe.directory '*'
 flatpak-builder --version
 
 status=0
