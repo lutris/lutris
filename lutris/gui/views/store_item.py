@@ -274,3 +274,8 @@ class StoreItem:
             logger.warning("Invalid playtime value %s for %s", self.playtime, self)
             _playtime_text = ""  # Do not show erroneous values
         return gtk_safe(_playtime_text)
+
+    @property
+    def notes(self):
+        """The user's notes, as plain text"""
+        return self._get_game_attribute("notes") or ""

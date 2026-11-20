@@ -17,7 +17,8 @@
     COL_INSTALLED_AT_TEXT,
     COL_PLAYTIME,
     COL_PLAYTIME_TEXT,
-) = list(range(16))
+    COL_NOTES,
+) = list(range(17))
 
 COLUMN_NAMES = {
     COL_NAME: "name",
