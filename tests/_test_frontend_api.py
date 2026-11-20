@@ -225,7 +225,6 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
         "lutris.database.categories",
         "lutris.database.games",
         "lutris.database.saved_searches",
-        "lutris.game",
         "lutris.installer.interpreter",
         "lutris.runners",
         "lutris.services",

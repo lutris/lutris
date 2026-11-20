@@ -1411,54 +1411,6 @@
         "lineCount": 1
       },
       {
-        "rule": "missing-attribute",
-        "startColumn": 15,
-        "endColumn": 23,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 50,
-        "endColumn": 56,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 15,
-        "endColumn": 23,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 50,
-        "endColumn": 56,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 17,
-        "endColumn": 25,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 38,
-        "endColumn": 44,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 19,
-        "endColumn": 25,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 39,
-        "endColumn": 45,
-        "lineCount": 1
-      },
-      {
         "rule": "invalid-argument-type",
         "startColumn": 52,
         "endColumn": 67,

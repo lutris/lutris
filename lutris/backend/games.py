@@ -14,6 +14,7 @@ from lutris.util.standalone_scripts import generate_script
 
 if TYPE_CHECKING:
     from lutris.delegates import LaunchUIDelegate
+    from lutris.game import Game
 
 
 def to_game_info(db_game: dict[str, Any]) -> GameInfo:
@@ -35,6 +36,31 @@ def to_game_info(db_game: dict[str, Any]) -> GameInfo:
         service_id=db_game.get("service_id") or None,
         installer_slug=db_game.get("installer_slug") or None,
         cover_path=cover_path if cover_path and os.path.exists(cover_path) else None,
+    )
+
+
+def game_info_from(game: "Game") -> GameInfo:
+    """Return the GameInfo for a Game object: what the library records about it, as
+    list_games() does, or if it isn't in the library (yet), what the object says,
+    with an empty id."""
+    db_game = games_db.get_game_by_field(game.id, "id") if game.id else None
+    if db_game:
+        return to_game_info(db_game)
+    return to_game_info(
+        {
+            "id": game.id or "",
+            "name": game.name,
+            "slug": game.slug,
+            "runner": game.runner_name,
+            "platform": game.platform,
+            "year": int(game.year) if str(game.year).isdigit() else None,
+            "directory": game.directory,
+            "installed": game.is_installed,
+            "playtime": game.playtime,
+            "lastplayed": game.lastplayed,
+            "service": game.service,
+            "service_id": game.appid,
+        }
     )
 
 

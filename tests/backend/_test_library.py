@@ -150,3 +150,20 @@ def test_search_text_helpers():
     assert asyncio.run(library.search_mentions("hidden:yes doom", "hidden"))
     assert not asyncio.run(library.search_mentions("doom", "hidden"))
     assert asyncio.run(library.format_search("doom installed:yes")) == "doom installed:yes"
+
+
+def test_a_game_is_in_a_view_if_its_query_lists_it(games):
+    game_id = games[PREFIX + "game-9"]
+
+    def in_view(**values) -> bool:
+        return asyncio.run(library.is_game_in_view(LibraryQuery(**values), game_id))
+
+    assert in_view(category="all")
+    assert in_view(category="favorite")
+    assert in_view(category="all", text="game 9")
+    assert not in_view(category="all", text="uninstalled")
+    assert not in_view(category=".hidden")
+    assert not in_view(runner="linux")
+    assert in_view(dynamic_category="recent")
+    assert not in_view(dynamic_category="running")
+    assert in_view(service="xdg")  # Service views aren't checked

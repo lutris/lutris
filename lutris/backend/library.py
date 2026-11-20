@@ -69,6 +69,14 @@ async def query_games(query: LibraryQuery) -> list[LibraryGame]:
     return await asyncio.to_thread(_query_games, query)
 
 
+async def is_game_in_view(query: LibraryQuery, game_id: str) -> bool:
+    """True if a view lists a library game. Service views are taken to list every game
+    installed from their service."""
+    if query.service in SERVICES:
+        return True
+    return await asyncio.to_thread(lambda: bool(_query_games(query, only_game_ids={game_id})))
+
+
 async def has_uninstalled_games() -> bool:
     """True if the library has a game that isn't installed."""
     return bool(games_db.get_game_count("installed", "0"))
@@ -110,7 +118,8 @@ async def search_mentions(text: str, tag: str) -> bool:
     return GameSearch(text).has_component(tag)
 
 
-def _query_games(query: LibraryQuery) -> list[LibraryGame]:
+def _query_games(query: LibraryQuery, only_game_ids: set[str] | None = None) -> list[LibraryGame]:
+    """Return the games a view shows; only those in only_game_ids, if given."""
     if query.service in SERVICES:
         service = SERVICES[query.service]()
         if isinstance(service, OnlineService) and not service.is_authenticated():
@@ -118,7 +127,7 @@ def _query_games(query: LibraryQuery) -> list[LibraryGame]:
         return _get_service_games(query, query.service, service)
 
     if query.dynamic_category in DYNAMIC_CATEGORIES:
-        return [_to_library_game(db_game) for db_game in _get_dynamic_category_games(query)]
+        return [_to_library_game(db_game) for db_game in _get_dynamic_category_games(query, only_game_ids)]
 
     search = _get_game_search(query)
     category = query.category or "all"
@@ -157,13 +166,17 @@ def _query_games(query: LibraryQuery) -> list[LibraryGame]:
 
     # The text search isn't done in SQL, which is too literal (accent sensitive, for one)
     db_games = games_db.get_games(filters=filters, excludes=excludes)
-    db_games = _filter_games(query, [g for g in db_games if g["id"] in category_game_ids], searches)
+    db_games = [g for g in db_games if g["id"] in category_game_ids and (not only_game_ids or g["id"] in only_game_ids)]
+    db_games = _filter_games(query, db_games, searches)
     return [_to_library_game(db_game) for db_game in _sort_games(query.sort, db_games)]
 
 
-def _get_dynamic_category_games(query: LibraryQuery) -> list[dict[str, Any]]:
+def _get_dynamic_category_games(query: LibraryQuery, only_game_ids: set[str] | None = None) -> list[dict[str, Any]]:
+    def only(db_games: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        return [g for g in db_games if g["id"] in only_game_ids] if only_game_ids else db_games
+
     if query.dynamic_category == "recent":
-        db_games = _filter_games(query, games_db.get_games(filters={"installed": "1"}))
+        db_games = _filter_games(query, only(games_db.get_games(filters={"installed": "1"})))
         return sorted(db_games, key=lambda game: max(game["installed_at"] or 0, game["lastplayed"] or 0), reverse=True)
     if query.dynamic_category == "missing":
         db_games = games_db.get_games_by_ids(MISSING_GAMES.missing_game_ids)
@@ -171,7 +184,7 @@ def _get_dynamic_category_games(query: LibraryQuery) -> list[dict[str, Any]]:
         db_games = games_db.get_games_by_ids(query.running_game_ids)
     else:
         db_games = categories_db.get_uncategorized_games()
-    return _sort_games(query.sort, _filter_games(query, db_games))
+    return _sort_games(query.sort, _filter_games(query, only(db_games)))
 
 
 def _get_game_search(query: LibraryQuery, service: BaseService | None = None) -> GameSearch:

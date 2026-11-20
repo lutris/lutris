@@ -2,16 +2,18 @@ import time
 
 from gi.repository import Gdk, GObject, Gtk
 
+from lutris.backend import events
+from lutris.backend.models import GameInfo
 from lutris.database.games import get_game_for_service
 from lutris.database.services import ServiceGameCollection
-from lutris.game import GAME_START, Game
+from lutris.game import Game
 from lutris.gui.game_actions import GameActions, get_game_actions
 from lutris.gui.widgets.contextual_menu import ContextualMenu
 from lutris.gui.widgets.utils import get_application
 from lutris.services.service_media import MEDIA_CACHE_INVALIDATED
 from lutris.util.jobs import schedule_repeating_at_idle
 from lutris.util.log import logger
-from lutris.util.notifications import EMPTY_NOTIFICATION_REGISTRATION
+from lutris.util.notifications import EMPTY_NOTIFICATION_REGISTRATION, NotificationRegistration
 from lutris.util.path_cache import MISSING_GAMES
 
 
@@ -28,7 +30,9 @@ class GameView:
         self.service_media = None
         self.cache_notification_registration = EMPTY_NOTIFICATION_REGISTRATION
         self.missing_games_updated_registration = EMPTY_NOTIFICATION_REGISTRATION
-        self.game_start_registration = EMPTY_NOTIFICATION_REGISTRATION
+        self.game_event_registrations: list[NotificationRegistration] = []
+        # The games launching, whose start is being animated
+        self._launching_game_ids: set[str] = set()
         self.image_renderer = None
 
     def connect_signals(self):
@@ -40,7 +44,11 @@ class GameView:
         self.connect("button-press-event", self.popup_contextual_menu)
         self.connect("key-press-event", self.handle_key_press)
 
-        self.game_start_registration = GAME_START.register(self.on_game_start)
+        self.game_event_registrations = [
+            events.GAME_LAUNCHING.register(self.on_game_start),
+            events.GAME_STARTED.register(self.on_game_launch_ended),
+            events.GAME_STOPPED.register(self.on_game_launch_ended),
+        ]
 
     def set_game_store(self, game_store):
         self.game_store = game_store
@@ -60,7 +68,8 @@ class GameView:
     def on_destroy(self, _widget) -> None:
         self.cache_notification_registration.unregister()
         self.missing_games_updated_registration.unregister()
-        self.game_start_registration.unregister()
+        for registration in self.game_event_registrations:
+            registration.unregister()
 
     def popup_contextual_menu(self, view, event):
         """Contextual menu."""
@@ -154,9 +163,13 @@ class GameView:
     def get_path_for_game_id(self, game_id):
         raise NotImplementedError()
 
-    def on_game_start(self, game: Game) -> None:
+    def on_game_launch_ended(self, game: GameInfo) -> None:
+        self._launching_game_ids.discard(game.id)
+
+    def on_game_start(self, game: GameInfo) -> None:
         """On game start, we trigger an animation to show the game is starting; it runs at least
-        one cycle, but continues until the game exits the STATE_LAUNCHING state."""
+        one cycle, but continues until the game starts, or its launch ends without starting it."""
+        self._launching_game_ids.add(game.id)
 
         # We animate by looking at how long the animation has been running;
         # This keeps things on track even if drawing is low or the timeout we use
@@ -185,7 +198,7 @@ class GameView:
             if elapsed > cycle_time:
                 # Check for stopping and pausing only at cycle end, so we don't do it too often,
                 # and to avoid a janky looking visible snap-back to full size.
-                if game.state != game.STATE_LAUNCHING:
+                if game.id not in self._launching_game_ids:
                     if self.image_renderer.inset_game(game.id, 0.0):
                         self.queue_draw()
                     return False

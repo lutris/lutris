@@ -20,8 +20,9 @@ from lutris.api import (
     get_runtime_versions,
     read_api_key,
 )
-from lutris.backend import library
+from lutris.backend import events, library
 from lutris.backend.library import LibraryQuery, LibrarySort
+from lutris.backend.models import GameInfo
 from lutris.database import games as games_db
 from lutris.database import saved_searches as saved_searches_db
 from lutris.database.categories import CATEGORIES_UPDATED
@@ -29,11 +30,6 @@ from lutris.database.saved_searches import SAVED_SEARCHES_UPDATED
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import EsyncLimitError
 from lutris.game import (
-    GAME_INSTALLED,
-    GAME_LAUNCH_STATUS,
-    GAME_STOPPED,
-    GAME_UNHANDLED_ERROR,
-    GAME_UPDATED,
     Game,
 )
 from lutris.gui import dialogs
@@ -80,7 +76,7 @@ from lutris.util.jobs import COMPLETED_IDLE_TASK, AsyncCall, schedule_at_idle
 from lutris.util.library_sync import LOCAL_LIBRARY_UPDATED, LibrarySyncer
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.path_cache import MISSING_GAMES, add_to_path_cache
+from lutris.util.path_cache import MISSING_GAMES
 from lutris.util.progress_info import ProgressInfo
 from lutris.util.strings import gtk_safe
 from lutris.util.system import update_desktop_icons
@@ -167,6 +163,8 @@ class LutrisWindow(  # type:ignore[misc]
         # across multiple status updates — DownloadQueue uses the function
         # object itself as the progress box key.
         self._launch_progress_functions: dict[str, ProgressBox.ProgressFunction] = {}
+        # What each launching game's launch is doing, while it says
+        self._launch_statuses: dict[str, str] = {}
 
         # Since system-search-symbolic is already *right there* we'll try to pick some
         # other icon for the button that shows the search popover.
@@ -215,11 +213,11 @@ class LutrisWindow(  # type:ignore[misc]
         SERVICE_GAMES_LOADED.register(self.on_service_games_loaded)
         CATEGORIES_UPDATED.register(self.on_categories_updated)
         SAVED_SEARCHES_UPDATED.register(self.on_categories_updated)
-        GAME_UPDATED.register(self.on_game_updated)
-        GAME_STOPPED.register(self.on_game_stopped)
-        GAME_INSTALLED.register(self.on_game_installed)
-        GAME_UNHANDLED_ERROR.register(self.on_game_unhandled_error)
-        GAME_LAUNCH_STATUS.register(self.on_game_launch_status)
+        events.GAME_CHANGED.register(self.on_game_updated)
+        events.GAME_STOPPED.register(self.on_game_stopped)
+        events.GAME_INSTALLED.register(self.on_game_installed)
+        events.GAME_FAILED.register(self.on_game_unhandled_error)
+        events.GAME_LAUNCH_STATUS.register(self.on_game_launch_status)
         CLOUD_SYNC_STARTED.register(self.on_cloud_sync_started)
         CLOUD_SYNC_ENDED.register(self.on_cloud_sync_ended)
         settings.SETTINGS_CHANGED.register(self.on_settings_changed)
@@ -1067,7 +1065,7 @@ class LutrisWindow(  # type:ignore[misc]
         """Open the about dialog."""
         dialogs.AboutDialog(parent=self)
 
-    def on_game_unhandled_error(self, _game: Game, error: BaseException) -> None:
+    def on_game_unhandled_error(self, _game_id: str, error: BaseException) -> None:
         """Called when a game has sent the 'game-error' signal"""
 
         error_handler = get_error_handler(type(error))
@@ -1176,43 +1174,17 @@ class LutrisWindow(  # type:ignore[misc]
         self.update_notification()
         return True
 
-    async def is_game_displayed(self, game):
-        """Return whether a game should be displayed on the view"""
-        row = self.sidebar.get_selected_row()
-
-        if row:
-            # Stopped games do not get displayed on the running page
-            if row.type == "dynamic_category" and row.id == "running" and game.state == game.STATE_STOPPED:
-                return False
-
-            # If the update took the row out of this view's category, we'll need
-            # to update the view to reflect that.
-            enforce_hidden = not await library.search_mentions(self.filters.get("text") or "", "hidden")
-            if row.type == "dynamic_category" and row.id in ("recent", "missing"):
-                if enforce_hidden and ".hidden" in game.get_categories():
-                    return False
-            elif row.type in ("category", "user_category", "saved_search"):
-                categories = game.get_categories()
-                if enforce_hidden and row.id != ".hidden" and ".hidden" in categories:
-                    return False
-
-                if row.id != "all" and row.id not in categories:
-                    return False
-
-        return True
-
     def on_game_updated(self, game):
         """Updates an individual entry in the view when a game is updated"""
-        add_to_path_cache(game)
         self.update_action_state()
-        start_task(self._update_game_row(game), self)
+        start_task(self._update_game_row(game.id), self)
         return True
 
-    async def _update_game_row(self, game: Game) -> None:
-        library_game = await library.get_library_game(game.id, self.filters.get("service"))
+    async def _update_game_row(self, game_id: str) -> None:
+        library_game = await library.get_library_game(game_id, self.filters.get("service"))
         if not library_game:
             return
-        if not self.service and not await self.is_game_displayed(game):
+        if not await library.is_game_in_view(self.get_library_query(), game_id):
             self.game_store.remove_game(library_game.id)
             return
 
@@ -1221,7 +1193,7 @@ class LutrisWindow(  # type:ignore[misc]
         if updated_columns is None or not sensitive_columns.isdisjoint(updated_columns):
             self.update_store()
 
-    def on_game_stopped(self, game: Game) -> None:
+    def on_game_stopped(self, game: GameInfo) -> None:
         """Updates the game list when a game stops; this keeps the 'running' page updated."""
         selected_row = self.sidebar.get_selected_row()
         # Only update the running page- we lose the selected row when we do this,
@@ -1229,27 +1201,31 @@ class LutrisWindow(  # type:ignore[misc]
         if isinstance(selected_row, SidebarRow) and selected_row.id == "running":
             self.game_store.remove_game(game.id)
         self._launch_progress_functions.pop(game.id, None)
+        self._launch_statuses.pop(game.id, None)
 
-    def on_game_launch_status(self, game: Game) -> None:
-        """Mirror a game's launch_status into the download queue as a pulsing
+    def on_game_launch_status(self, game_id: str, status: str) -> None:
+        """Mirror a game's launch status into the download queue as a pulsing
         progress box — used for umu runtime setup (GE-Proton downloads, etc.)
         so the user has feedback while the game appears stuck in 'Launching'."""
-        if not game.launch_status:
+        if not status:
             # The progress function will return ProgressInfo.ended() on its
             # next poll, which removes the box; nothing to do here beyond
             # dropping our reference so we don't hang on to stopped games.
-            self._launch_progress_functions.pop(game.id, None)
+            self._launch_statuses.pop(game_id, None)
+            self._launch_progress_functions.pop(game_id, None)
             return
 
-        progress_function = self._launch_progress_functions.get(game.id)
+        self._launch_statuses[game_id] = status
+        progress_function = self._launch_progress_functions.get(game_id)
         if progress_function is None:
 
             def progress_function() -> ProgressInfo:
-                if not game.launch_status:
+                current_status = self._launch_statuses.get(game_id)
+                if not current_status:
                     return ProgressInfo.ended()
-                return ProgressInfo(progress=None, label_markup=gtk_safe(game.launch_status))
+                return ProgressInfo(progress=None, label_markup=gtk_safe(current_status))
 
-            self._launch_progress_functions[game.id] = progress_function
+            self._launch_progress_functions[game_id] = progress_function
 
         box = self.download_queue.add_progress_box(progress_function)
         # Force an immediate repaint so the user sees the latest umu message

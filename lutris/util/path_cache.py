@@ -190,3 +190,5 @@ class MissingGames:
 
 
 MISSING_GAMES = MissingGames()
+# Keep the cache current as games change
+GAME_UPDATED.register(add_to_path_cache)

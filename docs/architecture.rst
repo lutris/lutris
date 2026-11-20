@@ -189,6 +189,13 @@ eventually through nothing else:
 * **Errors are** ``LutrisError`` **subclasses** (``lutris.backend.errors``), whose
   message is meant for the user.
 * **Calls that need the user take a delegate**, as the core does.
+* **Events carry plain data too**: ``lutris.backend.events`` re-announces the
+  core's game notifications with a ``GameInfo`` (``GAME_CHANGED``,
+  ``GAME_INSTALLED``, ``GAME_LAUNCHING``, ``GAME_STARTED``, ``GAME_STOPPED``)
+  or a game's id (``GAME_LAUNCH_STATUS``, ``GAME_FAILED``). A launch is
+  followed by ``GAME_STARTED`` or ``GAME_STOPPED`` whatever happens, so a
+  frontend tracks a game's state from these instead of asking a ``Game``. Over
+  IPC they become the server's event stream.
 
 It's grouped by subject: ``games``, ``library`` (what the library's views
 list: ``query_games`` takes a ``LibraryQuery``, the view's sidebar row, search
@@ -218,11 +225,13 @@ is the to-do list for stage 2. Roughly in order:
 
 * **The library**: the game views now get their rows from
   ``library.query_games``, and ``GameStore`` and ``StoreItem`` only display
-  them. Left: events carrying ``GameInfo`` instead of ``Game``
-  (``GAME_UPDATED`` and the rest; the window still asks the ``Game`` for its
-  categories when one changes), calls for categories and saved searches (the
-  sidebar and their dialogs), the missing-games tracking, and the media
-  (``StoreItem`` still finds its images through the services).
+  them, and they follow ``lutris.backend.events``; whether a changed game
+  still belongs in a view is ``library.is_game_in_view``. Left: calls for
+  categories and saved searches (the sidebar and their dialogs), the
+  missing-games tracking, and the media (``StoreItem`` still finds its images
+  through the services). The application's list of running games and the game
+  bar still follow the core's notifications, since they act on ``Game``
+  objects; they move with the game actions.
 * **Game actions**: launching, stopping, installing, uninstalling, moving,
   and the shortcuts, through calls that take a game id. Delegate methods then
   receive ``GameInfo`` rather than a ``Game``.

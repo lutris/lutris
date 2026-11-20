@@ -7,13 +7,14 @@ from gettext import gettext as _
 from gi.repository import Gdk, GObject, Gtk, Pango
 
 from lutris import runners, services, settings
+from lutris.backend import events
+from lutris.backend.models import GameInfo
 from lutris.config import LutrisConfig
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import saved_searches as saved_search_db
 from lutris.database.categories import CATEGORIES_UPDATED
 from lutris.database.saved_searches import SAVED_SEARCHES_UPDATED
-from lutris.game import GAME_START, GAME_STOPPED, GAME_UPDATED, Game
 from lutris.gui.config.edit_category_games import EditCategoryGamesDialog
 from lutris.gui.config.edit_saved_search import EditSavedSearchDialog
 from lutris.gui.config.runner import RunnerConfigDialog
@@ -489,9 +490,9 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update_rows)
         GObject.add_emission_hook(RunnerConfigDialog, "runner-updated", self.update_runner_rows)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.update_rows)
-        GAME_START.register(self.on_game_start)
-        GAME_STOPPED.register(self.on_game_stopped)
-        GAME_UPDATED.register(self.update_rows)
+        events.GAME_LAUNCHING.register(self.on_game_start)
+        events.GAME_STOPPED.register(self.on_game_stopped)
+        events.GAME_CHANGED.register(self.update_rows)
         RUNNERS_INSTALLED.register(self.update_rows)
         CATEGORIES_UPDATED.register(self.update_rows)
         SAVED_SEARCHES_UPDATED.register(self.update_rows)
@@ -803,11 +804,11 @@ class LutrisSidebar(Gtk.ListBox):
         self.invalidate_filter()
         return True
 
-    def on_game_start(self, _game: Game) -> None:
+    def on_game_start(self, _game: GameInfo) -> None:
         """Show the "running" section when a game start"""
         self.running_row.show()
 
-    def on_game_stopped(self, _game: Game) -> None:
+    def on_game_stopped(self, _game: GameInfo) -> None:
         """Hide the "running" section when no games are running"""
         if not self.application.has_running_games:
             self.running_row.hide()
