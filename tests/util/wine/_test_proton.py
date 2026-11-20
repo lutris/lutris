@@ -1,5 +1,8 @@
+import json
 import os
+import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from lutris.util.wine import proton
@@ -154,3 +157,37 @@ class TestGeProtonReleaseUrls(unittest.TestCase):
     def test_no_build_without_a_checksum(self):
         self.assertIsNone(self.get_urls(make_release("GE-Proton11-7-x86_64.tar.gz")))
         self.assertIsNone(self.get_urls({}))
+
+
+UMU_GAMES = [
+    {"name": "Dragon Age: Inquisition", "store": "ea", "appid": "1000659", "umu_id": "umu-1222690"},
+    {"name": "Some Humble Game", "store": "humble", "appid": "somegame", "umu_id": "umu-1"},
+    {"name": "Some GOG Game", "store": "gog", "appid": "1207658924", "umu_id": "umu-2"},
+]
+
+
+class TestGetGameId(unittest.TestCase):
+    """The GAMEID tells umu which game-specific fixes to apply."""
+
+    def setUp(self):
+        temp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        os.makedirs(os.path.join(temp_dir.name, "umu-games"))
+        with open(os.path.join(temp_dir.name, "umu-games/umu-games.json"), "w", encoding="utf-8") as games_file:
+            json.dump(UMU_GAMES, games_file)
+        runtime_patch = patch.object(proton.settings, "RUNTIME_DIR", temp_dir.name)
+        runtime_patch.start()
+        self.addCleanup(runtime_patch.stop)
+
+    def get_game_id(self, service, appid):
+        return proton.get_game_id(SimpleNamespace(service=service, appid=appid), {})
+
+    def test_stores_named_differently_by_umu_are_matched(self):
+        self.assertEqual(self.get_game_id("ea_app", "1000659"), "umu-1222690")
+        self.assertEqual(self.get_game_id("humblebundle", "somegame"), "umu-1")
+
+    def test_stores_named_the_same_are_matched(self):
+        self.assertEqual(self.get_game_id("gog", "1207658924"), "umu-2")
+
+    def test_unknown_game_gets_the_default(self):
+        self.assertEqual(self.get_game_id("gog", "999"), proton.DEFAULT_GAMEID)

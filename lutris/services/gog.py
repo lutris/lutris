@@ -436,7 +436,7 @@ class GOGService(OnlineService):
                         "type": download.get("type", "").strip(),
                         "total_size": download.get("total_size", 0),
                         "id": str(download["id"]),
-                        "downlinks": [f.get("downlink") for f in download.get("files") or []],
+                        "downlinks": [f["downlink"] for f in download.get("files") or [] if f.get("downlink")],
                     }
                     for download in product["downloads"].get("bonus_content") or []
                 ]
@@ -470,14 +470,16 @@ class GOGService(OnlineService):
         return "linux" if runner == "linux" else "wine"
 
     def get_update_versions(self, gog_id: str, runner_name: str | None) -> dict[str, list]:
-        """Return updates available for a game, keyed by patch version"""
+        """Return updates available for a game, keyed by patch name. GOG lists each part of a
+        multi-part patch separately, under the same name; their versions are not unique, and
+        may be blank."""
 
-        filter_os = self.runner_to_os_dict.get(runner_name) if runner_name else None
+        filter_os = self.runner_to_os_dict[self._normalize_runner_name(runner_name)] if runner_name else None
 
         games_detail = self.get_game_details(gog_id)
-        patches = games_detail["downloads"]["patches"]
+        patches = (games_detail or {}).get("downloads", {}).get("patches")
         if not patches:
-            logger.info("No patches for %s", games_detail)
+            logger.info("No patches for %s", gog_id)
             return {}
         patch_versions = defaultdict(list)
         for patch in patches:
@@ -486,6 +488,11 @@ class GOGService(OnlineService):
                 if patch_os and filter_os != patch_os.casefold():
                     continue
             patch_versions[patch["name"]].append(patch)
+
+        # Some patches are offered in several languages; we want just one of them.
+        for name, parts in patch_versions.items():
+            language = self.determine_language_installer(parts)
+            patch_versions[name] = [part for part in parts if part.get("language") == language] or parts
         return patch_versions
 
     def determine_language_installer(self, gog_installers: list[dict], default_language: str = "en") -> str:
@@ -522,13 +529,8 @@ class GOGService(OnlineService):
     def get_extras_files(self, installer: "LutrisInstaller", selected_extras: list[dict]) -> list[InstallerFile]:
         extra_files = []
         for extra in selected_extras:
-            downlinks = extra.get("downlinks")
-            if downlinks:
-                links = [info for link in downlinks for info in self.get_download_info(link)]
-            elif str(extra["id"]) in selected_extras:
-                links = self.query_download_links(extra)
-            else:
-                links = []
+            downlinks = extra.get("downlinks") or []
+            links = [info for link in downlinks for info in self.get_download_info(link)]
 
             if not links:
                 logger.error("No download link for bonus content '%s' could be obtained.", extra.get("name"))
@@ -566,11 +568,10 @@ class GOGService(OnlineService):
 
     def get_patch_files(self, installer: "LutrisInstaller", installer_file_id: str) -> list[InstallerFile]:
         logger.debug("Getting patches for %s", installer.version)
-        downloads = self.get_downloads(installer.service_appid)
-        links = []
-        for patch_file in downloads["patches"]:
-            if "GOG " + patch_file["version"] == installer.version:
-                links += self.query_download_links(patch_file)
+        # get_update_installers() names the installer after the patch it applies
+        patch_name = installer.version.removeprefix("GOG ")
+        patch = self.get_update_versions(installer.service_appid, installer.runner).get(patch_name, [])
+        links = [link for part in patch for link in self.query_download_links(part)]
         return self._format_links(installer, installer_file_id, links)
 
     def _format_links(
@@ -939,21 +940,32 @@ class GOGService(OnlineService):
         # Fallback: offline installer patch-based updates
         patch_versions = self.get_update_versions(appid, runner)
         patch_installers = []
-        for version in patch_versions:
-            patch = patch_versions[version]
+        for patch_name, patch in patch_versions.items():
             size = human_size(sum(part["total_size"] for part in patch))
-            patch_id = "gogpatch-%s" % slugify(patch[0]["version"])
+            patch_id = "gogpatch-%s" % slugify(patch_name)
+            if runner == "linux":
+                # Linux patches are MojoSetup archives, like the Linux installers and DLC
+                patch_runner = "linux"
+                patch_script = [
+                    {"extract": {"file": patch_id, "format": "zip", "dst": "$CACHE/GOG"}},
+                    {"merge": {"src": "$CACHE/GOG/data/noarch/", "dst": "$GAMEDIR"}},
+                ]
+            else:
+                patch_runner = "wine"
+                patch_script = [{"task": {"name": "wineexec", "executable": patch_id}}]
             installer = {
                 "name": db_game["name"],
-                "description": patch[0]["name"] + " " + size,
+                "description": patch_name + " " + size,
                 "slug": db_game["installer_slug"],
                 "game_slug": db_game["slug"],
-                "version": "GOG " + patch[0]["version"],
-                "runner": "wine",
+                # This must be unique, as the installer window picks the script by version;
+                # get_patch_files() also uses it to find the patch.
+                "version": "GOG " + patch_name,
+                "runner": patch_runner,
                 "script": {
                     "extends": db_game["installer_slug"],
                     "files": [{patch_id: "N/A:Select the patch from GOG"}],
-                    "installer": [{"task": {"name": "wineexec", "executable": patch_id}}],
+                    "installer": patch_script,
                 },
             }
             patch_installers.append(installer)

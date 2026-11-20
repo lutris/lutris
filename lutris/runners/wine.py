@@ -1152,7 +1152,7 @@ class wine(Runner):
                 continue
             value = self.runner_config.get(key) or "auto"
             if not value or (value == "auto" and key not in managed_keys):
-                prefix_manager.clear_registry_subkeys(path, key)
+                prefix_manager.clear_registry_subkeys(path, [key])
             elif key in self.runner_config:
                 if value and key == "Graphics" and value == "wayland":
                     if not is_winewayland_available(self.read_version_from_config()):
@@ -1179,15 +1179,16 @@ class wine(Runner):
         # had been on the only way to implement that is to save 96 DPI into the registry.
         prefix_manager.set_dpi(self.get_dpi())
 
-    def get_dpi(self) -> int:
+    def get_dpi(self) -> int | None:
         """Return the DPI to be used by Wine; returns None to allow Wine's own
         setting to govern."""
-        if bool(self.runner_config.get("Dpi")):
-            try:
-                return int(self.runner_config.get("ExplicitDpi", get_default_dpi()))
-            except:
-                return get_default_dpi()
-        return get_default_dpi()
+        if not self.runner_config.get("Dpi"):
+            return None
+        try:
+            return int(self.runner_config.get("ExplicitDpi", get_default_dpi()))
+        except (TypeError, ValueError):
+            # Older configs may say 'auto', or be blank
+            return get_default_dpi()
 
     def attach_log_handlers(self, monitored_command: "MonitoredCommand", game: Game) -> None:
         """Install a umu launch-status parser when the wine executable is

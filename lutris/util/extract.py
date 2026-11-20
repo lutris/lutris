@@ -49,10 +49,16 @@ def extract_archive(
 
     temp_path = temp_dir = os.path.join(to_directory, ".extract-%s" % _random_id())
     try:
-        _do_extract(path, temp_path, opener, mode, extractor)
-    except (OSError, zlib.error, tarfile.ReadError, EOFError) as ex:
-        logger.error("Extraction failed: %s", ex)
-        raise ExtractError(str(ex)) from ex
+        try:
+            _do_extract(path, temp_path, opener, mode, extractor)
+        except (OSError, zlib.error, tarfile.ReadError, EOFError) as ex:
+            logger.error("Extraction failed: %s", ex)
+            raise ExtractError(str(ex)) from ex
+    except ExtractError:
+        # Don't leave a partial extraction behind in the destination
+        if os.path.isdir(temp_dir):
+            system.delete_folder(temp_dir)
+        raise
     if merge_single:
         extracted = os.listdir(temp_path)
         if len(extracted) == 1:
@@ -217,7 +223,10 @@ def _extract_7zip(path: str, dest: str, archive_type: str | None = None) -> None
     command = [_7zip_path, "x", path, "-o{}".format(dest), "-aoa"]
     if archive_type and archive_type != "auto":
         command.append("-t{}".format(archive_type))
-    subprocess.call(command)
+    return_code = subprocess.call(command)
+    # 1 means there were only warnings; 2 and up mean some or all of it was not extracted
+    if return_code >= 2:
+        raise ExtractError("7-Zip could not extract %s (exit code %s)" % (os.path.basename(path), return_code))
 
 
 def _get_7zip_path() -> str:
@@ -244,7 +253,7 @@ def _extract_exe(path: str, dest: str) -> None:
         if return_code == 0:
             _extract_7zip(path, dest)
         else:
-            raise RuntimeError("specified exe is not an archive or GOG setup file")
+            raise ExtractError("specified exe is not an archive or GOG setup file")
 
 
 def _check_inno_exe(path) -> bool:
@@ -269,7 +278,7 @@ def _decompress_gog(file_path: str, destination_path: str) -> None:
     if process.returncode != 0:
         stderr = process.stderr.decode().strip()
         logger.error("Innoextract failed to extract GOG setup file: %s", stderr)
-        raise RuntimeError("innoextract failed to extract GOG setup file")
+        raise ExtractError("innoextract failed to extract GOG setup file")
 
 
 def _get_innoextract_path() -> str:
@@ -289,7 +298,7 @@ def _extract_gog(path: str, dest: str) -> None:
     if _check_inno_exe(path):
         _decompress_gog(path, dest)
     else:
-        raise RuntimeError("specified exe is not a GOG setup file")
+        raise ExtractError("specified exe is not a GOG setup file")
 
 
 def _extract_deb(archive: str, dest: str) -> None:

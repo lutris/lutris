@@ -129,7 +129,7 @@ def show_save_stats(game, output_format="text"):
         return
 
     if output_format == "json":
-        print(json.dumps(save_info.get_save_files()), indent=2)
+        print(json.dumps(save_info.get_save_files(), indent=2))
     else:
         for section in save_info.save_types:
             if section in save_info.save_config:
