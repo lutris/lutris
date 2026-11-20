@@ -233,3 +233,63 @@ class InstallationInfo:
     # The installed game, once finished
     game_id: str = ""
     error_details: str = ""
+
+
+@dataclass(frozen=True)
+class ConfigChoice:
+    label: str
+    value: str
+
+
+@dataclass(frozen=True)
+class ConfigOptionInfo:
+    """One option of a configuration form, evaluated against the configuration being edited."""
+
+    # The config section the option belongs to: "game", "runner" or "system"
+    section: str
+    key: str
+    # "label", "string", "bool", "range", "choice", "choice_with_entry", "choice_with_search",
+    # "file", "multiple_file", "directory", "mapping" or "command_line"
+    type: str
+    label: str
+    # The heading the option is grouped under, if any
+    group: str
+    help: str
+    # A string, bool, int, list of strings (multiple_file) or dict of strings (mapping)
+    value: object
+    default: object
+    # The default as people would read it, such as a choice's label
+    default_label: str
+    choices: tuple[ConfigChoice, ...]
+    minimum: int | None
+    maximum: int | None
+    advanced: bool
+    visible: bool
+    enabled: bool
+    # Whether this level of configuration sets the option, so it can be reset
+    set_here: bool
+    # Whether a lower level changed the option from its default
+    changed_below: bool
+    warning: str
+    error: str
+
+
+@dataclass(frozen=True)
+class ConfigPage:
+    section: str
+    title: str
+    # Explains how this page relates to the levels below it
+    description: str
+    options: tuple[ConfigOptionInfo, ...]
+
+
+@dataclass(frozen=True)
+class ConfigForm:
+    """A game's, a runner's or the system's options being edited, until saved or closed."""
+
+    id: str
+    # "game", "runner" or "system"
+    level: str
+    title: str
+    pages: tuple[ConfigPage, ...]
+    show_advanced: bool

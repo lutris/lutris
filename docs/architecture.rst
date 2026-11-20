@@ -208,7 +208,8 @@ It's grouped by subject: ``games``, ``library`` (what the library's views
 list: ``query_games`` takes a ``LibraryQuery``, the view's sidebar row, search
 and sort, and returns ``LibraryGame`` rows), ``services``, ``steam``,
 ``runners``, ``installers`` (finding and checking install scripts),
-``installations`` (running them),
+``installations`` (running them), ``configuration`` (game, runner and system
+options),
 ``processes`` (running a command the way Lutris runs games) and ``saves``.
 ``lutris.backend.startup.start_backend()`` starts it; that isn't an API call,
 but what the backend's own process will do in stage 3.
@@ -318,6 +319,22 @@ finishes, the backend creates the chosen desktop and menu shortcuts and fires
 ``GAME_INSTALLED``. Qt's ``InstallerDialog`` shows these stages with
 ``InstallationPage`` and can launch the game at the end.
 
+Game Actions → Configure, Library → Global Options and a runner's context menu
+in the sidebar open configuration forms. ``configuration.open_game_config``,
+``open_runner_config`` and ``open_system_config`` build a ``LutrisConfig`` at
+that level and return a ``ConfigForm``: a ``ConfigPage`` per config section
+(game, runner, system), each with ``ConfigOptionInfo`` rows. The backend
+evaluates the option dicts' callables the way GTK's widget generator does, with
+the option key and the configuration, so visibility, conditions,
+``conditional_on``, choices, warnings and errors arrive as plain values.
+``set_option`` and ``reset_option`` change the raw config at the form's level,
+checked against the option's type, and return the form evaluated again.
+``save_config`` runs the options' validators, writes the file and fires
+``GAME_CHANGED`` for a game. Choices loaded in the background (``async_choices``)
+fire ``CONFIG_FORM_CHANGED``. Qt's ``ConfigOptionModel`` updates rows in place,
+so editing doesn't reset the view, and ``ConfigOption.qml`` picks an editor per
+option type.
+
 The library opens in a cover grid. The View menu switches to banners or a list
 and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
 row. The backend resolves files from the Lutris and service caches. The same
@@ -329,14 +346,18 @@ What it needs next, roughly in order, each with the backend calls it takes:
 * **Game actions** still need service installation entry points. The launch
   configuration prompt receives ``GameInfo`` and configuration names. The
   remaining launch delegate methods still need the same plain-data boundary.
-* **Configuration**: game, runner and system options, as data, with a widget
-  generator like ``lutris/gui/config``.
+* **Game info**: the Game Info tab of GTK's game dialog (name, sort name, slug,
+  runner, year, playtime, artwork), and adding a game by hand with it. Option
+  pages already work through ``configuration``.
+* **Preferences**: the other tabs of GTK's preferences dialog (interface,
+  runners, sources, accounts, updates, storage, system info). Global system
+  options already work.
 * **Services and runners**: logging in (a web view, QtWebEngine), syncing
   libraries, installing and configuring runners.
 * **The installer**: service installs (GOG, Steam...), local script files,
   installer URIs, Steam-provided files, and the yes/no and file questions some
   runners ask while installing.
-* **Preferences** and the rest of the application still need the tray icon,
+* **The rest of the application** still needs the tray icon,
   runtime updates, and the remaining command-line actions, including installer URIs.
 
 Script installer handoff

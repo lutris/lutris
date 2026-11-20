@@ -16,6 +16,7 @@ from lutris.backend.library import LibraryQuery, LibrarySort
 from lutris.backend.models import GameInfo, LibraryGame
 from lutris.exceptions import LutrisError
 from lutris.qt.category_model import CategoryModel
+from lutris.qt.configuration import ConfigController
 from lutris.qt.delegates import PromptController, QtLaunchUIDelegate
 from lutris.qt.game_log import GameLogController
 from lutris.qt.game_maintenance import GameMaintenanceController
@@ -54,6 +55,7 @@ class LibraryController(QObject):
         self._local_games = LocalGameController(prompts, self)
         self._local_games.registered.connect(self._on_local_game_registered)
         self._installers = InstallerController(prompts, self)
+        self._configuration = ConfigController(prompts, self)
         self._installers.installation_controller.launchRequested.connect(lambda game_id: self.launch(game_id, False))
         self.model.setParent(self)
         self.sidebar.setParent(self)
@@ -130,6 +132,10 @@ class LibraryController(QObject):
     @Property(QObject, constant=True)
     def localGames(self) -> LocalGameController:  # noqa: N802
         return self._local_games
+
+    @Property(QObject, constant=True)
+    def configuration(self) -> ConfigController:
+        return self._configuration
 
     @Property(QObject, constant=True)
     def installers(self) -> InstallerController:

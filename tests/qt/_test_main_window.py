@@ -23,6 +23,7 @@ from lutris.qt.main_window import MainWindow
 from lutris.services.base import LutrisBanner, LutrisCoverart
 from lutris.util import path_cache
 from lutris.util.test_config import setup_test_environment
+from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 from tests.conftest import FakeMainLoop
 
 setup_test_environment()
@@ -470,6 +471,80 @@ def test_qml_runs_an_install_script_to_the_end(
     asyncio.run(run())
     assert (target / "setup.txt").read_text(encoding="utf-8") == "game data"
     assert (target / "lang.txt").read_text(encoding="utf-8") == "fr"
+
+
+def test_qml_configures_a_game_and_the_global_options(
+    qt_application: QGuiApplication,
+    library: list[str],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config_dir = tmp_path / "config"
+    (config_dir / "games").mkdir(parents=True)
+    monkeypatch.setattr(settings, "CONFIG_DIR", str(config_dir))
+    monkeypatch.setattr(settings, "write_setting", lambda *_args: None)
+    write_yaml_to_file({"game": {"exe": "/games/run.sh"}}, str(config_dir / "games" / "qt-config.yml"))
+    sql.db_update(settings.DB_PATH, "games", {"configpath": "qt-config"}, {"id": library[0]})
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        controller = window.controller
+        config = controller._configuration
+        try:
+            await settle(window)
+            await open_game_action(window, qt_application, library[0], "configureGame")
+            dialog = window.window.findChild(QObject, "configDialog")
+            options = window.window.findChild(QQuickItem, "configOptions")
+            assert dialog is not None and options is not None
+            await wait_for_qml(qt_application, lambda: bool(config.property("ready")))
+            assert config.property("pages") == ["Game options", "Runner options", "System options"]
+            assert dialog.property("title") == "Configure " + PREFIX + "Installed"
+
+            await wait_for_qml(qt_application, lambda: find_item(options, "configOption_args") is not None)
+            args = find_item(options, "configOption_args")
+            assert args is not None
+            config.set_value("game", "args", "--fullscreen")
+            await wait_for_qml(qt_application, lambda: bool(config.property("modified")) and args.property("setHere"))
+            assert args.property("optionValue") == "--fullscreen"
+
+            config.select_page(2)
+            await wait_for_qml(
+                qt_application, lambda: find_item(options, "optionSwitch_prefer_system_libs") is not None
+            )
+            switch = find_item(options, "optionSwitch_prefer_system_libs")
+            assert switch is not None
+            switch.setProperty("checked", not switch.property("checked"))
+            assert QMetaObject.invokeMethod(switch, "toggled")
+            await wait_for_qml(
+                qt_application,
+                lambda: bool(
+                    (reset := find_item(options, "resetOption_prefer_system_libs")) and reset.property("visible")
+                ),
+            )
+
+            save = window.window.findChild(QObject, "configSave")
+            assert save is not None and save.property("enabled") and QMetaObject.invokeMethod(save, "clicked")
+            await wait_for_qml(qt_application, lambda: not config.property("ready"))
+            saved = read_yaml_from_file(str(config_dir / "games" / "qt-config.yml"))
+            assert saved["game"] == {"exe": "/games/run.sh", "args": "--fullscreen"}
+            assert "prefer_system_libs" in saved["system"]
+
+            action = window.window.findChild(QObject, "globalOptions")
+            assert action is not None and QMetaObject.invokeMethod(action, "triggered")
+            await wait_for_qml(qt_application, lambda: config.property("pages") == ["System options"])
+            config.set_search("no option has this text")
+            assert config.property("emptyText") == "No options match 'no option has this text'"
+
+            runner = find_item(window.window.contentItem(), "sidebarRunner_linux")
+            assert runner is not None
+            config.open_runner("linux", "Linux")
+            await wait_for_qml(qt_application, lambda: config.property("pages") == ["Runner options", "System options"])
+            assert config.property("title") == "Configure Linux"
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
 
 
 @pytest.mark.parametrize("link_existing", [False, True])

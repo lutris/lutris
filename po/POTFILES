@@ -13,6 +13,7 @@ share/lutris/ui/uninstall-dialog.ui
 lutris/__init__.py
 lutris/api.py
 lutris/backend/__init__.py
+lutris/backend/configuration.py
 lutris/backend/errors.py
 lutris/backend/events.py
 lutris/backend/game_actions.py
@@ -150,6 +151,8 @@ lutris/monitored_command.py
 lutris/qt/__init__.py
 lutris/qt/application.py
 lutris/qt/category_model.py
+lutris/qt/config_model.py
+lutris/qt/configuration.py
 lutris/qt/delegates.py
 lutris/qt/display_backend.py
 lutris/qt/game_log.py
@@ -358,6 +361,8 @@ lutris/version.py
 
 lutris/qt/qml/ArtworkImage.qml
 lutris/qt/qml/CategoryDialog.qml
+lutris/qt/qml/ConfigDialog.qml
+lutris/qt/qml/ConfigOption.qml
 lutris/qt/qml/GameActions.qml
 lutris/qt/qml/GameCard.qml
 lutris/qt/qml/GameGrid.qml

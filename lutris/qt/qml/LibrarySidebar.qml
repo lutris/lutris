@@ -42,14 +42,35 @@ Pane {
         }
 
         delegate: ItemDelegate {
+            id: view
+
             required property int index
             required property string viewTitle
+            required property string runnerName
+
+            objectName: runnerName ? "sidebarRunner_" + runnerName : ""
             width: views.width - 8
             text: viewTitle
             highlighted: views.currentIndex === index
             onClicked: {
                 views.forceActiveFocus()
                 sidebar.controller.select_view(index)
+            }
+
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                enabled: view.runnerName.length > 0
+                onTapped: runnerMenu.popup()
+            }
+
+            Menu {
+                id: runnerMenu
+
+                MenuItem {
+                    objectName: "configureRunner"
+                    text: qsTr("Configure Runner…")
+                    onTriggered: sidebar.controller.configuration.open_runner(view.runnerName, view.viewTitle)
+                }
             }
         }
     }

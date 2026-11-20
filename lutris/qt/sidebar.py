@@ -11,6 +11,7 @@ from lutris.qt.library_model import ModelIndex
 ALL_GAMES = {"category": "all"}
 _LABEL_ROLE = Qt.ItemDataRole.UserRole + 1
 _SECTION_ROLE = _LABEL_ROLE + 1
+_RUNNER_ROLE = _LABEL_ROLE + 2
 
 
 @dataclass(frozen=True)
@@ -67,7 +68,11 @@ class SidebarModel(QAbstractListModel):
         return 0 if parent.isValid() else len(self._entries)
 
     def roleNames(self) -> dict[int, QByteArray]:  # noqa: N802
-        return {_LABEL_ROLE: QByteArray(b"viewTitle"), _SECTION_ROLE: QByteArray(b"sectionTitle")}
+        return {
+            _LABEL_ROLE: QByteArray(b"viewTitle"),
+            _SECTION_ROLE: QByteArray(b"sectionTitle"),
+            _RUNNER_ROLE: QByteArray(b"runnerName"),
+        }
 
     def data(self, index: ModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> str | None:
         if not index.isValid():
@@ -75,4 +80,6 @@ class SidebarModel(QAbstractListModel):
         section, entry = self._entries[index.row()]
         if role in (_LABEL_ROLE, Qt.ItemDataRole.DisplayRole):
             return entry.title
+        if role == _RUNNER_ROLE:
+            return entry.view.get("runner", "")
         return section if role == _SECTION_ROLE else None

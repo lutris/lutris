@@ -22,6 +22,14 @@ ApplicationWindow {
                 text: qsTr("Add Locally Installed Game…")
                 onTriggered: window.controller.localGames.open_registration("", "")
             }
+
+            MenuSeparator {}
+
+            MenuItem {
+                objectName: "globalOptions"
+                text: qsTr("Global Options…")
+                onTriggered: window.controller.configuration.open_system()
+            }
         }
     }
 
@@ -65,6 +73,24 @@ ApplicationWindow {
             }
         }
         onLoaded: if (status === Loader.Ready) (item as InstallerDialog).open()
+    }
+
+    Connections {
+        target: window.controller.configuration
+        function onRequested() { configLoader.active = true }
+    }
+
+    Loader {
+        id: configLoader
+        active: false
+        sourceComponent: ConfigDialog {
+            controller: window.controller.configuration
+            onClosed: {
+                controller.close()
+                configLoader.active = false
+            }
+        }
+        onLoaded: if (status === Loader.Ready) (item as ConfigDialog).open()
     }
 
     footer: ToolBar {

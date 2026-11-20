@@ -69,6 +69,13 @@ ToolButton {
         }
 
         MenuItem {
+            objectName: "configureGame"
+            text: qsTr("Configure…")
+            enabled: actions.targetInstalled
+            onTriggered: actions.controller.configuration.open_game(actions.targetGameId, actions.targetGameName)
+        }
+
+        MenuItem {
             text: qsTr("Play with Launch Options")
             enabled: actions.targetCanPlay
             onTriggered: actions.controller.launch(actions.targetGameId, true)
