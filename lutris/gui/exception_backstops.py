@@ -1,55 +1,37 @@
+"""Reports errors that escape GTK and GLib callbacks, instead of letting them crash Lutris"""
+
+import sys
 from collections.abc import Callable, Iterable
-from functools import wraps
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast
 
 from gi.repository import GLib, GObject, Gtk
 
-from lutris.gui.dialogs import display_error
+from lutris.gui.dialogs import ErrorDialog, display_error
 from lutris.gui.widgets.utils import get_required_main_window
+from lutris.installer.errors import ScriptingError
 from lutris.util.log import logger
-
-if TYPE_CHECKING:
-    from lutris.game import Game
+from lutris.util.strings import gtk_safe
 
 AnyCallable = Callable[..., Any]
 
 
-def watch_game_errors(game_stop_result: Any, game: "Game | None" = None) -> Callable[[AnyCallable], AnyCallable]:
-    """Decorator used to catch exceptions and send events instead of propagating them normally.
-    If 'game_stop_result' is not None, and the decorated function returns that, this will
-    send game-stop and make the game stopped as well. This simplifies handling cancellation.
-    Also, if an error occurs and is emitted, the function returns this value, so callers
-    can tell that the function failed.
+def _show_uncaught_scripting_errors() -> None:
+    """Show an installer script's errors in a dialog when nothing else caught them."""
+    original_excepthook = sys.excepthook
 
-    If you do not provide a game object directly, it is assumed to be in the first argument to
-    the decorated method (which is 'self', typically).
-    """
-    captured_game = game
+    def excepthook(error_type, value, traceback):
+        if error_type == ScriptingError:
+            message = value.message
+            if value.faulty_data:
+                message += "\n<b>%s</b>" % gtk_safe(value.faulty_data)
+            ErrorDialog(message)
+        else:
+            original_excepthook(error_type, value, traceback)
 
-    def inner_decorator(function: AnyCallable) -> AnyCallable:
-        @wraps(function)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            """Catch all exceptions and emit an event."""
-            game = captured_game if captured_game else args[0]
-
-            try:
-                result = function(*args, **kwargs)
-                if game_stop_result is not None and result == game_stop_result and game.state != game.STATE_STOPPED:
-                    game.stop_game()
-                return result
-            except Exception as ex:
-                logger.exception("%s has encountered an error: %s", game, ex, exc_info=ex)
-                if game.state != game.STATE_STOPPED:
-                    game.stop_game()
-                game.signal_error(ex)
-                return game_stop_result
-
-        return cast(AnyCallable, wrapper)
-
-    return inner_decorator
+    sys.excepthook = excepthook
 
 
-def _get_error_parent(error_objects: Iterable[GObject.Object | None]) -> Gtk.Window:
+def _get_error_parent(error_objects: Iterable[Any]) -> Gtk.Window:
     """Obtains a top-level window to use as the parent of an
     error, by examining s list of objects. Any that are None
     are skipped; we call get_toplevel() on each object that has
@@ -115,6 +97,8 @@ def init_exception_backstops() -> None:
 
     Idle and timeout handlers will be disconnected if this happens to avoid repeated error reports,
     but signals and emission hooks will remain connected.
+
+    It also shows installer script errors (ScriptingError) that nothing else caught.
     """
 
     def _error_handling_connect(
@@ -169,3 +153,5 @@ def init_exception_backstops() -> None:
 
     _original_timeout_add = GLib.timeout_add
     GLib.timeout_add = _error_handling_timeout_add
+
+    _show_uncaught_scripting_errors()

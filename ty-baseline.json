@@ -9,20 +9,6 @@
         "lineCount": 8
       }
     ],
-    "lutris/exception_backstops.py": [
-      {
-        "rule": "not-callable",
-        "startColumn": 39,
-        "endColumn": 66,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 52,
-        "endColumn": 86,
-        "lineCount": 1
-      }
-    ],
     "lutris/game.py": [
       {
         "rule": "redundant-cast",

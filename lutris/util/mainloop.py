@@ -38,8 +38,8 @@ class GLibMainLoop:
     def schedule(self, callback: LoopCallback, delay_seconds: float) -> object:
         from gi.repository import GLib
 
-        # Looked up on every call rather than bound once: exception_backstops
-        # wraps GLib.idle_add and GLib.timeout_add to report errors
+        # Looked up on every call rather than bound once: the GTK frontend's
+        # exception backstops wrap GLib.idle_add and GLib.timeout_add to report errors
         if delay_seconds < 0.0:
             return GLib.idle_add(callback)
         return GLib.timeout_add(int(delay_seconds * 1000), callback)

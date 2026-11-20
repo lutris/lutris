@@ -155,7 +155,7 @@ def schedule_at_idle(func: Callable[..., None], *args: Any, delay_seconds: float
         finally:
             task.disconnect()
 
-    # Error reporting (exception_backstops) finds the window an error belongs to
+    # Error reporting (lutris.gui.exception_backstops) finds the window an error belongs to
     # through the handler's object
     handler_object = func.__self__ if hasattr(func, "__self__") else None
     if handler_object:

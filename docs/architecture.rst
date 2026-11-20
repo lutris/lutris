@@ -86,6 +86,15 @@ Delegates: ``lutris.delegates``
     instead (``SERVICE_LOGIN_REQUIRED``) and a frontend answers it by
     starting the operation with its own delegate.
 
+Errors
+    The core doesn't show errors. A game's operations are wrapped in
+    ``lutris.game_errors.watch_game_errors``, which stops the game and reports
+    the error through the game's ``game_error`` or, when nothing handles that,
+    the ``GAME_UNHANDLED_ERROR`` notification. Catching what escapes event-loop
+    callbacks is the frontend's job, as it depends on the toolkit:
+    ``lutris.gui.exception_backstops`` wraps GLib's and GObject's callbacks and
+    shows an error dialog. A Qt frontend would do the same for its slots.
+
 Models instead of widgets
     When the core produces something a frontend displays as it changes, it
     keeps it in a plain object with a notification, and the frontend adapts
@@ -113,12 +122,6 @@ Remaining work for stage 1
 --------------------------
 
 Grouped by what has to be built, roughly in the order planned:
-
-Errors
-    ``exception_backstops.py`` both reports unhandled errors with GTK dialogs
-    and wraps GLib callbacks. The reporting moves into the GTK frontend; the
-    core announces errors with a notification (``GAME_UNHANDLED_ERROR`` already
-    exists).
 
 The game, services and the application object
     ``game.py`` reaches for ``LutrisApplication`` and the main window (to show
