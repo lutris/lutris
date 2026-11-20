@@ -2,7 +2,7 @@
 
 Everything outside the frontends is the core: games, runners, services, the
 installer, the database. A frontend (the GTK one in lutris/gui, the command-line
-one in lutris/cli, a Qt one later) drives the core, never the other way round, so
+one in lutris/cli, the Qt one in lutris/qt) drives the core, never the other way round, so
 the core must not import a frontend or a GUI toolkit. That's what lets a second
 frontend reuse it, and lets it run as a separate process later. The command-line
 frontend must work with no GUI toolkit installed, so it must not import one either.
@@ -14,7 +14,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 LUTRIS_DIR = Path(__file__).resolve().parents[1] / "lutris"
-FRONTEND_DIRS = {"gui", "cli"}
+FRONTEND_DIRS = {"gui", "cli", "qt"}
 
 # GObject introspection namespaces that belong to a UI toolkit. GLib, GObject and
 # Gio are fine in the core; they aren't UI
@@ -101,6 +101,14 @@ def test_core_has_no_ui_dependencies():
         "Core modules must not depend on a frontend; move the UI part into the frontend, or have the core "
         f"call a delegate or fire a notification the frontend handles instead: {violations}"
     )
+
+
+def test_qt_frontend_uses_no_gtk():
+    violations = find_violations(
+        lambda name: name == "qt",
+        lambda source: find_ui_dependencies(source) - {"Gio.Application.get_default()"},
+    )
+    assert not violations, f"The Qt frontend must not use GTK or the GTK frontend: {violations}"
 
 
 def test_command_line_needs_no_gui():

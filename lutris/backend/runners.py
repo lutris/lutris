@@ -11,8 +11,9 @@ from typing import Any
 
 from lutris import settings
 from lutris.api import get_runners
+from lutris.backend.models import RunnerInfo
 from lutris.delegates import InstallUIDelegate
-from lutris.runners import get_runner_names, import_runner
+from lutris.runners import get_installed, get_runner_names, import_runner
 from lutris.util import system
 
 
@@ -24,6 +25,12 @@ def _get_wine_version_path(version: str) -> str:
 async def list_runners() -> list[str]:
     """Return the names of every runner Lutris knows, in alphabetical order."""
     return sorted(get_runner_names(), key=lambda name: name.lower())
+
+
+async def list_installed_runners() -> list[RunnerInfo]:
+    """Return the runners that are installed, in alphabetical order of their names."""
+    installed = await asyncio.to_thread(get_installed)
+    return sorted((RunnerInfo(r.name, r.human_name) for r in installed), key=lambda r: r.human_name.casefold())
 
 
 async def list_wine_versions() -> list[dict[str, Any]]:

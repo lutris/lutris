@@ -6,11 +6,10 @@ Where this is going
 
 Lutris is being split into a **core** that knows nothing about any user
 interface, and **frontends** that drive it: the GTK interface in
-``lutris/gui``, and the command line in ``lutris/cli``. The aim is to make a second one, in
-Qt through PySide6, a matter of writing widgets rather than untangling
-application logic, and eventually to run the core as a separate process, a
-server, that several frontends (Qt, a gamepad interface, the command line) can
-talk to.
+``lutris/gui``, the command line in ``lutris/cli``, and the Qt interface in
+``lutris/qt``, built with PySide6, which is replacing the GTK one. The aim is
+to run the core as a separate process eventually, a server, that several
+frontends (Qt, a gamepad interface, the command line) can talk to.
 
 That happens in three stages:
 
@@ -21,13 +20,16 @@ That happens in three stages:
 2. **Give the core a front door.** A small API of plain-data calls and events
    (list games, launch, install, log in to a service, ...) that frontends use
    instead of reaching into ``Game``, runner and service objects. This is the
-   stage in progress: the API is ``lutris.backend``, and the command line uses
-   nothing else.
+   stage in progress: the API is ``lutris.backend``, and the command line and
+   Qt frontends use nothing else.
 3. **Move the core out of process**, by putting that API behind IPC. It only
    becomes possible once frontends use nothing but the API.
 
-The Qt frontend can start as soon as stage 1 is done, and grows alongside
-stage 2.
+Stage 2 and the Qt frontend go together. Rather than move the GTK frontend
+onto the API, which would mean reworking a great deal of code that's being
+replaced anyway, the Qt frontend is built on the API alone, and the API grows
+what it needs. The GTK frontend is frozen meanwhile: it keeps working as it is,
+and is removed once the Qt one can do everything it does.
 
 The rule
 --------
@@ -56,9 +58,10 @@ to do something, and new code should use them:
 
 The main loop: ``lutris.util.mainloop``
     All deferred work (``schedule_at_idle``, ``AsyncCall`` callbacks,
-    notifications) runs on the installed ``MainLoop``. The default is GLib's;
-    a Qt frontend installs one built on ``QTimer`` with ``set_main_loop()``
-    before it starts.
+    notifications) runs on the installed ``MainLoop``. The default is GLib's,
+    which both GUI frontends run on (PySide6's Qt dispatches its events through
+    GLib); a toolkit that didn't would install its own with
+    ``set_main_loop()`` before it starts.
 
 Displays: ``lutris.util.display_backend``
     What only the UI toolkit knows about the screen (whether it's X11, the
@@ -68,13 +71,15 @@ Displays: ``lutris.util.display_backend``
     D-Bus interface to it for display modes. The GTK frontend installs
     ``lutris.gui.display_backend.GtkDisplayBackend``, which reads GDK and
     GnomeDesktop; without one, the core reads the environment and uses xrandr.
-    A Qt frontend would install one built on ``QScreen``.
+    The Qt frontend installs ``lutris.qt.display_backend.QtDisplayBackend``,
+    which asks Qt's platform plugin and screens.
 
 Background work: ``lutris.util.jobs``
     ``AsyncCall`` runs a function on a thread and delivers its result on the
     main loop. ``callback_target`` cancels delivery if its object reports being
     destroyed (anything with ``call_when_destroyed``; the GTK frontend adds that
-    to widgets, a Qt one would to ``QObject``).
+    to widgets). Frontends on the backend's API use asyncio tasks instead, and
+    cancel them.
 
 Notifications: ``lutris.util.notifications``
     ``NotificationSource`` is how the core announces that something happened:
@@ -120,7 +125,9 @@ Errors
     the ``GAME_UNHANDLED_ERROR`` notification. Catching what escapes event-loop
     callbacks is the frontend's job, as it depends on the toolkit:
     ``lutris.gui.exception_backstops`` wraps GLib's and GObject's callbacks and
-    shows an error dialog. A Qt frontend would do the same for its slots.
+    shows an error dialog. The Qt frontend shows the errors that escape its
+    slots, which PySide6 passes to ``sys.excepthook``, and those of its tasks
+    (``lutris.qt.tasks``).
 
 Models instead of widgets
     When the core produces something a frontend displays as it changes, it
@@ -215,35 +222,49 @@ raises, as the exception backstops do for callbacks. A command line handled that
 way reports its exit status with ``set_exit_status()`` and ``done()`` (see
 ``lutris.cli.commands.handle_command_line``). Nested loops such as
 ``Gtk.Dialog.run()`` still work, but pause asyncio while they run, so new code
-shouldn't add any. A Qt frontend would run the same coroutines with QtAsyncio.
+shouldn't add any.
+
+PySide6's Qt runs on GLib's main loop too (its event dispatcher is GLib's), so
+the Qt frontend is a ``Gio.Application`` like the GTK one:
+``Gio.Application.run()`` drives Qt's events, GLib's and asyncio's alike, and
+the single instance and command-line forwarding work the same way.
+``lutris.qt.tasks.start_task()`` is its counterpart of the GTK one.
 
 ``tests/_test_frontend_api.py`` enforces this: a frontend may import
 ``lutris.backend``, its own package and a few support modules (logging,
 strings, settings, notifications, delegates), and nothing else from the core.
-Its ``KNOWN_VIOLATIONS`` list is what the GTK frontend still uses directly, and
-is the to-do list for stage 2. Roughly in order:
+The command-line and Qt frontends have no exceptions. Its ``KNOWN_VIOLATIONS``
+list is what the frozen GTK frontend uses directly, and only keeps it from
+getting worse.
 
-* **The library**: the game views now get their rows from
-  ``library.query_games``, and ``GameStore`` and ``StoreItem`` only display
-  them, and they follow ``lutris.backend.events``; whether a changed game
-  still belongs in a view is ``library.is_game_in_view``. Left: calls for
-  categories and saved searches (the sidebar and their dialogs), the
-  missing-games tracking, and the media (``StoreItem`` still finds its images
-  through the services). The application's list of running games and the game
-  bar still follow the core's notifications, since they act on ``Game``
-  objects; they move with the game actions.
-* **Game actions**: launching, stopping, installing, uninstalling, moving,
-  and the shortcuts, through calls that take a game id. Delegate methods then
-  receive ``GameInfo`` rather than a ``Game``.
-* **Configuration dialogs**, which edit ``LutrisConfig`` objects directly: calls
-  that get and set a game's, runner's or the system's options as data.
-* **Services and runners**: logging in and out, syncing libraries, installing
-  and configuring runners.
-* **The installer window**, which drives the script interpreter: a call that
-  starts an installation, with its questions as delegate calls and its progress
-  as events.
-* **Progress and logs**: ``ProgressInfo``, ``LogBuffer`` and the download
-  models become events carrying their state.
+The Qt frontend
+---------------
+
+It's an optional extra while it grows: ``uv sync --extra qt`` installs PySide6,
+and ``LUTRIS_FRONTEND=qt`` makes ``bin/lutris`` run it instead of the GTK one.
+The Flatpak doesn't include it yet. Its tests run on Qt's offscreen platform.
+
+So far it shows the library: a sidebar of views (``library.list_categories``
+and the rest), the games of the selected one with search, the installed filter
+and sorting, refreshed as ``lutris.backend.events`` report changes, and it
+launches and stops games (``games.launch_game`` and ``games.stop_game``; the
+backend keeps the running games). Its delegate asks questions with Qt dialogs.
+
+What it needs next, roughly in order, each with the backend calls it takes:
+
+* **Media**: covers and banners, so the library can be a grid like GTK's.
+* **Game actions**: install, uninstall, categories, shortcuts, moving a game,
+  showing its logs (events carrying ``LogBuffer`` content), and launch
+  configurations; delegate methods then receive ``GameInfo`` rather than a
+  ``Game``.
+* **Configuration**: game, runner and system options, as data, with a widget
+  generator like ``lutris/gui/config``.
+* **Services and runners**: logging in (a web view, QtWebEngine), syncing
+  libraries, installing and configuring runners.
+* **The installer**: starting an installation, its questions as delegate calls,
+  its progress and downloads as events.
+* **Preferences** and the rest of the application: the tray icon, runtime
+  updates, and the command-line URIs (``lutris:rungame/...``).
 
 Stage 3
 -------

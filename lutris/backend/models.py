@@ -81,3 +81,29 @@ class LibraryGame:
     appid: str | None
     # The icon the service provided, for some services
     icon: str | None
+
+
+@dataclass(frozen=True)
+class SavedSearchInfo:
+    """A search saved under a name, which the library can show as a view."""
+
+    name: str
+    search: str
+
+
+@dataclass(frozen=True)
+class RunnerInfo:
+    """A runner: its id, and its name for people."""
+
+    name: str
+    human_name: str
+
+
+@dataclass(frozen=True)
+class ServiceInfo:
+    """A service (GOG, Steam...) whose games the library can show; an online one needs
+    the user to log in first."""
+
+    id: str
+    name: str
+    online: bool

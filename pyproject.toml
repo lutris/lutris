@@ -38,6 +38,13 @@ Repository = "https://github.com/jedace07/lutris"
 Issues = "https://github.com/jedace07/lutris/issues"
 Releases = "https://github.com/jedace07/lutris/releases"
 
+[project.optional-dependencies]
+# The Qt frontend (lutris/qt), which is replacing the GTK one; `uv sync --extra qt`
+# installs it, and LUTRIS_FRONTEND=qt runs it. The Flatpak leaves it out until it's ready
+qt = [
+    "pyside6-essentials>=6.12.0",
+]
+
 [dependency-groups]
 # Split so CI jobs can install only what they run (`uv sync --only-group lint`
 # needs no GTK headers); `dev` is everything and is what `uv sync` installs

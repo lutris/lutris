@@ -6,17 +6,17 @@ reaches into Game, runner or service objects, the database or the configuration
 directly can't be moved onto IPC, so this test fails when a frontend module
 imports a core module other than the API and the support modules below.
 
-KNOWN_VIOLATIONS lists what the GTK frontend still uses directly, and is the
-to-do list for stage 2. The test fails if a new use appears, and also when a
-listed one is gone, so that the list only ever shrinks: remove the entry when
-you move a module onto the API.
+KNOWN_VIOLATIONS lists what the GTK frontend uses directly. The GTK frontend is
+frozen while the Qt one replaces it, so this only keeps it from getting worse:
+the test fails if a new use appears, and also when a listed one is gone, so that
+the list only ever shrinks. The command-line and Qt frontends may have none.
 """
 
 import ast
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-FRONTEND_DIRS = {"gui", "cli"}
+FRONTEND_DIRS = {"gui", "cli", "qt"}
 
 # What frontends may import from the core: the API, and support code that isn't
 # about games, runners, services or the library
@@ -312,8 +312,9 @@ def test_known_violations_are_still_current():
     assert not fixed, f"These are no longer used, so remove them from KNOWN_VIOLATIONS: {fixed}"
 
 
-def test_the_command_line_uses_only_the_api():
-    assert not {module for module in find_frontend_violations() if module.startswith("lutris/cli/")}
+def test_the_command_line_and_qt_frontends_use_only_the_api():
+    violations = find_frontend_violations()
+    assert not {module: used for module, used in violations.items() if module.startswith(("lutris/cli/", "lutris/qt/"))}
 
 
 def test_finds_every_kind_of_import():

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from lutris.backend.models import GameInfo
 from lutris.database import games as games_db
+from lutris.game import GAME_START, GAME_STOPPED, Game
 from lutris.game import export_game as _export_game
 from lutris.game import import_game as _import_game
 from lutris.util import resources
@@ -14,7 +15,6 @@ from lutris.util.standalone_scripts import generate_script
 
 if TYPE_CHECKING:
     from lutris.delegates import LaunchUIDelegate
-    from lutris.game import Game
 
 
 def to_game_info(db_game: dict[str, Any]) -> GameInfo:
@@ -62,6 +62,47 @@ def game_info_from(game: "Game") -> GameInfo:
             "service_id": game.appid,
         }
     )
+
+
+# The games launched in this process and not stopped yet, by id
+_running_games: dict[str, Game] = {}
+
+
+def _on_game_launching(game: Game) -> None:
+    if game.id:
+        _running_games.setdefault(game.id, game)
+
+
+def _on_game_stopped(game: Game) -> None:
+    if game.id and _running_games.get(game.id) is game:
+        del _running_games[game.id]
+
+
+GAME_START.register(_on_game_launching)
+GAME_STOPPED.register(_on_game_stopped)
+
+
+async def launch_game(game_id: str, launch_ui_delegate: "LaunchUIDelegate") -> bool:
+    """Launch a game; the events in lutris.backend.events follow how it goes. Returns
+    False if it can't be launched (it isn't installed, say), with nothing to follow."""
+    game = Game(game_id)
+    _running_games[game_id] = game
+    if not game.launch(launch_ui_delegate):
+        _running_games.pop(game_id, None)
+        return False
+    return True
+
+
+async def stop_game(game_id: str) -> None:
+    """Stop a running game, killing its processes if they don't quit."""
+    game = _running_games.get(game_id)
+    if game:
+        game.force_stop()
+
+
+async def list_running_game_ids() -> list[str]:
+    """Return the ids of the games launched and not stopped yet."""
+    return list(_running_games)
 
 
 async def list_games(installed_only: bool = False) -> list[GameInfo]:

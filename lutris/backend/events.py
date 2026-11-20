@@ -10,6 +10,8 @@ from typing import Any
 
 from lutris import game as core
 from lutris.backend.games import game_info_from
+from lutris.database.categories import CATEGORIES_UPDATED
+from lutris.database.saved_searches import SAVED_SEARCHES_UPDATED
 from lutris.util.notifications import NotificationSource
 
 # Fired with a GameInfo when a game's details change: its name, playtime, categories...
@@ -28,6 +30,10 @@ GAME_STOPPED = NotificationSource()
 GAME_LAUNCH_STATUS = NotificationSource()
 # Fired with a game's id and the error, when a game fails and nothing else reported it
 GAME_FAILED = NotificationSource()
+# Fired with nothing when categories are added, renamed or removed, or games change category
+CATEGORIES_CHANGED = NotificationSource()
+# Fired with nothing when saved searches are added, changed or removed
+SAVED_SEARCHES_CHANGED = NotificationSource()
 
 
 def _forward_game(event: NotificationSource) -> Any:
@@ -44,3 +50,5 @@ core.GAME_STARTED.register(_forward_game(GAME_STARTED))
 core.GAME_STOPPED.register(_forward_game(GAME_STOPPED))
 core.GAME_LAUNCH_STATUS.register(lambda game: GAME_LAUNCH_STATUS.fire(game.id, game.launch_status))
 core.GAME_UNHANDLED_ERROR.register(lambda game, error: GAME_FAILED.fire(game.id, error))
+CATEGORIES_UPDATED.register(lambda *_args: CATEGORIES_CHANGED.fire())
+SAVED_SEARCHES_UPDATED.register(lambda *_args: SAVED_SEARCHES_CHANGED.fire())

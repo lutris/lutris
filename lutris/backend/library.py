@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 
 from lutris import settings
-from lutris.backend.models import LibraryGame
+from lutris.backend.models import LibraryGame, SavedSearchInfo
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import saved_searches as saved_searches_db
@@ -75,6 +75,24 @@ async def is_game_in_view(query: LibraryQuery, game_id: str) -> bool:
     if query.service in SERVICES:
         return True
     return await asyncio.to_thread(lambda: bool(_query_games(query, only_game_ids={game_id})))
+
+
+async def list_categories() -> list[str]:
+    """Return the names of the user's categories, without the ones Lutris reserves
+    (such as favorite and .hidden), in alphabetical order."""
+    names = [str(c["name"]) for c in categories_db.get_categories()]
+    return sorted((n for n in names if not categories_db.is_reserved_category(n)), key=str.casefold)
+
+
+async def list_saved_searches() -> list[SavedSearchInfo]:
+    """Return the saved searches, in alphabetical order."""
+    searches = [SavedSearchInfo(s.name, s.search) for s in saved_searches_db.get_saved_searches()]
+    return sorted(searches, key=lambda s: s.name.casefold())
+
+
+async def list_platforms() -> list[str]:
+    """Return the platforms of the games in the library."""
+    return games_db.get_used_platforms()
 
 
 async def has_uninstalled_games() -> bool:
