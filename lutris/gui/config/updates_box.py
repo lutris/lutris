@@ -89,9 +89,7 @@ class UpdatesBox(BaseConfigBox):
 
     def on_runtime_update_clicked(self, _widget):
         def get_updater():
-            updater = RuntimeUpdater(force=True)
-            updater.update_runners = False
-            return updater
+            return RuntimeUpdater(force=True)
 
         self._trigger_updates(get_updater, self.update_runtime_box)
 

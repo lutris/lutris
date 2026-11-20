@@ -116,7 +116,7 @@ class mednafen(Runner):
     def find_joysticks(self):
         """Detect connected joysticks and return their ids"""
         joy_ids = []
-        if not self.is_installed:
+        if not self.is_installed():
             return []
         with subprocess.Popen(
             [self.get_executable(), "dummy"],

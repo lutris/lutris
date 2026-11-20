@@ -1,4 +1,5 @@
 import os
+import tempfile
 from unittest import TestCase
 
 from lutris.util.wine.registry import WineRegistry, WineRegistryKey
@@ -85,6 +86,23 @@ class TestWineRegistry(TestCase):
         self.assertEqual(len(key.subkeys), 13)
         self.registry.clear_key(path)
         self.assertEqual(len(key.subkeys), 0)
+
+    def test_keeps_wrapped_value_at_end_of_file(self):
+        content = (
+            "WINE REGISTRY Version 2\n"
+            ";; All keys relative to \\\\User\\\\S-1-5-21\n\n"
+            "#arch=win64\n\n"
+            "[Software\\\\Test] 1700000000\n"
+            "#time=1\n"
+            '"Last"=hex:aa,bb,cc,\\\n'
+            "  dd,ee,ff\n"
+        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            path = os.path.join(temp_dir, "user.reg")
+            with open(path, "w", encoding="utf-8") as reg_file:
+                reg_file.write(content)
+            registry = WineRegistry(path)
+        self.assertIn("  dd,ee,ff", registry.render())
 
 
 class TestWineRegistryKey(TestCase):

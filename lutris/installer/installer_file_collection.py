@@ -63,9 +63,10 @@ class InstallerFileCollection:
         if len(self.files_list) == 1:
             self.files_list[0].override_dest_file(new_dest_file)
         else:
-            # try to set main gog file to dest_file
+            # The main file (such as a GOG installer's .exe) has the collection's own ID;
+            # the other parts are expected to be beside it.
             for installer_file in self.files_list:
-                if installer_file.id == "goginstaller":
+                if installer_file.id == self.id:
                     installer_file.dest_file = new_dest_file
 
     @property
