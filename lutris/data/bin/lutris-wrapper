@@ -5,7 +5,6 @@ gently tries to close other game processes when the main game has exited.
 """
 
 import ctypes
-import logging
 import os
 import signal
 import subprocess
@@ -13,36 +12,12 @@ import sys
 import time
 from ctypes.util import find_library
 
-# Source-tree bootstrap: when this script lives at
-# <repo>/share/lutris/bin/lutris-wrapper, the `lutris` package is at
-# <repo>/lutris/ — which is not on the default Python sys.path unless
-# the parent process injected it via PYTHONPATH. Detect that layout
-# and prepend the repo root ourselves so the `from lutris...` imports
-# below resolve regardless of how we were launched. Installed and
-# AppImage layouts already have `lutris` on the default sys.path, so
-# this fallback is a no-op for them.
-_DEV_SOURCE_TREE = os.path.normpath(
-    os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "..")
-)
-if (
-    os.path.isfile(os.path.join(_DEV_SOURCE_TREE, "lutris", "__init__.py"))
-    and _DEV_SOURCE_TREE not in sys.path
-):
-    sys.path.insert(0, _DEV_SOURCE_TREE)
-else:
-    _DEV_SOURCE_TREE = None
-
-from lutris.util.log import logger
 from lutris.util.process_watcher import ProcessWatcher
 
 try:
     from setproctitle import setproctitle
 except ImportError:
     setproctitle = print
-
-if _DEV_SOURCE_TREE:
-    logger.setLevel(logging.DEBUG)
-    sys.dont_write_bytecode = True
 
 PR_SET_CHILD_SUBREAPER = 36  # Value of the constant in prctl.h
 

@@ -15,7 +15,7 @@ Preparation
 - Bump the version with ``uv version --bump patch`` (or ``minor``, ``beta``, ...;
   see "Versioning and releases" in ``CONTRIBUTING.md``) and commit
   ``pyproject.toml`` and ``uv.lock``
-- Add a ``<release>`` entry to ``share/metainfo/net.lutris.Lutris.metainfo.xml``
+- Add a ``<release>`` entry to ``packaging/desktop/share/metainfo/net.lutris.Lutris.metainfo.xml``
 
 GitHub Release
 --------------

@@ -132,7 +132,7 @@ frontend's, so Lutris still runs once:
   the terminal that ran ``lutris`` even when another process runs them.
 * Any other command line (no arguments, a ``lutris:`` URI,
   ``--submit-issue``) needs a GUI: ``CommandLineApplication`` exits before
-  registering, and ``bin/lutris`` runs the Qt frontend with it instead.
+  registering, and the launcher runs the Qt frontend with it instead.
 
 Both frontends define the same options (``lutris.cli.options``), as Gio
 forwards a command line with its options already parsed.
@@ -172,7 +172,7 @@ options),
 ``lutris.backend.startup.start_backend()`` starts it; that isn't an API call,
 but what the backend's own process will do in stage 3.
 
-asyncio runs on GLib's main loop: ``bin/lutris`` calls
+asyncio runs on GLib's main loop: ``lutris.launcher`` calls
 ``lutris.util.mainloop.run_asyncio_on_glib()``, after which PyGObject runs
 asyncio whenever a ``Gio.Application`` runs. Qt dispatches its events through
 GLib too, so ``Gio.Application.run()`` drives Qt, GLib and asyncio.

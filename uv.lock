@@ -333,7 +333,7 @@ wheels = [
 [[package]]
 name = "lutris"
 version = "0.5.23"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "dbus-python" },
     { name = "distro" },

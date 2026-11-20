@@ -36,7 +36,7 @@ def main():
         if modified_python_files:
             # Run command existence checks
             if not shutil.which("uv"):
-                print("uv command is missing: Install it from https://docs.astral.sh/uv/ and run `make dev`.")
+                print("uv command is missing: Install it from https://docs.astral.sh/uv/ and run `uv sync`.")
                 sys.exit(1)
             checks_to_run: list[list[str]] = [
                 ["uv", "run", "ty", "check", "--baseline", "ty-baseline.json"] + [str(f) for f in modified_python_files],

@@ -41,3 +41,9 @@ class TestOverrideDestFile(TestCase):
         dest_files = collection.get_dest_files_by_id()
         self.assertEqual(dest_files["goginstaller"], self.users_file)
         self.assertNotEqual(dest_files["goginstaller_1"], self.users_file)
+
+
+def test_file_label_is_plain_text() -> None:
+    label = "Select setup <file> from https://example.com/a?b=1&c=2"
+    installer_file = InstallerFile("some-game", "setup", f"N/A:{label}")
+    assert installer_file.get_label() == label

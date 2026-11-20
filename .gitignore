@@ -19,10 +19,7 @@ tests/coverage/*
 /flake.nix
 /flake.lock
 
-# meson builddirs
-builddir
-
-# flatpak-builder output (make flatpak / flatpak-bundle)
+# Flatpak build output
 build-flatpak
 .flatpak-builder
 lutris.flatpak
@@ -31,11 +28,8 @@ lutris.flatpak
 .pytest_cache
 .ruff_cache
 
-# i18n files
-po/lutris.pot
-po/*.mo
-po/dev_locale_cache
-transl-builddir
+# Generated translation template
+lutris/locale/lutris.pot
 
 # virtual environment folders
 venv
@@ -48,6 +42,3 @@ env
 
 # Claude Code
 CLAUDE.md
-
-# glade recovery files
-*.ui~

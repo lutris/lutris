@@ -4,10 +4,9 @@ from collections.abc import Callable
 from gettext import gettext as _
 
 from PySide6.QtCore import QObject
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QGuiApplication
 from PySide6.QtWidgets import QMenu, QSystemTrayIcon
 
-from lutris import settings
 from lutris.qt.preferences import PreferencesController
 
 
@@ -26,8 +25,7 @@ class TrayIcon(QObject):
         self._menu = QMenu()
         self._menu.addAction(_("Show Lutris")).triggered.connect(lambda: show_window())
         self._menu.addAction(_("Quit Lutris")).triggered.connect(lambda: quit_application())
-        icon = QIcon.fromTheme(settings.APPLICATION_ID, QIcon.fromTheme("applications-games"))
-        self._icon = QSystemTrayIcon(icon, self)
+        self._icon = QSystemTrayIcon(QGuiApplication.windowIcon(), self)
         self._icon.setContextMenu(self._menu)
         self._icon.setToolTip(_("Lutris"))
         self._icon.activated.connect(

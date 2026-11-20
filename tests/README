@@ -47,12 +47,11 @@ cd lutris
 
 option 1: install the Flatpak (closest to what users run)
 
-make flatpak
+Build and install it as described in INSTALL.rst.
 
 option 2: run from the source tree (see INSTALL.rst)
 
-uv sync --no-dev
-uv run bin/lutris
+uv run --no-dev lutris
 
 Scenario 1: Launching Lutris
 - You can find a lutris icon in your menu/launcher (Unity dash, GS launcher,

@@ -137,33 +137,6 @@ def unpack_dependencies(string: str | None) -> list[str | tuple[str, ...]]:
     return [dep for dep in [_expand_dep(dep) for dep in string.split(",")] if dep]
 
 
-def gtk_safe(text: str | None) -> str:
-    """Return a string ready to used in Gtk widgets, with anything that could
-    be Pango markup escaped."""
-    if not text:
-        return ""
-
-    return GLib.markup_escape_text(str(text))
-
-
-def gtk_safe_urls(text: str) -> str:
-    """Escapes the text as with gtk_safe, but detects URLs and converts them to
-    anchor tags as well."""
-    if not text:
-        return ""
-
-    parts = re.split(r"(http[s]?://(" r"?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)", text)
-
-    for index, part in enumerate(parts):
-        if len(part) > 0:
-            part = gtk_safe(part)
-            if index % 2 != 0:  # every odd numbered part is the group in the regular expression
-                part = f'<a href="{part}">{part}</a>'
-            parts[index] = part
-
-    return "".join(parts)
-
-
 def is_valid_pango_markup(text: str) -> bool:
     def destroy_func(_user_data: None) -> None:
         pass  # required by GLib, but we don't need this callback

@@ -8,7 +8,7 @@
 #     needs network access at build time, which Flathub's builders don't allow
 #   * Read-write access to drives mounted under /mnt
 #
-# Build and install it with `make flatpak` (or `make flatpak-bundle`)
+# See INSTALL.rst for build and install commands
 
 id: net.lutris.Lutris
 sdk: org.gnome.Sdk
@@ -173,7 +173,6 @@ cleanup-commands:
   - mkdir -p /app/lib/i386-linux-gnu/codecs-extra
   - mkdir -p /app/share/themes/Adwaita-dark
 modules:
-  - modules/qt5-15.yaml
   - modules/libbz2-1.0.8.json
   - name: vulkan-tools
     buildsystem: cmake-ninja
@@ -785,7 +784,7 @@ modules:
         url: https://files.pythonhosted.org/packages/fc/b8/ff33610932e0ee81ae7f1269c890f697d56ff74b9f5b2ee5d9b7fa2c5355/python_xlib-0.33-py2.py3-none-any.whl
         sha256: c3534038d42e0df2f1392a1b30a15a4ff5fdc2b86cfa94f072bf11b10a164398
 
-  # uv, only to install the Python dependencies below; removed from the final app
+  # Build the wheel and install it with the locked dependencies
   - name: uv
     buildsystem: simple
     build-commands:
@@ -796,9 +795,7 @@ modules:
         url: https://github.com/astral-sh/uv/releases/download/0.13.9/uv-x86_64-unknown-linux-musl.tar.gz
         sha256: 58ccf5f1792b8a5a88d01bc910ea131a8b3db4a319a17ad5fad75e0845a3e271
 
-  # Lutris's Python dependencies, exactly as pinned (and hash-checked) in uv.lock
-  # PyGObject and pycairo come from the GNOME runtime
-  - name: python-dependencies
+  - name: lutris
     buildsystem: simple
     build-options:
       build-args:
@@ -812,14 +809,19 @@ modules:
       - uv export --frozen --no-dev --no-emit-project --no-emit-package pygobject
         --no-emit-package pycairo --format requirements.txt --output-file requirements.txt
       - uv pip install --python /usr/bin/python3 --prefix ${FLATPAK_DEST} -r requirements.txt
-    sources:
-      - type: file
-        path: ../../pyproject.toml
-      - type: file
-        path: ../../uv.lock
-
-  - name: lutris
-    buildsystem: meson
+      - |
+        for catalog in lutris/locale/*.po; do
+          language=$(basename "$catalog" .po)
+          target="lutris/locale/$language/LC_MESSAGES"
+          mkdir -p "$target"
+          msgfmt --check "$catalog" -o "$target/lutris.mo" || exit 1
+        done
+      - uv build --wheel --offline
+      - uv pip install --python /usr/bin/python3 --prefix ${FLATPAK_DEST} --offline --no-deps dist/*.whl
+      - msgfmt --desktop -d lutris/locale --template packaging/desktop/share/applications/net.lutris.Lutris.desktop
+        -o ${FLATPAK_DEST}/share/applications/net.lutris.Lutris.desktop
+      - msgfmt --xml -d lutris/locale --template packaging/desktop/share/metainfo/net.lutris.Lutris.metainfo.xml
+        -o ${FLATPAK_DEST}/share/metainfo/net.lutris.Lutris.metainfo.xml
     sources:
       - type: dir
         path: ../..
@@ -827,7 +829,7 @@ modules:
           - .git
           - .venv
           - build
-          - builddir
+          - dist
           - build-flatpak
           - .flatpak-builder
           - lutris.flatpak

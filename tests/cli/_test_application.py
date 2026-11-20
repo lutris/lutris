@@ -4,15 +4,14 @@ import os
 import shutil
 import subprocess
 import sys
+import sysconfig
 from pathlib import Path
 
 import pytest
 
-LUTRIS = Path(__file__).resolve().parents[2] / "bin" / "lutris"
+LUTRIS = Path(sysconfig.get_path("scripts")) / "lutris"
 
-# Run bin/lutris with Qt unimportable, as if no GUI toolkit were installed
 RUN_WITHOUT_QT = """
-import runpy
 import sys
 
 
@@ -24,8 +23,9 @@ class BlockQt:
 
 
 sys.meta_path.insert(0, BlockQt())
-sys.argv = sys.argv[1:]
-runpy.run_path(sys.argv[0], run_name="__main__")
+sys.argv[0] = "lutris"
+from lutris.launcher import main
+raise SystemExit(main())
 """
 
 
@@ -36,16 +36,16 @@ def isolated_profile(tmp_path: Path) -> dict[str, str]:
         "XDG_CONFIG_HOME": str(tmp_path / "config"),
         "XDG_DATA_HOME": str(tmp_path / "data"),
         "XDG_CACHE_HOME": str(tmp_path / "cache"),
-        "LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES": "1",
     }
 
 
 def run_lutris(tmp_path: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
     """Run `lutris` on a private session bus, with a fresh profile and no display."""
     return subprocess.run(
-        ["dbus-run-session", "--", sys.executable, "-c", RUN_WITHOUT_QT, str(LUTRIS), *arguments],
+        ["dbus-run-session", "--", sys.executable, "-c", RUN_WITHOUT_QT, *arguments],
         capture_output=True,
         text=True,
+        cwd=tmp_path,
         env=isolated_profile(tmp_path),
         timeout=120,
         check=False,
@@ -78,7 +78,7 @@ import signal
 import subprocess
 import sys
 
-command = [sys.executable, sys.argv[1]]
+command = [sys.argv[1]]
 with open('primary.log', 'w+') as log:
     primary = subprocess.Popen(command, stdout=log, stderr=log)
     try:
@@ -91,6 +91,8 @@ with open('primary.log', 'w+') as log:
         assert primary.poll() is None
         primary.send_signal(signal.SIGINT)
         assert primary.wait(timeout=10) == 0
+        log.seek(0)
+        assert 'QQmlApplicationEngine failed to load component' not in log.read()
     except Exception:
         log.seek(0)
         sys.stderr.write(log.read())

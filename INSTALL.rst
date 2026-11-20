@@ -15,16 +15,20 @@ and ``flatpak-builder`` (either the distribution package or the
 
     git clone --recurse-submodules https://github.com/jedace07/lutris
     cd lutris
-    make flatpak            # builds and installs it for the current user
+    flatpak-builder --user --install --install-deps-from=flathub --force-clean \
+        --state-dir=build-flatpak/state build-flatpak/build packaging/flatpak/net.lutris.Lutris.yml
     flatpak run net.lutris.Lutris
 
-``make flatpak-bundle`` instead produces a single ``lutris.flatpak`` file that
-can be installed elsewhere with ``flatpak install lutris.flatpak``. Every CI
-build of ``main`` publishes that bundle as a workflow artifact, and every
-release has it attached.
+If you use the Flathub app, substitute ``flatpak run org.flatpak.Builder`` for
+``flatpak-builder``. To produce an installable bundle instead, replace
+``--install`` with ``--repo=build-flatpak/repo``, then run::
 
-The first build takes a long time, as it compiles the bundled tools (Qt,
-DOSBox Staging, Mono and others); later builds reuse flatpak-builder's cache.
+    flatpak build-bundle build-flatpak/repo lutris.flatpak net.lutris.Lutris \
+        --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo
+
+Every CI build of ``main`` publishes a bundle, and every release has one
+attached. The first build compiles bundled tools such as DOSBox Staging and
+Mono. Later builds reuse flatpak-builder's cache.
 
 The sandbox can read and write your home directory and any drive mounted under
 ``/mnt``, ``/media`` or ``/run/media``. Games elsewhere need an override, for
@@ -33,9 +37,8 @@ example ``flatpak override --user --filesystem=/srv/games net.lutris.Lutris``.
 From source
 -----------
 
-uv installs Lutris's Python dependencies, at the versions pinned in
-``uv.lock``, into a virtualenv in the checkout. The rest comes from your
-distribution.
+uv installs Lutris and the Python dependencies pinned in ``uv.lock`` in a
+virtualenv in the checkout. The rest comes from your distribution.
 
 Build requirements, for the Python packages that compile against C libraries
 (PyGObject, pycairo, dbus-python and evdev):
@@ -58,14 +61,16 @@ To run games you'll also want the 32-bit OpenGL and Vulkan drivers for your
 graphics card, and optionally Wine, gamemode and gamescope. Bundled or separately
 installed tools and games may still use GTK themselves.
 
-Then::
+Install GNU gettext if you want translations. After installing the system
+dependencies, run::
 
     git clone https://github.com/jedace07/lutris
     cd lutris
-    uv sync --no-dev        # or `make dev` to include the development tools
-    uv run bin/lutris
+    uv run lutris
 
 uv downloads its own build of Python 3.14 for this; your system's Python isn't
 used, so it doesn't matter which version (if any) your distribution ships.
-After pulling new changes, ``uv run`` brings the environment up to date by
-itself.
+After pulling new changes, ``uv run`` updates the environment. Use
+``uv run --no-dev lutris`` to skip the development tools or ``uv build`` to
+build a wheel and source distribution. The checkout's virtualenv does not
+register Lutris in your desktop menu; use the Flatpak for desktop integration.

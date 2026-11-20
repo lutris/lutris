@@ -10,7 +10,6 @@ from lutris.util import system
 from lutris.util.downloader import BaseDownloader
 from lutris.util.file_downloads import SingleFileDownload
 from lutris.util.log import logger
-from lutris.util.strings import gtk_safe_urls
 
 
 class InstallerFile:
@@ -168,7 +167,7 @@ class InstallerFile:
             return "Please select file '%s'" % self.id
         return self.url
 
-    def get_label(self):
+    def get_label(self) -> str:
         """Return a human readable label for installer files"""
         url = self.url
         if url.startswith("http"):
@@ -178,7 +177,7 @@ class InstallerFile:
             label = url[3:].lstrip(":")
         else:
             label = url
-        return gtk_safe_urls(label)
+        return label
 
     @property
     def cached_filename(self):

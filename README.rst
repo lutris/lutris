@@ -17,13 +17,13 @@ Running Lutris
 ==============
 
 Lutris runs either as a Flatpak or straight from the source tree with uv;
-``INSTALL.rst`` covers both. From a checkout with its dependencies installed,
-start it with ``uv run bin/lutris``.
+``INSTALL.rst`` covers both. Once the system libraries are installed, start
+Lutris from the checkout with ``uv run lutris``.
 
 If you need to run lutris through gdb to troubleshoot segmentation faults, you
 can use the following command:
 
-``gdb -ex r --args "/usr/bin/python3" "./bin/lutris"``
+``uv run gdb -ex r --args .venv/bin/python -m lutris.launcher``
 
 Installing games
 ================
@@ -121,7 +121,7 @@ Come with us!
 Want to make Lutris better? Help implement features, fix bugs, test
 pre-releases, or simply chat with the developers?
 
-Improve the code by just cloning the repository, editing the scripts and then starting Lutris with the ``./bin/lutris -d`` command.
+Clone the repository, edit the code, then start Lutris with ``uv run lutris -d``.
 
 You can always reach us on:
 

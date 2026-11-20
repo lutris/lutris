@@ -27,7 +27,6 @@ set -uo pipefail
 SCRIPT_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")
 SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
 REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
-LUTRIS_ENTRY="$REPO_ROOT/bin/lutris"
 
 ORIG_ARGS=("$@")
 
@@ -132,14 +131,12 @@ fi
 # Interpreter and expectations, read from the source tree
 # ---------------------------------------------------------------------------
 
-if [ -x "$REPO_ROOT/.venv/bin/python" ]; then
-    PY="$REPO_ROOT/.venv/bin/python"
-elif command -v python3 >/dev/null 2>&1; then
-    PY=$(command -v python3)
-else
-    echo "error: no python3 found" >&2
+if ! command -v uv >/dev/null 2>&1; then
+    echo "error: uv is required" >&2
     exit 2
 fi
+PY=$(uv run --project "$REPO_ROOT" --locked python -c 'import sys; print(sys.executable)') || exit 2
+LUTRIS_ENTRY="$(dirname "$PY")/lutris"
 
 EXPECTED_VERSION=$("$PY" -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb"))["project"]["version"])' \
     "$REPO_ROOT/pyproject.toml")
@@ -238,9 +235,6 @@ profile_reset() { # <scenario-name>
     export XDG_DATA_HOME="$P_HOME/.local/share"
     export XDG_CONFIG_HOME="$P_HOME/.config"
     export XDG_CACHE_HOME="$P_HOME/.cache"
-    # bin/lutris drops sys.path entries under /home unless this is set; without
-    # it a checkout living in a venv under $HOME cannot import its dependencies.
-    export LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1
     unset LUTRIS_SKIP_INIT
 
     P_DATA="$XDG_DATA_HOME/lutris"
@@ -276,7 +270,7 @@ EOF
 lutris_run() {
     local log="$1"; shift
     ( cd "$P_WORK" && timeout "$TIMEOUT" "${DISP[@]+"${DISP[@]}"}" \
-        "$PY" "$LUTRIS_ENTRY" "$@" ) >"$log" 2>"$log.stderr"
+        "$LUTRIS_ENTRY" "$@" ) >"$log" 2>"$log.stderr"
     RC=$?
     return 0
 }
@@ -491,13 +485,15 @@ scenario_fresh() {
     expect_contains "F6 runners: built-in 'linux' runner listed" "$out" "linux"
     expect_contains "F6 runners: built-in 'wine' runner listed" "$out" "wine"
     local json name json_count=0 missing=()
-    for json in "$REPO_ROOT"/share/lutris/json/*.json; do
+    for json in "$REPO_ROOT"/lutris/data/json/*.json; do
         [ -e "$json" ] || continue
         json_count=$((json_count + 1))
         name=$(basename "$json" .json)
         grep -qx "$name" "$P_LOGS/runners" || missing+=("$name")
     done
-    if [ ${#missing[@]} -eq 0 ]; then
+    if [ "$json_count" -eq 0 ]; then
+        fail "F6 runners: JSON runner definitions exist" "no packaged definitions found"
+    elif [ ${#missing[@]} -eq 0 ]; then
         ok "F6 runners: all $json_count JSON runners are listed"
     else
         fail "F6 runners: all $json_count JSON runners are listed" "missing: ${missing[*]}"
@@ -558,7 +554,7 @@ scenario_fresh() {
         return
     fi
     ( cd "$P_WORK" && timeout --signal=TERM 15 "${DISP[@]+"${DISP[@]}"}" \
-        "$PY" "$LUTRIS_ENTRY" -d ) >"$P_LOGS/gui" 2>"$P_LOGS/gui.stderr"
+        "$LUTRIS_ENTRY" -d ) >"$P_LOGS/gui" 2>"$P_LOGS/gui.stderr"
     gui_rc=$?
     if [ "$gui_rc" -eq 124 ]; then
         ok "F14 gui: window stays up for 15s"
@@ -760,8 +756,7 @@ To do the GUI pass, open the client with one of the profiles:
           XDG_DATA_HOME="\$SMOKE/\$1/home/.local/share" \\
           XDG_CONFIG_HOME="\$SMOKE/\$1/home/.config" \\
           XDG_CACHE_HOME="\$SMOKE/\$1/home/.cache" \\
-          LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1 \\
-          dbus-run-session -- "$PY" "$LUTRIS_ENTRY" -d
+          dbus-run-session -- "$LUTRIS_ENTRY" -d
   }
   launch first-run  # never opened: item 1 needs a real first start
   launch fresh      # automated profile: one seeded game

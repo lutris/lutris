@@ -1,8 +1,7 @@
 """The Lutris version, read from its one canonical place.
 
 The version lives in pyproject.toml and is bumped with `uv version`. Running from a
-checkout reads it from there; an installed build (the Flatpak) reads the copy meson
-wrote into lutris/optional_settings.py at build time.
+checkout reads it from there; an installed build uses the distribution metadata.
 
 Run as a script, this resolves the version CI labels build artifacts with:
 `python lutris/version.py --artifact-version 0.6.0b1`.
@@ -12,11 +11,12 @@ as a plain script.
 """
 
 import argparse
-import importlib
 import os
 import re
 import tomllib
 from collections.abc import Mapping, Sequence
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as distribution_version
 from pathlib import Path
 
 from packaging.version import InvalidVersion, Version
@@ -84,13 +84,11 @@ def _read_source_version() -> str | None:
 
 
 def _read_installed_version() -> str | None:
-    """Return the version meson recorded when it installed this build."""
+    """Return the installed package's version."""
     try:
-        optional_settings = importlib.import_module("lutris.optional_settings")
-    except ImportError:
+        return distribution_version(PROJECT_NAME)
+    except PackageNotFoundError:
         return None
-    installed_version = getattr(optional_settings, "VERSION", None)
-    return installed_version if isinstance(installed_version, str) and installed_version else None
 
 
 def read_version() -> str:

@@ -201,7 +201,7 @@ class _FileEntry:
             )
         return InstallerFileInfo(
             id=self.file.id,
-            label=_("Steam game data") if self.provider == "steam" else _plain(self.file.get_label()),
+            label=_("Steam game data") if self.provider == "steam" else self.file.get_label(),
             hint=_plain(self.file.human_url),
             details=self.file.auxiliary_info or "",
             providers=self.providers,

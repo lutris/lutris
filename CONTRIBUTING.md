@@ -59,25 +59,23 @@ pinned in `uv.lock`. Install uv, then:
 
     git clone https://github.com/jedace07/lutris
     cd lutris
-    make dev    # creates .venv with `uv sync` and installs the git pre-commit hook
-    make run    # same as `uv run bin/lutris -d`
+    uv run lutris -d
 
 uv downloads and uses its own build of Python 3.14 (`.python-version`), never
 the system's. Lutris is locked to 3.14 because that's what the Flatpak's GNOME
 runtime ships, so you develop on what users run. Any `uv run <command>` runs
 in the project environment and brings it up to date first; you can also
-`source .venv/bin/activate` and run `./bin/lutris -d` directly.
+`source .venv/bin/activate` and run `lutris -d` directly. To enable the
+optional pre-commit hook, run `git config core.hooksPath .hooks`.
 
 PyGObject, pycairo, dbus-python and evdev are built from source the first
 time. PySide6 Essentials includes Qt Quick. `INSTALL.rst` lists the system
 packages for Fedora, Debian/Ubuntu and Arch.
 
-`make run` launches Qt Quick from the checkout using your normal Lutris profile.
+`uv run lutris -d` launches Qt Quick using your normal Lutris profile.
 Run the Qt tests with `uv run pytest tests/qt`; they use the offscreen platform.
 
-To try your changes inside the sandbox users get, `make flatpak` builds the
-Flatpak from your working tree and installs it for your user (see
-`INSTALL.rst`; the first build is long).
+See `INSTALL.rst` to build and install the Flatpak from your working tree.
 
 Managing dependencies
 ---------------------
@@ -87,7 +85,7 @@ which is committed. CI installs with `--locked` and fails if the two disagree.
 
 * Add a runtime dependency with `uv add <package>`, a development tool with
   `uv add --group lint|typing|test <package>`.
-* `make upgrade` (`uv lock --upgrade`) moves every package to its newest
+* `uv lock --upgrade` moves every package to its newest
   allowed version; `uv lock --upgrade-package <package>` moves just one.
 * Commit `pyproject.toml` and `uv.lock` together.
 
@@ -99,8 +97,8 @@ Versioning and releases
 -----------------------
 
 The version's one canonical place is `version` in `pyproject.toml`. Lutris
-reads it from there when running from a checkout, and meson copies it into the
-Flatpak build, so never write it anywhere else. Change it with `uv version`,
+reads it from there when running from a checkout and from the package metadata
+when installed. Change it with `uv version`,
 which updates `pyproject.toml` and `uv.lock` together:
 
 ```bash
@@ -122,7 +120,7 @@ the commit they were built from (`Lutris-v0.6.0b1+g1a2b3c4-x86_64.flatpak`), or
 `+local` when built elsewhere, so two builds of the same beta can be told apart.
 
 To release, bump the version, add a `<release>` entry to
-`share/metainfo/net.lutris.Lutris.metainfo.xml`, push, then run the **Build
+`packaging/desktop/share/metainfo/net.lutris.Lutris.metainfo.xml`, push, then run the **Build
 Draft Release** workflow from the Actions tab. It builds the Flatpak and drafts
 a `v<version>` release (marked as a prerelease for alphas, betas and release
 candidates) with the bundle attached; review the notes and publish it. See
@@ -137,11 +135,9 @@ Formatting your code
 
 To ensure getting your contributions getting merged faster and to avoid other
 developers from going back and fixing your code, please make sure your code
-passes style checks by running `make sc` and fixing any reported issues
-(`make format` fixes formatting and import order for you)
-before submitting your code. This runs a series of tools to apply PEP 8 coding
-style conventions, sorting and grouping imports and checking for formatting issues
-and other code smells.
+passes `uv run ruff check .`, `uv run ruff format --check .`, and
+`uv run ty check --baseline ty-baseline.json`. To sort imports and fix
+formatting, run `uv run ruff check --select I --fix .` and `uv run ruff format .`.
 
 You can help fix formatting issues or other code smells by having a look at
 the CodeFactor page: https://www.codefactor.io/repository/github/lutris/lutris
@@ -158,10 +154,8 @@ Running tests
 
 Be sure to test your changes thoroughly, never submit changes without running
 the code. Also run the test suite and check that nothing broke.
-You can run the test suite by typing `make test` in the source directory; it
-uses pytest, so `uv run pytest tests/util` or `uv run pytest -k steam` narrows
-it down. Tests that open windows are marked `display`; `uv run pytest -m "not display"`
-skips them when you have no display, which is what CI does.
+Run the suite with `QT_QPA_PLATFORM=offscreen uv run pytest`. Use
+`uv run pytest tests/util` or `uv run pytest -k steam` to narrow it down.
 
 QAing your changes
 ------------------
@@ -195,14 +189,15 @@ Lutris uses Python 3.14, Gio/GLib and Qt Quick.
 Project structure
 -----------------
 
-    [root]-+ Config files and READMEs (pyproject.toml, meson.build, Makefile)
+    [root]-+ Config files and READMEs (pyproject.toml, uv.lock)
         |
-        +-[bin] Main lutris executable script
         +-[docs] User documentation
         +-[lutris]-+ Source folder
         |          |
         |          +-[backend] Plain-data frontend API
         |          +-[cli] Headless command-line frontend
+        |          +-[data] Runtime artwork, runner definitions and game wrapper
+        |          +-[locale] Gettext translations
         |          +-[qt] Qt Quick frontend (controllers and QML)
         |          +-[installer] Install script interpreter
         |          +-[migrations] Migration scripts for user side changes
@@ -210,26 +205,19 @@ Project structure
         |          +-[services] External services (Steam, GOG, ...)
         |          +-[util] Generic utilities
         |
-        +-[packaging] Flatpak manifest
-        +-[po] Translation files
-        +-[share] Desktop metadata, icons and other installed data
+        +-[packaging] Flatpak manifest and desktop metadata
         +-[tests] Unit tests
         +-[utils] Helper scripts
 
 Build tooling
 -------------
 
-* ``pyproject.toml`` declares the Python dependencies (locked in ``uv.lock``)
-  and configures ruff, ty, pytest and pyright. Lutris isn't built as a Python
-  package; uv only manages the environment it runs in.
+* `pyproject.toml` declares the `lutris` console command and builds the Python
+  package with `uv build`. It also configures ruff, ty, pytest and pyright.
 * ``ty-baseline.json`` lists the type errors ty already reports, so CI only
-  fails on new ones. Fix entries rather than adding to it; ``make
-  ty-update-baseline`` rewrites it when that's unavoidable.
-* ``meson.build`` (plus ``po/meson.build``) drives the install layout the
-  Flatpak build uses.
-* ``packaging/flatpak`` holds the Flatpak manifest, derived from Flathub's;
-  ``shared-modules`` is a git submodule of Flathub's shared modules.
-* The root ``Makefile`` holds the developer and Flatpak build tasks.
+  fails on new ones. Fix entries rather than adding to it.
+* `packaging/flatpak` holds the Flatpak manifest, which installs the same uv-built
+  wheel. `shared-modules` is a git submodule of Flathub's shared modules.
 
 The core doesn't import frontends or GUI toolkits. Read `docs/architecture.rst`
 before changing the boundary between the backend and either frontend. The

@@ -1,7 +1,7 @@
 """Every core module can be imported first.
 
 Tests import modules in whatever order they happen to, which hides circular
-imports that break a module imported on its own (as bin/lutris and scripts do).
+imports that break a module imported on its own (as the launcher and scripts do).
 """
 
 import subprocess

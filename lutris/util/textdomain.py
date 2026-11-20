@@ -23,44 +23,39 @@ tests/util/_test_textdomain.py enforces all of this.
 """
 
 import gettext
-import glob
 import locale
 import os
 import shutil
 import subprocess
 import sys
+from hashlib import sha256
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 # msgfmt takes milliseconds per catalog; this only bounds a hung or wedged process,
 # which would otherwise hang startup before there is any window to report it in.
 COMPILE_TIMEOUT_SECONDS = 60
+CATALOG_DIR = Path(__file__).resolve().parents[1] / "locale"
 
 
-def bind_text_domain(source_path: str | None = None) -> None:
+def bind_text_domain() -> None:
     """Point gettext at Lutris's message catalogs.
 
-    A meson install generates optional_settings holding the installed locale directory.
-    A source tree has no such module and no compiled catalogs, so the .po files are
-    compiled into po/dev_locale_cache instead, which lets translators test their work
-    with LANGUAGE= without installing. Pass the root of the source tree as source_path.
+    Use precompiled catalogs if bundled (as in the Flatpak). Otherwise compile
+    the packaged .po files into the user's cache if gettext is installed.
 
     Never raises: a broken or partial install leaves Lutris running in English.
     """
     try:
-        try:
-            # optional_settings does not exist if you don't use the meson build system
-            from lutris import optional_settings  # type: ignore
-
-            # A truncated optional_settings.py from a botched install raises
-            # AttributeError here, which the handler below reports and survives.
-            locale_dir = optional_settings.LOCALE_DIR
-        except ImportError:
-            locale_dir = compile_source_catalogs(source_path) if source_path else None
+        locale_dir: Path | None = CATALOG_DIR
+        if not any(locale_dir.glob("*/LC_MESSAGES/lutris.mo")):
+            locale_dir = compile_source_catalogs(CATALOG_DIR)
 
         if not locale_dir:
             return
 
-        locale.bindtextdomain("lutris", locale_dir)
-        gettext.bindtextdomain("lutris", locale_dir)
+        locale.bindtextdomain("lutris", str(locale_dir))
+        gettext.bindtextdomain("lutris", str(locale_dir))
         locale.textdomain("lutris")
         gettext.textdomain("lutris")
     except Exception as ex:
@@ -68,62 +63,55 @@ def bind_text_domain(source_path: str | None = None) -> None:
         sys.stderr.write("Couldn't set up translations, the interface will be in English.\nError: %s\n" % ex)
 
 
-def compile_source_catalogs(source_path: str) -> str | None:
-    """Compile po/*.po into po/dev_locale_cache and return the locale directory to bind.
+def compile_source_catalogs(source_dir: Path) -> Path | None:
+    """Compile bundled .po files into a cache and return the locale directory to bind.
 
     Returns None if the catalogs can't be built. Only catalogs older than their .po
     file are rebuilt, so this costs a few stat calls once they are built.
 
-    The output belongs to the checkout it was built from, so it lives in the source
-    tree (gitignored) rather than in ~/.cache: a shared cache would compare one
-    checkout's .mo against another's .po and silently serve the wrong translations.
+    Each package location gets a separate directory so an editable install never
+    reuses catalogs built from another checkout or installation.
     """
-    msgfmt = shutil.which("msgfmt")
-    if not msgfmt:
-        sys.stderr.write("msgfmt not found, translations won't work. Install gettext to enable them.\n")
-        return None
-
-    po_paths = sorted(glob.glob(os.path.join(source_path, "po", "*.po")))
+    po_paths = sorted(source_dir.glob("*.po"))
     if not po_paths:
         return None
 
-    locale_dir = os.path.join(source_path, "po", "dev_locale_cache")
+    source_key = sha256(os.fsencode(source_dir.resolve())).hexdigest()
+    cache_home = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
+    locale_dir = cache_home / "lutris" / "locale" / source_key
+    msgfmt = shutil.which("msgfmt")
+    if not msgfmt:
+        if any(locale_dir.glob("*/LC_MESSAGES/lutris.mo")):
+            return locale_dir
+        sys.stderr.write("msgfmt not found, translations won't work. Install gettext to enable them.\n")
+        return None
+
     try:
-        os.makedirs(locale_dir, exist_ok=True)
+        locale_dir.mkdir(parents=True, exist_ok=True)
     except OSError as ex:
-        # A source tree we can't write to; reported once rather than per catalog.
         sys.stderr.write("Couldn't build translations in %s: %s\n" % (locale_dir, ex))
         return None
 
     for po_path in po_paths:
-        language = os.path.splitext(os.path.basename(po_path))[0]
-        mo_path = os.path.join(locale_dir, language, "LC_MESSAGES", "lutris.mo")
+        mo_path = locale_dir / po_path.stem / "LC_MESSAGES" / "lutris.mo"
         try:
-            if os.path.exists(mo_path) and os.path.getmtime(mo_path) >= os.path.getmtime(po_path):
+            if mo_path.is_file() and mo_path.stat().st_mtime_ns >= po_path.stat().st_mtime_ns:
                 continue
-            os.makedirs(os.path.dirname(mo_path), exist_ok=True)
-            # errors="replace": msgfmt reports in the user's locale, which need not
-            # decode cleanly, and a mangled message is better than no startup.
-            compiled = subprocess.run(
-                [msgfmt, po_path, "-o", mo_path],
-                capture_output=True,
-                text=True,
-                errors="replace",
-                timeout=COMPILE_TIMEOUT_SECONDS,
-            )
+            mo_path.parent.mkdir(parents=True, exist_ok=True)
+            with TemporaryDirectory(dir=mo_path.parent) as temp_dir:
+                output = Path(temp_dir) / mo_path.name
+                compiled = subprocess.run(
+                    [msgfmt, po_path, "-o", output],
+                    capture_output=True,
+                    text=True,
+                    errors="replace",
+                    timeout=COMPILE_TIMEOUT_SECONDS,
+                )
+                if compiled.returncode:
+                    sys.stderr.write("Couldn't compile %s:\n%s" % (po_path, compiled.stderr))
+                else:
+                    output.replace(mo_path)
         except (OSError, subprocess.SubprocessError) as ex:
-            # One unusable catalog leaves that language in English; keep going so a
-            # single bad file can't cost every other language its translation.
             sys.stderr.write("Couldn't build %s: %s\n" % (po_path, ex))
-            continue
 
-        if compiled.returncode:
-            # A broken catalog leaves that one language untranslated; report it, as
-            # whoever is editing it is the one who needs to know.
-            sys.stderr.write("Couldn't compile %s:\n%s" % (po_path, compiled.stderr))
-
-    # Nothing usable built means nothing worth binding, so the caller leaves the
-    # default domain alone rather than pointing it at an empty directory.
-    if not glob.glob(os.path.join(locale_dir, "*", "LC_MESSAGES", "lutris.mo")):
-        return None
-    return locale_dir
+    return locale_dir if any(locale_dir.glob("*/LC_MESSAGES/lutris.mo")) else None

@@ -1,5 +1,4 @@
-import sys
-import types
+from importlib.metadata import version as distribution_version
 from pathlib import Path
 
 import pytest
@@ -69,11 +68,10 @@ def test_unrelated_parent_pyproject_is_ignored(monkeypatch, tmp_path):
     assert version.read_version() == "1.2.3"
 
 
-def test_installed_version_comes_from_optional_settings(monkeypatch):
+def test_installed_version_comes_from_package_metadata(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(version, "_read_source_version", lambda: None)
-    monkeypatch.setitem(sys.modules, "lutris.optional_settings", types.SimpleNamespace(VERSION="1.2.3"))
 
-    assert version.read_version() == "1.2.3"
+    assert version.read_version() == distribution_version("lutris")
 
 
 def test_unknown_version_without_any_source(monkeypatch):

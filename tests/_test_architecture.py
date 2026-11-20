@@ -73,6 +73,8 @@ def test_toolkit_and_frontend_boundaries():
             forbidden |= {
                 module for module in modules if module.split(".")[:2] in (["lutris", part] for part in FRONTEND_DIRS)
             }
+            if name == "lutris/launcher.py":
+                forbidden -= {"lutris.cli.application", "lutris.qt.application"}
         if forbidden:
             violations[name] = forbidden
     assert not violations, f"GUI dependencies belong in Qt Quick: {violations}"
@@ -80,7 +82,7 @@ def test_toolkit_and_frontend_boundaries():
 
 def test_only_qt_quick_assets_are_shipped():
     assert not (ROOT / "lutris/gui").exists()
-    assert not (ROOT / "share/lutris/ui").exists()
+    assert not (ROOT / "lutris/data/ui").exists()
     for path in (ROOT / "lutris/qt/qml").rglob("*.qml"):
         assert not any(
             line.lstrip().startswith(("import QtWebEngine", "import QtWebView"))

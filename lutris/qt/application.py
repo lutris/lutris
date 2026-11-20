@@ -14,7 +14,7 @@ from gettext import gettext as _
 from types import TracebackType
 
 from gi.repository import Gio, GLib
-from PySide6.QtGui import QWindow
+from PySide6.QtGui import QIcon, QWindow
 from PySide6.QtWidgets import QApplication
 
 from lutris import settings
@@ -29,6 +29,7 @@ from lutris.qt.display_backend import QtDisplayBackend
 from lutris.qt.main_window import MainWindow
 from lutris.qt.translations import QmlTranslator
 from lutris.qt.tray import TrayIcon
+from lutris.util import datapath
 from lutris.util.display_backend import set_display_backend
 from lutris.util.log import logger
 
@@ -63,6 +64,8 @@ class QtLutrisApplication(Gio.Application):
         self.qt_application.setQuitOnLastWindowClosed(False)
         self.qt_application.setApplicationName("Lutris")
         self.qt_application.setDesktopFileName(settings.APPLICATION_ID)
+        icon = QIcon(os.path.join(datapath.get(), "media", "default_icon.png"))
+        self.qt_application.setWindowIcon(QIcon.fromTheme(settings.APPLICATION_ID, icon))
         self.qt_application.installTranslator(QmlTranslator(self.qt_application))
         set_display_backend(QtDisplayBackend())
         self._install_exception_backstop()

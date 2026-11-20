@@ -18,7 +18,7 @@ Prerequisites
 -------------
 
 - A desktop session (X11 or Wayland). The GUI items cannot be done headless.
-- The checkout with its dependencies installed (``make dev``); see ``CONTRIBUTING.md``.
+- The checkout with its dependencies installed (``uv sync``); see ``CONTRIBUTING.md``.
   Activate the virtualenv (``source .venv/bin/activate``) first, the commands below
   use the same interpreter as the script.
 - A normal user account; Lutris refuses to start as root.
@@ -74,9 +74,8 @@ Settings live in ``$SMOKE/<profile>/home/.local/share/lutris/lutris.conf``;
 Step 3 - Open a sandbox profile
 -------------------------------
 
-Never launch ``bin/lutris`` bare for Part A: that opens your real profile. The
-script prints this snippet, with the interpreter and the ``bin/lutris`` entry point
-it used already filled in, ready to paste::
+Never launch ``uv run lutris`` bare for Part A: that opens your real profile.
+The smoke test prints this snippet with the installed launcher filled in::
 
     SMOKE=/tmp/lutris-smoke.XXXXXXXX
     launch() {
@@ -84,8 +83,7 @@ it used already filled in, ready to paste::
             XDG_DATA_HOME="$SMOKE/$1/home/.local/share" \
             XDG_CONFIG_HOME="$SMOKE/$1/home/.config" \
             XDG_CACHE_HOME="$SMOKE/$1/home/.cache" \
-            LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES=1 \
-            dbus-run-session -- "/path/to/checkout/.venv/bin/python" "/path/to/checkout/bin/lutris" -d
+            dbus-run-session -- "/path/to/checkout/.venv/bin/lutris" -d
     }
 
     launch first-run
@@ -222,7 +220,7 @@ Step B2 - Open your profile
 
 ::
 
-    ./bin/lutris -d
+    uv run lutris -d
 
 No HOME or XDG overrides this time: this is your real profile. The first launch of a
 new build runs any pending migrations once, which is what the backup above is for.
@@ -265,7 +263,7 @@ service game, then **Reload** again.
 **Reload** does not duplicate entries, and **Disconnect** clears them. The command
 line agrees, on your real profile::
 
-    ./bin/lutris --list-all-service-games
+    uv run lutris --list-all-service-games
 
 **Skip it** with a note when the release does not touch service code. It cannot be
 done in the sandbox: Steam is looked up under ``~/.steam`` and the other services

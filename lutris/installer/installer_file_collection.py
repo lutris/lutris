@@ -6,7 +6,6 @@ from urllib.parse import urlparse
 from lutris.cache import has_valid_custom_cache_path
 from lutris.util import system
 from lutris.util.file_downloads import FileCollectionDownload
-from lutris.util.strings import gtk_safe_urls
 
 AMAZON_DOMAIN = "a2z.com"
 
@@ -95,9 +94,9 @@ class InstallerFileCollection:
         """Return game_slug"""
         return self.game_slug
 
-    def get_label(self):
+    def get_label(self) -> str:
         """Return a human readable label for installer files"""
-        return gtk_safe_urls(self.game_slug)
+        return self.game_slug
 
     @property
     def default_provider(self):

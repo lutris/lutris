@@ -9,6 +9,7 @@ import pathlib
 import shutil
 import subprocess
 import sys
+import sysconfig
 import tempfile
 import unittest
 from unittest import mock
@@ -74,57 +75,65 @@ class TestImportIsolation(unittest.TestCase):
 
 @unittest.skipIf(shutil.which("msgfmt") is None, "gettext is not installed")
 class TestCompileSourceCatalogs(unittest.TestCase):
-    def setUp(self):
-        self.source = tempfile.mkdtemp()
-        os.makedirs(os.path.join(self.source, "po"))
+    def setUp(self) -> None:
+        self.root = pathlib.Path(self.enterContext(tempfile.TemporaryDirectory()))
+        self.source = self.root / "locale"
+        self.source.mkdir()
+        self.cache = self.root / "cache"
+        self.enterContext(mock.patch.dict(os.environ, XDG_CACHE_HOME=str(self.cache)))
 
-    def write_catalog(self, name, body):
-        path = os.path.join(self.source, "po", name)
-        pathlib.Path(path).write_text('msgid ""\nmsgstr "Content-Type: text/plain; charset=UTF-8\\n"\n\n' + body)
+    def write_catalog(self, name: str, body: str) -> pathlib.Path:
+        path = self.source / name
+        path.write_text('msgid ""\nmsgstr "Content-Type: text/plain; charset=UTF-8\\n"\n\n' + body)
         return path
 
     def test_compiles_catalogs(self):
         self.write_catalog("fr.po", 'msgid "Change"\nmsgstr "Modifier"\n')
         locale_dir = textdomain.compile_source_catalogs(self.source)
-        self.assertTrue(os.path.exists(os.path.join(locale_dir, "fr", "LC_MESSAGES", "lutris.mo")))
+        assert locale_dir is not None
+        self.assertTrue((locale_dir / "fr/LC_MESSAGES/lutris.mo").is_file())
 
-    def test_builds_inside_the_source_tree(self):
-        """The catalogs belong to their checkout, so they must not land in a shared cache."""
+    @unittest.skipIf(os.geteuid() == 0, "root ignores directory permissions")
+    def test_builds_from_read_only_package(self) -> None:
         self.write_catalog("fr.po", 'msgid "Change"\nmsgstr "Modifier"\n')
+        self.source.chmod(0o500)
+        self.addCleanup(self.source.chmod, 0o700)
         locale_dir = textdomain.compile_source_catalogs(self.source)
-        self.assertEqual(locale_dir, os.path.join(self.source, "po", "dev_locale_cache"))
+        assert locale_dir is not None
+        self.assertTrue(locale_dir.is_relative_to(self.cache))
 
     def test_checkouts_do_not_share_catalogs(self):
         """Two checkouts of differing age must each get their own translation."""
         older = self.write_catalog("fr.po", 'msgid "Change"\nmsgstr "FROM-A"\n')
         os.utime(older, (1000, 1000))
 
-        other_source = tempfile.mkdtemp()
-        os.makedirs(os.path.join(other_source, "po"))
-        pathlib.Path(os.path.join(other_source, "po", "fr.po")).write_text(
+        other_source = self.root / "other"
+        other_source.mkdir()
+        (other_source / "fr.po").write_text(
             'msgid ""\nmsgstr "Content-Type: text/plain; charset=UTF-8\\n"\n\nmsgid "Change"\nmsgstr "FROM-B"\n'
         )
 
         textdomain.compile_source_catalogs(other_source)
         locale_dir = textdomain.compile_source_catalogs(self.source)
-        translation = gettext.translation("lutris", localedir=locale_dir, languages=["fr"])
+        assert locale_dir is not None
+        translation = gettext.translation("lutris", localedir=str(locale_dir), languages=["fr"])
         self.assertEqual(translation.gettext("Change"), "FROM-A")
 
     @unittest.skipIf(os.geteuid() == 0, "root ignores directory permissions")
-    def test_unwritable_source_tree_is_not_fatal(self):
+    def test_unwritable_cache_is_not_fatal(self) -> None:
         self.write_catalog("fr.po", 'msgid "Change"\nmsgstr "Modifier"\n')
-        os.chmod(os.path.join(self.source, "po"), 0o500)
-        try:
-            reported = io.StringIO()
-            with contextlib.redirect_stderr(reported):
-                self.assertIsNone(textdomain.compile_source_catalogs(self.source))
-            self.assertIn("Couldn't build translations", reported.getvalue())
-        finally:
-            os.chmod(os.path.join(self.source, "po"), 0o700)
+        self.cache.mkdir(mode=0o500)
+        self.addCleanup(self.cache.chmod, 0o700)
+        reported = io.StringIO()
+        with contextlib.redirect_stderr(reported):
+            self.assertIsNone(textdomain.compile_source_catalogs(self.source))
+        self.assertIn("Couldn't build translations", reported.getvalue())
 
     def test_skips_unchanged_catalogs(self):
         self.write_catalog("fr.po", 'msgid "Change"\nmsgstr "Modifier"\n')
-        mo_path = os.path.join(textdomain.compile_source_catalogs(self.source), "fr", "LC_MESSAGES", "lutris.mo")
+        locale_dir = textdomain.compile_source_catalogs(self.source)
+        assert locale_dir is not None
+        mo_path = locale_dir / "fr/LC_MESSAGES/lutris.mo"
         compiled_at = os.path.getmtime(mo_path)
 
         textdomain.compile_source_catalogs(self.source)
@@ -132,7 +141,9 @@ class TestCompileSourceCatalogs(unittest.TestCase):
 
     def test_recompiles_edited_catalogs(self):
         po_path = self.write_catalog("fr.po", 'msgid "Change"\nmsgstr "Modifier"\n')
-        mo_path = os.path.join(textdomain.compile_source_catalogs(self.source), "fr", "LC_MESSAGES", "lutris.mo")
+        locale_dir = textdomain.compile_source_catalogs(self.source)
+        assert locale_dir is not None
+        mo_path = locale_dir / "fr/LC_MESSAGES/lutris.mo"
         compiled_at = os.path.getmtime(mo_path)
 
         os.utime(po_path, (compiled_at + 10, compiled_at + 10))
@@ -146,8 +157,9 @@ class TestCompileSourceCatalogs(unittest.TestCase):
         with contextlib.redirect_stderr(reported):
             locale_dir = textdomain.compile_source_catalogs(self.source)
         self.assertIn("broken.po", reported.getvalue())
-        self.assertTrue(os.path.exists(os.path.join(locale_dir, "fr", "LC_MESSAGES", "lutris.mo")))
-        self.assertFalse(os.path.exists(os.path.join(locale_dir, "broken", "LC_MESSAGES", "lutris.mo")))
+        assert locale_dir is not None
+        self.assertTrue((locale_dir / "fr/LC_MESSAGES/lutris.mo").is_file())
+        self.assertFalse((locale_dir / "broken/LC_MESSAGES/lutris.mo").exists())
 
     def test_returns_none_without_catalogs(self):
         self.assertIsNone(textdomain.compile_source_catalogs(self.source))
@@ -156,33 +168,18 @@ class TestCompileSourceCatalogs(unittest.TestCase):
 class TestNeverFatal(unittest.TestCase):
     """Translation setup must never stop Lutris from starting."""
 
-    def run_entry_point(self, extra_env=None):
-        """Run bin/lutris far enough to bind the domain, and report how it went."""
-        # bin/lutris drops /home* from sys.path unless this is set, which hides gi
-        # whenever it comes from a virtualenv under /home, as it does on CI.
-        env = dict(os.environ, LANGUAGE="fr", LUTRIS_ALLOW_LOCAL_PYTHON_PACKAGES="1")
+    def run_entry_point(self, extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+        """Run the console entry point in an isolated profile."""
+        root = self.enterContext(tempfile.TemporaryDirectory())
+        env = dict(os.environ, LANGUAGE="fr", XDG_CACHE_HOME=root)
         env.update(extra_env or {})
-        root = MODULE_PATH.parents[2]
         return subprocess.run(
-            [sys.executable, str(root / "bin" / "lutris"), "--help"],
+            [str(pathlib.Path(sysconfig.get_path("scripts")) / "lutris"), "--help"],
             capture_output=True,
             text=True,
             env=env,
             cwd=root,
         )
-
-    def test_truncated_optional_settings_is_not_fatal(self):
-        """A botched install can leave optional_settings.py without LOCALE_DIR."""
-        generated = MODULE_PATH.parents[1] / "optional_settings.py"
-        self.assertFalse(generated.exists(), "this tree has a generated optional_settings.py")
-        generated.write_text('"""Truncated by a botched install"""\n')
-        try:
-            completed = self.run_entry_point()
-        finally:
-            generated.unlink()
-        self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertIn("Run a game directly", completed.stdout)
-        self.assertIn("Couldn't set up translations", completed.stderr)
 
     def test_missing_msgfmt_is_not_fatal(self):
         """gettext may simply not be installed."""
@@ -207,15 +204,19 @@ class TestNeverFatal(unittest.TestCase):
 
         Both msgfmt and the call are faked, so this holds without gettext installed.
         """
-        source = tempfile.mkdtemp()
-        os.makedirs(os.path.join(source, "po"))
-        pathlib.Path(os.path.join(source, "po", "fr.po")).write_text('msgid ""\nmsgstr ""\n')
+        root = pathlib.Path(self.enterContext(tempfile.TemporaryDirectory()))
+        source = root / "locale"
+        source.mkdir()
+        (source / "fr.po").write_text('msgid ""\nmsgstr ""\n')
 
         def refuse_to_run(*args, **kwargs):
             raise OSError("Exec format error")
 
         reported = io.StringIO()
-        with mock.patch.object(textdomain.shutil, "which", return_value="/usr/bin/msgfmt"):
+        with (
+            mock.patch.dict(os.environ, XDG_CACHE_HOME=str(root / "cache")),
+            mock.patch.object(textdomain.shutil, "which", return_value="/usr/bin/msgfmt"),
+        ):
             with mock.patch.object(textdomain.subprocess, "run", refuse_to_run):
                 with contextlib.redirect_stderr(reported):
                     self.assertIsNone(textdomain.compile_source_catalogs(source))
@@ -224,22 +225,27 @@ class TestNeverFatal(unittest.TestCase):
     def test_failure_inside_the_build_is_not_fatal(self):
         """Even an unforeseen error must only cost the translations."""
 
-        def explode(_source_path: str) -> str | None:
-            raise RuntimeError("something nobody anticipated")
-
-        boom = textdomain.compile_source_catalogs
-        textdomain.compile_source_catalogs = explode
-        try:
-            reported = io.StringIO()
-            with contextlib.redirect_stderr(reported):
-                textdomain.bind_text_domain("/any/source/tree")
-            self.assertIn("Couldn't set up translations", reported.getvalue())
-        finally:
-            textdomain.compile_source_catalogs = boom
-
-    def test_unreadable_locale_dir_is_not_fatal(self):
-        """bindtextdomain itself may reject what it is handed."""
         reported = io.StringIO()
-        with contextlib.redirect_stderr(reported):
-            textdomain.bind_text_domain(None)  # no source tree, nothing to bind
-        self.assertEqual(reported.getvalue(), "")
+        with (
+            mock.patch.object(textdomain, "compile_source_catalogs", side_effect=RuntimeError),
+            contextlib.redirect_stderr(reported),
+        ):
+            textdomain.bind_text_domain()
+        self.assertIn("Couldn't set up translations", reported.getvalue())
+
+    def test_uses_precompiled_catalogs_without_msgfmt(self) -> None:
+        root = pathlib.Path(self.enterContext(tempfile.TemporaryDirectory()))
+        catalog = root / "fr/LC_MESSAGES/lutris.mo"
+        catalog.parent.mkdir(parents=True)
+        catalog.touch()
+        with (
+            mock.patch.object(textdomain, "CATALOG_DIR", root),
+            mock.patch.object(textdomain, "compile_source_catalogs") as compile_catalogs,
+            mock.patch.object(textdomain.locale, "bindtextdomain"),
+            mock.patch.object(textdomain.locale, "textdomain"),
+            mock.patch.object(textdomain.gettext, "bindtextdomain") as bind_catalogs,
+            mock.patch.object(textdomain.gettext, "textdomain"),
+        ):
+            textdomain.bind_text_domain()
+        compile_catalogs.assert_not_called()
+        bind_catalogs.assert_called_once_with("lutris", str(root))

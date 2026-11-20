@@ -5,10 +5,7 @@ import sys
 import tempfile
 import unittest
 
-if os.path.isfile("share/lutris/bin/lutris-wrapper"):
-    lutris_wrapper_bin = "share/lutris/bin/lutris-wrapper"
-else:
-    lutris_wrapper_bin = "lutris-wrapper"
+from lutris.monitored_command import WRAPPER_SCRIPT
 
 
 class LutrisWrapperTestCase(unittest.TestCase):
@@ -20,7 +17,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
         wrapper_proc = subprocess.Popen(
             [
                 sys.executable,
-                lutris_wrapper_bin,
+                WRAPPER_SCRIPT,
                 "title",
                 "0",
                 "1",
@@ -68,7 +65,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
         wrapper_proc = subprocess.Popen(
             [
                 sys.executable,
-                lutris_wrapper_bin,
+                WRAPPER_SCRIPT,
                 "title",
                 "0",
                 "0",
@@ -134,7 +131,7 @@ class LutrisWrapperTestCase(unittest.TestCase):
                     env["PYTHONPATH"] = ":".join(sys.path)
                     env["LUTRIS_RETURN_CODE_FILE"] = return_code_path
                     wrapper_proc = subprocess.run(
-                        [sys.executable, lutris_wrapper_bin, "title", "0", "0", "sh", "-c", script],
+                        [sys.executable, WRAPPER_SCRIPT, "title", "0", "0", "sh", "-c", script],
                         stdin=subprocess.DEVNULL,
                         stdout=subprocess.DEVNULL,
                         env=env,

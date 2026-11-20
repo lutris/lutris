@@ -55,7 +55,7 @@ jobs:
           sudo apt-get install -y gettext
       - name: Validate .po files
         run: |
-          for f in po/*.po; do
+          for f in lutris/locale/*.po; do
             msgfmt --check "$f" -o /dev/null
           done
 
@@ -101,3 +101,8 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: uv run --no-sync pytest
+      - name: Verify wheel install
+        run: |
+          uv build --out-dir dist
+          uv pip install --no-deps --reinstall dist/*.whl
+          QT_QPA_PLATFORM=offscreen uv run --no-sync pytest tests/cli/_test_application.py

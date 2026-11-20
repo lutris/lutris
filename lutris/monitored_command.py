@@ -15,7 +15,7 @@ from typing import IO, TYPE_CHECKING
 from gi.repository import GLib
 
 from lutris import settings
-from lutris.util import system
+from lutris.util import datapath, system
 from lutris.util.log import logger
 from lutris.util.log_buffer import LogBuffer
 from lutris.util.shell import get_terminal_script
@@ -24,23 +24,7 @@ if TYPE_CHECKING:
     from lutris.runners.runner import Runner
 
 
-def get_wrapper_script_location() -> str:
-    """Return absolute path of lutris-wrapper script"""
-    wrapper_relpath = "share/lutris/bin/lutris-wrapper"
-    candidates = [
-        os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "..")),
-        os.path.dirname(os.path.dirname(settings.__file__)),
-        "/usr",
-        "/usr/local",
-    ]
-    for candidate in candidates:
-        wrapper_abspath = os.path.join(candidate, wrapper_relpath)
-        if os.path.isfile(wrapper_abspath):
-            return wrapper_abspath
-    raise FileNotFoundError("Couldn't find lutris-wrapper script in any of the expected locations")
-
-
-WRAPPER_SCRIPT = get_wrapper_script_location()
+WRAPPER_SCRIPT = os.path.join(datapath.get(), "bin", "lutris-wrapper")
 RUNNING_COMMANDS = set()
 
 
@@ -153,17 +137,6 @@ class MonitoredCommand:
         """Process the user provided environment variables for use as self.env"""
         env = copy(user_env) if user_env else {}
 
-        # Defense-in-depth for lutris-wrapper subprocesses: the wrapper script
-        # bootstraps its own sys.path when run from a git checkout, but
-        # publishing PYTHONPATH here means any unusual layout the wrapper's
-        # own bootstrap doesn't recognise still resolves `from lutris...`
-        # imports. Safe because:
-        #   * The wrapper now runs on the same Python as Lutris (sys.executable
-        #     in get_wrapper_command), so an inherited PYTHONPATH pointing at
-        #     our stdlib is ABI-compatible.
-        #   * lutris-wrapper deletes PYTHONPATH from os.environ before
-        #     spawning the game, so the leak doesn't propagate to Wine,
-        #     umu-launcher, or any other runner subprocess.
         env["PYTHONPATH"] = ":".join(sys.path)
         # Drop bad values of environment keys, those will confuse the Python
         # interpreter.

@@ -64,7 +64,7 @@ jobs:
       BUNDLE: Lutris-v${{ needs.prepare.outputs.artifact_version }}-x86_64.flatpak
     steps:
       - name: Free disk space
-        # The full build (Qt, Mono, DOSBox Staging, ...) needs far more room
+        # The full build (Mono, DOSBox Staging, ...) needs far more room
         # than a runner leaves free by default
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL

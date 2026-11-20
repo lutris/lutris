@@ -39,6 +39,21 @@ Repository = "https://github.com/jedace07/lutris"
 Issues = "https://github.com/jedace07/lutris/issues"
 Releases = "https://github.com/jedace07/lutris/releases"
 
+[project.scripts]
+lutris = "lutris.launcher:main"
+
+[build-system]
+requires = ["uv_build>=0.13.9,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""
+wheel-exclude = ["lutris/locale/README.md", "lutris/locale/LINGUAS", "lutris/locale/*.pot"]
+source-exclude = ["lutris/locale/*.pot"]
+
+[tool.uv.build-backend.data]
+data = "packaging/desktop"
+
 [dependency-groups]
 # Split so CI jobs can install only what they run (`uv sync --only-group lint`
 # needs no native headers); `dev` is everything and is what `uv sync` installs
@@ -62,10 +77,6 @@ dev = [
 ]
 
 [tool.uv]
-# Lutris isn't built as a Python package: it runs straight from the checkout
-# (bin/lutris puts it on sys.path) and meson installs it for the Flatpak. uv
-# only manages the environment its dependencies live in
-package = false
 required-version = ">=0.13.9"
 # Always use uv's own Python builds (downloaded on demand), never the system's:
 # they're the same everywhere and include the headers PyGObject, evdev and

@@ -8,8 +8,8 @@ and return the form evaluated again, and save_config writes it out. Nothing is
 written until then.
 
 A game's form also carries its GameDetails (name, slug, runner...). Choosing
-another runner starts the game's configuration afresh, as the GTK dialog does,
-and a form for a new game creates the game when saved.
+another runner starts the game's configuration afresh. A form for a new game
+creates the game when saved.
 """
 
 import asyncio
@@ -56,7 +56,7 @@ def _plain(markup: object) -> str:
 
 
 def _to_bool(value: object) -> bool | None:
-    """Read a bool the way the GTK switches do, so the string 'False' isn't true."""
+    """Read values stored as strings without treating 'False' as truthy."""
     if value is None:
         return None
     if isinstance(value, str):
@@ -126,8 +126,7 @@ class _Form:
     # Evaluation
 
     def evaluate(self, value: Any, key: str) -> Any:
-        """Call an option's callable attribute as the GTK widget generator does: with the
-        option's key and the configuration, or as many of those as it takes."""
+        """Pass the option key and configuration if the callable accepts them."""
         if not callable(value):
             return value
         try:
