@@ -703,10 +703,16 @@ class Runner:  # pylint: disable=too-many-public-methods
     def can_uninstall(self) -> bool:
         return os.path.isdir(self.directory)
 
-    def uninstall(self, uninstall_callback: Callable[[], None] | None = None) -> None:
+    def uninstall(
+        self,
+        uninstall_callback: Callable[[], None] | None = None,
+        error_callback: Callable[[Exception], None] | None = None,
+    ) -> None:
+        """Move the runner's folder to the trash; then call uninstall_callback, or
+        error_callback if it couldn't be."""
         runner_path = self.directory
         if os.path.isdir(runner_path):
-            system.remove_folder(runner_path, completion_function=uninstall_callback)
+            system.remove_folder(runner_path, completion_function=uninstall_callback, error_function=error_callback)
         elif uninstall_callback:
             uninstall_callback()
 

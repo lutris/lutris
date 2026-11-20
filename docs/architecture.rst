@@ -20,7 +20,9 @@ That happens in three stages:
    that matters most for Qt, and it's done.
 2. **Give the core a front door.** A small API of plain-data calls and events
    (list games, launch, install, log in to a service, ...) that frontends use
-   instead of reaching into ``Game``, runner and service objects.
+   instead of reaching into ``Game``, runner and service objects. This is the
+   stage in progress: the API is ``lutris.backend``, and the command line uses
+   nothing else.
 3. **Move the core out of process**, by putting that API behind IPC. It only
    becomes possible once frontends use nothing but the API.
 
@@ -170,11 +172,65 @@ frontend's, so Lutris still runs once:
 Both frontends define the same options (``lutris.cli.options``), as Gio
 forwards a command line with its options already parsed.
 
-Stage 2 and 3
--------------
+Stage 2: the backend's API
+--------------------------
 
-The API's calls and events will carry plain data (ids, dictionaries,
-dataclasses), never live ``Game`` or service objects, so that the same API can
-later be served over IPC unchanged. Which IPC to use (D-Bus, which Lutris
-already uses, or JSON-RPC over a Unix socket) is decided at stage 3, when the
-API's shape is known.
+``lutris.backend`` is the front door. Frontends drive Lutris through it, and
+eventually through nothing else:
+
+* **Every call is a coroutine** (``await games.list_games()``). Over IPC each
+  call becomes a request and its reply, so a remote frontend will await the same
+  calls with the same signatures. Calls run on the frontend's asyncio event
+  loop, and send slow work (the network, large files) to a thread with
+  ``asyncio.to_thread``, so awaiting one never blocks the UI.
+* **Calls take and return plain data**: ids, strings, JSON-like dictionaries,
+  and the frozen dataclasses in ``lutris.backend.models`` (``GameInfo``,
+  ``ServiceGameInfo``, ...), never a live ``Game``, runner or service object.
+* **Errors are** ``LutrisError`` **subclasses** (``lutris.backend.errors``), whose
+  message is meant for the user.
+* **Calls that need the user take a delegate**, as the core does.
+
+It's grouped by subject: ``games``, ``services``, ``steam``, ``runners``,
+``processes`` (running a command the way Lutris runs games) and ``saves``.
+``lutris.backend.startup.start_backend()`` starts it; that isn't an API call,
+but what the backend's own process will do in stage 3.
+
+asyncio runs on GLib's main loop: ``bin/lutris`` calls
+``lutris.util.mainloop.run_asyncio_on_glib()``, after which PyGObject runs
+asyncio whenever a ``Gio.Application`` (so a ``Gtk.Application`` too) runs.
+Frontends start a call with ``Gio.Application.create_asyncio_task()``, which
+keeps the application running until it finishes. A command line handled that
+way reports its exit status with ``set_exit_status()`` and ``done()`` (see
+``lutris.cli.commands.handle_command_line``). Nested loops such as
+``Gtk.Dialog.run()`` still work, but pause asyncio while they run, so new code
+shouldn't add any. A Qt frontend would run the same coroutines with QtAsyncio.
+
+``tests/_test_frontend_api.py`` enforces this: a frontend may import
+``lutris.backend``, its own package and a few support modules (logging,
+strings, settings, notifications, delegates), and nothing else from the core.
+Its ``KNOWN_VIOLATIONS`` list is what the GTK frontend still uses directly, and
+is the to-do list for stage 2. Roughly in order:
+
+* **The library**: the game views, the sidebar and the game bar read the
+  database and build ``Game`` objects. They need calls for games, categories,
+  saved searches and search, and events carrying ``GameInfo`` instead of
+  ``Game`` (``GAME_UPDATED`` and the rest).
+* **Game actions**: launching, stopping, installing, uninstalling, moving,
+  and the shortcuts, through calls that take a game id. Delegate methods then
+  receive ``GameInfo`` rather than a ``Game``.
+* **Configuration dialogs**, which edit ``LutrisConfig`` objects directly: calls
+  that get and set a game's, runner's or the system's options as data.
+* **Services and runners**: logging in and out, syncing libraries, installing
+  and configuring runners.
+* **The installer window**, which drives the script interpreter: a call that
+  starts an installation, with its questions as delegate calls and its progress
+  as events.
+* **Progress and logs**: ``ProgressInfo``, ``LogBuffer`` and the download
+  models become events carrying their state.
+
+Stage 3
+-------
+
+Once frontends use nothing but ``lutris.backend``, it can be put behind IPC
+unchanged. Which IPC to use (D-Bus, which Lutris already uses, or JSON-RPC
+over a Unix socket) is decided then, when the API's shape is known.

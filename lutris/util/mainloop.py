@@ -71,3 +71,19 @@ def set_main_loop(main_loop: MainLoop) -> None:
     """Install the main loop deferred work runs on; a frontend does this at startup."""
     global _main_loop
     _main_loop = main_loop
+
+
+def run_asyncio_on_glib() -> None:
+    """Make asyncio run on GLib's main loop, so that the backend's coroutines run while
+    a Gio.Application (and so a Gtk.Application) runs. A frontend on GLib calls this
+    before running its application; a Qt one would use QtAsyncio instead."""
+    import warnings
+
+    with warnings.catch_warnings():
+        # PyGObject's module looks up asyncio's deprecated event loop policy classes
+        warnings.simplefilter("ignore", DeprecationWarning)
+        from gi.events import GLibEventLoopPolicy
+
+    # This creates the event loop for GLib's default main context, which PyGObject's
+    # Gio.Application.run() then runs, without installing the policy (deprecated too)
+    GLibEventLoopPolicy().get_event_loop()

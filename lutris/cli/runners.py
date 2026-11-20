@@ -1,91 +1,64 @@
 """Commands that install and uninstall runners (--install-runner, --uninstall-runner)."""
 
-import os
-
-from lutris import settings
+from lutris.backend import runners
+from lutris.backend.errors import InvalidRunnerError, LutrisError
 from lutris.cli.output import CommandOutput
-from lutris.delegates import InstallUIDelegate
-from lutris.runners import InvalidRunnerError, RunnerInstallationError, import_runner
-from lutris.util import system
 from lutris.util.log import logger
 
 
-def install_runner(output: CommandOutput, runner: str) -> None:
-    if runner.startswith("lutris"):
-        install_wine_version(output, runner)
-    else:
-        install_runner_by_name(output, runner)
+def _parse_runner(runner: str) -> tuple[str, str | None]:
+    """Return the runner and version a --install-runner argument names: lutris-...
+    names one of the Wine versions Lutris downloads."""
+    return ("wine", runner) if runner.startswith("lutris") else (runner, None)
 
 
-def uninstall_runner(output: CommandOutput, runner: str) -> None:
-    if "wine" in runner:
-        if output.ask_yes_or_no("Are sure you want to delete Wine and all of the installed runners?"):
-            uninstall_runner_by_name(output, runner)
-        else:
-            output.print("Not Removing Wine")
-    elif runner.startswith("lutris"):
-        uninstall_wine_version(output, runner)
-    else:
-        uninstall_runner_by_name(output, runner)
-
-
-def _get_wine_version_path(version: str) -> tuple[str, str]:
-    """Return the full name of a Lutris Wine version, and where it's installed."""
-    version = f"{version}{'' if '-x86_64' in version else '-x86_64'}"
-    return version, os.path.join(settings.RUNNER_DIR, "wine", version)
-
-
-def install_wine_version(output: CommandOutput, version: str) -> None:
-    """Download a Lutris Wine version (lutris -r lutris-...)."""
-    _full_version, runner_path = _get_wine_version_path(version)
-    if os.path.isdir(runner_path):
-        output.print(f"Wine version '{version}' is already installed.")
-        return
+async def install_runner(output: CommandOutput, runner: str) -> None:
+    name, version = _parse_runner(runner)
+    label = f"Wine version '{version}'" if version else f"'{name}'"
     try:
-        runner = import_runner("wine")
-        runner().install(InstallUIDelegate(), version=version)
-        output.print(f"Wine version '{version}' has been installed.")
-    except (InvalidRunnerError, RunnerInstallationError) as ex:
+        if await runners.is_runner_installed(name, version):
+            output.print(f"{label} is already installed.")
+            return
+        await runners.install_runner(name, version)
+        output.print(f"{label} has been installed.")
+    except LutrisError as ex:
         output.print_error(ex.message)
 
 
-def uninstall_wine_version(output: CommandOutput, version: str) -> None:
-    version, runner_path = _get_wine_version_path(version)
-    if os.path.isdir(runner_path):
-        system.remove_folder(runner_path)
-        output.print(f"Wine version '{version}' has been removed.")
-    else:
+async def uninstall_runner(output: CommandOutput, runner: str) -> None:
+    if "wine" in runner:
+        if not output.ask_yes_or_no("Are sure you want to delete Wine and all of the installed runners?"):
+            output.print("Not Removing Wine")
+            return
+    elif runner.startswith("lutris"):
+        await uninstall_wine_version(output, runner)
+        return
+    await uninstall_runner_by_name(output, runner)
+
+
+async def uninstall_wine_version(output: CommandOutput, version: str) -> None:
+    if not await runners.is_runner_installed("wine", version):
         output.print_error(
             f"Specified version of Wine is not installed: {version}.\n"
             "Please check if the Wine Runner and specified version are installed "
             "(for that use --list-wine-versions).\n"
             "Also, check that the version specified is in the correct format."
         )
+        return
+    await runners.uninstall_runner("wine", version)
+    output.print(f"Wine version '{version}' has been removed.")
 
 
-def install_runner_by_name(output: CommandOutput, runner_name: str) -> None:
+async def uninstall_runner_by_name(output: CommandOutput, runner_name: str) -> None:
     try:
-        runner = import_runner(runner_name)()
-        if runner.is_installed():
-            output.print(f"'{runner_name}' is already installed.")
-        else:
-            runner.install(InstallUIDelegate(), version=None, callback=None)
-            output.print(f"'{runner_name}' has been installed")
-    except (InvalidRunnerError, RunnerInstallationError) as ex:
-        output.print_error(ex.message)
-
-
-def uninstall_runner_by_name(output: CommandOutput, runner_name: str) -> None:
-    try:
-        runner = import_runner(runner_name)()
+        installed = await runners.is_runner_installed(runner_name)
     except InvalidRunnerError:
         logger.error("Failed to import Runner: %s", runner_name)
         return
-    if not runner.is_installed():
+    if not installed:
         output.print(f"Runner '{runner_name}' is not installed.")
-        return
-    if runner.can_uninstall():
-        runner.uninstall()
-        output.print(f"'{runner_name}' has been uninstalled.")
-    else:
+    elif not await runners.can_uninstall_runner(runner_name):
         output.print(f"Runner '{runner_name}' cannot be uninstalled.")
+    else:
+        await runners.uninstall_runner(runner_name)
+        output.print(f"'{runner_name}' has been uninstalled.")

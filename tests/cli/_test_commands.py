@@ -1,5 +1,7 @@
 """The commands that need no GUI, run through lutris.cli.commands."""
 
+import asyncio
+
 import pytest
 from gi.repository import GLib
 
@@ -43,7 +45,7 @@ def make_options(**values: str | bool) -> GLib.VariantDict:
 
 def run(**values: str | bool) -> tuple[int | None, FakeOutput]:
     output = FakeOutput()
-    return run_text_command(make_options(**values), output, LaunchUIDelegate()), output
+    return asyncio.run(run_text_command(make_options(**values), output, LaunchUIDelegate())), output
 
 
 def test_text_commands_are_told_from_graphical_ones():
@@ -74,7 +76,11 @@ def test_export_needs_a_destination():
 
 def test_import_reads_paths_from_the_invoking_directory(monkeypatch):
     imported: list[tuple[str, str]] = []
-    monkeypatch.setattr("lutris.cli.commands.import_game", lambda path, dest: imported.append((path, dest)))
+
+    async def import_game(path: str, dest: str) -> None:
+        imported.append((path, dest))
+
+    monkeypatch.setattr("lutris.backend.games.import_game", import_game)
 
     status, _output = run(dest="games", **{"import": "game.tar.xz"})
     assert status == 0
@@ -89,7 +95,11 @@ def test_script_for_an_unknown_game_fails():
 @pytest.mark.parametrize("answer", [True, False])
 def test_uninstalling_wine_asks_first(monkeypatch, answer):
     uninstalled: list[str] = []
-    monkeypatch.setattr("lutris.cli.runners.uninstall_runner_by_name", lambda _output, name: uninstalled.append(name))
+
+    async def uninstall_runner_by_name(_output: CommandOutput, name: str) -> None:
+        uninstalled.append(name)
+
+    monkeypatch.setattr("lutris.cli.runners.uninstall_runner_by_name", uninstall_runner_by_name)
     monkeypatch.setattr(FakeOutput, "ask_yes_or_no", lambda _self, _question: answer)
 
     status, _output = run(uninstall_runner="wine")

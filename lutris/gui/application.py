@@ -29,8 +29,8 @@ from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
 from lutris.api import parse_installer_url
-from lutris.cli.commands import run_text_command, start_lutris
-from lutris.cli.options import add_options
+from lutris.cli.commands import handle_command_line, start_lutris
+from lutris.cli.options import add_options, is_text_command
 from lutris.cli.output import CommandOutput
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
@@ -235,10 +235,11 @@ class LutrisApplication(Gtk.Application):
         start_lutris(options, run_checks_async=not arguments)
         check_pixbuf_formats()
 
-        # The commands that need no GUI, forwarded by the command-line frontend
-        status = run_text_command(options, output, self.launch_ui_delegate)
-        if status is not None:
-            return status
+        # The commands that need no GUI, forwarded by the command-line frontend; they
+        # report their own status when they finish
+        if is_text_command(options):
+            self.create_asyncio_task(handle_command_line(command_line, self.launch_ui_delegate))
+            return 0
 
         if options.contains("submit-issue"):
             IssueReportWindow(application=self)

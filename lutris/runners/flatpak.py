@@ -103,7 +103,11 @@ class flatpak(Runner):
     def can_uninstall(self):
         return False
 
-    def uninstall(self, uninstall_callback: Callable[[], None] | None = None) -> None:
+    def uninstall(
+        self,
+        uninstall_callback: Callable[[], None] | None = None,
+        error_callback: Callable[[Exception], None] | None = None,
+    ) -> None:
         raise RuntimeError("Flatpak can't be uninstalled from Lutris")
 
     @property

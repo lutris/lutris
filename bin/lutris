@@ -59,6 +59,10 @@ if "WEBKIT_DISABLE_DMABUF_RENDERER" not in os.environ:
 # Every command line starts with the command-line frontend, which needs no GUI toolkit:
 # it runs or forwards the commands that need no GUI, and leaves the rest to the GTK one
 from lutris.cli.application import CommandLineApplication
+from lutris.util.mainloop import run_asyncio_on_glib
+
+# Both frontends run on GLib, and the backend's API is asyncio's
+run_asyncio_on_glib()
 
 command_line_app = CommandLineApplication()
 status = command_line_app.run(sys.argv)
