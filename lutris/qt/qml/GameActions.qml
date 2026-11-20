@@ -12,6 +12,7 @@ ToolButton {
     property string targetGameName: ""
     property bool targetCanPlay: false
     property bool targetInstalled: false
+    property bool targetCanLinkLocalGame: false
 
     text: qsTr("Game Actions")
     enabled: controller.selectedGameId.length > 0
@@ -20,6 +21,7 @@ ToolButton {
         targetGameName = controller.selectedGameName
         targetCanPlay = controller.canPlay
         targetInstalled = controller.selectedGameInstalled
+        targetCanLinkLocalGame = controller.canLinkLocalGame
         controller.load_organization(targetGameId)
         gameMenu.open()
     }
@@ -49,6 +51,13 @@ ToolButton {
         }
 
         MenuSeparator {}
+
+        MenuItem {
+            objectName: "locateLocalGame"
+            text: qsTr("Locate Installed Linux Game…")
+            visible: actions.targetCanLinkLocalGame
+            onTriggered: actions.controller.localGames.open_registration(actions.targetGameId, actions.targetGameName)
+        }
 
         MenuItem {
             text: qsTr("Play with Launch Options")

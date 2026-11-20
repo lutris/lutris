@@ -11,7 +11,7 @@ from PySide6.QtCore import Property, QObject, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QDesktopServices
 
 from lutris import settings
-from lutris.backend import events, game_actions, games, library, media
+from lutris.backend import events, game_actions, games, library, local_games, media
 from lutris.backend.library import LibraryQuery, LibrarySort
 from lutris.backend.models import GameInfo, LibraryGame
 from lutris.exceptions import LutrisError
@@ -21,6 +21,7 @@ from lutris.qt.game_log import GameLogController
 from lutris.qt.game_maintenance import GameMaintenanceController
 from lutris.qt.game_shortcuts import GameShortcutController
 from lutris.qt.library_model import LibraryModel
+from lutris.qt.local_games import LocalGameController
 from lutris.qt.sidebar import ALL_GAMES, SidebarModel
 from lutris.qt.tasks import start_task
 from lutris.util import datapath
@@ -49,6 +50,8 @@ class LibraryController(QObject):
         self._maintenance = GameMaintenanceController(prompts, self)
         self._maintenance.stateChanged.connect(self.selectionChanged.emit)
         self._shortcuts = GameShortcutController(prompts, self)
+        self._local_games = LocalGameController(prompts, self)
+        self._local_games.registered.connect(self._on_local_game_registered)
         self.model.setParent(self)
         self.sidebar.setParent(self)
         self.categories.setParent(self)
@@ -120,6 +123,10 @@ class LibraryController(QObject):
     @Property(QObject, constant=True)
     def gameShortcuts(self) -> GameShortcutController:  # noqa: N802
         return self._shortcuts
+
+    @Property(QObject, constant=True)
+    def localGames(self) -> LocalGameController:  # noqa: N802
+        return self._local_games
 
     @Property(QObject, constant=True)
     def gamesModel(self) -> LibraryModel:  # noqa: N802
@@ -195,6 +202,15 @@ class LibraryController(QObject):
     def selectedGameInstalled(self) -> bool:  # noqa: N802
         game = self.selected_game
         return bool(game and game.installed)
+
+    @Property(bool, notify=selectionChanged)
+    def canLinkLocalGame(self) -> bool:  # noqa: N802
+        game = self.selected_game
+        return bool(
+            game
+            and self._can_maintain(game.game_id)
+            and local_games.can_link_linux_game(game.installed, game.runner, game.service)
+        )
 
     @Property(bool, notify=selectionChanged)
     def canPlay(self) -> bool:  # noqa: N802
@@ -378,6 +394,10 @@ class LibraryController(QObject):
     def _set_status(self, message: str) -> None:
         self._status = message
         self.statusChanged.emit()
+
+    def _on_local_game_registered(self, name: str) -> None:
+        self._set_status(_("Registered %s in the library.") % name)
+        self._status_timer.start()
 
     def _is_running(self, game_id: str) -> bool:
         return game_id in self._running_ids or game_id in self._launch_requests

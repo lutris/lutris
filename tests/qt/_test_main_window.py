@@ -271,6 +271,73 @@ async def open_game_action(window: MainWindow, application: QGuiApplication, gam
     assert QMetaObject.invokeMethod(menu, "close")
 
 
+@pytest.mark.parametrize("link_existing", [False, True])
+def test_qml_registers_a_local_game(
+    qt_application: QGuiApplication,
+    library: list[str],
+    fake_main_loop: FakeMainLoop,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    link_existing: bool,
+) -> None:
+    executable = tmp_path / "play game"
+    executable.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    executable.chmod(0o700)
+    monkeypatch.setattr(settings, "CONFIG_DIR", str(tmp_path / "config"))
+    new_game_name = PREFIX + "Local Linux Game"
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        try:
+            window.controller.set_installed_only(False)
+            await settle(window)
+            if link_existing:
+                await open_game_action(window, qt_application, library[1], "locateLocalGame")
+            else:
+                action = window.window.findChild(QObject, "addLocalGame")
+                assert action is not None and QMetaObject.invokeMethod(action, "triggered")
+
+            dialog = window.window.findChild(QObject, "localGameDialog")
+            assert dialog is not None
+            path = dialog.findChild(QObject, "localGameExecutable")
+            arguments = dialog.findChild(QObject, "localGameArguments")
+            name = dialog.findChild(QObject, "localGameName")
+            confirm = dialog.findChild(QObject, "confirmLocalGame")
+            assert path is not None and arguments is not None and name is not None and confirm is not None
+            await wait_for_qml(qt_application, lambda: bool(dialog.property("opened")))
+            assert not confirm.property("enabled")
+            assert name.property("visible") != link_existing
+            path.setProperty("text", str(executable))
+            arguments.setProperty("text", "--windowed")
+            if not link_existing:
+                name.setProperty("text", new_game_name)
+            assert confirm.property("enabled") and QMetaObject.invokeMethod(confirm, "clicked")
+            await wait_for_qml(qt_application, lambda: not dialog.property("visible"))
+
+            row = games_db.get_game_by_field(
+                library[1] if link_existing else new_game_name, "id" if link_existing else "name"
+            )
+            assert row is not None and row["installed"] == 1
+            installed_id = row["id"]
+            fake_main_loop.run_pending()
+
+            def installed_in_library() -> bool:
+                model = window.controller.model
+                game = model.game_at(model.find_row(installed_id))
+                return bool(game and game.installed)
+
+            await wait_for_qml(qt_application, installed_in_library)
+            config = Game(installed_id).config
+            assert config is not None and config.game_level["game"] == {"exe": str(executable), "args": "--windowed"}
+        finally:
+            window.shutdown()
+            if not link_existing and (new_row := games_db.get_game_by_field(new_game_name, "name")):
+                games_db.delete_game(new_row["id"])
+
+    asyncio.run(run())
+
+
 def test_qml_move_uninstall_and_remove_from_library(
     qt_application: QGuiApplication,
     library: list[str],

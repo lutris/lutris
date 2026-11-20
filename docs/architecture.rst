@@ -276,6 +276,16 @@ again before moving or trashing files and blocks protected, overlapping, and
 externally managed installations. Qt refreshes the library on ``GAME_CHANGED``
 or ``GAME_REMOVED``.
 
+The Library menu can add an existing native Linux executable as a new game.
+For an eligible uninstalled entry, Game Actions can link the executable to
+that entry and keep its ID, category membership and playtime. The
+``local_games`` backend validates the path and writes the launch configuration
+before updating the library and firing ``GAME_INSTALLED``. It deliberately
+does not record a managed installation directory: Browse Files still opens
+the executable's folder, but Move and Trash Files cannot act on it from that entry.
+Store-owned entries, non-Linux runners, and installer scripts are not handled
+by this flow.
+
 The library opens in a cover grid. The View menu switches to banners or a list
 and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
 row. The backend resolves files from the Lutris and service caches. The same
@@ -284,7 +294,7 @@ grid reloads its thumbnails when it receives ``ARTWORK_CHANGED``.
 
 What it needs next, roughly in order, each with the backend calls it takes:
 
-* **Game actions** still need installation entry points. The launch
+* **Game actions** still need script and service installation entry points. The launch
   configuration prompt receives ``GameInfo`` and configuration names. The
   remaining launch delegate methods still need the same plain-data boundary.
 * **Configuration**: game, runner and system options, as data, with a widget
@@ -295,6 +305,27 @@ What it needs next, roughly in order, each with the backend calls it takes:
   its progress and downloads as events.
 * **Preferences** and the rest of the application still need the tray icon,
   runtime updates, and the remaining command-line actions, including installer URIs.
+
+Script installer handoff
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The next installer slice should expose catalog discovery and selection for an
+uninstalled library entry through ``lutris.backend``. Fetch the catalog off
+the UI loop with ``lutris.installer.get_installers``. Give Qt plain choice
+metadata and keep the script and service objects on the backend side. Keep
+discovery separate from execution so selecting or dismissing a choice does
+not run an installer. Start with Lutris.net catalog entries; service-specific
+lookup, local scripts, and installer URIs can use the same flow once it works.
+
+For execution, use ``lutris.gui.installerwindow.InstallerWindow`` as a reference
+without importing or changing it. It sequences runner prerequisites, extras,
+file preparation/downloads, interpreter commands, and cleanup.
+``ScriptInterpreter.InterpreterUIDelegate`` already reports progress and status
+and requests disc and menu input, but still passes live objects to some
+callbacks. Bridge those to plain data and make failure and cancellation
+explicit. The interpreter's runner-completion event is shared: scope callbacks
+to the active interpreter. Test with local fixtures before trying store
+downloads, and keep GTK as the default until Qt reaches parity.
 
 Stage 3
 -------

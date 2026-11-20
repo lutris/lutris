@@ -13,6 +13,18 @@ ApplicationWindow {
     minimumWidth: 640
     minimumHeight: 420
 
+    menuBar: MenuBar {
+        Menu {
+            title: qsTr("Library")
+
+            MenuItem {
+                objectName: "addLocalGame"
+                text: qsTr("Add Locally Installed Game…")
+                onTriggered: window.controller.localGames.open_registration("", "")
+            }
+        }
+    }
+
     header: LibraryToolbar { controller: window.controller }
 
     LibraryView {
@@ -21,6 +33,21 @@ ApplicationWindow {
     }
 
     PromptHost { prompts: window.prompts }
+
+    Connections {
+        target: window.controller.localGames
+        function onRequested() { localGameLoader.active = true }
+    }
+
+    Loader {
+        id: localGameLoader
+        active: false
+        sourceComponent: LocalGameDialog {
+            controller: window.controller.localGames
+            onClosed: localGameLoader.active = false
+        }
+        onLoaded: if (status === Loader.Ready) (item as LocalGameDialog).open()
+    }
 
     footer: ToolBar {
         visible: window.controller.statusText.length > 0
