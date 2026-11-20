@@ -205,23 +205,6 @@ class UbisoftConnectClient:
         self._service.store_credentials(self.get_credentials())
         return user_data
 
-    def authorise_with_local_storage(self, storage_jsons):
-        user_data = {}
-        tasty_storage_values = ["userId", "nameOnPlatform", "ticket", "rememberMeTicket", "sessionId"]
-        for json_ in storage_jsons:
-            if json_:  # we do get nulls in this list of json dictionaries sometimes
-                for key in json_:
-                    if key in tasty_storage_values:
-                        user_data[key] = json_[key]
-
-        user_data["userId"] = user_data.pop("userId")
-        user_data["username"] = user_data.pop("nameOnPlatform")
-
-        self.restore_credentials(user_data)
-        self.post_sessions()
-        self._service.store_credentials(self.get_credentials())
-        return user_data
-
     # Deprecated 0.39
     def get_user_data(self):
         return self._do_request_safe("get", f"https://public-ubiservices.ubi.com/v3/users/{self.user_id}")

@@ -17,6 +17,7 @@ from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import linux
+from lutris.util.credentials import save_credentials
 from lutris.util.downloader import SimpleDownloader
 from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
@@ -133,8 +134,7 @@ class ItchIoService(OnlineService):
 
         api_key = ui_delegate.ask_for_text(_("Itch.io API key"), question)
         if api_key:
-            with open(self.api_key_path, "w") as key_file:
-                key_file.write(api_key)
+            self.save_api_key(api_key)
             SERVICE_LOGIN.fire(self)
         else:
             self.logout()
@@ -143,6 +143,16 @@ class ItchIoService(OnlineService):
     def credential_files(self):
         """Return a list of all files used for authentication"""
         return [self.api_key_path]
+
+    def save_api_key(self, api_key: str) -> None:
+        save_credentials(self.api_key_path, api_key)
+
+    def validate_api_key(self, api_key: str) -> bool:
+        try:
+            profile = Request(f"{self.api_url}/profile", headers={"Authorization": f"Bearer {api_key}"}).get().json
+        except UnauthorizedAccessError:
+            return False
+        return isinstance(profile, dict) and "user" in profile
 
     def load_api_key(self) -> str | None:
         if not os.path.exists(self.api_key_path):

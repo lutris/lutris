@@ -39,6 +39,7 @@ lutris/backend/services.py
 lutris/backend/shortcuts.py
 lutris/backend/startup.py
 lutris/backend/steam.py
+lutris/backend/store_login.py
 lutris/cache.py
 lutris/cli/__init__.py
 lutris/cli/application.py
@@ -95,7 +96,6 @@ lutris/gui/dialogs/log.py
 lutris/gui/dialogs/move_game.py
 lutris/gui/dialogs/runner_install.py
 lutris/gui/dialogs/uninstall_dialog.py
-lutris/gui/dialogs/webconnect_dialog.py
 lutris/gui/display_backend.py
 lutris/gui/download_queue.py
 lutris/gui/exception_backstops.py
@@ -177,6 +177,7 @@ lutris/qt/preferences.py
 lutris/qt/runner_manager.py
 lutris/qt/runtime_updates.py
 lutris/qt/sidebar.py
+lutris/qt/store_sources.py
 lutris/qt/tasks.py
 lutris/qt/translations.py
 lutris/runner_interpreter.py
@@ -269,6 +270,7 @@ lutris/util/battlenet/definitions.py
 lutris/util/battlenet/product_db.py
 lutris/util/busy.py
 lutris/util/cookies.py
+lutris/util/credentials.py
 lutris/util/datapath.py
 lutris/util/discord/__init__.py
 lutris/util/discord/base.py
@@ -391,4 +393,6 @@ lutris/qt/qml/MoveGameDialog.qml
 lutris/qt/qml/PreferencesDialog.qml
 lutris/qt/qml/PromptHost.qml
 lutris/qt/qml/RunnerPreferences.qml
+lutris/qt/qml/StoreLoginDialog.qml
+lutris/qt/qml/StoreSourceBar.qml
 lutris/qt/qml/UninstallGameDialog.qml

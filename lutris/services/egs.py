@@ -19,6 +19,7 @@ from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineSer
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
+from lutris.util.credentials import save_credentials
 from lutris.util.egs.egs_launcher import EGSLauncher
 from lutris.util.images import paste_overlay, thumbnail_image
 from lutris.util.log import logger
@@ -202,12 +203,15 @@ class EpicGamesStoreService(OnlineService):
     def is_connected(self) -> bool:
         return self.is_authenticated()
 
+    @property
+    def credential_files(self) -> list[str]:
+        return [self.token_path]
+
     def login_callback(self, content: bytes) -> None:
         """Once the user logs in in a browser window, Epic redirects
         to a page containing a Session ID which we can use to finish the authentication.
         Store session ID and exchange token to auth file"""
         logger.debug("Login to EGS successful")
-        logger.debug(content)
         content_json = json.loads(content.decode())
         session_id = content_json.get("authorizationCode")
         if not session_id:
@@ -266,6 +270,7 @@ class EpicGamesStoreService(OnlineService):
             self.token_url,
             data=params,
             auth=self.http_basic_auth,
+            timeout=30,
         )
         if response.status_code >= 500:
             response.raise_for_status()
@@ -273,8 +278,7 @@ class EpicGamesStoreService(OnlineService):
         response_content = response.json()
         if "error" in response_content:
             raise RuntimeError(response_content)
-        with open(self.token_path, "w", encoding="utf-8") as auth_file:
-            auth_file.write(json.dumps(response_content, indent=2))
+        save_credentials(self.token_path, json.dumps(response_content, indent=2))
         self.session_data = response_content
 
     def get_game_details(self, asset: dict[str, Any]) -> dict[str, Any]:

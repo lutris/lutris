@@ -191,9 +191,7 @@ class ServiceLoginUIDelegate(Delegate):
         logger.warning("%s needs its launcher installed before logging in", service.name)
 
     def show_web_login(self, service: "OnlineService") -> None:
-        """Show the service's login web page (service.login_url) and let the user log in.
-        When the page reaches one of service.redirect_uris, call service.login_callback()
-        with its URL."""
+        """Offer the service's browser sign-in flow."""
         logger.warning("Can't log in to %s without a user to show its login page to", service.name)
 
     def ask_for_humble_bundle_cookies(self) -> str | None:

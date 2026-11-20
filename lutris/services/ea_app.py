@@ -20,6 +20,7 @@ from lutris.installer import install_from_lutris
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
+from lutris.util.credentials import save_credentials
 from lutris.util.images import thumbnail_image
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -275,8 +276,7 @@ class EAAppService(OnlineService):
         token_data = self.get_access_token()
         if not token_data:
             raise RuntimeError("Failed to get access token")
-        with open(self.token_path, "w", encoding="utf-8") as token_file:
-            token_file.write(json.dumps(token_data, indent=2))
+        save_credentials(self.token_path, json.dumps(token_data, indent=2))
         self.access_token = self.load_access_token()
 
     def load_access_token(self):
@@ -307,6 +307,7 @@ class EAAppService(OnlineService):
                 "prompt": "none",
             },
             cookies=self.load_cookies(),
+            timeout=30,
         )
         response.raise_for_status()
         token_data = response.json()

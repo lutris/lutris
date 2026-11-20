@@ -42,7 +42,7 @@ class WebkitCookieJar(MozillaCookieJar):
                 assert domain_specified == initial_dot
 
                 discard = False
-                if expires == "":
+                if expires in ("", "0"):
                     expires = None
                     discard = True
 

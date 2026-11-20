@@ -47,9 +47,9 @@ Build requirements, for the Python packages that compile against C libraries
 Runtime requirements, the libraries Lutris loads through GObject introspection
 and the tools it runs:
 
-* Fedora: ``gtk3 webkit2gtk4.1 libnotify gnome-desktop3 glib-networking file-libs psmisc cabextract unzip 7zip curl xrandr mesa-demos vulkan-tools fluid-soundfont-gs``
-* Debian/Ubuntu: ``gir1.2-gtk-3.0 gir1.2-webkit2-4.1 gir1.2-notify-0.7 gir1.2-gnomedesktop-3.0 glib-networking libmagic1 psmisc cabextract unzip p7zip-full curl x11-xserver-utils mesa-utils vulkan-tools fluid-soundfont-gs``
-* Arch: ``gtk3 webkit2gtk-4.1 libnotify gnome-desktop glib-networking file psmisc cabextract unzip p7zip curl xorg-xrandr mesa-utils vulkan-tools soundfont-fluid``
+* Fedora: ``gtk3 libnotify gnome-desktop3 glib-networking file-libs psmisc cabextract unzip 7zip curl xrandr mesa-demos vulkan-tools fluid-soundfont-gs``
+* Debian/Ubuntu: ``gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-gnomedesktop-3.0 glib-networking libmagic1 psmisc cabextract unzip p7zip-full curl x11-xserver-utils mesa-utils vulkan-tools fluid-soundfont-gs``
+* Arch: ``gtk3 libnotify gnome-desktop glib-networking file psmisc cabextract unzip p7zip curl xorg-xrandr mesa-utils vulkan-tools soundfont-fluid``
 
 GnomeDesktop is only used to read screen resolutions on Wayland, where xrandr
 can't. To run games you'll also want the 32-bit OpenGL and Vulkan drivers for

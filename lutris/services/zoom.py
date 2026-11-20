@@ -6,6 +6,7 @@ import time
 import typing
 from gettext import gettext as _
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 from lutris import settings
 from lutris.exceptions import AuthenticationError
@@ -17,6 +18,7 @@ from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
+from lutris.util.credentials import save_credentials
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.strings import computer_size
@@ -86,7 +88,7 @@ class ZoomService(OnlineService):
 
     @property
     def credential_files(self) -> list[str]:
-        return [self.cookies_path, self.token_path]
+        return [self.token_path]
 
     def is_connected(self) -> bool:
         """Return whether the user is authenticated and if the service is available"""
@@ -100,9 +102,6 @@ class ZoomService(OnlineService):
         logger.debug("User is authenticated: %s", request)
         return True
 
-    def is_authenticated(self):
-        return self.is_connected()
-
     def load(self) -> list[ZoomGame]:
         """Load the user game library from the Zoom API"""
         if not self.is_connected():
@@ -115,13 +114,12 @@ class ZoomService(OnlineService):
         return games
 
     def login_callback(self, url) -> None:
-        if "li_token=" not in url:
+        tokens = parse_qs(urlsplit(url).query).get("li_token", [])
+        if not tokens:
             logger.error("Login callback URL does not contain 'li_token'")
             return
 
-        token = url.split("li_token=")[-1]
-        with open(self.token_path, "w", encoding="utf-8") as token_file:
-            token_file.write(token)
+        save_credentials(self.token_path, tokens[0])
 
         assert not self.is_login_in_progress
         SERVICE_LOGIN.fire(self)

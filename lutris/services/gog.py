@@ -21,6 +21,7 @@ from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineSer
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import i18n, system
+from lutris.util.credentials import save_credentials
 from lutris.util.gog_downloader import GOGDownloader
 from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
@@ -199,8 +200,7 @@ class GOGService(OnlineService):
             return
 
         token = request.json
-        with open(self.token_path, "w", encoding="utf-8") as token_file:
-            token_file.write(json.dumps(token))
+        save_credentials(self.token_path, json.dumps(token))
         if not refresh_token:
             SERVICE_LOGIN.fire(self)
 

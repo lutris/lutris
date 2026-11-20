@@ -1,9 +1,68 @@
 """Calls about the games services (Steam, GOG, ...) offer."""
 
+import asyncio
+from dataclasses import dataclass
+from gettext import gettext as _
+
 from lutris.backend.models import ServiceGameInfo, ServiceInfo
+from lutris.backend.store_login import login_input
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
-from lutris.services import get_enabled_services
+from lutris.exceptions import LutrisError
+from lutris.services import SERVICES, get_enabled_services
+from lutris.services.base import AuthTokenExpiredError, BaseService, OnlineService
+
+
+@dataclass(frozen=True)
+class SourceStatus:
+    name: str
+    online: bool
+    signed_in: bool
+    can_sign_in: bool
+
+
+def _get_service(service_id: str) -> BaseService:
+    service = SERVICES.get(service_id)
+    if service is None:
+        raise LutrisError(_("This game source is unavailable."))
+    return service()
+
+
+async def get_source_status(service_id: str) -> SourceStatus:
+    return await asyncio.to_thread(_get_source_status, service_id)
+
+
+def _get_source_status(service_id: str) -> SourceStatus:
+    service = _get_service(service_id)
+    online = isinstance(service, OnlineService)
+    signed_in = isinstance(service, OnlineService) and bool(service.is_authenticated())
+    return SourceStatus(str(service.name), online, signed_in, login_input(service_id) is not None)
+
+
+async def sync_source(service_id: str) -> None:
+    await asyncio.to_thread(_sync_source, service_id)
+
+
+def _sync_source(service_id: str) -> None:
+    service = _get_service(service_id)
+    if isinstance(service, OnlineService) and not service.is_authenticated():
+        raise LutrisError(_("Sign in to sync %s.") % service.name)
+    try:
+        service.reload()
+    except AuthTokenExpiredError:
+        if isinstance(service, OnlineService):
+            service.logout()
+        raise LutrisError(_("Your session expired. Sign in again to sync %s.") % service.name) from None
+
+
+async def disconnect_source(service_id: str) -> None:
+    await asyncio.to_thread(_disconnect_source, service_id)
+
+
+def _disconnect_source(service_id: str) -> None:
+    service = _get_service(service_id)
+    if isinstance(service, OnlineService):
+        service.logout()
 
 
 async def list_services() -> list[ServiceInfo]:

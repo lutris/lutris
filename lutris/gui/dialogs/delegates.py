@@ -9,7 +9,6 @@ from lutris.game import Game
 from lutris.gui import dialogs
 from lutris.gui.dialogs.cloud_sync import ask_cloud_sync_conflict
 from lutris.gui.dialogs.download import DownloadDialog
-from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
 from lutris.installer import InstallationKind, install_from_lutris
 from lutris.util.downloader import BaseDownloader
 
@@ -68,7 +67,7 @@ class DialogServiceLoginUIDelegate(DialogDelegate, ServiceLoginUIDelegate):
             install_from_lutris(service.client_installer, self)
 
     def show_web_login(self, service: "OnlineService") -> None:
-        WebConnectDialog(service, cast(Gtk.Window, self)).run()
+        self.show_notice(_("Use the Qt frontend to sign in to %s in your browser.") % service.name)
 
     def ask_for_humble_bundle_cookies(self) -> str | None:
         return dialogs.HumbleBundleCookiesDialog(parent=cast(Gtk.Widget, self)).cookies_content

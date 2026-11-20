@@ -29,6 +29,7 @@ from lutris.qt.preferences import PreferencesController
 from lutris.qt.runner_manager import RunnerManagerController
 from lutris.qt.runtime_updates import RuntimeUpdatesController
 from lutris.qt.sidebar import ALL_GAMES, SidebarModel
+from lutris.qt.store_sources import StoreSourcesController
 from lutris.qt.tasks import start_task
 from lutris.util import datapath
 
@@ -65,6 +66,8 @@ class LibraryController(QObject):
         self._artwork_settings.saved.connect(self.update_artwork)
         self._preferences = PreferencesController(prompts, self)
         self._preferences.sourcesChanged.connect(self._on_sources_changed)
+        self._store_sources = StoreSourcesController(prompts, self)
+        self._store_sources.gamesChanged.connect(self.refresh)
         self._runner_manager = RunnerManagerController(prompts, self)
         self._runner_manager.runnersChanged.connect(self.refresh_sidebar)
         self.runtime_updates_controller = RuntimeUpdatesController(prompts, self)
@@ -148,6 +151,10 @@ class LibraryController(QObject):
     @Property(QObject, constant=True)
     def preferences(self) -> PreferencesController:
         return self._preferences
+
+    @Property(QObject, constant=True)
+    def storeSources(self) -> StoreSourcesController:  # noqa: N802
+        return self._store_sources
 
     @Property(QObject, constant=True)
     def runnerManager(self) -> RunnerManagerController:  # noqa: N802
@@ -356,6 +363,7 @@ class LibraryController(QObject):
         view = self.sidebar.view_at(row)
         if view is not None and view != self._view:
             self._view = view
+            self._store_sources.select(view.get("service", ""))
             self._sidebar_row = row
             self.sidebarChanged.emit()
             self._selected_row = -1
@@ -396,8 +404,6 @@ class LibraryController(QObject):
             return _("No games are hidden.")
         if query.installed_only and await library.has_uninstalled_games():
             return _("No installed games found. Uncheck 'Installed only' to show the others.")
-        if query.service:
-            return _("No games found. If this service needs you to log in, the GTK version of Lutris can do that.")
         return _("No games found")
 
     def refresh_sidebar(self) -> None:
@@ -565,6 +571,7 @@ class LibraryController(QObject):
 
     def shutdown(self) -> None:
         self._closed = True
+        self._store_sources.close_login()
         self.runtime_updates_controller.shutdown()
         self._log.close_log()
         self._maintenance.close_maintenance()

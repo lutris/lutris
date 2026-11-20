@@ -831,38 +831,6 @@
         "lineCount": 1
       }
     ],
-    "lutris/gui/dialogs/webconnect_dialog.py": [
-      {
-        "rule": "missing-module-member",
-        "startColumn": 26,
-        "endColumn": 33,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 69,
-        "endColumn": 86,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 25,
-        "endColumn": 43,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 20,
-        "endColumn": 47,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 8,
-        "endColumn": 35,
-        "lineCount": 1
-      }
-    ],
     "lutris/gui/download_queue.py": [
       {
         "rule": "unused-type-ignore-comment",

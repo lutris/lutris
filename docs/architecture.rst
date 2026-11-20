@@ -403,8 +403,8 @@ What it needs next, roughly in order, each with the backend calls it takes:
   options (``preferences``, ``runtime_updates``). It also manages runners and
   GE-Proton builds. Left: GTK's Interface tab, whose options (tray icon, badges, theme, Discord Rich
   Presence) need Qt counterparts first.
-* **Services**: logging in (a web view, QtWebEngine), syncing libraries, and
-  connecting store-specific installers and launch actions.
+* **Services**: connecting store-specific installers and launch actions.
+  Ubisoft Connect still needs a browser-compatible sign-in handoff.
 * **The installer**: service installs (GOG, Steam...), local script files,
   installer URIs, Steam-provided files, and the yes/no and file questions some
   runners ask while installing.
@@ -419,6 +419,20 @@ from GitHub. It reuses the existing SHA-512 verification and installs into
 Steam's ``compatibilitytools.d`` directory. The remove action moves builds
 from that directory to the Trash. Other Proton locations are listed without a
 remove action. GE-Proton (Latest) is still managed by umu at launch.
+
+Selecting a source in Qt exposes **Sign In**, **Sync Library**, and
+**Disconnect** as appropriate. Sign-in uses the system default browser.
+Amazon and ZOOM Platform accept their redirect URL. Epic Games accepts
+its authorization code or the JSON from the final page. itch.io uses a
+dedicated API key. GOG uses the redirect URL for its API token and cookies
+for the library endpoint. EA App, Humble Bundle, Steam Families, Game Jolt
+and DLsite use a user-selected Netscape ``cookies.txt`` export. Lutris
+keeps only cookies from the selected store's domain. ``store_login`` retains the service instance
+until the handoff completes so it can keep transient login data such as
+Amazon's PKCE verifier. The frontend syncs the library on successful
+sign-in. ``services`` also supports manual sync for local sources.
+Existing Ubisoft Connect credentials can still be used for sync. Its old
+sign-in relied on reading browser local storage inside WebKit.
 
 Script installer handoff
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -438,7 +452,7 @@ Lutris.net scripts install from Qt end to end (see above). Not handled yet:
   but its progress isn't reported yet.
 * **Service installs**: ``Game.install`` hands store games to
   ``service.install``, which may use its own installers (GOG's ``gogdl``) or
-  build a script; that needs the service's login state from the backend first.
+  build a script. Sign-in and library sync are in place in Qt.
 * **Local script files and installer URIs**: ``lutris.installer.get_installers``
   already reads files; give the catalog a constructor for them, and route the
   ``lutris:install/...`` command line to the Qt dialog.

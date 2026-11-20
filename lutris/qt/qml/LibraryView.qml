@@ -1,5 +1,8 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 SplitView {
     id: library
@@ -13,10 +16,21 @@ SplitView {
         controller: library.controller
     }
 
-    Loader {
+    ColumnLayout {
         SplitView.fillWidth: true
-        sourceComponent: library.controller.gameCount === 0 ? emptyView
-                         : library.controller.layout === "list" ? gameList : gameGrid
+        spacing: 0
+
+        StoreSourceBar {
+            Layout.fillWidth: true
+            controller: library.controller.storeSources
+        }
+
+        Loader {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            sourceComponent: library.controller.gameCount === 0 ? emptyView
+                             : library.controller.layout === "list" ? gameList : gameGrid
+        }
     }
 
     Component {

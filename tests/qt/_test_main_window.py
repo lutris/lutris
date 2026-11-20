@@ -21,16 +21,19 @@ from lutris.backend import (
     preferences,
     runners,
     runtime_updates,
+    services,
     shortcuts,
+    store_login,
 )
 from lutris.backend.launch_configurations import LaunchChoice
-from lutris.backend.models import ArtworkSettings, SourceSetting, StoragePaths
+from lutris.backend.models import ArtworkSettings, ServiceInfo, SourceSetting, StoragePaths
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.game import LOG_BUFFERS, Game
 from lutris.installer import interpreter
 from lutris.installer.installer import LutrisInstaller
+from lutris.qt import store_sources
 from lutris.qt.main_window import MainWindow
 from lutris.services.base import LutrisBanner, LutrisCoverart
 from lutris.util import path_cache
@@ -773,6 +776,88 @@ def test_qml_manages_ge_proton_from_preferences(
             await wait_for_qml(qt_application, lambda: bool(prompt.property("visible")))
             assert QMetaObject.invokeMethod(prompt, "accept")
             await wait_for_qml(qt_application, lambda: not installed)
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
+
+
+def test_qml_signs_in_via_the_host_browser_and_syncs(
+    qt_application: QGuiApplication, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target = "https://auth.gog.com/auth"
+    redirect = "https://embed.gog.com/on_login_success?code=fixture"
+    actions: list[str] = []
+    signed_in = False
+
+    async def list_sources() -> list[ServiceInfo]:
+        return [ServiceInfo("gog", "GOG", True)]
+
+    async def status(source_id: str) -> services.SourceStatus:
+        assert source_id == "gog"
+        return services.SourceStatus("GOG", True, signed_in, True)
+
+    async def begin(source_id: str) -> store_login.BrowserLogin:
+        assert source_id == "gog"
+        return store_login.BrowserLogin("request", "GOG", target, "redirect")
+
+    async def finish(request_id: str, value: str, cookie_file: str = "") -> None:
+        nonlocal signed_in
+        assert (request_id, value) == ("request", redirect)
+        signed_in = True
+
+    async def sync(source_id: str) -> None:
+        assert source_id == "gog" and signed_in
+        actions.append("sync")
+
+    async def disconnect(source_id: str) -> None:
+        nonlocal signed_in
+        assert source_id == "gog"
+        signed_in = False
+
+    class Desktop:
+        @staticmethod
+        def openUrl(url: QUrl) -> bool:  # noqa: N802
+            actions.append(url.toString())
+            return True
+
+    monkeypatch.setattr(services, "list_services", list_sources)
+    monkeypatch.setattr(services, "get_source_status", status)
+    monkeypatch.setattr(services, "sync_source", sync)
+    monkeypatch.setattr(services, "disconnect_source", disconnect)
+    monkeypatch.setattr(store_login, "begin", begin)
+    monkeypatch.setattr(store_login, "finish", finish)
+    monkeypatch.setattr(store_sources, "QDesktopServices", Desktop)
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        try:
+            await settle(window)
+            window.controller.select_view(window.controller.sidebar.find_row({"service": "gog"}))
+
+            async def click(name: str) -> None:
+                await wait_for_qml(
+                    qt_application,
+                    lambda: bool(
+                        (button := window.window.findChild(QObject, name))
+                        and button.property("visible")
+                        and button.property("enabled")
+                    ),
+                )
+                button = window.window.findChild(QObject, name)
+                assert button is not None and QMetaObject.invokeMethod(button, "clicked")
+
+            await click("storeSignIn")
+            await click("openStoreBrowser")
+            response = window.window.findChild(QObject, "storeLoginResponse")
+            assert response is not None and response.setProperty("text", redirect)
+            await click("finishStoreLogin")
+            await wait_for_qml(qt_application, lambda: actions == [target, "sync"])
+            await click("storeSync")
+            await wait_for_qml(qt_application, lambda: actions == [target, "sync", "sync"])
+            await click("storeDisconnect")
+            await wait_for_qml(qt_application, lambda: not signed_in)
         finally:
             window.shutdown()
 

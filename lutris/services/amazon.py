@@ -28,6 +28,7 @@ from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.amazon.sds_proto2 import CompressionAlgorithm, HashAlgorithm, Manifest, ManifestHeader
+from lutris.util.credentials import save_credentials
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -101,7 +102,7 @@ class AmazonService(OnlineService):
 
     @property
     def credential_files(self):
-        return [self.user_path, self.cookies_path]
+        return [self.user_path]
 
     @property
     def login_url(self):
@@ -169,8 +170,7 @@ class AmazonService(OnlineService):
 
     def save_user_data(self, user_data):
         """Save the user data file"""
-        with open(self.user_path, "w", encoding="utf-8") as user_file:
-            user_file.write(json.dumps(user_data))
+        save_credentials(self.user_path, json.dumps(user_data))
 
     def load_user_data(self):
         """Load the user data file"""
@@ -187,7 +187,6 @@ class AmazonService(OnlineService):
     def generate_code_verifier(self) -> bytes:
         code_verifier = secrets.token_bytes(32)
         code_verifier = base64.urlsafe_b64encode(code_verifier).rstrip(b"=")
-        logger.info("Generated code_verifier: %s", code_verifier)
         return code_verifier
 
     def generate_challange(self, code_verifier: bytes) -> bytes:

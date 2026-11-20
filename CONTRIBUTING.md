@@ -69,8 +69,8 @@ in the project environment and brings it up to date first; you can also
 `source .venv/bin/activate` and run `./bin/lutris -d` directly.
 
 PyGObject, pycairo, dbus-python and evdev are built from source the first
-time, and the libraries Lutris loads through GObject introspection (GTK 3,
-WebKitGTK 4.1, ...) come from your system. `INSTALL.rst` lists the packages
+time, and libraries that Lutris loads through GObject introspection, such as
+GTK 3, come from your system. `INSTALL.rst` lists the packages
 for both on Fedora, Debian/Ubuntu and Arch.
 
 The Qt Quick frontend that is replacing the GTK one (see

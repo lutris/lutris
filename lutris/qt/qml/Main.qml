@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 
@@ -53,6 +55,28 @@ ApplicationWindow {
     }
 
     PromptHost { prompts: window.prompts }
+
+    Connections {
+        target: window.controller.storeSources
+        function onLoginRequested() { storeLoginLoader.active = true }
+        function onLoginClosed() {
+            if (storeLoginLoader.status === Loader.Ready)
+                (storeLoginLoader.item as StoreLoginDialog).close()
+        }
+    }
+
+    Loader {
+        id: storeLoginLoader
+        active: false
+        sourceComponent: StoreLoginDialog {
+            controller: window.controller.storeSources
+            onClosed: {
+                controller.close_login()
+                storeLoginLoader.active = false
+            }
+        }
+        onLoaded: if (status === Loader.Ready) (item as StoreLoginDialog).open()
+    }
 
     Connections {
         target: window.controller.localGames

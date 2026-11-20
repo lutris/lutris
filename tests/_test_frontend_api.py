@@ -139,7 +139,6 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
         "lutris.util.path_cache",
         "lutris.util.system",
     },
-    "lutris/gui/dialogs/webconnect_dialog.py": {"lutris.config", "lutris.services.base", "lutris.util.http"},
     "lutris/gui/display_backend.py": {"lutris.util.graphics.xrandr"},
     "lutris/gui/exception_backstops.py": {"lutris.installer.errors"},
     "lutris/gui/game_actions.py": {

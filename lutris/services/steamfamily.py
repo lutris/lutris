@@ -10,6 +10,7 @@ import requests
 from lutris import settings
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.steam import SteamGame, SteamService
+from lutris.util.credentials import save_credentials
 from lutris.util.log import logger
 from lutris.util.steam.config import get_active_steamid64, get_steam_library
 
@@ -69,8 +70,7 @@ class SteamFamilyService(SteamService, OnlineService):
         access_token = self.extract_access_token(token_data)
         if not access_token:
             raise RuntimeError("Failed to get access token")
-        with open(self.token_path, "w", encoding="utf-8") as token_file:
-            token_file.write(json.dumps(token_data, indent=2))
+        save_credentials(self.token_path, json.dumps(token_data, indent=2))
         self.access_token = self.load_access_token()
 
     @staticmethod
@@ -101,6 +101,7 @@ class SteamFamilyService(SteamService, OnlineService):
         response = self.session.get(
             self.access_token_url,
             cookies=self.load_cookies(),
+            timeout=30,
         )
         response.raise_for_status()
         token_data = response.json()

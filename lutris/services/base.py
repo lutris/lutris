@@ -95,7 +95,6 @@ class BaseService:
     local = False
     drm_free = False  # DRM free games can be added to Lutris from an existing install
     client_installer = None  # ID of a script needed to install the client used by the service
-    scripts = {}  # Mapping of Javascript snippets to handle redirections during auth
     medias = {}
     extra_medias = {}
     default_format = "icon"
@@ -137,29 +136,28 @@ class BaseService:
         does so on the main thread- and runs the reload on a worker thread. It calls
         reloaded_callback when done, passing any error (or None on success)"""
 
-        def do_reload():
-            if self.is_loading:
-                logger.warning("'%s' games are already loading", self.name)
-                return
-
-            try:
-                self.is_loading = True
-
-                self.wipe_game_cache()
-                self.load()
-                self.load_icons()
-                self.add_installed_games()
-                logger.debug("'%s' games reloaded", self.name)
-            finally:
-                self.is_loading = False
-
         def reload_cb(_result, error):
             logger.debug("Reload callback")
             SERVICE_GAMES_LOADED.fire(self)
             reloaded_callback(error)
 
         SERVICE_GAMES_LOADING.fire(self)
-        AsyncCall(do_reload, reload_cb)
+        AsyncCall(self.reload, reload_cb)
+
+    def reload(self) -> None:
+        """Refresh the service's games and artwork on a worker thread."""
+        if self.is_loading:
+            logger.warning("'%s' games are already loading", self.name)
+            return
+        self.is_loading = True
+        try:
+            self.wipe_game_cache()
+            self.load()
+            self.load_icons()
+            self.add_installed_games()
+            logger.debug("'%s' games reloaded", self.name)
+        finally:
+            self.is_loading = False
 
     def load(self):
         logger.warning("Load method not implemented")
@@ -506,6 +504,9 @@ class OnlineService(BaseService):
             return False
         return all(system.path_exists(path) for path in self.credential_files)
 
+    def is_connected(self) -> bool:
+        return bool(self.is_authenticated())
+
     def wipe_game_cache(self):
         """Wipe the game cache, allowing it to be reloaded"""
         if self.cache_path:
@@ -533,5 +534,5 @@ class OnlineService(BaseService):
             logger.warning("No cookies found in %s, please authenticate first", self.cookies_path)
             return
         cookiejar = WebkitCookieJar(self.cookies_path)
-        cookiejar.load()
+        cookiejar.load(ignore_discard=True)
         return cookiejar

@@ -6,7 +6,6 @@ import os
 import shutil
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
-from urllib.parse import unquote
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
@@ -14,7 +13,7 @@ from lutris.database.games import add_game, get_game_by_field, update_existing
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer import install_from_lutris
-from lutris.services.base import SERVICE_LOGIN, SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT, OnlineService
+from lutris.services.base import SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.jobs import AsyncCall
@@ -93,21 +92,10 @@ class UbisoftConnectService(OnlineService):
     icon = "ubisoft"
     runner = "wine"
     client_installer = "ubisoft-connect"
-    browser_size = (460, 690)
-    login_window_width = 460
-    login_window_height = 690
     cookies_path = os.path.join(settings.CACHE_DIR, "ubisoft/.auth")
     token_path = os.path.join(settings.CACHE_DIR, "ubisoft/.token")
     cache_path = os.path.join(settings.CACHE_DIR, "ubisoft/library/")
     login_url = consts.LOGIN_URL
-    redirect_uris = ["https://connect.ubisoft.com/change_domain/"]
-    scripts = {
-        "https://connect.ubisoft.com/ready": ('window.location.replace("https://connect.ubisoft.com/change_domain/");'),
-        "https://connect.ubisoft.com/change_domain/": (
-            'window.location.replace(localStorage.getItem("PRODloginData") +","+ '
-            'localStorage.getItem("PRODrememberMe") +"," + localStorage.getItem("PRODlastProfile"));'
-        ),
-    }
     medias = {
         "cover": UbisoftCover,
     }
@@ -119,18 +107,6 @@ class UbisoftConnectService(OnlineService):
 
     def auth_lost(self):
         SERVICE_LOGOUT.fire(self)
-
-    def login_callback(self, credentials):
-        """Called after the user has logged in successfully"""
-        logger.info("Login to Ubisoft Connect sucessful")
-        url = credentials[len("https://connect.ubisoft.com/change_domain/") :]
-        unquoted_url = unquote(url)
-        storage_jsons = json.loads("[" + unquoted_url + "]")
-        user_data = self.client.authorise_with_local_storage(storage_jsons)
-        logger.debug("Ubisoft user data: %s", user_data)
-        self.client.set_auth_lost_callback(self.auth_lost)
-        SERVICE_LOGIN.fire(self)
-        return (user_data["userId"], user_data["username"])
 
     def is_connected(self):
         res = self.is_authenticated()
