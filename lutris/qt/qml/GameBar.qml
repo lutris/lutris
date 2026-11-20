@@ -84,25 +84,24 @@ Rectangle {
             Layout.fillWidth: true
             spacing: 2
 
+            Label {
+                Layout.fillWidth: true
+                text: bar.active ? bar.controller.selectedGameName : qsTr("No game selected")
+                color: bar.active ? Theme.text : Theme.textMuted
+                textFormat: Text.PlainText
+                font.pointSize: Theme.largeSize
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
+            }
+
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 8
 
-                Label {
-                    Layout.fillWidth: true
-                    Layout.maximumWidth: implicitWidth
-                    text: bar.active ? bar.controller.selectedGameName : qsTr("No game selected")
-                    color: bar.active ? Theme.text : Theme.textMuted
-                    textFormat: Text.PlainText
-                    font.pointSize: Theme.largeSize
-                    font.weight: Font.DemiBold
-                    elide: Text.ElideRight
-                }
-
                 Rectangle {
                     visible: bar.controller.canStop
-                    implicitWidth: running.implicitWidth + 18
-                    implicitHeight: running.implicitHeight + 4
+                    implicitWidth: running.implicitWidth + 16
+                    implicitHeight: running.implicitHeight + 2
                     radius: height / 2
                     color: Qt.alpha(Theme.success, 0.16)
 
@@ -116,17 +115,15 @@ Rectangle {
                     }
                 }
 
-                Item { Layout.fillWidth: true }
-            }
-
-            Label {
-                Layout.fillWidth: true
-                visible: text.length > 0
-                text: bar.active ? bar.details : qsTr("Choose a game to play, install or manage it")
-                textFormat: Text.PlainText
-                font.pointSize: Theme.smallSize
-                color: Theme.textMuted
-                elide: Text.ElideRight
+                Label {
+                    Layout.fillWidth: true
+                    visible: text.length > 0
+                    text: bar.active ? bar.details : qsTr("Choose a game to play, install or manage it")
+                    textFormat: Text.PlainText
+                    font.pointSize: Theme.smallSize
+                    color: Theme.textMuted
+                    elide: Text.ElideRight
+                }
             }
         }
 
