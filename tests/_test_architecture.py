@@ -41,10 +41,14 @@ def find_ui_dependencies(source: str) -> set[str]:
         if isinstance(node, ast.ImportFrom) and node.module:
             if node.module == "lutris.gui" or node.module.startswith("lutris.gui."):
                 found.add(node.module)
+            if node.module == "PySide6.QtWidgets" or (
+                node.module == "PySide6" and any(alias.name == "QtWidgets" for alias in node.names)
+            ):
+                found.add("PySide6.QtWidgets")
             if node.module == "gi.repository":
                 found |= {f"gi.repository.{alias.name}" for alias in node.names if alias.name in UI_NAMESPACES}
         elif isinstance(node, ast.Import):
-            found |= {alias.name for alias in node.names if alias.name.startswith("lutris.gui")}
+            found |= {alias.name for alias in node.names if alias.name.startswith(("lutris.gui", "PySide6.QtWidgets"))}
         elif (
             isinstance(node, ast.Call)
             and isinstance(node.func, ast.Attribute)
@@ -103,12 +107,12 @@ def test_core_has_no_ui_dependencies():
     )
 
 
-def test_qt_frontend_uses_no_gtk():
+def test_qt_frontend_uses_qt_quick():
     violations = find_violations(
         lambda name: name == "qt",
         lambda source: find_ui_dependencies(source) - {"Gio.Application.get_default()"},
     )
-    assert not violations, f"The Qt frontend must not use GTK or the GTK frontend: {violations}"
+    assert not violations, f"The Qt frontend must use Qt Quick for its UI: {violations}"
 
 
 def test_command_line_needs_no_gui():

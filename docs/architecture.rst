@@ -237,18 +237,23 @@ The command-line and Qt frontends have no exceptions. Its ``KNOWN_VIOLATIONS``
 list is what the frozen GTK frontend uses directly, and only keeps it from
 getting worse.
 
-The Qt frontend
----------------
+The Qt Quick frontend
+---------------------
 
 It's an optional extra while it grows: ``uv sync --extra qt`` installs PySide6,
 and ``LUTRIS_FRONTEND=qt`` makes ``bin/lutris`` run it instead of the GTK one.
 The Flatpak doesn't include it yet. Its tests run on Qt's offscreen platform.
 
-So far it shows the library: a sidebar of views (``library.list_categories``
-and the rest), the games of the selected one with search, the installed filter
-and sorting, refreshed as ``lutris.backend.events`` report changes, and it
-launches and stops games (``games.launch_game`` and ``games.stop_game``; the
-backend keeps the running games). Its delegate asks questions with Qt dialogs.
+The frontend uses a PySide6 ``QGuiApplication`` and Qt Quick Controls.
+``lutris/qt/qml`` defines the windows, views and dialogs.
+``LibraryController`` exposes Qt properties, model roles and slots to QML.
+It queries the backend, handles its events, and translates launch prompts
+into QML dialogs. QML strings use the application's gettext catalogs.
+
+The library has search, sorting, an installed filter, and sidebar views
+including categories, sources and saved searches. It launches and stops games
+through the backend. The Game Actions menu can add or remove favorites, hide
+or unhide a game, edit its categories, and open its installation directory.
 
 The library opens in a cover grid. The View menu switches to banners or a list
 and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
@@ -258,7 +263,7 @@ grid reloads its thumbnails when it receives ``ARTWORK_CHANGED``.
 
 What it needs next, roughly in order, each with the backend calls it takes:
 
-* **Game actions**: install, uninstall, categories, shortcuts, moving a game,
+* **Game actions**: install, uninstall, shortcuts, moving a game,
   showing its logs (events carrying ``LogBuffer`` content), and launch
   configurations; delegate methods then receive ``GameInfo`` rather than a
   ``Game``.

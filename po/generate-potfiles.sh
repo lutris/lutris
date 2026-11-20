@@ -13,3 +13,6 @@ find share/lutris/ui -name '*.ui' | sort >> po/POTFILES
 
 echo "" >> ./po/POTFILES
 find lutris -name '*.py' | sort >> po/POTFILES
+
+echo "" >> po/POTFILES
+find lutris/qt/qml -name '*.qml' | sort >> po/POTFILES

@@ -13,7 +13,7 @@ from gettext import gettext as _
 from types import TracebackType
 
 from gi.repository import Gio, GLib
-from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QGuiApplication
 
 from lutris import settings
 from lutris.backend import events
@@ -24,7 +24,7 @@ from lutris.cli.output import CommandOutput
 from lutris.delegates import LaunchUIDelegate
 from lutris.qt.display_backend import QtDisplayBackend
 from lutris.qt.main_window import MainWindow
-from lutris.qt.tasks import show_error
+from lutris.qt.translations import QmlTranslator
 from lutris.util.display_backend import set_display_backend
 
 # Options that need a part of the GUI the Qt frontend doesn't have yet
@@ -40,17 +40,20 @@ class QtLutrisApplication(Gio.Application):
         self.set_default()
         add_options(self)
         GLib.set_application_name(_("Lutris"))
-        self.qt_application: QApplication | None = None
+        self.qt_application: QGuiApplication | None = None
         self.window: MainWindow | None = None
+        self._window_held = False
         # The games holding the application while they run, even with the window closed
         self._running_game_ids: set[str] = set()
 
     def do_startup(self) -> None:
         Gio.Application.do_startup(self)
         # Only the primary instance shows anything, so only it needs Qt
-        self.qt_application = QApplication([sys.argv[0]])
+        self.qt_application = QGuiApplication([sys.argv[0]])
+        self.qt_application.setQuitOnLastWindowClosed(False)
         self.qt_application.setApplicationName("Lutris")
         self.qt_application.setDesktopFileName(settings.APPLICATION_ID)
+        self.qt_application.installTranslator(QmlTranslator(self.qt_application))
         set_display_backend(QtDisplayBackend())
         self._install_exception_backstop()
         events.GAME_LAUNCHING.register(self.on_game_launching)
@@ -61,7 +64,7 @@ class QtLutrisApplication(Gio.Application):
     def do_shutdown(self) -> None:
         # Quitting (on Ctrl+C, say) leaves the window open otherwise
         if self.window:
-            self.window.close()
+            self.window.shutdown()
         Gio.Application.do_shutdown(self)
 
     def do_command_line(self, command_line: Gio.ApplicationCommandLine) -> int:
@@ -80,7 +83,11 @@ class QtLutrisApplication(Gio.Application):
 
         if any(options.contains(name) for name in _UNSUPPORTED_OPTIONS):
             output.print_error(_("The Qt version of Lutris can only show the library so far."))
-        self.show_window()
+        try:
+            self.show_window()
+        except RuntimeError as error:
+            output.print_error(str(error))
+            return 1
         return 0
 
     def _install_exception_backstop(self) -> None:
@@ -90,8 +97,8 @@ class QtLutrisApplication(Gio.Application):
 
         def excepthook(error_type: type[BaseException], error: BaseException, traceback: TracebackType | None) -> None:
             original_excepthook(error_type, error, traceback)
-            if isinstance(error, Exception):
-                show_error(error, self.window)
+            if isinstance(error, Exception) and self.window:
+                self.window.prompts.error(error)
 
         sys.excepthook = excepthook
 
@@ -103,15 +110,19 @@ class QtLutrisApplication(Gio.Application):
     def show_window(self) -> None:
         if not self.window:
             self.window = MainWindow()
-            self.window.closed.connect(self.on_window_closed)
-            self.hold()
+            self.window.window.visibleChanged.connect(self.on_window_visibility_changed)
         self.window.show()
-        self.window.raise_()
-        self.window.activateWindow()
 
-    def on_window_closed(self) -> None:
-        self.window = None
-        self.release()
+    def on_window_visibility_changed(self) -> None:
+        visible = bool(self.window and self.window.window.isVisible())
+        if visible and not self._window_held:
+            self._window_held = True
+            self.hold()
+        elif not visible and self._window_held:
+            self._window_held = False
+            if self.window:
+                self.window.prompts.dismiss()
+            self.release()
 
     def on_game_launching(self, game: GameInfo) -> None:
         if game.id not in self._running_game_ids:

@@ -1,110 +1,130 @@
-"""The table of games the library window shows, as rows from the backend's library query."""
+"""Plain library rows exposed to Qt Quick views."""
 
 import time
-from gettext import gettext as _
-from typing import Any
+from enum import IntEnum
 
-from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPersistentModelIndex, Qt
-from PySide6.QtGui import QFont, QPalette
-from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QAbstractListModel, QByteArray, QModelIndex, QPersistentModelIndex, Qt, QUrl
 
 from lutris.backend.models import LibraryGame
 from lutris.util.strings import get_formatted_playtime
 
-AnyIndex = QModelIndex | QPersistentModelIndex
+type ModelIndex = QModelIndex | QPersistentModelIndex
+type RoleValue = str | bool | QUrl | None
 
-# Each column: what it shows, its title, and the backend's sort key for it, if it can sort by it
-COLUMNS: list[tuple[str, str, str | None]] = [
-    ("name", _("Name"), "name"),
-    ("runner", _("Runner"), None),
-    ("platform", _("Platform"), None),
-    ("year", _("Year"), "year"),
-    ("lastplayed", _("Last Played"), "lastplayed"),
-    ("installed_at", _("Installed At"), "installed_at"),
-    ("playtime", _("Play Time"), "playtime"),
-]
 
-# The model's role for the LibraryGame of a row
-GameRole = Qt.ItemDataRole.UserRole + 1
+class GameRole(IntEnum):
+    TITLE = Qt.ItemDataRole.UserRole + 1
+    RUNNER = TITLE + 1
+    PLATFORM = TITLE + 2
+    YEAR = TITLE + 3
+    LAST_PLAYED = TITLE + 4
+    INSTALLED_AT = TITLE + 5
+    PLAY_TIME = TITLE + 6
+    INSTALLED = TITLE + 7
+    RUNNING = TITLE + 8
+    COVER = TITLE + 9
+    BANNER = TITLE + 10
+    ICON = TITLE + 11
+    ICON_NAME = TITLE + 12
+
+
+_ROLES = {
+    GameRole.TITLE: b"gameTitle",
+    GameRole.RUNNER: b"runnerText",
+    GameRole.PLATFORM: b"platformText",
+    GameRole.YEAR: b"yearText",
+    GameRole.LAST_PLAYED: b"lastPlayedText",
+    GameRole.INSTALLED_AT: b"installedAtText",
+    GameRole.PLAY_TIME: b"playTimeText",
+    GameRole.INSTALLED: b"installed",
+    GameRole.RUNNING: b"running",
+    GameRole.COVER: b"coverUrl",
+    GameRole.BANNER: b"bannerUrl",
+    GameRole.ICON: b"iconUrl",
+    GameRole.ICON_NAME: b"iconName",
+}
+
+_ARTWORK_ROLES = [GameRole.COVER, GameRole.BANNER, GameRole.ICON]
 
 
 def _format_time(timestamp: int | None) -> str:
     return time.strftime("%x", time.localtime(timestamp)) if timestamp and timestamp > 0 else ""
 
 
-def get_column_text(game: LibraryGame, column: str) -> str:
-    """Return what a column says about a game."""
-    if column == "runner":
-        return game.runner_name or ""
-    if column == "year":
-        return str(game.year or "")
-    if column in ("lastplayed", "installed_at"):
-        return _format_time(getattr(game, column))
-    if column == "playtime":
-        return get_formatted_playtime(game.playtime) if game.playtime else ""
-    return str(getattr(game, column) or "")
-
-
-class LibraryModel(QAbstractTableModel):
-    """The games of a library view, in the backend's order. Running games are in bold,
-    and games that aren't installed are dimmed."""
-
-    def __init__(self, parent: Any = None) -> None:
-        super().__init__(parent)
+class LibraryModel(QAbstractListModel):
+    def __init__(self) -> None:
+        super().__init__()
         self._games: list[LibraryGame] = []
-        self._running_game_ids: set[str] = set()
-
-    @property
-    def games(self) -> list[LibraryGame]:
-        return list(self._games)
+        self._running_ids: set[str] = set()
+        self._artwork_revision = 0
 
     def set_games(self, games: list[LibraryGame]) -> None:
         self.beginResetModel()
-        self._games = list(games)
+        self._games = games
         self.endResetModel()
 
     def set_running_game_ids(self, game_ids: set[str]) -> None:
-        self._running_game_ids = set(game_ids)
+        changed = self._running_ids ^ game_ids
+        self._running_ids = set(game_ids)
+        for row, game in enumerate(self._games):
+            if game.game_id in changed:
+                index = self.index(row)
+                self.dataChanged.emit(index, index, [GameRole.RUNNING])
+
+    def invalidate_artwork(self) -> None:
+        self._artwork_revision += 1
         if self._games:
-            self.dataChanged.emit(self.index(0, 0), self.index(len(self._games) - 1, len(COLUMNS) - 1))
+            self.dataChanged.emit(self.index(0), self.index(len(self._games) - 1), _ARTWORK_ROLES)
 
-    def get_game(self, index: AnyIndex) -> LibraryGame | None:
-        return self._games[index.row()] if index.isValid() and index.row() < len(self._games) else None
+    def _artwork_url(self, path: str | None) -> QUrl:
+        if not path:
+            return QUrl()
+        url = QUrl.fromLocalFile(path)
+        url.setQuery(f"revision={self._artwork_revision}")
+        return url
 
-    def find_row(self, view_id: str) -> int | None:
-        """Return the row of a game by its id in the view, or None if it isn't listed."""
-        return next((row for row, game in enumerate(self._games) if game.id == view_id), None)
+    def game_at(self, row: int) -> LibraryGame | None:
+        return self._games[row] if 0 <= row < len(self._games) else None
 
-    def rowCount(self, parent: AnyIndex = QModelIndex()) -> int:  # noqa: B008, N802
+    def find_row(self, view_id: str) -> int:
+        return next((row for row, game in enumerate(self._games) if game.id == view_id), -1)
+
+    def rowCount(self, parent: ModelIndex = QModelIndex()) -> int:  # noqa: N802, B008
         return 0 if parent.isValid() else len(self._games)
 
-    def columnCount(self, parent: AnyIndex = QModelIndex()) -> int:  # noqa: B008, N802
-        return 0 if parent.isValid() else len(COLUMNS)
+    def roleNames(self) -> dict[int, QByteArray]:  # noqa: N802
+        return {role: QByteArray(name) for role, name in _ROLES.items()}
 
-    def headerData(self, section: int, orientation: Qt.Orientation, role: int = Qt.ItemDataRole.DisplayRole) -> Any:  # noqa: N802
-        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
-            return COLUMNS[section][1]
-        return None
-
-    def data(self, index: AnyIndex, role: int = Qt.ItemDataRole.DisplayRole) -> Any:
-        game = self.get_game(index)
+    def data(self, index: ModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> RoleValue:
+        game = self.game_at(index.row())
         if not game:
             return None
-        if role == Qt.ItemDataRole.DisplayRole:
-            return get_column_text(game, COLUMNS[index.column()][0])
-        if role == GameRole:
-            return game
-        if role == Qt.ItemDataRole.ToolTipRole and index.column() == 0:
-            return game.name
-        if role == Qt.ItemDataRole.AccessibleDescriptionRole and index.column() == 0:
-            if game.game_id in self._running_game_ids:
-                return _("Running")
-            if not game.installed:
-                return _("Not installed")
-        if role == Qt.ItemDataRole.FontRole and game.game_id in self._running_game_ids:
-            font = QFont()
-            font.setBold(True)
-            return font
-        if role == Qt.ItemDataRole.ForegroundRole and not game.installed:
-            return QApplication.palette().brush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text)
+        artwork = game.artwork
+        match role:
+            case GameRole.TITLE | Qt.ItemDataRole.DisplayRole:
+                return game.name
+            case GameRole.RUNNER:
+                return game.runner_name or ""
+            case GameRole.PLATFORM:
+                return game.platform or ""
+            case GameRole.YEAR:
+                return str(game.year or "")
+            case GameRole.LAST_PLAYED:
+                return _format_time(game.lastplayed)
+            case GameRole.INSTALLED_AT:
+                return _format_time(game.installed_at)
+            case GameRole.PLAY_TIME:
+                return get_formatted_playtime(game.playtime) if game.playtime else ""
+            case GameRole.INSTALLED:
+                return game.installed
+            case GameRole.RUNNING:
+                return game.game_id in self._running_ids
+            case GameRole.COVER:
+                return self._artwork_url(artwork.cover_path if artwork else None)
+            case GameRole.BANNER:
+                return self._artwork_url(artwork.banner_path if artwork else None)
+            case GameRole.ICON:
+                return self._artwork_url(artwork.icon_path if artwork else None)
+            case GameRole.ICON_NAME:
+                return (artwork.icon_name or "") if artwork else ""
         return None

@@ -1,103 +1,78 @@
-"""The library window's sidebar: the views of the library it can show."""
+"""Group library views into a model for the Qt Quick sidebar."""
 
+from dataclasses import dataclass
 from gettext import gettext as _
-from typing import Any
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QTreeWidget, QTreeWidgetItem
+from PySide6.QtCore import QAbstractListModel, QByteArray, QModelIndex, Qt
 
 from lutris.backend import library, runners, services
+from lutris.qt.library_model import ModelIndex
 
-# The sidebar's role for the view an item selects: LibraryQuery's fields for it
-ViewRole = Qt.ItemDataRole.UserRole + 1
-
-ALL_GAMES: dict[str, str] = {"category": "all"}
-
-# The library's own views
-LIBRARY_VIEWS: list[tuple[str, dict[str, str]]] = [
-    (_("Games"), ALL_GAMES),
-    (_("Recent"), {"dynamic_category": "recent"}),
-    (_("Running"), {"dynamic_category": "running"}),
-    (_("Favorites"), {"category": "favorite"}),
-    (_("Uncategorized"), {"dynamic_category": ".uncategorized"}),
-    (_("Missing"), {"dynamic_category": "missing"}),
-    (_("Hidden"), {"category": ".hidden"}),
-]
+ALL_GAMES = {"category": "all"}
+_LABEL_ROLE = Qt.ItemDataRole.UserRole + 1
+_SECTION_ROLE = _LABEL_ROLE + 1
 
 
-class Sidebar(QTreeWidget):
-    """Lists the library's views by section; view_selected is emitted with the view's
-    fields for a LibraryQuery when one is selected."""
+@dataclass(frozen=True)
+class SidebarEntry:
+    title: str
+    view: dict[str, str]
 
-    view_selected = Signal(dict)
 
-    def __init__(self, parent: Any = None) -> None:
-        super().__init__(parent)
-        self.setHeaderHidden(True)
-        self.setRootIsDecorated(False)
-        self.setIndentation(12)
-        self.currentItemChanged.connect(self._on_current_item_changed)
-        self._view: dict[str, str] = ALL_GAMES
-
-    @property
-    def view(self) -> dict[str, str]:
-        """The view selected."""
-        return dict(self._view)
+class SidebarModel(QAbstractListModel):
+    def __init__(self) -> None:
+        super().__init__()
+        self._entries: list[tuple[str, SidebarEntry]] = []
 
     async def refresh(self) -> None:
-        """Rebuild the sidebar from the backend, keeping the selected view if it's still there."""
-        categories = await library.list_categories()
-        saved_searches = await library.list_saved_searches()
-        enabled_services = await services.list_services()
-        installed_runners = await runners.list_installed_runners()
-        platforms = await library.list_platforms()
+        sections = (
+            (
+                _("Library"),
+                [
+                    SidebarEntry(_("Games"), ALL_GAMES),
+                    SidebarEntry(_("Recent"), {"dynamic_category": "recent"}),
+                    SidebarEntry(_("Running"), {"dynamic_category": "running"}),
+                    SidebarEntry(_("Favorites"), {"category": "favorite"}),
+                    SidebarEntry(_("Uncategorized"), {"dynamic_category": ".uncategorized"}),
+                    SidebarEntry(_("Missing"), {"dynamic_category": "missing"}),
+                    SidebarEntry(_("Hidden"), {"category": ".hidden"}),
+                ],
+            ),
+            (_("Categories"), [SidebarEntry(name, {"category": name}) for name in await library.list_categories()]),
+            (
+                _("Saved Searches"),
+                [SidebarEntry(item.name, {"saved_search": item.name}) for item in await library.list_saved_searches()],
+            ),
+            (_("Sources"), [SidebarEntry(item.name, {"service": item.id}) for item in await services.list_services()]),
+            (
+                _("Runners"),
+                [
+                    SidebarEntry(item.human_name, {"runner": item.name})
+                    for item in await runners.list_installed_runners()
+                ],
+            ),
+            (_("Platforms"), [SidebarEntry(name, {"platform": name}) for name in await library.list_platforms()]),
+        )
+        self.beginResetModel()
+        self._entries = [(section, entry) for section, entries in sections for entry in entries]
+        self.endResetModel()
 
-        sections: list[tuple[str, list[tuple[str, dict[str, str]]]]] = [
-            (_("Library"), LIBRARY_VIEWS),
-            (_("Categories"), [(name, {"category": name}) for name in categories]),
-            (_("Saved Searches"), [(search.name, {"saved_search": search.name}) for search in saved_searches]),
-            (_("Sources"), [(service.name, {"service": service.id}) for service in enabled_services]),
-            (_("Runners"), [(runner.human_name, {"runner": runner.name}) for runner in installed_runners]),
-            (_("Platforms"), [(platform, {"platform": platform}) for platform in platforms]),
-        ]
+    def view_at(self, row: int) -> dict[str, str] | None:
+        return self._entries[row][1].view if 0 <= row < len(self._entries) else None
 
-        selected = self._view
-        self.blockSignals(True)
-        self.clear()
-        selected_item = None
-        for title, views in sections:
-            if not views:
-                continue
-            section = QTreeWidgetItem(self, [title])
-            section.setFlags(Qt.ItemFlag.ItemIsEnabled)
-            font = section.font(0)
-            font.setBold(True)
-            section.setFont(0, font)
-            for label, view in views:
-                item = QTreeWidgetItem(section, [label])
-                item.setData(0, ViewRole, view)
-                if view == selected:
-                    selected_item = item
-        self.expandAll()
-        self.blockSignals(False)
+    def find_row(self, view: dict[str, str]) -> int:
+        return next((row for row, (_, entry) in enumerate(self._entries) if entry.view == view), -1)
 
-        if selected_item:
-            self.setCurrentItem(selected_item)
-        else:
-            # The view went away (its category was removed, say), so show all games
-            self.select_view(ALL_GAMES)
+    def rowCount(self, parent: ModelIndex = QModelIndex()) -> int:  # noqa: N802, B008
+        return 0 if parent.isValid() else len(self._entries)
 
-    def select_view(self, view: dict[str, str]) -> None:
-        for index in range(self.topLevelItemCount()):
-            section = self.topLevelItem(index)
-            for child_index in range(section.childCount() if section else 0):
-                item = section.child(child_index) if section else None
-                if item and item.data(0, ViewRole) == view:
-                    self.setCurrentItem(item)
-                    return
+    def roleNames(self) -> dict[int, QByteArray]:  # noqa: N802
+        return {_LABEL_ROLE: QByteArray(b"viewTitle"), _SECTION_ROLE: QByteArray(b"sectionTitle")}
 
-    def _on_current_item_changed(self, current: QTreeWidgetItem | None, _previous: QTreeWidgetItem | None) -> None:
-        view = current.data(0, ViewRole) if current else None
-        if view and view != self._view:
-            self._view = view
-            self.view_selected.emit(dict(view))
+    def data(self, index: ModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> str | None:
+        if not index.isValid():
+            return None
+        section, entry = self._entries[index.row()]
+        if role in (_LABEL_ROLE, Qt.ItemDataRole.DisplayRole):
+            return entry.title
+        return section if role == _SECTION_ROLE else None
