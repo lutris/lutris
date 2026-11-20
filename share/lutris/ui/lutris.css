@@ -24,6 +24,11 @@
   padding: 3px 6px;
 }
 
+.info-pill-warning {
+  color: @error_color;
+  background-color: alpha(@error_color, .1);
+}
+
 .option-wrapper-assigned-here > label {
     font-weight: bold;
 }
