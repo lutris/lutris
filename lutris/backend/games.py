@@ -2,11 +2,15 @@
 
 import asyncio
 import os
+from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
 
+from lutris.api import parse_installer_url
 from lutris.backend.models import GameInfo
 from lutris.database import games as games_db
-from lutris.game import GAME_START, GAME_STOPPED, Game
+from lutris.delegates import CommandLineUIDelegate
+from lutris.exceptions import LutrisError
+from lutris.game import GAME_START, GAME_STOPPED, LOG_BUFFERS, Game
 from lutris.game import export_game as _export_game
 from lutris.game import import_game as _import_game
 from lutris.util import resources
@@ -85,12 +89,38 @@ GAME_STOPPED.register(_on_game_stopped)
 async def launch_game(game_id: str, launch_ui_delegate: "LaunchUIDelegate") -> bool:
     """Launch a game; the events in lutris.backend.events follow how it goes. Returns
     False if it can't be launched (it isn't installed, say), with nothing to follow."""
+    if game_id in _running_games:
+        return False
     game = Game(game_id)
     _running_games[game_id] = game
     if not game.launch(launch_ui_delegate):
         _running_games.pop(game_id, None)
         return False
     return True
+
+
+async def launch_from_uri(uri: str) -> str:
+    """Request a launch from a Lutris URI and return the target game's id."""
+    try:
+        request = parse_installer_url(uri)
+    except ValueError as error:
+        raise LutrisError(_("Invalid Lutris URI: %s") % uri) from error
+    action = request.get("action")
+    identifier = request.get("game_slug")
+    if not identifier or action not in {"rungame", "rungameid"} or request.get("service"):
+        raise LutrisError(_("This version of Lutris supports launch URIs for installed library games."))
+    if action == "rungameid":
+        game = await get_game(identifier)
+    else:
+        matches = games_db.get_games_by_slug(identifier)
+        if len(matches) > 1:
+            raise LutrisError(_("Multiple games match %s. Use a game ID instead.") % identifier)
+        game = to_game_info(matches[0]) if matches else None
+    if not game or not game.installed:
+        raise LutrisError(_("No installed game matches %s.") % identifier)
+    if not await launch_game(game.id, CommandLineUIDelegate(request.get("launch_config_name"))):
+        raise LutrisError(_("Could not launch %s.") % game.name)
+    return game.id
 
 
 async def stop_game(game_id: str) -> None:
@@ -109,6 +139,12 @@ async def list_games(installed_only: bool = False) -> list[GameInfo]:
     """Return the games in the library, or only the installed ones."""
     db_games = games_db.get_games(filters=({"installed": 1} if installed_only else None))
     return [to_game_info(db_game) for db_game in db_games]
+
+
+async def get_game_log(game_id: str) -> str:
+    """Return the output collected for a game's most recent launch."""
+    buffer = LOG_BUFFERS.get(game_id)
+    return buffer.text if buffer else ""
 
 
 async def get_game(game_id: str) -> GameInfo | None:

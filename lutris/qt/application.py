@@ -6,6 +6,7 @@ PySide6's Qt dispatches its events through GLib's main loop, which
 Gio.Application.run() runs, with asyncio on it (see lutris.util.mainloop).
 """
 
+import asyncio
 import os
 import signal
 import sys
@@ -16,9 +17,10 @@ from gi.repository import Gio, GLib
 from PySide6.QtGui import QGuiApplication
 
 from lutris import settings
-from lutris.backend import events
+from lutris.backend import events, games
+from lutris.backend.errors import LutrisError
 from lutris.backend.models import GameInfo
-from lutris.cli.commands import handle_command_line, start_lutris
+from lutris.cli.commands import INTERRUPTED_STATUS, handle_command_line, start_lutris
 from lutris.cli.options import add_options, is_text_command
 from lutris.cli.output import CommandOutput
 from lutris.delegates import LaunchUIDelegate
@@ -26,9 +28,10 @@ from lutris.qt.display_backend import QtDisplayBackend
 from lutris.qt.main_window import MainWindow
 from lutris.qt.translations import QmlTranslator
 from lutris.util.display_backend import set_display_backend
+from lutris.util.log import logger
 
 # Options that need a part of the GUI the Qt frontend doesn't have yet
-_UNSUPPORTED_OPTIONS = ("install", "reinstall", "submit-issue", GLib.OPTION_REMAINING)
+_UNSUPPORTED_OPTIONS = ("install", "reinstall", "submit-issue")
 
 
 class QtLutrisApplication(Gio.Application):
@@ -43,8 +46,13 @@ class QtLutrisApplication(Gio.Application):
         self.qt_application: QGuiApplication | None = None
         self.window: MainWindow | None = None
         self._window_held = False
+        self._local_launch_status: int | None = None
         # The games holding the application while they run, even with the window closed
         self._running_game_ids: set[str] = set()
+
+    def run(self, argv: list[str] | None = None) -> int:
+        status = super().run(argv)
+        return status if self._local_launch_status is None else self._local_launch_status
 
     def do_startup(self) -> None:
         Gio.Application.do_startup(self)
@@ -82,13 +90,43 @@ class QtLutrisApplication(Gio.Application):
             return 0
 
         if any(options.contains(name) for name in _UNSUPPORTED_OPTIONS):
-            output.print_error(_("The Qt version of Lutris can only show the library so far."))
+            output.print_error(_("This command is not available in the Qt version of Lutris yet."))
+            return 1
+        if remaining := options.lookup_value(GLib.OPTION_REMAINING):
+            uris = remaining.get_strv()
+            if len(uris) != 1:
+                output.print_error(_("Supply one Lutris launch URI."))
+                return 1
+            self.create_asyncio_task(self._launch_from_uri(command_line, uris[0]))
+            return 0
         try:
             self.show_window()
         except RuntimeError as error:
             output.print_error(str(error))
             return 1
         return 0
+
+    async def _launch_from_uri(self, command_line: Gio.ApplicationCommandLine, uri: str) -> None:
+        status = 1
+        output = CommandOutput(command_line)
+        try:
+            game_id = await games.launch_from_uri(uri)
+            # The launch event runs at idle, after this command releases its application hold
+            self._hold_for_game(game_id)
+            status = 0
+        except asyncio.CancelledError:
+            status = INTERRUPTED_STATUS
+            raise
+        except LutrisError as error:
+            output.print_error(error.message)
+        except Exception as error:
+            logger.exception("Shortcut launch failed: %s", error)
+            output.print_error(str(error))
+        finally:
+            if not command_line.get_is_remote():
+                self._local_launch_status = status
+            command_line.set_exit_status(status)
+            command_line.done()
 
     def _install_exception_backstop(self) -> None:
         """Show the errors that escape Qt's slots, which PySide6 passes to sys.excepthook,
@@ -125,8 +163,11 @@ class QtLutrisApplication(Gio.Application):
             self.release()
 
     def on_game_launching(self, game: GameInfo) -> None:
-        if game.id not in self._running_game_ids:
-            self._running_game_ids.add(game.id)
+        self._hold_for_game(game.id)
+
+    def _hold_for_game(self, game_id: str) -> None:
+        if game_id not in self._running_game_ids:
+            self._running_game_ids.add(game_id)
             self.hold()
 
     def on_game_stopped(self, game: GameInfo) -> None:

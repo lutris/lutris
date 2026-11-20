@@ -11,9 +11,11 @@ from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 
 from lutris import settings
-from lutris.backend import events, game_actions
+from lutris.backend import events, game_actions, shortcuts
+from lutris.backend.launch_configurations import LaunchChoice
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
+from lutris.game import LOG_BUFFERS, Game
 from lutris.qt.main_window import MainWindow
 from lutris.services.base import LutrisBanner, LutrisCoverart
 from lutris.util.test_config import setup_test_environment
@@ -247,5 +249,143 @@ def test_qml_actions_update_favorites_and_categories(
             window.shutdown()
             if category := categories_db.get_category_by_name(category_name):
                 categories_db.remove_category(int(category["id"]))
+
+    asyncio.run(run())
+
+
+async def open_game_action(window: MainWindow, application: QGuiApplication, game_id: str, action: str) -> None:
+    controller = window.controller
+    controller.select_game(controller.model.find_row(game_id))
+    button = window.window.findChild(QQuickItem, "libraryGameActions")
+    menu = window.window.findChild(QObject, "libraryGameMenu")
+    assert button is not None and menu is not None
+    application.processEvents()
+    point = button.mapToScene(QPointF(button.width() / 2, button.height() / 2)).toPoint()
+    QTest.mouseClick(window.window, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, point)
+    await wait_for_qml(application, lambda: bool(menu.property("visible")))
+    item = window.window.findChild(QObject, action)
+    assert item is not None and item.property("enabled")
+    assert QMetaObject.invokeMethod(item, "triggered")
+    assert QMetaObject.invokeMethod(menu, "close")
+
+
+def test_qml_log_tracks_output_and_resets_on_relaunch(
+    qt_application: QGuiApplication, library: list[str], fake_main_loop: FakeMainLoop
+) -> None:
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        target = library[0]
+        buffer = Game(target).log_buffer
+        try:
+            await settle(window)
+            buffer.append("<startup>\n")
+            await open_game_action(window, qt_application, target, "showGameLogs")
+            text = window.window.findChild(QObject, "gameLogText")
+            assert text is not None
+            await wait_for_qml(qt_application, lambda: text.property("text") == "<startup>\n")
+
+            buffer.append("next line\n")
+            for _ in range(3):
+                fake_main_loop.run_pending()
+            await wait_for_qml(qt_application, lambda: text.property("text") == "<startup>\nnext line\n")
+
+            buffer.clear()
+            buffer.append("second launch\n")
+            for _ in range(3):
+                fake_main_loop.run_pending()
+            await wait_for_qml(qt_application, lambda: text.property("text") == "second launch\n")
+        finally:
+            window.shutdown()
+            LOG_BUFFERS.pop(target, None)
+
+    asyncio.run(run())
+
+
+def test_qml_launch_configuration_uses_selected_index(qt_application: QGuiApplication) -> None:
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        try:
+            await settle(window)
+
+            def answer() -> None:
+                dialog = window.window.findChild(QObject, "launchConfigurationDialog")
+                choice = window.window.findChild(QObject, "launchConfigurationChoice")
+                remember = window.window.findChild(QObject, "rememberLaunchConfiguration")
+                if dialog is not None and choice is not None and remember is not None and choice.property("count") == 2:
+                    choice.setProperty("currentIndex", 1)
+                    remember.setProperty("checked", True)
+                    QMetaObject.invokeMethod(dialog, "accept")
+
+            deadline = QTimer(window, singleShot=True, interval=1000)
+            deadline.timeout.connect(window.prompts.dismiss)
+            QTimer.singleShot(50, answer)
+            deadline.start()
+            assert window.prompts.choose_configuration("Launch", ("Primary", "Alternative"), None) == LaunchChoice(
+                1, True
+            )
+            deadline.stop()
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
+
+
+def test_qml_shortcuts_submit_the_destination_and_configuration(
+    qt_application: QGuiApplication, library: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    changes: list[tuple[str, bool, str]] = []
+
+    async def get_shortcuts(game_id: str) -> shortcuts.GameShortcuts:
+        assert game_id == library[0]
+        exists = bool(changes and changes[-1][1])
+        return shortcuts.GameShortcuts(
+            (shortcuts.ShortcutTarget("menu", "Application Menu", exists),),
+            ("Primary", "Windowed"),
+            ("", "Windowed"),
+        )
+
+    async def set_shortcut(game_id: str, kind: str, present: bool, configuration: str) -> shortcuts.GameShortcuts:
+        changes.append((kind, present, configuration))
+        return await get_shortcuts(game_id)
+
+    monkeypatch.setattr(shortcuts, "get_shortcuts", get_shortcuts)
+    monkeypatch.setattr(shortcuts, "set_shortcut", set_shortcut)
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        try:
+            await settle(window)
+            await open_game_action(window, qt_application, library[0], "manageGameShortcuts")
+            choice = window.window.findChild(QObject, "shortcutConfigurationChoice")
+            assert choice is not None
+            await wait_for_qml(qt_application, lambda: choice.property("count") == 2)
+            choice.setProperty("currentIndex", 1)
+
+            def shortcut_button(item: QQuickItem | None) -> QQuickItem | None:
+                if item is None or item.objectName() == "menuShortcut":
+                    return item
+                return next((match for child in item.childItems() if (match := shortcut_button(child))), None)
+
+            def find_button() -> QQuickItem | None:
+                return shortcut_button(window.window.contentItem())
+
+            button = find_button()
+            assert button is not None and button.property("text") == "Create"
+            assert QMetaObject.invokeMethod(button, "clicked")
+
+            def removal_available() -> bool:
+                remove = find_button()
+                return bool(remove and remove.property("text") == "Remove" and remove.property("enabled"))
+
+            await wait_for_qml(qt_application, removal_available)
+            remove = find_button()
+            assert remove is not None and QMetaObject.invokeMethod(remove, "clicked")
+            await wait_for_qml(qt_application, lambda: len(changes) == 2)
+            assert changes == [("menu", True, "Windowed"), ("menu", False, "")]
+        finally:
+            window.shutdown()
 
     asyncio.run(run())

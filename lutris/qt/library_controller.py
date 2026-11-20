@@ -17,6 +17,8 @@ from lutris.backend.models import GameInfo, LibraryGame
 from lutris.exceptions import LutrisError
 from lutris.qt.category_model import CategoryModel
 from lutris.qt.delegates import PromptController, QtLaunchUIDelegate
+from lutris.qt.game_log import GameLogController
+from lutris.qt.game_shortcuts import GameShortcutController
 from lutris.qt.library_model import LibraryModel
 from lutris.qt.sidebar import ALL_GAMES, SidebarModel
 from lutris.qt.tasks import start_task
@@ -39,10 +41,11 @@ class LibraryController(QObject):
     def __init__(self, prompts: PromptController) -> None:
         super().__init__()
         self._prompts = prompts
-        self._launch_delegate = QtLaunchUIDelegate(prompts)
         self.model = LibraryModel()
         self.sidebar = SidebarModel()
         self.categories = CategoryModel()
+        self._log = GameLogController(prompts, self)
+        self._shortcuts = GameShortcutController(prompts, self)
         self.model.setParent(self)
         self.sidebar.setParent(self)
         self.categories.setParent(self)
@@ -101,6 +104,14 @@ class LibraryController(QObject):
         self.model.set_running_game_ids(self._running_ids | self._launch_requests)
         self.refresh_sidebar()
         self.refresh()
+
+    @Property(QObject, constant=True)
+    def gameLog(self) -> GameLogController:  # noqa: N802
+        return self._log
+
+    @Property(QObject, constant=True)
+    def gameShortcuts(self) -> GameShortcutController:  # noqa: N802
+        return self._shortcuts
 
     @Property(QObject, constant=True)
     def gamesModel(self) -> LibraryModel:  # noqa: N802
@@ -166,6 +177,16 @@ class LibraryController(QObject):
     @property
     def selected_game(self) -> LibraryGame | None:
         return self.model.game_at(self._selected_row)
+
+    @Property(str, notify=selectionChanged)
+    def selectedGameName(self) -> str:  # noqa: N802
+        game = self.selected_game
+        return game.name if game else ""
+
+    @Property(bool, notify=selectionChanged)
+    def selectedGameInstalled(self) -> bool:  # noqa: N802
+        game = self.selected_game
+        return bool(game and game.installed)
 
     @Property(bool, notify=selectionChanged)
     def canPlay(self) -> bool:  # noqa: N802
@@ -348,14 +369,20 @@ class LibraryController(QObject):
     @Slot()
     def play(self) -> None:
         game = self.selected_game
-        if game and game.game_id and self.canPlay:
-            self._launch_requests.add(game.game_id)
-            self._update_running_state()
-            self._start_task(self._launch(game.game_id))
+        if game and game.game_id and game.installed:
+            self.launch(game.game_id, False)
 
-    async def _launch(self, game_id: str) -> None:
+    @Slot(str, bool)
+    def launch(self, game_id: str, choose_again: bool) -> None:
+        if not game_id or self._is_running(game_id):
+            return
+        self._launch_requests.add(game_id)
+        self._update_running_state()
+        self._start_task(self._launch(game_id, choose_again))
+
+    async def _launch(self, game_id: str, choose_again: bool) -> None:
         try:
-            if await games.launch_game(game_id, self._launch_delegate):
+            if await games.launch_game(game_id, QtLaunchUIDelegate(self._prompts, choose_again=choose_again)):
                 self._running_ids.add(game_id)
         finally:
             self._launch_requests.discard(game_id)
@@ -440,6 +467,7 @@ class LibraryController(QObject):
 
     def shutdown(self) -> None:
         self._closed = True
+        self._log.close_log()
         for registration in self._registrations:
             registration.unregister()
         self._refresh_timer.stop()

@@ -254,6 +254,12 @@ The library has search, sorting, an installed filter, and sidebar views
 including categories, sources and saved searches. It launches and stops games
 through the backend. The Game Actions menu can add or remove favorites, hide
 or unhide a game, edit its categories, and open its installation directory.
+It also shows live game logs and manages desktop, application menu, and Steam
+shortcuts. When a game has multiple launch configurations, Qt can prompt for
+one and remember the choice. ``lutris:rungame/...`` and ``lutris:rungameid/...``
+launch installed library games, including the launch target encoded in a shortcut.
+A shortcut uses the running instance if there is one. On a fresh launch,
+``LUTRIS_FRONTEND=qt`` selects Qt as usual. Log updates use ``GAME_LOG_CHANGED`` and ``games.get_game_log``.
 
 The library opens in a cover grid. The View menu switches to banners or a list
 and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
@@ -263,18 +269,18 @@ grid reloads its thumbnails when it receives ``ARTWORK_CHANGED``.
 
 What it needs next, roughly in order, each with the backend calls it takes:
 
-* **Game actions**: install, uninstall, shortcuts, moving a game,
-  showing its logs (events carrying ``LogBuffer`` content), and launch
-  configurations; delegate methods then receive ``GameInfo`` rather than a
-  ``Game``.
+* **Game actions** still need install, uninstall, and move flows. The standalone Steam
+  Big Picture shortcut still needs a Qt entry point. The launch configuration
+  prompt receives ``GameInfo`` and configuration names. The remaining launch
+  delegate methods still need the same plain-data boundary.
 * **Configuration**: game, runner and system options, as data, with a widget
   generator like ``lutris/gui/config``.
 * **Services and runners**: logging in (a web view, QtWebEngine), syncing
   libraries, installing and configuring runners.
 * **The installer**: starting an installation, its questions as delegate calls,
   its progress and downloads as events.
-* **Preferences** and the rest of the application: the tray icon, runtime
-  updates, and the command-line URIs (``lutris:rungame/...``).
+* **Preferences** and the rest of the application still need the tray icon,
+  runtime updates, and the remaining command-line actions, including installer URIs.
 
 Stage 3
 -------

@@ -65,8 +65,8 @@ def create_launcher(
     menu: bool = False,
 ) -> None:
     """Create a .desktop file."""
-    desktop_dir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
-    if not desktop_dir:
+    desktop_dir = get_xdg_entry("DESKTOP") if desktop else None
+    if desktop and not desktop_dir:
         raise RuntimeError("Creating launcher: unable to find directory for .desktop files")
     lutris_executable = get_lutris_executable()
 
@@ -100,14 +100,13 @@ def create_launcher(
         stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IWGRP,
     )
 
-    if desktop:
+    if desktop_dir:
         os.makedirs(desktop_dir, exist_ok=True)
         launcher_path = os.path.join(desktop_dir, launcher_filename)
         logger.debug("Creating Desktop icon in %s", launcher_path)
         shutil.copy(tmp_launcher_path, launcher_path)
     if menu:
-        user_dir = os.path.expanduser("~/.local/share") if LINUX_SYSTEM.is_flatpak() else GLib.get_user_data_dir()
-        menu_path = os.path.join(user_dir, "applications")
+        menu_path = get_menu_launcher_directory()
         os.makedirs(menu_path, exist_ok=True)
         launcher_path = os.path.join(menu_path, launcher_filename)
         logger.debug("Creating menu launcher in %s", launcher_path)
@@ -127,12 +126,23 @@ def get_launcher_path(game_slug: str, game_id: str) -> str:
     return os.path.join(desktop_dir, get_xdg_basename(game_slug, game_id, base_dir=desktop_dir))
 
 
+def get_menu_launcher_directory() -> str:
+    user_dir = os.path.expanduser("~/.local/share") if LINUX_SYSTEM.is_flatpak() else GLib.get_user_data_dir()
+    return os.path.join(user_dir, "applications")
+
+
 def get_menu_launcher_path(game_slug: str, game_id: str) -> str:
     """Return the path to a XDG menu launcher, prioritizing legacy paths if
     they exist
     """
-    menu_dir = os.path.join(GLib.get_user_data_dir(), "applications")
-    return os.path.join(menu_dir, get_xdg_basename(game_slug, game_id, base_dir=menu_dir))
+    menu_dir = get_menu_launcher_directory()
+    launcher = os.path.join(menu_dir, get_xdg_basename(game_slug, game_id, base_dir=menu_dir))
+    if LINUX_SYSTEM.is_flatpak() and not system.path_exists(launcher):
+        sandbox_dir = os.path.join(GLib.get_user_data_dir(), "applications")
+        old_launcher = os.path.join(sandbox_dir, get_xdg_basename(game_slug, game_id, base_dir=sandbox_dir))
+        if system.path_exists(old_launcher):
+            return old_launcher
+    return launcher
 
 
 def desktop_launcher_exists(game_slug: str, game_id: str) -> bool:

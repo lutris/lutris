@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Dialogs as NativeDialogs
@@ -81,6 +83,17 @@ Item {
         onRejected: host.prompts.answer_file(false, "")
     }
 
+    Loader {
+        id: configurationLoader
+        active: false
+        readonly property LaunchConfigurationDialog dialog: item as LaunchConfigurationDialog
+
+        sourceComponent: LaunchConfigurationDialog {
+            prompts: host.prompts
+            onClosed: configurationLoader.active = false
+        }
+    }
+
     Connections {
         target: host.prompts
 
@@ -106,7 +119,21 @@ Item {
             prompt.open()
         }
 
+        function onConfigurationRequested(title, names, currentIndex, remembered) {
+            configurationLoader.active = true
+            if (configurationLoader.status === Loader.Ready) {
+                const dialog = configurationLoader.dialog
+                dialog.title = title
+                dialog.configurationNames = names
+                dialog.selectedIndex = currentIndex
+                dialog.remembered = remembered
+                dialog.open()
+            }
+        }
+
         function onCancelRequested() {
+            if (configurationLoader.status === Loader.Ready)
+                configurationLoader.dialog.reject()
             notice.close()
             prompt.reject()
             filePrompt.close()

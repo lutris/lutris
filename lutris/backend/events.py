@@ -31,6 +31,8 @@ GAME_STOPPED = NotificationSource()
 GAME_LAUNCH_STATUS = NotificationSource()
 # Fired with a game's id and the error, when a game fails and nothing else reported it
 GAME_FAILED = NotificationSource()
+# Fired with a game id when its log snapshot changes
+GAME_LOG_CHANGED = NotificationSource()
 # Fired with nothing when categories are added, renamed or removed, or games change category
 CATEGORIES_CHANGED = NotificationSource()
 # Fired with nothing when saved searches are added, changed or removed
@@ -53,6 +55,7 @@ core.GAME_STARTED.register(_forward_game(GAME_STARTED))
 core.GAME_STOPPED.register(_forward_game(GAME_STOPPED))
 core.GAME_LAUNCH_STATUS.register(lambda game: GAME_LAUNCH_STATUS.fire(game.id, game.launch_status))
 core.GAME_UNHANDLED_ERROR.register(lambda game, error: GAME_FAILED.fire(game.id, error))
+core.GAME_LOG_CHANGED.register(GAME_LOG_CHANGED.fire)
 CATEGORIES_UPDATED.register(lambda *_args: CATEGORIES_CHANGED.fire())
 SAVED_SEARCHES_UPDATED.register(lambda *_args: SAVED_SEARCHES_CHANGED.fire())
 MEDIA_CACHE_INVALIDATED.register(ARTWORK_CHANGED.fire)

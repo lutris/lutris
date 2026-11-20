@@ -55,6 +55,7 @@ GAME_START = NotificationSource()
 GAME_STARTED = NotificationSource()
 GAME_STOPPED = NotificationSource()
 GAME_UPDATED = NotificationSource()
+GAME_LOG_CHANGED = NotificationSource()
 GAME_INSTALLED = NotificationSource()
 GAME_UNHANDLED_ERROR = NotificationSource()
 # Fired when a Game's launch_status changes (e.g., a runner is downloading a
@@ -277,7 +278,9 @@ class Game:
         if self.game_thread:
             _log_buffer.set_text(self.game_thread.stdout)
             self.game_thread.set_log_buffer(_log_buffer)
-        LOG_BUFFERS[self.id] = _log_buffer
+        game_id = self.id
+        _log_buffer.changed.register(lambda _text, _replaced: GAME_LOG_CHANGED.fire(game_id))
+        LOG_BUFFERS[game_id] = _log_buffer
         return _log_buffer
 
     @property
