@@ -56,7 +56,7 @@ jobs:
   build:
     name: Build
     needs: prepare
-    # Straight on the runner rather than in a Flatpak CI image: updating the
+    # A plain Fedora container rather than a Flatpak CI image: updating the
     # runtimes such an image ships fails ("Invalid cross-device link")
     runs-on: ubuntu-24.04
     timeout-minutes: 360
@@ -72,13 +72,6 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: true
-      - name: Install flatpak-builder
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder
-          # bubblewrap needs unprivileged user namespaces, which Ubuntu restricts
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
       - name: Restore the flatpak-builder cache
         uses: actions/cache/restore@v6
         with:
@@ -88,10 +81,13 @@ jobs:
             flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}-
             flatpak-builder-
       - name: Build
+        # In a Fedora container with its current flatpak-builder, through the same script
+        # as local builds: Ubuntu's older flatpak-builder lets meson install into lib64,
+        # where pkg-config doesn't look. The script also writes the bundle
         run: >
-          flatpak-builder --user --install-deps-from=flathub --disable-rofiles-fuse --force-clean
-          --state-dir=build-flatpak/state --repo=build-flatpak/repo
-          build-flatpak/build packaging/flatpak/net.lutris.Lutris.yml
+          docker run --rm --privileged -v "$PWD:/src" -w /src -e OWNER="$(id -u):$(id -g)"
+          registry.fedoraproject.org/fedora:45
+          packaging/flatpak/container-build.sh packaging/flatpak/net.lutris.Lutris.yml "$BUNDLE"
       - name: Save the flatpak-builder cache
         # Also after a failure or timeout, so the next run resumes from the
         # modules that did build
@@ -100,10 +96,13 @@ jobs:
         with:
           path: build-flatpak/state
           key: flatpak-builder-${{ hashFiles('packaging/flatpak/**') }}-${{ github.sha }}
-      - name: Bundle
-        run: |
-          flatpak build-bundle build-flatpak/repo "$BUNDLE" net.lutris.Lutris \
-            --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo
+      - name: Smoke test
+        # Install the bundle in a clean container and check that Lutris starts in it,
+        # so a bundle that builds but doesn't run is never uploaded
+        run: >
+          docker run --rm --privileged -v "$PWD:/src" -w /src
+          registry.fedoraproject.org/fedora:45
+          packaging/flatpak/smoke-test.sh "$BUNDLE"
       - name: Upload the bundle
         uses: actions/upload-artifact@v7
         with:

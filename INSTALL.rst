@@ -8,23 +8,29 @@ Flatpak
 -------
 
 The Flatpak bundles everything Lutris needs, including the 32-bit libraries,
-tools and Wine base that games rely on. Its manifest lives in
-``packaging/flatpak``. You need ``flatpak`` with the Flathub remote set up,
-and ``flatpak-builder`` (either the distribution package or the
-``org.flatpak.Builder`` app from Flathub)::
+tools and Wine base that games rely on, on the freedesktop runtime. Its
+manifest lives in ``packaging/flatpak``.
+
+The simplest build is the one CI runs: a Fedora container with a current
+``flatpak-builder``, so nothing but ``podman`` (or ``docker``) is needed on the
+host, and nothing gets installed there::
 
     git clone --recurse-submodules https://github.com/jedace07/lutris
     cd lutris
-    flatpak-builder --user --install --install-deps-from=flathub --force-clean \
-        --state-dir=build-flatpak/state build-flatpak/build packaging/flatpak/net.lutris.Lutris.yml
+    podman run --rm --privileged --security-opt label=disable -v "$PWD:/src" -w /src \
+        registry.fedoraproject.org/fedora:45 \
+        packaging/flatpak/container-build.sh packaging/flatpak/net.lutris.Lutris.yml lutris.flatpak
+    flatpak install --user lutris.flatpak
     flatpak run net.lutris.Lutris
 
-If you use the Flathub app, substitute ``flatpak run org.flatpak.Builder`` for
-``flatpak-builder``. To produce an installable bundle instead, replace
-``--install`` with ``--repo=build-flatpak/repo``, then run::
+Add ``-v "$PWD/build-flatpak/flatpak:/var/lib/flatpak"`` to keep the downloaded
+runtimes between builds.
 
-    flatpak build-bundle build-flatpak/repo lutris.flatpak net.lutris.Lutris \
-        --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo
+To build on the host instead, use the ``org.flatpak.Builder`` app from Flathub
+(older distribution packages of ``flatpak-builder`` can misplace libraries)::
+
+    flatpak run org.flatpak.Builder --user --install --install-deps-from=flathub --force-clean \
+        --state-dir=build-flatpak/state build-flatpak/build packaging/flatpak/net.lutris.Lutris.yml
 
 Every CI build of ``main`` publishes a bundle, and every release has one
 attached. The first build compiles bundled tools such as DOSBox Staging and

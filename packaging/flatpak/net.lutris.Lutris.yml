@@ -11,9 +11,11 @@
 # See INSTALL.rst for build and install commands
 
 id: net.lutris.Lutris
-sdk: org.gnome.Sdk
-runtime: org.gnome.Platform
-runtime-version: "51"
+# The plain freedesktop runtime: the Qt frontend brings its own Qt with PySide6, and
+# 26.08 matches the Wine base and the 32-bit compat extensions below
+sdk: org.freedesktop.Sdk
+runtime: org.freedesktop.Platform
+runtime-version: "26.08"
 command: lutris
 base: org.winehq.Wine
 base-version: stable-26.08
@@ -166,7 +168,8 @@ cleanup:
   - /share/man
   - /share/help
 cleanup-commands:
-  - python3 -m compileall /app/lib
+  # PySide6's deploy tool ships Jinja templates named *.tmpl.py, which aren't Python
+  - python3 -m compileall -q -x '\.tmpl\.py$' /app/lib
   - mkdir -p /app/utils
   - mkdir -p /app/lib/extensions/vulkan/gamescope
   - mkdir -p /app/lib/extensions/vulkan/MangoHud
@@ -806,8 +809,8 @@ modules:
         UV_PYTHON_DOWNLOADS: never
         UV_NO_CACHE: "1"
     build-commands:
-      - uv export --frozen --no-dev --no-emit-project --no-emit-package pygobject
-        --no-emit-package pycairo --format requirements.txt --output-file requirements.txt
+      # PyGObject and pycairo build from source against the SDK's GLib and cairo
+      - uv export --frozen --no-dev --no-emit-project --format requirements.txt --output-file requirements.txt
       - uv pip install --python /usr/bin/python3 --prefix ${FLATPAK_DEST} -r requirements.txt
       - |
         for catalog in lutris/locale/*.po; do
