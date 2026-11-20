@@ -16,8 +16,8 @@
 # The game used for the launch checks is a small shell script, so no download,
 # no Wine prefix and no GPU are involved.
 #
-# A display is required: every command but --version has to start the client's
-# GtkApplication. Run this from a desktop session, or with
+# A display is required: launching games and the GUI check start the GTK client.
+# Run this from a desktop session, or with
 # `xvfb-run -a utils/release-smoke-test.sh` when there is none.
 #
 # Exit status: 0 if every check passed, 1 otherwise.
@@ -104,9 +104,9 @@ if [ "$(id -u)" -eq 0 ]; then
     exit 2
 fi
 
-# The client is a GtkApplication, so without a display even `lutris -l -j` exits at
-# once: the run would fail every check but --version. Stop here, before the sandbox
-# and the private bus exist, with a message that says what to do instead.
+# Launching games and the GUI check need the GTK client, so a display; without one,
+# those checks would all fail. Stop here, before the sandbox and the private bus
+# exist, with a message that says what to do instead.
 if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] && ! command -v xvfb-run >/dev/null 2>&1; then
     echo "error: no display, and xvfb-run is not installed" >&2
     echo "       run this from a desktop session, or install xvfb and use:" >&2
@@ -114,9 +114,9 @@ if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] && ! command -v xvfb-r
     exit 2
 fi
 
-# Only --version is answered by the invoking process (do_handle_local_options); every
-# other command line is forwarded to the primary instance of net.lutris.Lutris, and
-# redirecting HOME and the XDG directories does not change that. So a Lutris instance
+# Every command line but --version is forwarded to the primary instance of
+# net.lutris.Lutris when one is running, and redirecting HOME and the XDG
+# directories does not change that. So a Lutris instance
 # of the machine would receive our --import and run our games against the real library.
 # Re-running the whole script on a private session bus keeps every command inside it.
 if [ -z "${LUTRIS_SMOKE_SESSION:-}" ]; then

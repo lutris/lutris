@@ -92,9 +92,9 @@ it used already filled in, ready to paste::
 
 Notes:
 
-- ``dbus-run-session`` is not optional. Only ``--version`` is answered by the
-  process you start; every other command line goes over D-Bus to the primary
-  instance of ``net.lutris.Lutris``, whichever profile it happens to use. The
+- ``dbus-run-session`` is not optional. Every command line but ``--version``
+  goes over D-Bus to the primary instance of ``net.lutris.Lutris`` when one is
+  running, whichever profile it happens to use. The
   private session is what keeps Part A out of your own library.
 - Drop ``-d`` to see the client the way a normal user would; keep it while
   testing, it is what makes a failure diagnosable.

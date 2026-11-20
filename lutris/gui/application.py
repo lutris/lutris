@@ -16,26 +16,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
-import logging
 import os
 import signal
 import sys
 import tempfile
 import types
 from collections.abc import Callable
-from datetime import datetime, timedelta
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any, Type, TypeVar, cast
 
 from gi.repository import Gio, GLib, Gtk
 
 from lutris import settings
-from lutris.api import get_runners, parse_installer_url
+from lutris.api import parse_installer_url
+from lutris.cli.commands import run_text_command, start_lutris
+from lutris.cli.options import add_options
+from lutris.cli.output import CommandOutput
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
-from lutris.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
-from lutris.game import GAME_START, GAME_STOPPED, Game, export_game, import_game
+from lutris.delegates import CommandLineUIDelegate, LaunchUIDelegate
+from lutris.game import GAME_START, GAME_STOPPED, Game
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
 from lutris.gui.dialogs.issue import IssueReportWindow
 from lutris.gui.display_backend import GtkDisplayBackend
@@ -46,30 +46,20 @@ from lutris.gui.style_manager import StyleManager
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
 from lutris.gui.widgets.utils import check_pixbuf_formats
 from lutris.installer import InstallationKind, get_installers
-from lutris.migrations import migrate
-from lutris.monitored_command import exec_command
-from lutris.runners import InvalidRunnerError, RunnerInstallationError, get_runner_names, import_runner
 from lutris.services import get_enabled_services
 from lutris.services.gog_cloud_operation import CLOUD_SYNC_ENDED, CloudSyncOperation, is_cloud_sync_running
-from lutris.startup import init_lutris, run_all_checks
-from lutris.util import datapath, log, resources, system
+from lutris.util import datapath
 from lutris.util.display_backend import set_display_backend
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import file_handler, logger
-from lutris.util.savesync import save_check, show_save_stats, upload_save
-from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
-from lutris.util.steam.config import get_steamapps_dirs
 
 from ..util.busy import BusyAsyncCall
-from ..util.standalone_scripts import generate_script
 from .lutriswindow import LutrisWindow
 
 LUTRIS_EXPERIMENTAL_FEATURES_ENABLED = os.environ.get("LUTRIS_EXPERIMENTAL_FEATURES_ENABLED") == "1"
 
 if TYPE_CHECKING:
     from lutris.api import InstallerInfoDict
-    from lutris.database.games import DbGameDict
-    from lutris.database.services import DBServiceGame
     from lutris.services.base import BaseService
 
     GtkWindowType = TypeVar("GtkWindowType", bound=Gtk.Window)
@@ -78,10 +68,12 @@ if TYPE_CHECKING:
 class LutrisApplication(Gtk.Application):
     def __init__(self) -> None:
         super().__init__(
-            application_id="net.lutris.Lutris",
+            application_id=settings.APPLICATION_ID,
             flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
             register_session=True,
         )
+        # The command-line frontend's application came first, and hands over to this one
+        self.set_default()
 
         # Prepare the backstop logic just before the first emission hook (or connection) is
         # established; this will apply to all connections from this point forward.
@@ -97,7 +89,7 @@ class LutrisApplication(Gtk.Application):
         CLOUD_SYNC_ENDED.register(self.on_cloud_sync_ended)
 
         GLib.set_application_name(_("Lutris"))
-        GLib.set_prgname("net.lutris.Lutris")
+        GLib.set_prgname(settings.APPLICATION_ID)
         self.force_updates = False
         self.css_provider = Gtk.CssProvider.new()
         self.window: LutrisWindow | None = None
@@ -118,227 +110,7 @@ class LutrisApplication(Gtk.Application):
         except GLib.Error as e:
             logger.exception(e)
 
-        if hasattr(self, "add_main_option"):
-            self.add_arguments()
-        else:
-            ErrorDialog(_("Your Linux distribution is too old. Lutris won't function properly."))
-
-    def add_arguments(self) -> None:
-        if hasattr(self, "set_option_context_summary"):
-            self.set_option_context_summary(
-                _(
-                    "Run a game directly by adding the parameter lutris:rungame/game-identifier.\n"
-                    "If several games share the same identifier you can use the numerical ID "
-                    "(displayed when running lutris --list-games) and add "
-                    "lutris:rungameid/numerical-id.\n"
-                    "To install a game, add lutris:install/game-identifier."
-                )
-            )
-        else:
-            logger.warning("GLib.set_option_context_summary missing, was added in GLib 2.56 (Released 2018-03-12)")
-        self.add_main_option(
-            "version",
-            ord("v"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Print the version of Lutris and exit"),
-            None,
-        )
-        self.add_main_option(
-            "debug",
-            ord("d"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Show debug messages"),
-            None,
-        )
-        self.add_main_option(
-            "install",
-            ord("i"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Install a game from a yml file"),
-            None,
-        )
-        self.add_main_option(
-            "force",
-            ord("f"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Force updates"),
-            None,
-        )
-        self.add_main_option(
-            "output-script",
-            ord("b"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Generate a bash script to run a game without the client"),
-            None,
-        )
-        self.add_main_option(
-            "exec",
-            ord("e"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Execute a program with the Lutris Runtime"),
-            None,
-        )
-        self.add_main_option(
-            "list-games",
-            ord("l"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("List all games in database"),
-            None,
-        )
-        self.add_main_option(
-            "installed",
-            ord("o"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Only list installed games"),
-            None,
-        )
-        self.add_main_option(
-            "list-steam-games",
-            ord("s"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("List available Steam games"),
-            None,
-        )
-        self.add_main_option(
-            "list-steam-folders",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("List all known Steam library folders"),
-            None,
-        )
-        self.add_main_option(
-            "list-runners",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("List all known runners"),
-            None,
-        )
-        self.add_main_option(
-            "list-wine-versions",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("List all known Wine versions"),
-            None,
-        )
-        self.add_main_option(
-            "list-all-service-games",
-            ord("a"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("List all games for all services in database"),
-            None,
-        )
-        self.add_main_option(
-            "list-service-games",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("List all games for provided service in database"),
-            None,
-        )
-        self.add_main_option(
-            "install-runner",
-            ord("r"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Install a Runner"),
-            None,
-        )
-        self.add_main_option(
-            "uninstall-runner",
-            ord("u"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Uninstall a Runner"),
-            None,
-        )
-        self.add_main_option(
-            "export",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Export a game"),
-            None,
-        )
-        self.add_main_option(
-            "import",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Import a game"),
-            None,
-        )
-        if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
-            self.add_main_option(
-                "save-stats",
-                0,
-                GLib.OptionFlags.NONE,
-                GLib.OptionArg.STRING,
-                _("Show statistics about a game saves"),
-                None,
-            )
-            self.add_main_option(
-                "save-upload",
-                0,
-                GLib.OptionFlags.NONE,
-                GLib.OptionArg.STRING,
-                _("Upload saves"),
-                None,
-            )
-            self.add_main_option(
-                "save-check",
-                0,
-                GLib.OptionFlags.NONE,
-                GLib.OptionArg.STRING,
-                _("Verify status of save syncing"),
-                None,
-            )
-
-        self.add_main_option(
-            "dest",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING,
-            _("Destination path for export"),
-            None,
-        )
-        self.add_main_option(
-            "json",
-            ord("j"),
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Display the list of games in JSON format"),
-            None,
-        )
-        self.add_main_option(
-            "reinstall",
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.NONE,
-            _("Reinstall game"),
-            None,
-        )
-        self.add_main_option("submit-issue", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE, _("Submit an issue"), None)
-        self.add_main_option(
-            GLib.OPTION_REMAINING,
-            0,
-            GLib.OptionFlags.NONE,
-            GLib.OptionArg.STRING_ARRAY,
-            _("URI to open"),
-            "URI",
-        )
+        add_options(self)
 
     def do_startup(self) -> None:  # pylint: disable=arguments-differ
         """Sets up the application on first start."""
@@ -449,202 +221,24 @@ class LutrisApplication(Gtk.Application):
 
         return True  # stop signal propagation
 
-    @staticmethod
-    def _print(command_line: Gio.ApplicationCommandLine, string: str) -> None:
-        # Workaround broken pygobject bindings
-        command_line.do_print_literal(command_line, string + "\n")  # type: ignore
-
-    def do_handle_local_options(self, options: GLib.VariantDict) -> int:
-        # Text only commands
-
-        # Print Lutris version and exit
-        if options.contains("version"):
-            executable_name = os.path.basename(sys.argv[0])
-            print(executable_name + "-" + settings.VERSION)
-            logger.setLevel(logging.NOTSET)
-            return 0
-        return -1  # continue command line processes
-
     def do_command_line(self, command_line: Gio.ApplicationCommandLine) -> int:  # noqa: C901  # pylint: disable=arguments-differ
         # pylint: disable=too-many-locals,too-many-return-statements,too-many-branches
         # pylint: disable=too-many-statements
         options = command_line.get_options_dict()
-
-        # Use stdout to output logs, only if no command line argument is
-        # provided.
-        argc = len(sys.argv) - 1
-        if "-d" in sys.argv or "--debug" in sys.argv:
-            argc -= 1
-        if not argc:
-            # Switch back the log output to stderr (the default in Python)
-            # to avoid messing with any output from command line options.
-            log.console_handler.setStream(sys.stderr)
-
-        # Set up logger
-        if options.contains("debug"):
-            log.console_handler.setFormatter(log.DEBUG_FORMATTER)
-            logger.setLevel(logging.DEBUG)
+        output = CommandOutput(command_line)
 
         if options.contains("force"):
             self.force_updates = True
 
-        logger.info("Starting Lutris %s", settings.VERSION)
-        init_lutris()
-        migrate()
-
-        run_all_checks(async_ops=not argc)
+        # Check in the background when the command line just opens the window
+        arguments = [arg for arg in command_line.get_arguments()[1:] if arg not in ("-d", "--debug")]
+        start_lutris(options, run_checks_async=not arguments)
         check_pixbuf_formats()
-        if option := options.lookup_value("dest"):
-            dest_dir = option.get_string()
-        else:
-            dest_dir = None
 
-        if option := options.lookup_value("output-script"):
-            searchstring = option.get_string()
-            export_script_game = (
-                games_db.get_game_by_field(searchstring, "id")
-                or games_db.get_game_by_field(searchstring, "slug")
-                or games_db.get_game_by_field(searchstring, "installer_slug")
-            )
-
-            if not export_script_game or not export_script_game["id"]:
-                logger.warning(
-                    "No valid game (%s) provided to generate the script. Use the -l option to find suitable games!",
-                    searchstring,
-                )
-                return 1
-            generate_script(logger, self.launch_ui_delegate, export_script_game, f"{export_script_game['slug']}.sh")
-            return 0
-
-        # List game
-        if options.contains("list-games"):
-            game_list = games_db.get_games(filters=({"installed": 1} if options.contains("installed") else None))
-            if options.contains("json"):
-                self.print_game_json(command_line, game_list)
-            else:
-                self.print_game_list(command_line, game_list)
-            return 0
-
-        # List specified service games
-        if option := options.lookup_value("list-service-games"):
-            service = option.get_string()
-            game_list = games_db.get_games(filters={"installed": 1, "service": service})
-            service_game_list = ServiceGameCollection.get_for_service(service)
-            for db_game in service_game_list:
-                db_game["installed"] = any(("service_id", db_game["appid"]) in item.items() for item in game_list)
-            if options.contains("installed"):
-                service_game_list = [d for d in service_game_list if d["installed"]]
-            if options.contains("json"):
-                self.print_service_game_json(command_line, service_game_list)
-            else:
-                self.print_service_game_list(command_line, service_game_list)
-            return 0
-
-        # List all service games
-        if options.contains("list-all-service-games"):
-            game_list = games_db.get_games(filters={"installed": 1})
-            service_game_list = ServiceGameCollection.get_service_games()
-            for db_game in service_game_list:
-                db_game["installed"] = any(
-                    ("service_id", db_game["appid"]) in item.items()
-                    for item in game_list
-                    if item["service"] == db_game["service"]
-                )
-            if options.contains("installed"):
-                service_game_list = [d for d in service_game_list if d["installed"]]
-            if options.contains("json"):
-                self.print_service_game_json(command_line, service_game_list)
-            else:
-                self.print_service_game_list(command_line, service_game_list)
-            return 0
-
-        # List Steam games
-        if options.contains("list-steam-games"):
-            self.print_steam_list(command_line)
-            return 0
-
-        # List Steam folders
-        if options.contains("list-steam-folders"):
-            self.print_steam_folders(command_line)
-            return 0
-
-        # List Runners
-        if options.contains("list-runners"):
-            self.print_runners()
-            return 0
-
-        # List Wine Runners
-        if options.contains("list-wine-versions"):
-            self.print_wine_runners()
-            return 0
-
-        # install Runner
-        if option := options.lookup_value("install-runner"):
-            runner = option.get_string()
-            self.install_runner(runner)
-            return 0
-
-        # Uninstall Runner
-        if option := options.lookup_value("uninstall-runner"):
-            runner = option.get_string()
-            self.uninstall_runner(runner)
-            return 0
-
-        if option := options.lookup_value("export"):
-            slug = option.get_string()
-            if not dest_dir:
-                print("No destination dir given")
-            else:
-                export_game(slug, dest_dir)
-            return 0
-
-        if option := options.lookup_value("import"):
-            filepath = option.get_string()
-            if not dest_dir:
-                print("No destination dir given")
-            else:
-                import_game(filepath, dest_dir)
-            return 0
-
-        if LUTRIS_EXPERIMENTAL_FEATURES_ENABLED:
-
-            def get_game_match(slug: str) -> Game | None:
-                # First look for an exact match
-                games = games_db.get_games_by_slug(slug)
-                if not games:
-                    # Then look for matches
-                    games = games_db.get_games(searches={"slug": slug})
-                if len(games) > 1:
-                    self._print(
-                        command_line,
-                        "Multiple games matching %s: %s" % (slug, ",".join(game["slug"] for game in games)),
-                    )
-                    return None
-                if not games:
-                    self._print(command_line, "No matching game for %s" % slug)
-                    return None
-                return Game(games[0]["id"])
-
-            if option := options.lookup_value("save-stats"):
-                game = get_game_match(option.get_string())
-                if game:
-                    show_save_stats(game, output_format="json" if options.contains("json") else "text")
-                return 0
-            if option := options.lookup_value("save-upload"):
-                game = get_game_match(option.get_string())
-                if game:
-                    upload_save(game)
-                return 0
-            if option := options.lookup_value("save-check"):
-                game = get_game_match(option.get_string())
-                if game:
-                    save_check(game)
-                return 0
-
-        # Execute command in Lutris context
-        if option := options.lookup_value("exec"):
-            command = option.get_string()
-            return self.execute_command(command)
+        # The commands that need no GUI, forwarded by the command-line frontend
+        status = run_text_command(options, output, self.launch_ui_delegate)
+        if status is not None:
+            return status
 
         if options.contains("submit-issue"):
             IssueReportWindow(application=self)
@@ -654,7 +248,7 @@ class LutrisApplication(Gtk.Application):
         try:
             installer_info = self.get_lutris_action(url)
         except ValueError:
-            self._print(command_line, _("%s is not a valid URI") % (url.get_strv() if url else "''"))
+            output.print_error(_("%s is not a valid URI") % (url.get_strv() if url else "''"))
             return 1
 
         game_slug = installer_info["game_slug"]
@@ -672,7 +266,7 @@ class LutrisApplication(Gtk.Application):
                 try:
                     request = Request(installer_file).get()
                 except HTTPError:
-                    self._print(command_line, _("Failed to download %s") % installer_file)
+                    output.print_error(_("Failed to download %s") % installer_file)
                     return 1
                 try:
                     headers = dict(request.response_headers or {})
@@ -680,24 +274,17 @@ class LutrisApplication(Gtk.Application):
                 except KeyError, IndexError:
                     file_name = os.path.basename(installer_file)
                 file_path = os.path.join(tempfile.gettempdir(), file_name)
-                self._print(
-                    command_line, _("download {url} to {file} started").format(url=installer_file, file=file_path)
-                )
+                output.print(_("download {url} to {file} started").format(url=installer_file, file=file_path))
                 with open(file_path, "wb") as dest_file:
                     dest_file.write(request.content)
                 installer_file = file_path
                 action = "install"
             else:
-                # Use the invoking process's cwd for relative paths, not the running instance's
-                if not os.path.isabs(installer_file):
-                    cwd = command_line.get_cwd()
-                    if cwd:
-                        installer_file = os.path.join(cwd, installer_file)
-                installer_file = os.path.abspath(installer_file)
+                installer_file = output.get_path(installer_file)
                 action = "install"
 
             if not os.path.isfile(installer_file):
-                self._print(command_line, _("No such file: %s") % installer_file)
+                output.print_error(_("No such file: %s") % installer_file)
                 return 1
 
         db_game = None
@@ -913,230 +500,6 @@ class LutrisApplication(Gtk.Application):
                 url_str = urls[0]
                 installer_info = parse_installer_url(url_str)
         return installer_info
-
-    def print_game_list(self, command_line: Gio.ApplicationCommandLine, game_list: list["DbGameDict"]) -> None:
-        for game in game_list:
-            self._print(
-                command_line,
-                "{:4} | {:<40} | {:<40} | {:<15} | {:<64}".format(
-                    game["id"],
-                    game["name"][:40],
-                    game["slug"][:40],
-                    game["runner"] or "-",
-                    game["directory"] or "-",
-                ),
-            )
-
-    def print_game_json(self, command_line: Gio.ApplicationCommandLine, game_list: list["DbGameDict"]) -> None:
-        games = []
-
-        for game in game_list:
-            playtime = timedelta(hours=game["playtime"]) if game["playtime"] else None
-            cover_path = resources.get_cover_path(game["slug"]) if game["slug"] else None
-
-            if cover_path and not os.path.exists(cover_path):
-                cover_path = None
-
-            game_obj = {
-                "id": game["id"],
-                "slug": game["slug"],
-                "name": game["name"],
-                "runner": game["runner"],
-                "platform": game["platform"] or None,
-                "year": game["year"] or None,
-                "directory": game["directory"] or None,
-                "playtime": str(playtime) if playtime else None,
-                "playtimeSeconds": playtime.total_seconds() if playtime else None,
-                "lastplayed": (str(datetime.fromtimestamp(game["lastplayed"])) if game["lastplayed"] else None),
-                "coverPath": cover_path,
-            }
-
-            games.append(game_obj)
-
-        self._print(command_line, json.dumps(games, indent=2))
-
-    def print_service_game_list(
-        self, command_line: Gio.ApplicationCommandLine, game_list: list["DBServiceGame"]
-    ) -> None:
-        for game in game_list:
-            self._print(
-                command_line,
-                "{:4} | {:<40} | {:<40} | {:<15} | {:<15}".format(
-                    game["id"],
-                    str(game["name"])[:40],
-                    str(game["slug"])[:40],
-                    str(game["service"])[:15],
-                    "true" if game["installed"] else "false"[:15],
-                ),
-            )
-
-    def print_service_game_json(
-        self, command_line: Gio.ApplicationCommandLine, game_list: list["DBServiceGame"]
-    ) -> None:
-        games = [
-            {
-                "id": game["id"],
-                "slug": game["slug"],
-                "name": game["name"],
-                "service": game["service"],
-                "appid": game["appid"],
-                "installed": game["installed"],
-                "details": game["details"],
-            }
-            for game in game_list
-        ]
-        self._print(command_line, json.dumps(games, indent=2))
-
-    def print_steam_list(self, command_line: Gio.ApplicationCommandLine) -> None:
-        steamapps_paths = get_steamapps_dirs()
-        for path in steamapps_paths if steamapps_paths else []:
-            appmanifest_files = get_appmanifests(path)
-            for appmanifest_file in appmanifest_files:
-                appmanifest = AppManifest(os.path.join(path, appmanifest_file))
-                self._print(
-                    command_line,
-                    " {:8} | {:<60} | {}".format(
-                        appmanifest.steamid,
-                        appmanifest.name or "-",
-                        ", ".join(appmanifest.states),
-                    ),
-                )
-
-    @staticmethod
-    def execute_command(command: str) -> int:
-        """Execute an arbitrary command in a Lutris context
-        with the runtime enabled and monitored by a MonitoredCommand;
-        returns its exit code, 128 + the signal number if it was killed,
-        or 1 if it could not be run.
-        """
-        logger.info("Running command '%s'", command)
-        monitored_command = exec_command(command)
-        if not monitored_command.game_process:
-            return 1
-
-        loop = GLib.MainLoop()
-
-        def on_stop() -> bool:
-            loop.quit()
-            return True
-
-        # The child watch can't fire until the loop runs, so this can't miss the exit.
-        monitored_command.stop_func = on_stop
-        try:
-            loop.run()
-        except KeyboardInterrupt:
-            monitored_command.stop()
-        if not monitored_command.return_code:
-            return 1  # the wrapper wrote no return code, so the command never ran
-        return_code = int(monitored_command.return_code)
-        if return_code < 0:  # killed by signal -return_code; exit with 128 + it, as a shell does
-            return 128 - return_code
-        return return_code
-
-    def print_steam_folders(self, command_line: Gio.ApplicationCommandLine) -> None:
-        steamapps_paths = get_steamapps_dirs()
-        if steamapps_paths:
-            for path in steamapps_paths:
-                self._print(command_line, path)
-
-    def print_runners(self) -> None:
-        runner_names = get_runner_names()
-        sorted_names = sorted(runner_names, key=lambda x: x.lower())
-        for name in sorted_names:
-            print(name)
-
-    def print_wine_runners(self) -> None:
-        runnersName = get_runners("wine")
-        for i in runnersName["versions"]:
-            if i["version"]:
-                print(i)
-
-    def install_runner(self, runner: str) -> None:
-        if runner.startswith("lutris"):
-            self.install_wine_cli(runner)
-        else:
-            self.install_cli(runner)
-
-    def uninstall_runner(self, runner: str) -> None:
-        if "wine" in runner:
-            print("Are sure you want to delete Wine and all of the installed runners?[Y/N]")
-            ans = input()
-            if ans.lower() in ("y", "yes"):
-                self.uninstall_runner_cli(runner)
-            else:
-                print("Not Removing Wine")
-        elif runner.startswith("lutris"):
-            self.wine_runner_uninstall(runner)
-        else:
-            self.uninstall_runner_cli(runner)
-
-    def install_wine_cli(self, version: str) -> None:
-        """
-        Downloads wine runner using lutris -r <runner>
-        """
-
-        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-        runner_path = os.path.join(WINE_DIR, f"{version}{'' if '-x86_64' in version else '-x86_64'}")
-        if os.path.isdir(runner_path):
-            print(f"Wine version '{version}' is already installed.")
-        else:
-            try:
-                runner = import_runner("wine")
-                runner().install(InstallUIDelegate(), version=version)
-                print(f"Wine version '{version}' has been installed.")
-            except (InvalidRunnerError, RunnerInstallationError) as ex:
-                print(ex.message)
-
-    def wine_runner_uninstall(self, version: str) -> None:
-        version = f"{version}{'' if '-x86_64' in version else '-x86_64'}"
-        WINE_DIR = os.path.join(settings.RUNNER_DIR, "wine")
-        runner_path = os.path.join(WINE_DIR, version)
-        if os.path.isdir(runner_path):
-            system.remove_folder(runner_path)
-            print(f"Wine version '{version}' has been removed.")
-        else:
-            print(
-                f"""
-Specified version of Wine is not installed: {version}.
-Please check if the Wine Runner and specified version are installed (for that use --list-wine-versions).
-Also, check that the version specified is in the correct format.
-                """
-            )
-
-    def install_cli(self, runner_name: str) -> None:
-        """
-        install the runner provided in prepare_runner_cli()
-        """
-
-        try:
-            runner = import_runner(runner_name)()
-            if runner.is_installed():
-                print(f"'{runner_name}' is already installed.")
-            else:
-                runner.install(InstallUIDelegate(), version=None, callback=None)
-                print(f"'{runner_name}' has been installed")
-        except (InvalidRunnerError, RunnerInstallationError) as ex:
-            print(ex.message)
-
-    def uninstall_runner_cli(self, runner_name: str) -> None:
-        """
-        uninstall the runner given in application file located in lutris/gui/application.py
-        provided using lutris -u <runner>
-        """
-        try:
-            runner_class = import_runner(runner_name)
-            runner = runner_class()
-        except InvalidRunnerError:
-            logger.error("Failed to import Runner: %s", runner_name)
-            return
-        if not runner.is_installed():
-            print(f"Runner '{runner_name}' is not installed.")
-            return
-        if runner.can_uninstall():
-            runner.uninstall()
-            print(f"'{runner_name}' has been uninstalled.")
-        else:
-            print(f"Runner '{runner_name}' cannot be uninstalled.")
 
     def do_shutdown(self) -> None:  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")

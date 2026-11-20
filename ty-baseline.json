@@ -247,18 +247,6 @@
         "startColumn": 42,
         "endColumn": 68,
         "lineCount": 1
-      },
-      {
-        "rule": "truthiness-test-of-iterable",
-        "startColumn": 39,
-        "endColumn": 54,
-        "lineCount": 1
-      },
-      {
-        "rule": "truthiness-test-of-iterable",
-        "startColumn": 11,
-        "endColumn": 26,
-        "lineCount": 1
       }
     ],
     "lutris/gui/config/accounts_box.py": [

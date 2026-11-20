@@ -5,8 +5,8 @@ Where this is going
 -------------------
 
 Lutris is being split into a **core** that knows nothing about any user
-interface, and **frontends** that drive it. The GTK interface in
-``lutris/gui`` is the only frontend today. The aim is to make a second one, in
+interface, and **frontends** that drive it: the GTK interface in
+``lutris/gui``, and the command line in ``lutris/cli``. The aim is to make a second one, in
 Qt through PySide6, a matter of writing widgets rather than untangling
 application logic, and eventually to run the core as a separate process, a
 server, that several frontends (Qt, a gamepad interface, the command line) can
@@ -17,8 +17,7 @@ That happens in three stages:
 1. **Separate the core in-process.** The core stops importing the GUI and GTK.
    It reports what happens through notifications and asks the user things
    through delegates; the GTK frontend implements both. This is the stage
-   that matters most for Qt; only moving the command line out of the GTK
-   application is left.
+   that matters most for Qt, and it's done.
 2. **Give the core a front door.** A small API of plain-data calls and events
    (list games, launch, install, log in to a service, ...) that frontends use
    instead of reaching into ``Game``, runner and service objects.
@@ -32,14 +31,16 @@ The rule
 --------
 
 **Code outside a frontend package never imports from a frontend, nor a GUI
-toolkit.** Concretely, nothing outside ``lutris/gui`` may import
-``lutris.gui``, or the ``Gtk``, ``Gdk``, ``GdkPixbuf``, ``GnomeDesktop``,
+toolkit.** Concretely, nothing outside ``lutris/gui`` and ``lutris/cli`` may
+import ``lutris.gui`` or ``lutris.cli``, and nothing outside ``lutris/gui``
+may import the ``Gtk``, ``Gdk``, ``GdkPixbuf``, ``GnomeDesktop``,
 ``WebKit2`` (and similar) introspection namespaces. ``GLib``, ``GObject`` and
 ``Gio`` are allowed: they aren't UI, and Qt's event loop on Linux is GLib's.
 The exception is ``Gio.Application.get_default()``: the running application
 belongs to the frontend.
 
-``tests/_test_architecture.py`` enforces this, with no exceptions. The GTK
+``tests/_test_architecture.py`` enforces this, with no exceptions, and checks
+that the command-line frontend imports no GUI toolkit either. The GTK
 frontend pins the GTK version it uses (``lutris/gui/__init__.py``), and checks
 what it needs at startup, such as the image formats GdkPixbuf can load.
 ``tests/_test_imports.py`` checks that each core module can be imported on its
@@ -147,13 +148,27 @@ Models instead of widgets
     changes quickly should pass a snapshot of its state with each one rather
     than have handlers read its current state (the downloads do).
 
-Remaining work for stage 1
---------------------------
+The command line
+----------------
 
-Command line
-    The command line (``lutris -l``, ``--install``, ``--export`` and so on) is
-    handled inside the GTK ``Gtk.Application``. It should become its own small
-    frontend over the core, so it works with no GUI toolkit installed.
+Every ``lutris`` command starts in ``lutris.cli.application``'s
+``CommandLineApplication``, a ``Gio.Application`` with the same id as the GTK
+frontend's, so Lutris still runs once:
+
+* A command that needs no GUI (listing games or runners, installing a runner,
+  ``--export``, ``-b``, ``-e`` and so on, ``lutris.cli.options.TEXT_COMMANDS``)
+  is forwarded to the Lutris instance already running, whatever its frontend,
+  and runs there; with none running, it runs in the ``lutris`` process itself,
+  with no GUI toolkit loaded. The commands live in ``lutris.cli.commands``,
+  which the GTK frontend calls for the command lines forwarded to it. They
+  print, ask and resolve relative paths through ``CommandOutput``, so they reach
+  the terminal that ran ``lutris`` even when another process runs them.
+* Any other command line (no arguments, a ``lutris:`` URI, ``-i``,
+  ``--submit-issue``) needs a GUI: ``CommandLineApplication`` exits before
+  registering, and ``bin/lutris`` runs the GTK frontend with it instead.
+
+Both frontends define the same options (``lutris.cli.options``), as Gio
+forwards a command line with its options already parsed.
 
 Stage 2 and 3
 -------------

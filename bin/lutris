@@ -56,6 +56,15 @@ bind_text_domain(SOURCE_PATH)
 if "WEBKIT_DISABLE_DMABUF_RENDERER" not in os.environ:
     os.environ["WEBKIT_DISABLE_DMABUF_RENDERER"] = "1"
 
+# Every command line starts with the command-line frontend, which needs no GUI toolkit:
+# it runs or forwards the commands that need no GUI, and leaves the rest to the GTK one
+from lutris.cli.application import CommandLineApplication
+
+command_line_app = CommandLineApplication()
+status = command_line_app.run(sys.argv)
+if not command_line_app.needs_frontend:
+    sys.exit(status)
+
 try:
     from lutris.gui.application import LutrisApplication
 except ImportError as ex:

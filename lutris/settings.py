@@ -14,6 +14,8 @@ from lutris.util.log import logger
 from lutris.util.settings import SettingsIO
 
 PROJECT = "Lutris"
+# The D-Bus name every Lutris frontend registers, so that only one instance runs
+APPLICATION_ID = "net.lutris.Lutris"
 VERSION = __version__
 COPYRIGHT = _("(c) 2009 Lutris Team")
 AUTHORS = [_("The Lutris team")]
