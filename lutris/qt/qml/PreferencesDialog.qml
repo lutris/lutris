@@ -48,7 +48,7 @@ Dialog {
             objectName: "preferencesPages"
             Layout.preferredWidth: 180
             Layout.fillHeight: true
-            model: [qsTr("Sources"), qsTr("Storage"), qsTr("Updates"), qsTr("Accounts"), qsTr("System"), qsTr("Options"), qsTr("Runners")]
+            model: [qsTr("Sources"), qsTr("Storage"), qsTr("Updates"), qsTr("Accounts"), qsTr("System"), qsTr("Options"), qsTr("Runners"), qsTr("Interface")]
             currentIndex: 0
 
             delegate: ItemDelegate {
@@ -402,6 +402,8 @@ Dialog {
                     configuration: dialog.library.configuration
                 }
             }
+
+            InterfacePreferences { controller: dialog.controller }
         }
     }
 }

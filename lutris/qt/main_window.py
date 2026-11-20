@@ -25,6 +25,7 @@ class MainWindow(QObject):
             self.controller.shutdown()
             raise RuntimeError("Could not load the Lutris QML window")
         self.window = root
+        self.window.visibleChanged.connect(lambda: self.prompts.set_interactive(self.window.isVisible()))
         self.load_task = self.controller.start()
 
     def show(self) -> None:
@@ -33,6 +34,7 @@ class MainWindow(QObject):
         self.window.requestActivate()
 
     def shutdown(self) -> None:
+        self.prompts.set_interactive(False)
         self.controller.shutdown()
         self.prompts.dismiss()
         self.window.close()

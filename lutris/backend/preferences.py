@@ -2,9 +2,11 @@
 shortcuts, and information about the system for bug reports."""
 
 import asyncio
+import json
 import os
 from collections.abc import Callable
 from gettext import gettext as _
+from pathlib import Path
 
 from lutris import settings
 from lutris.backend.models import SourceSetting, SteamAccount, StoragePaths, SystemInfoSection
@@ -13,7 +15,7 @@ from lutris.config import LutrisConfig
 from lutris.exceptions import LutrisError
 from lutris.services import SERVICES
 from lutris.util import linux, system
-from lutris.util.linux import gather_system_info_dict
+from lutris.util.linux import gather_system_info, gather_system_info_dict
 from lutris.util.log import get_log_contents
 from lutris.util.retroarch.firmware import scan_firmware_directory
 from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
@@ -23,6 +25,18 @@ from lutris.util.wine.wine import is_esync_limit_set, is_fsync_supported, is_ins
 MAX_BIOS_FOLDER_SIZE = 8e9
 MAX_BIOS_FILES_IN_FOLDER = 5000
 MAX_BIOS_FOLDER_DEPTH = 3
+
+
+async def save_issue_report(filename: str, description: str) -> None:
+    if not filename:
+        raise LutrisError(_("Choose where to save the issue report."))
+
+    def write() -> None:
+        report = {"comment": description, "system": gather_system_info()}
+        Path(filename).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+    await asyncio.to_thread(write)
+
 
 # Sources
 

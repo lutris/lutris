@@ -17,11 +17,13 @@ from lutris.backend.models import GameInfo, LibraryGame
 from lutris.exceptions import LutrisError
 from lutris.qt.artwork_settings import ArtworkSettingsController
 from lutris.qt.category_model import CategoryModel
+from lutris.qt.cloud_saves import CloudSaveController
 from lutris.qt.configuration import ConfigController
 from lutris.qt.delegates import PromptController, QtLaunchUIDelegate
 from lutris.qt.game_log import GameLogController
 from lutris.qt.game_maintenance import GameMaintenanceController
 from lutris.qt.game_shortcuts import GameShortcutController
+from lutris.qt.imports import ImportController
 from lutris.qt.installers import InstallerController
 from lutris.qt.library_model import LibraryModel
 from lutris.qt.local_games import LocalGameController
@@ -54,11 +56,13 @@ class LibraryController(QObject):
         self.sidebar = SidebarModel()
         self.categories = CategoryModel()
         self._log = GameLogController(prompts, self)
+        self._cloud_saves = CloudSaveController(prompts, self)
         self._maintenance = GameMaintenanceController(prompts, self)
         self._maintenance.stateChanged.connect(self.selectionChanged.emit)
         self._shortcuts = GameShortcutController(prompts, self)
         self._local_games = LocalGameController(prompts, self)
         self._local_games.registered.connect(self._on_local_game_registered)
+        self._imports = ImportController(prompts, self)
         self._installers = InstallerController(prompts, self)
         self._configuration = ConfigController(prompts, self)
         self._artwork_settings = ArtworkSettingsController(prompts, self)
@@ -68,6 +72,7 @@ class LibraryController(QObject):
         self._preferences.sourcesChanged.connect(self._on_sources_changed)
         self._store_sources = StoreSourcesController(prompts, self)
         self._store_sources.gamesChanged.connect(self.refresh)
+        self._store_sources.launcherRequested.connect(lambda game_id: self.launch(game_id, False))
         self._runner_manager = RunnerManagerController(prompts, self)
         self._runner_manager.runnersChanged.connect(self.refresh_sidebar)
         self.runtime_updates_controller = RuntimeUpdatesController(prompts, self)
@@ -137,6 +142,10 @@ class LibraryController(QObject):
         return self._log
 
     @Property(QObject, constant=True)
+    def cloudSaves(self) -> CloudSaveController:  # noqa: N802
+        return self._cloud_saves
+
+    @Property(QObject, constant=True)
     def gameMaintenance(self) -> GameMaintenanceController:  # noqa: N802
         return self._maintenance
 
@@ -150,6 +159,10 @@ class LibraryController(QObject):
 
     @Property(QObject, constant=True)
     def preferences(self) -> PreferencesController:
+        return self.preferences_controller
+
+    @property
+    def preferences_controller(self) -> PreferencesController:
         return self._preferences
 
     @Property(QObject, constant=True)
@@ -206,6 +219,10 @@ class LibraryController(QObject):
     @Property(bool, constant=True)
     def showMedia(self) -> bool:  # noqa: N802
         return settings.SHOW_MEDIA
+
+    @Property(QObject, constant=True)
+    def gameImports(self) -> ImportController:  # noqa: N802
+        return self._imports
 
     @Property(QUrl, constant=True)
     def placeholderArtwork(self) -> QUrl:  # noqa: N802
@@ -513,11 +530,19 @@ class LibraryController(QObject):
 
     async def _launch(self, game_id: str, choose_again: bool) -> None:
         try:
+            await self.runtime_updates_controller.wait_for_update()
+            if not await self._runner_manager.prepare_for_launch(game_id, self._runner_launch_progress):
+                return
             if await games.launch_game(game_id, QtLaunchUIDelegate(self._prompts, choose_again=choose_again)):
                 self._running_ids.add(game_id)
         finally:
             self._launch_requests.discard(game_id)
             self._update_running_state()
+
+    def _runner_launch_progress(self, message: str, fraction: float | None) -> None:
+        if fraction is not None:
+            message = _("%(message)s (%(percent)d%%)") % {"message": message, "percent": fraction * 100}
+        self._set_status(message)
 
     @Slot()
     def stop(self) -> None:
@@ -605,6 +630,7 @@ class LibraryController(QObject):
         self._store_sources.close_login()
         self._installers.close_installers()
         self.runtime_updates_controller.shutdown()
+        self._cloud_saves.shutdown()
         self._log.close_log()
         self._maintenance.close_maintenance()
         for registration in self._registrations:

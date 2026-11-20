@@ -36,6 +36,13 @@ ScrollView {
         onRejected: runnerBox.currentIndex = runnerBox.indexOfValue(page.game.runner ?? "")
     }
 
+    MoveGameDialog {
+        id: moveDialog
+        gameName: page.game.name ?? ""
+        controller: page.controller.maintenance
+        onClosed: controller.close_maintenance()
+    }
+
     ColumnLayout {
         width: page.availableWidth
         spacing: 16
@@ -123,24 +130,63 @@ ScrollView {
                 visible: (page.game.directory ?? "").length > 0
                 text: qsTr("Directory")
             }
-            Label {
-                Layout.fillWidth: true
+            RowLayout {
                 visible: (page.game.directory ?? "").length > 0
-                text: page.game.directory ?? ""
-                textFormat: Text.PlainText
-                elide: Text.ElideMiddle
+
+                Label {
+                    Layout.fillWidth: true
+                    text: page.game.directory ?? ""
+                    textFormat: Text.PlainText
+                    elide: Text.ElideMiddle
+                }
+
+                Button {
+                    text: qsTr("Move…")
+                    enabled: !page.controller.modified && !page.controller.busy
+                    onClicked: if (page.controller.prepare_move()) moveDialog.open()
+                }
             }
 
             Label {
                 visible: (page.game.configPath ?? "").length > 0
                 text: qsTr("Game config")
             }
-            Label {
-                Layout.fillWidth: true
+            RowLayout {
                 visible: (page.game.configPath ?? "").length > 0
-                text: page.game.configPath ?? ""
-                textFormat: Text.PlainText
-                elide: Text.ElideMiddle
+
+                Label {
+                    Layout.fillWidth: true
+                    text: page.game.configPath ?? ""
+                    textFormat: Text.PlainText
+                    elide: Text.ElideMiddle
+                }
+
+                Button {
+                    text: qsTr("Open Folder")
+                    onClicked: page.controller.open_config_folder()
+                }
+            }
+
+            Label {
+                visible: (page.game.preferredLaunch ?? "").length > 0
+                text: qsTr("Preferred launch configuration")
+            }
+
+            RowLayout {
+                visible: (page.game.preferredLaunch ?? "").length > 0
+
+                Label {
+                    Layout.fillWidth: true
+                    text: page.game.preferredLaunch ?? ""
+                    textFormat: Text.PlainText
+                    elide: Text.ElideRight
+                }
+
+                Button {
+                    text: qsTr("Reset")
+                    enabled: !page.controller.busy
+                    onClicked: page.controller.reset_preferred_launch()
+                }
             }
         }
 

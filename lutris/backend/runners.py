@@ -18,6 +18,7 @@ from lutris.api import get_runners
 from lutris.backend.models import RunnerInfo
 from lutris.delegates import InstallUIDelegate
 from lutris.exceptions import LutrisError
+from lutris.game import Game
 from lutris.runners import RunnerInstallationError, get_installed, get_runner_names, import_runner
 from lutris.util import linux, system
 from lutris.util.downloader import BaseDownloader, SimpleDownloader
@@ -198,6 +199,19 @@ async def install_runner(
         raise RunnerInstallationError(_("%s was not installed.") % version)
     if interaction and name != "wine" and not await asyncio.to_thread(runner.is_installed):
         raise RunnerInstallationError(_("%s was not installed.") % runner.human_name)
+
+
+async def prepare_game_runner(game_id: str, interaction: RunnerInstallInteraction) -> bool:
+    """Offer to install the runner configured for this game, if it is missing."""
+    delegate = _InstallDelegate(interaction, asyncio.get_running_loop())
+
+    def prepare() -> bool:
+        game = Game(game_id)
+        if not game.runner or not game.is_installed:
+            return True
+        return game.runner.is_installed() or game.runner.install_dialog(delegate)
+
+    return await asyncio.to_thread(prepare)
 
 
 async def can_uninstall_runner(name: str) -> bool:

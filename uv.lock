@@ -345,16 +345,12 @@ dependencies = [
     { name = "pillow" },
     { name = "pygobject" },
     { name = "pypresence" },
+    { name = "pyside6-essentials" },
     { name = "python-magic" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "setproctitle" },
     { name = "webdav4" },
-]
-
-[package.optional-dependencies]
-qt = [
-    { name = "pyside6-essentials" },
 ]
 
 [package.dev-dependencies]
@@ -393,14 +389,13 @@ requires-dist = [
     { name = "pillow", specifier = ">=13.0.0" },
     { name = "pygobject", specifier = ">=3.58.0" },
     { name = "pypresence", specifier = ">=4.6.2" },
-    { name = "pyside6-essentials", marker = "extra == 'qt'", specifier = ">=6.12.0" },
+    { name = "pyside6-essentials", specifier = ">=6.12.0" },
     { name = "python-magic", specifier = ">=0.4.27" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "requests", specifier = ">=2.34.2" },
     { name = "setproctitle", specifier = ">=1.3.8" },
     { name = "webdav4", specifier = ">=0.11.0" },
 ]
-provides-extras = ["qt"]
 
 [package.metadata.requires-dev]
 dev = [

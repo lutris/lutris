@@ -1,10 +1,12 @@
 """Expose the application's preferences to Qt Quick."""
 
+from gettext import gettext as _
 from typing import Any
 
-from PySide6.QtCore import Property, QObject, QUrl, Signal, Slot
+from PySide6.QtCore import Property, QObject, Qt, QUrl, Signal, Slot
 from PySide6.QtGui import QGuiApplication
 
+from lutris import settings
 from lutris.backend import preferences
 from lutris.backend.models import SourceSetting, SteamAccount, StoragePaths, SystemInfoSection
 from lutris.qt.delegates import PromptController
@@ -13,6 +15,8 @@ from lutris.qt.tasks import start_task
 
 class PreferencesController(QObject):
     requested = Signal()
+    issueReportRequested = Signal()
+    interfaceChanged = Signal()
     stateChanged = Signal()
     # The library shows other sources and views after these change
     sourcesChanged = Signal()
@@ -24,6 +28,81 @@ class PreferencesController(QObject):
         self._storage: StoragePaths | None = None
         self._accounts: tuple[SteamAccount, ...] = ()
         self._system_info: tuple[SystemInfoSection, ...] = ()
+        self._tray_available = False
+        self.apply_theme()
+
+    def apply_theme(self) -> None:
+        schemes = {"light": Qt.ColorScheme.Light, "dark": Qt.ColorScheme.Dark}
+        QGuiApplication.styleHints().setColorScheme(schemes.get(self._get_theme(), Qt.ColorScheme.Unknown))
+
+    def _get_theme(self) -> str:
+        return settings.read_setting("preferred_theme", "default")
+
+    @Property(str, notify=interfaceChanged)
+    def theme(self) -> str:
+        return self._get_theme()
+
+    def should_show_tray(self) -> bool:
+        return self._tray_available and settings.read_bool_setting("show_tray_icon")
+
+    @Property(bool, notify=interfaceChanged)
+    def trayEnabled(self) -> bool:  # noqa: N802
+        return settings.read_bool_setting("show_tray_icon")
+
+    @Property(bool, notify=interfaceChanged)
+    def trayAvailable(self) -> bool:  # noqa: N802
+        return self._tray_available
+
+    def set_tray_available(self, available: bool) -> None:
+        self._tray_available = available
+        self.interfaceChanged.emit()
+
+    @Property(bool, notify=interfaceChanged)
+    def hideBadges(self) -> bool:  # noqa: N802
+        return settings.read_bool_setting("hide_badges_on_icons")
+
+    @Property(bool, notify=interfaceChanged)
+    def hideGameTitles(self) -> bool:  # noqa: N802
+        return settings.read_bool_setting("hide_text_under_icons")
+
+    @Property(bool, notify=interfaceChanged)
+    def discordPresence(self) -> bool:  # noqa: N802
+        return settings.read_bool_setting("discord_rpc")
+
+    @Property(bool, notify=interfaceChanged)
+    def minimizeOnLaunch(self) -> bool:  # noqa: N802
+        return settings.read_bool_setting("hide_client_on_game_start")
+
+    @Slot(str)
+    def set_theme(self, theme: str) -> None:
+        if theme in {"default", "light", "dark"}:
+            settings.write_setting("preferred_theme", theme)
+            self.apply_theme()
+            self.interfaceChanged.emit()
+
+    @Slot(str, bool)
+    def set_interface_option(self, option: str, enabled: bool) -> None:
+        if option in {
+            "show_tray_icon",
+            "hide_badges_on_icons",
+            "hide_text_under_icons",
+            "discord_rpc",
+            "hide_client_on_game_start",
+        }:
+            settings.write_setting(option, enabled)
+            self.interfaceChanged.emit()
+
+    @Slot()
+    def open_issue_report(self) -> None:
+        self.issueReportRequested.emit()
+
+    @Slot(QUrl, str)
+    def save_issue_report(self, url: QUrl, description: str) -> None:
+        start_task(self._save_issue_report(url.toLocalFile(), description), self._prompts.error)
+
+    async def _save_issue_report(self, filename: str, description: str) -> None:
+        await preferences.save_issue_report(filename, description)
+        self._prompts.notice(_("Issue report saved to %s") % filename, rich=False)
 
     @Property(list, notify=stateChanged)
     def sources(self) -> list[dict[str, Any]]:

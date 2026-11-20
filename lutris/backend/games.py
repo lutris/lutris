@@ -123,9 +123,11 @@ async def launch_from_uri(uri: str) -> str:
         raise LutrisError(_("Invalid Lutris URI: %s") % uri) from error
     action = request.get("action")
     identifier = request.get("game_slug")
-    if not identifier or action not in {"rungame", "rungameid"} or request.get("service"):
+    if not identifier or action not in {None, "rungame", "rungameid"} or request.get("service"):
         raise LutrisError(_("This version of Lutris supports launch URIs for installed library games."))
-    if action == "rungameid":
+    if action is None:
+        game = await get_game(identifier) or await find_game(identifier)
+    elif action == "rungameid":
         game = await get_game(identifier)
     else:
         matches = games_db.get_games_by_slug(identifier)

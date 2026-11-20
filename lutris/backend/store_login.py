@@ -20,11 +20,12 @@ from lutris.services.egs import EpicGamesStoreService
 from lutris.services.gog import GOGService
 from lutris.services.itchio import ItchIoService
 from lutris.services.steamfamily import SteamFamilyService
+from lutris.services.ubisoft import UbisoftConnectService
 from lutris.services.zoom import ZoomService
 from lutris.util.cookies import WebkitCookieJar
 from lutris.util.log import logger
 
-type LoginInput = Literal["redirect", "gog", "epic", "api_key", "cookies"]
+type LoginInput = Literal["redirect", "gog", "epic", "api_key", "cookies", "ubisoft"]
 
 _REDIRECTS = {
     "gog": (("https://embed.gog.com/on_login_success", "https://www.gog.com/on_login_success"), "code"),
@@ -71,6 +72,8 @@ def login_input(service_id: str) -> LoginInput | None:
         return "epic"
     if service_id == "itchio":
         return "api_key"
+    if service_id == "ubisoft":
+        return "ubisoft"
     return None
 
 
@@ -142,6 +145,8 @@ def _finish(pending: _PendingLogin, value: str, cookie_file: str) -> None:
             service.save_api_key(value)
         elif isinstance(service, AmazonService | ZoomService):
             service.login_callback(value)
+        elif isinstance(service, UbisoftConnectService):
+            service.import_browser_session(_ubisoft_session(value))
         if not service.is_authenticated():
             raise LutrisError(_("The store did not accept the sign-in response."))
     except LutrisError:
@@ -149,6 +154,28 @@ def _finish(pending: _PendingLogin, value: str, cookie_file: str) -> None:
     except Exception as error:
         logger.warning("Browser sign-in failed for %s (%s)", service.id, type(error).__name__)
         raise LutrisError(_("The store did not accept the sign-in response. Open the browser and try again.")) from None
+
+
+def _ubisoft_session(value: str) -> dict[str, str]:
+    try:
+        payload = json.loads(value)
+    except ValueError:
+        payload = None
+    session: dict[str, str] = {}
+    for entry in payload if isinstance(payload, list) else [payload]:
+        if not isinstance(entry, dict):
+            continue
+        for key in ("ticket", "sessionId", "userId", "rememberMeTicket"):
+            candidate = entry.get(key)
+            if isinstance(candidate, str) and candidate and candidate.isascii() and candidate.isprintable():
+                if not any(character.isspace() for character in candidate):
+                    session[key] = candidate
+        name = entry.get("nameOnPlatform")
+        if isinstance(name, str) and name.isprintable():
+            session["username"] = name
+    if not {"ticket", "sessionId", "userId"} <= session.keys():
+        raise LutrisError(_("Paste the Ubisoft Connect login data as JSON."))
+    return session
 
 
 def _redirect_response(service_id: str, value: str) -> str:

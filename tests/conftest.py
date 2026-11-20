@@ -1,20 +1,10 @@
-"""Shared pytest setup.
+"""Shared pytest setup."""
 
-Pin the GTK/GDK versions before any test module is imported: modules that stub
-gi.repository or import lutris GUI code can otherwise load GTK 4 before
-gi.require_version("Gtk", "3.0") runs, breaking every GTK 3 import after it.
-"""
+from collections.abc import Callable
 
-import gi
+import pytest
 
-gi.require_version("Gdk", "3.0")
-gi.require_version("Gtk", "3.0")
-
-from collections.abc import Callable  # noqa: E402
-
-import pytest  # noqa: E402
-
-from lutris.util import mainloop  # noqa: E402
+from lutris.util import mainloop
 
 
 class FakeMainLoop:

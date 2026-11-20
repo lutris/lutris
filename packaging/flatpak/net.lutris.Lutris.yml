@@ -551,8 +551,6 @@ modules:
         url: https://download.gnome.org/sources/zenity/3.41/zenity-3.41.0.tar.xz
         sha256: 19b676c3510e22badfcc3204062d432ba537402f5e0ae26128c0d90c954037e1
 
-  - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
-
   # Required by some 8/16-bit emulators
   - name: fluidsynth
     buildsystem: cmake-ninja
@@ -799,8 +797,7 @@ modules:
         sha256: 58ccf5f1792b8a5a88d01bc910ea131a8b3db4a319a17ad5fad75e0845a3e271
 
   # Lutris's Python dependencies, exactly as pinned (and hash-checked) in uv.lock
-  # PyGObject and pycairo are left to the GNOME runtime, which builds them
-  # against its own GLib and GTK
+  # PyGObject and pycairo come from the GNOME runtime
   - name: python-dependencies
     buildsystem: simple
     build-options:
@@ -820,13 +817,6 @@ modules:
         path: ../../pyproject.toml
       - type: file
         path: ../../uv.lock
-
-  - name: gnome-desktop
-    buildsystem: meson
-    sources:
-      - type: archive
-        url: https://download.gnome.org/sources/gnome-desktop/44/gnome-desktop-44.1.tar.xz
-        sha256: ae7ca55dc9e08914999741523a17d29ce223915626bd2462a120bf96f47a79ab
 
   - name: lutris
     buildsystem: meson

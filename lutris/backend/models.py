@@ -307,6 +307,7 @@ class GameDetails:
     # Read only
     directory: str = ""
     config_path: str = ""
+    preferred_launch: str = ""
 
 
 @dataclass(frozen=True)

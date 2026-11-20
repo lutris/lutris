@@ -45,6 +45,8 @@ Dialog {
                     return qsTr("Sign in in your browser. Export only this store’s cookies in Netscape cookies.txt format, then select the file.")
                 case "gog":
                     return qsTr("Sign in in your browser and paste the full address from the final page. Export only GOG’s cookies in Netscape cookies.txt format, then select the file.")
+                case "ubisoft":
+                    return qsTr("After signing in, open your browser’s developer tools and find local storage for connect.ubisoft.com. Paste PRODloginData here, or combine PRODloginData, PRODrememberMe and PRODlastProfile in a JSON array. Use null for missing values. Do not share these values.")
                 default:
                     return qsTr("Sign in in your browser, then copy the full address from the final page and paste it here.")
                 }

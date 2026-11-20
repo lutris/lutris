@@ -5,7 +5,7 @@ needs the user: to confirm, pick a configuration, type something or provide a
 file. Rather than open dialogs itself, core code calls a delegate, passed in by
 whoever started the operation. The defaults here need no UI and make the
 choices a non-interactive caller would; a frontend subclasses them to ask the
-user (lutris.gui.dialogs.delegates does that for GTK).
+user (lutris.qt.delegates does that for Qt Quick).
 """
 
 from collections.abc import Callable

@@ -8,7 +8,6 @@ import sys
 import unittest
 from unittest.mock import MagicMock, patch
 
-import lutris.gui.dialogs.cloud_sync as cloud_sync_dialogs
 import lutris.services.gog_cloud_hooks as _mod
 from lutris.services.gog_cloud import (
     CloudSaveLocation,
@@ -532,39 +531,6 @@ class TestSyncAfterQuitBranches(unittest.TestCase):
             results = sync_after_quit(game)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].action, SyncAction.NONE)
-
-
-class TestAskCloudSyncConflict(unittest.TestCase):
-    """Test the GTK frontend's conflict resolver, ask_cloud_sync_conflict.
-
-    It marshals the dialog to the main thread via ``GLib.idle_add`` and waits
-    on a ``threading.Event``. In tests we make ``GLib.idle_add`` invoke the
-    callback immediately so the event gets set without a real GTK main loop.
-    """
-
-    @staticmethod
-    def _immediate_idle_add(callback, *args):
-        """Simulate GLib.idle_add by calling the callback right away."""
-        callback(*args)
-        return 0  # dummy source id
-
-    def test_returns_none_when_the_dialog_fails(self):
-        with (
-            patch.object(cloud_sync_dialogs.GLib, "idle_add", self._immediate_idle_add),
-            patch.object(cloud_sync_dialogs, "CloudSyncConflictDialog", side_effect=RuntimeError("no display")),
-        ):
-            result = cloud_sync_dialogs.ask_cloud_sync_conflict("Game", "saves")
-        self.assertIsNone(result)
-
-    def test_returns_dialog_action(self):
-        mock_dialog_cls = MagicMock(return_value=MagicMock(action="download"))
-        with (
-            patch.object(cloud_sync_dialogs.GLib, "idle_add", self._immediate_idle_add),
-            patch.object(cloud_sync_dialogs, "CloudSyncConflictDialog", mock_dialog_cls),
-        ):
-            result = cloud_sync_dialogs.ask_cloud_sync_conflict("Game", "saves")
-        self.assertEqual(result, "download")
-        mock_dialog_cls.assert_called_once_with("Game", "saves")
 
 
 class TestSyncLocation(unittest.TestCase):

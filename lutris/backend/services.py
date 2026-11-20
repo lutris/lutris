@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import dataclass
 from gettext import gettext as _
 
+from lutris import settings
 from lutris.backend.models import ServiceGameInfo, ServiceInfo
 from lutris.backend.store_login import login_input
 from lutris.database import games as games_db
@@ -21,6 +22,13 @@ class SourceStatus:
     can_sign_in: bool
 
 
+@dataclass(frozen=True)
+class SourceLauncher:
+    id: str
+    name: str
+    directory: str
+
+
 def _get_service(service_id: str) -> BaseService:
     service = SERVICES.get(service_id)
     if service is None:
@@ -30,6 +38,17 @@ def _get_service(service_id: str) -> BaseService:
 
 async def get_source_status(service_id: str) -> SourceStatus:
     return await asyncio.to_thread(_get_source_status, service_id)
+
+
+async def list_source_launchers(service_id: str) -> tuple[SourceLauncher, ...]:
+    launchers = await asyncio.to_thread(_get_service(service_id).list_launchers)
+    return tuple(SourceLauncher(item["id"], item["name"], item.get("directory") or "") for item in launchers)
+
+
+async def set_source_launcher(service_id: str, game_id: str) -> None:
+    if not any(launcher.id == game_id for launcher in await list_source_launchers(service_id)):
+        raise LutrisError(_("This launcher is no longer available."))
+    settings.write_setting(f"{service_id}_launcher", game_id, section="services")
 
 
 def _get_source_status(service_id: str) -> SourceStatus:

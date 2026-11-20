@@ -53,11 +53,7 @@ from lutris.util.textdomain import bind_text_domain
 
 bind_text_domain(SOURCE_PATH)
 
-if "WEBKIT_DISABLE_DMABUF_RENDERER" not in os.environ:
-    os.environ["WEBKIT_DISABLE_DMABUF_RENDERER"] = "1"
-
-# Every command line starts with the command-line frontend, which needs no GUI toolkit:
-# it runs or forwards the commands that need no GUI, and leaves the rest to the GTK one
+# Handle headless commands and forwarding before loading any GUI toolkit
 from lutris.cli.application import CommandLineApplication
 from lutris.util.mainloop import run_asyncio_on_glib
 
@@ -69,19 +65,11 @@ status = command_line_app.run(sys.argv)
 if not command_line_app.needs_frontend:
     sys.exit(status)
 
-# The Qt frontend is replacing the GTK one; LUTRIS_FRONTEND=qt runs it
-if os.environ.get("LUTRIS_FRONTEND") == "qt":
-    try:
-        from lutris.qt.application import QtLutrisApplication as FrontendApplication
-    except ImportError as ex:
-        sys.stderr.write("The Qt version of Lutris needs PySide6 (uv sync --extra qt): %s\n" % ex)
-        sys.exit(1)
-else:
-    try:
-        from lutris.gui.application import LutrisApplication as FrontendApplication
-    except ImportError as ex:
-        sys.stderr.write("Error importing Lutris application module: %s\n" % ex)
-        sys.exit(1)
+try:
+    from lutris.qt.application import QtLutrisApplication
+except ImportError as ex:
+    sys.stderr.write("Error importing the Lutris Qt frontend: %s\n" % ex)
+    sys.exit(1)
 
-app = FrontendApplication()
+app = QtLutrisApplication()
 sys.exit(app.run(sys.argv))

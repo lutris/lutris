@@ -13,12 +13,18 @@ ItemDelegate {
     required property url bannerUrl
     required property url iconUrl
     required property string iconName
+    required property string platformText
     required property bool banners
     required property bool selected
     required property bool keyboardFocus
     required property url placeholder
+    required property bool showTitle
+    required property bool showBadges
 
     readonly property string gameStatus: running ? qsTr("Running") : installed ? "" : qsTr("Not installed")
+    readonly property string badgeText: showBadges && platformText.length > 0
+                                        ? (gameStatus.length > 0 ? qsTr("%1 · %2").arg(platformText).arg(gameStatus) : platformText)
+                                        : (running || showBadges ? gameStatus : "")
     readonly property url primaryArtwork: banners ? bannerUrl : coverUrl
     readonly property url alternateArtwork: banners ? coverUrl : bannerUrl
     readonly property color cardText: selected ? palette.highlightedText : palette.text
@@ -28,7 +34,7 @@ ItemDelegate {
     padding: 12
     Accessible.name: gameTitle
     Accessible.description: gameStatus
-    ToolTip.visible: hovered && titleLabel.truncated
+    ToolTip.visible: hovered && (!showTitle || titleLabel.truncated)
     ToolTip.text: gameTitle
 
     background: Rectangle {
@@ -95,6 +101,7 @@ ItemDelegate {
 
         Label {
             id: titleLabel
+            visible: card.showTitle
             Layout.fillWidth: true
             color: card.cardText
             font.bold: card.running
@@ -105,9 +112,11 @@ ItemDelegate {
         }
 
         Label {
+            visible: text.length > 0
             Layout.fillWidth: true
             color: card.cardText
-            text: card.gameStatus
+            text: card.badgeText
+            textFormat: Text.PlainText
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
             Accessible.ignored: true

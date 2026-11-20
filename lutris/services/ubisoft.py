@@ -12,9 +12,10 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field, update_existing
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.services.base import SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT, OnlineService
+from lutris.services.base import SERVICE_LOGIN, SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
+from lutris.util.credentials import save_credentials
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import slugify
@@ -104,6 +105,12 @@ class UbisoftConnectService(OnlineService):
     def auth_lost(self):
         SERVICE_LOGOUT.fire(self)
 
+    def import_browser_session(self, session: dict[str, str]) -> None:
+        self.client.verify_browser_session(session)
+        self.store_credentials(self.client.get_credentials())
+        self.client.set_auth_lost_callback(self.auth_lost)
+        SERVICE_LOGIN.fire(self)
+
     def is_connected(self):
         res = self.is_authenticated()
         logger.debug("Ubisoft Connect is connected: %s", res)
@@ -185,14 +192,8 @@ class UbisoftConnectService(OnlineService):
         """Return a list of all files used for authentication"""
         return [self.token_path]
 
-    def store_credentials(self, credentials):
-        if not os.path.exists(os.path.dirname(self.token_path)):
-            logger.debug("Creating Ubisoft credentials path: %s", self.token_path)
-            os.mkdir(os.path.dirname(self.token_path))
-
-        logger.debug("Writing Ubisoft credentials to %s", self.token_path)
-        with open(self.token_path, "w", encoding="utf-8") as auth_file:
-            auth_file.write(json.dumps(credentials, indent=2))
+    def store_credentials(self, credentials: dict[str, Any]) -> None:
+        save_credentials(self.token_path, json.dumps(credentials, indent=2))
 
     def load_credentials(self):
         logger.debug("Loading credentials from %s", self.token_path)

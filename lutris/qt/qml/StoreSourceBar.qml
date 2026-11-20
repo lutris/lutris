@@ -22,8 +22,40 @@ ToolBar {
         }
 
         Label {
-            visible: bar.controller.busy || (bar.source.online && !bar.source.canSignIn && !bar.source.signedIn)
+            visible: bar.controller.busy || (Boolean(bar.source.online) && !bar.source.canSignIn && !bar.source.signedIn)
             text: bar.controller.busy ? qsTr("Working…") : qsTr("Browser sign-in unavailable")
+        }
+
+        ToolButton {
+            visible: bar.controller.launchers.length > 1
+            enabled: !bar.controller.busy
+            text: qsTr("Choose Launcher")
+            onClicked: launcherMenu.open()
+
+            Menu {
+                id: launcherMenu
+
+                Repeater {
+                    model: bar.controller.launchers
+
+                    MenuItem {
+                        required property var modelData
+                        required property int index
+
+                        text: modelData.label
+                        checkable: true
+                        checked: index === 0
+                        onTriggered: bar.controller.choose_launcher(modelData.id)
+                    }
+                }
+            }
+        }
+
+        Button {
+            visible: bar.controller.launchers.length > 0
+            enabled: !bar.controller.busy
+            text: qsTr("Run Launcher")
+            onClicked: bar.controller.run_launcher()
         }
 
         Button {

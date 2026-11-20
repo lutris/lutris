@@ -30,6 +30,7 @@ dependencies = [
     "pefile>=2024.8.26",
     "webdav4>=0.11.0",
     "packaging>=26.3",
+    "pyside6-essentials>=6.12.0",
 ]
 
 [project.urls]
@@ -38,16 +39,9 @@ Repository = "https://github.com/jedace07/lutris"
 Issues = "https://github.com/jedace07/lutris/issues"
 Releases = "https://github.com/jedace07/lutris/releases"
 
-[project.optional-dependencies]
-# The Qt frontend (lutris/qt), which is replacing the GTK one; `uv sync --extra qt`
-# installs it, and LUTRIS_FRONTEND=qt runs it. The Flatpak leaves it out until it's ready
-qt = [
-    "pyside6-essentials>=6.12.0",
-]
-
 [dependency-groups]
 # Split so CI jobs can install only what they run (`uv sync --only-group lint`
-# needs no GTK headers); `dev` is everything and is what `uv sync` installs
+# needs no native headers); `dev` is everything and is what `uv sync` installs
 lint = [
     "ruff>=0.17.6",
 ]
@@ -79,12 +73,6 @@ required-version = ">=0.13.9"
 # The Flatpak build overrides this to use the runtime's Python
 python-preference = "only-managed"
 default-groups = ["dev"]
-# pygobject-stubs only ships an sdist, and which GI namespaces it generates
-# stubs for is a build-time setting. Lutris targets GTK 3 and libsoup 2
-no-binary-package = ["pygobject-stubs"]
-
-[tool.uv.config-settings-package]
-pygobject-stubs = { config = "Gtk3,Gdk3,Soup2" }
 
 
 [tool.ruff]
@@ -95,7 +83,7 @@ select = ["A", "ARG", "B", "E", "F", "I", "W", "PERF", "RUF"]
 ignore = [
     # Ignores that is not worth/too hard to fix
     "RUF001", #  String contains ambiguous `！` (FULLWIDTH EXCLAMATION MARK). Did you mean `!` (EXCLAMATION MARK)? - used ,mostly on tests
-    "E402", # Module level import not at top of file - gtk stuff
+    "E402", # Some imports require initialization first
 
     # Ignores that should be fixed and removed
     "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
@@ -134,9 +122,6 @@ minversion = "9.0"
 testpaths = ["tests"]
 python_files = ["_test_*.py"]
 addopts = ["-ra", "--strict-markers", "--strict-config"]
-markers = [
-    "display: needs a display server to create windows (deselect with -m 'not display')",
-]
 
 [tool.pyright]
 

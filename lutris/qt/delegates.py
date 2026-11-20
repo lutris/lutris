@@ -3,11 +3,12 @@
 import asyncio
 from collections import deque
 from collections.abc import Callable
+from concurrent.futures import Future
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any
+from threading import Event
 
-from PySide6.QtCore import QEventLoop, QObject, QUrl, Signal, Slot
+from PySide6.QtCore import QEventLoop, QObject, Qt, QThread, QUrl, Signal, Slot
 
 from lutris.backend.launch_configurations import BackendLaunchUIDelegate, LaunchChoice
 from lutris.backend.models import GameInfo
@@ -20,6 +21,8 @@ class PromptController(QObject):
     noticeRequested = Signal(str, str, str, bool)
     inputRequested = Signal(str, str, str, str)
     configurationRequested = Signal(str, list, int, bool)
+    conflictRequested = Signal(str, str)
+    _workerPromptRequested = Signal(object)
     cancelRequested = Signal()
 
     def __init__(self) -> None:
@@ -30,6 +33,46 @@ class PromptController(QObject):
         self._answer: str | LaunchChoice | None = None
         self._answered = False
         self._pending_input: asyncio.Future[str | None] | None = None
+        self._interactive = Event()
+        self._workerPromptRequested.connect(self._run_worker_prompt, Qt.ConnectionType.QueuedConnection)
+
+    def set_interactive(self, visible: bool) -> None:
+        if visible:
+            self._interactive.set()
+        else:
+            self._interactive.clear()
+
+    @Slot(object)
+    def _run_worker_prompt(self, callback: Callable[[], None]) -> None:
+        callback()
+
+    def resolve_cloud_conflict(self, game_name: str, location_name: str) -> str | None:
+        def ask() -> str | None:
+            if not self._interactive.is_set():
+                return None
+            answer = self._wait_for_answer(lambda: self.conflictRequested.emit(game_name, location_name))
+            return answer if answer in ("download", "upload") and isinstance(answer, str) else None
+
+        if QThread.currentThread() == self.thread():
+            return ask()
+        result: Future[str | None] = Future()
+
+        def reply() -> None:
+            if result.set_running_or_notify_cancel():
+                try:
+                    result.set_result(ask())
+                except Exception as error:
+                    result.set_exception(error)
+
+        self._workerPromptRequested.emit(reply)
+        while self._interactive.is_set():
+            try:
+                return result.result(timeout=0.25)
+            except TimeoutError:
+                if result.done():
+                    raise
+        result.cancel()
+        return None
 
     def notice(self, message: str, secondary: str = "", *, title: str = "Lutris", rich: bool = True) -> None:
         self._notices.append((title, message, secondary, rich))
@@ -140,11 +183,5 @@ class QtLaunchUIDelegate(BackendLaunchUIDelegate):
             folder = QUrl.fromLocalFile(str(path if path.is_dir() else path.parent)).toString()
         return self._prompts.ask("file", message, "", folder)
 
-    def start_installer(
-        self,
-        installers: list[dict[str, Any]],
-        service: Any = None,
-        appid: str | None = None,
-        installation_kind: Any = None,
-    ) -> None:
-        self.show_notice(_("Installing games isn't available in the Qt version of Lutris yet."))
+    def resolve_cloud_sync_conflict(self, game_name: str, location_name: str) -> str | None:
+        return self._prompts.resolve_cloud_conflict(game_name, location_name)

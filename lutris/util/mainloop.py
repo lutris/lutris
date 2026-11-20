@@ -2,9 +2,8 @@
 
 Code outside the UI never talks to a toolkit's loop directly; it goes through
 lutris.util.jobs, which uses whatever MainLoop is installed here. The default
-runs on GLib, which is what GTK uses. Another frontend (Qt, for instance)
-installs its own implementation with set_main_loop() before it schedules
-anything.
+runs on GLib, which both frontends use. A frontend using a different event loop
+can install its own implementation with set_main_loop().
 """
 
 from collections.abc import Callable
@@ -33,13 +32,11 @@ class MainLoop(Protocol):
 
 
 class GLibMainLoop:
-    """The GLib main loop, which GTK runs on."""
+    """The GLib main loop used by both frontends."""
 
     def schedule(self, callback: LoopCallback, delay_seconds: float) -> object:
         from gi.repository import GLib
 
-        # Looked up on every call rather than bound once: the GTK frontend's
-        # exception backstops wrap GLib.idle_add and GLib.timeout_add to report errors
         if delay_seconds < 0.0:
             return GLib.idle_add(callback)
         return GLib.timeout_add(int(delay_seconds * 1000), callback)
@@ -75,8 +72,7 @@ def set_main_loop(main_loop: MainLoop) -> None:
 
 def run_asyncio_on_glib() -> None:
     """Make asyncio run on GLib's main loop, so that the backend's coroutines run while
-    a Gio.Application (and so a Gtk.Application) runs. A frontend on GLib calls this
-    before running its application; a Qt one would use QtAsyncio instead."""
+    a Gio.Application runs. Call this before starting the application."""
     import warnings
 
     with warnings.catch_warnings():

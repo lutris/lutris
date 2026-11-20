@@ -45,15 +45,18 @@ Build requirements, for the Python packages that compile against C libraries
 * Arch: ``base-devel gobject-introspection cairo dbus linux-api-headers``
 
 Runtime requirements, the libraries Lutris loads through GObject introspection
-and the tools it runs:
+and the tools it runs. The desktop application uses Qt Quick (PySide6 Essentials
+from ``uv.lock``); it does not require GTK introspection packages:
 
-* Fedora: ``gtk3 libnotify gnome-desktop3 glib-networking file-libs psmisc cabextract unzip 7zip curl xrandr mesa-demos vulkan-tools fluid-soundfont-gs``
-* Debian/Ubuntu: ``gir1.2-gtk-3.0 gir1.2-notify-0.7 gir1.2-gnomedesktop-3.0 glib-networking libmagic1 psmisc cabextract unzip p7zip-full curl x11-xserver-utils mesa-utils vulkan-tools fluid-soundfont-gs``
-* Arch: ``gtk3 libnotify gnome-desktop glib-networking file psmisc cabextract unzip p7zip curl xorg-xrandr mesa-utils vulkan-tools soundfont-fluid``
+* Fedora: ``glib-networking file-libs psmisc cabextract unzip 7zip curl xrandr mesa-demos vulkan-tools fluid-soundfont-gs``
+* Debian/Ubuntu: ``glib-networking libmagic1 psmisc cabextract unzip p7zip-full curl x11-xserver-utils mesa-utils vulkan-tools fluid-soundfont-gs``
+* Arch: ``glib-networking file psmisc cabextract unzip p7zip curl xorg-xrandr mesa-utils vulkan-tools soundfont-fluid``
 
-GnomeDesktop is only used to read screen resolutions on Wayland, where xrandr
-can't. To run games you'll also want the 32-bit OpenGL and Vulkan drivers for
-your graphics card, and optionally Wine, gamemode and gamescope.
+On X11, Qt's ``xcb`` plugin also needs your distribution's XCB helper libraries,
+including ``xcb-util-cursor`` (``libxcb-cursor0`` on Debian/Ubuntu).
+To run games you'll also want the 32-bit OpenGL and Vulkan drivers for your
+graphics card, and optionally Wine, gamemode and gamescope. Bundled or separately
+installed tools and games may still use GTK themselves.
 
 Then::
 

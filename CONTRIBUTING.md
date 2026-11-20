@@ -69,16 +69,11 @@ in the project environment and brings it up to date first; you can also
 `source .venv/bin/activate` and run `./bin/lutris -d` directly.
 
 PyGObject, pycairo, dbus-python and evdev are built from source the first
-time, and libraries that Lutris loads through GObject introspection, such as
-GTK 3, come from your system. `INSTALL.rst` lists the packages
-for both on Fedora, Debian/Ubuntu and Arch.
+time. PySide6 Essentials includes Qt Quick. `INSTALL.rst` lists the system
+packages for Fedora, Debian/Ubuntu and Arch.
 
-The Qt Quick frontend that is replacing the GTK one (see
-`docs/architecture.rst`) needs PySide6 from the optional `qt` extra.
-`make run-qt` installs it and starts that frontend from your checkout, using
-your normal Lutris profile. Give the extra to any `uv run` or `uv sync` while
-you work on it (`uv run --extra qt pytest tests/qt`), because a sync without it
-removes PySide6 again.
+`make run` launches Qt Quick from the checkout using your normal Lutris profile.
+Run the Qt tests with `uv run pytest tests/qt`; they use the offscreen platform.
 
 To try your changes inside the sandbox users get, `make flatpak` builds the
 Flatpak from your working tree and installs it for your user (see
@@ -191,13 +186,11 @@ yourself to the AUTHORS file!
 Developer resources
 -------------------
 
-Lutris uses Python 3 and GObject / Gtk+ 3 as its core stack, here are some
-links to some resources that can help you familiarize yourself with the
-project's code base.
+Lutris uses Python 3.14, Gio/GLib and Qt Quick.
 
 * [Python 3 documentation](https://docs.python.org/3/)
 * [PyGObject documentation](https://pygobject.readthedocs.io/en/latest/)
-* [Python Gtk 3 tutorial](https://python-gtk-3-tutorial.readthedocs.io/en/latest/objects.html)
+* [Qt Quick documentation](https://doc.qt.io/qt-6/qtquick-index.html)
 
 Project structure
 -----------------
@@ -208,7 +201,9 @@ Project structure
         +-[docs] User documentation
         +-[lutris]-+ Source folder
         |          |
-        |          +-[gui] Gtk UI code
+        |          +-[backend] Plain-data frontend API
+        |          +-[cli] Headless command-line frontend
+        |          +-[qt] Qt Quick frontend (controllers and QML)
         |          +-[installer] Install script interpreter
         |          +-[migrations] Migration scripts for user side changes
         |          +-[runners] Runner code, detailing launch options and settings
@@ -217,7 +212,7 @@ Project structure
         |
         +-[packaging] Flatpak manifest
         +-[po] Translation files
-        +-[share] Lutris resources like icons, ui files, scripts
+        +-[share] Desktop metadata, icons and other installed data
         +-[tests] Unit tests
         +-[utils] Helper scripts
 
@@ -236,8 +231,6 @@ Build tooling
   ``shared-modules`` is a git submodule of Flathub's shared modules.
 * The root ``Makefile`` holds the developer and Flatpak build tasks.
 
-The code is being split into a core that knows nothing about the user
-interface and frontends (GTK today, Qt next) that drive it. Read
-``docs/architecture.rst`` before adding code that touches both: in short,
-nothing outside ``lutris/gui`` may import ``lutris.gui`` or GTK, and
-``tests/_test_architecture.py`` checks that.
+The core doesn't import frontends or GUI toolkits. Read `docs/architecture.rst`
+before changing the boundary between the backend and either frontend. The
+architecture and frontend API tests enforce it.

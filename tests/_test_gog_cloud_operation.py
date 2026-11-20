@@ -5,6 +5,7 @@ polling, including cancellation via the stop button, and the order in which
 start_cloud_sync() runs a game's syncs.
 """
 
+import asyncio
 import unittest
 from unittest.mock import MagicMock
 
@@ -14,6 +15,7 @@ from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
 
+from lutris.backend import cloud_saves
 from lutris.services import gog_cloud_operation
 from lutris.services.gog_cloud import SyncResult
 from lutris.services.gog_cloud_operation import (
@@ -25,6 +27,25 @@ from lutris.services.gog_cloud_operation import (
     start_cloud_sync,
 )
 from lutris.util.notifications import NotificationRegistration, NotificationSource
+
+
+def test_frontend_can_read_and_skip_cloud_transfers(monkeypatch: pytest.MonkeyPatch) -> None:
+    game = _make_game("Front & Center")
+    operation = CloudSyncOperation(game, MagicMock(), "pre-launch")
+    operation.progress_callback(0, 2, "save.dat")
+    monkeypatch.setattr(gog_cloud_operation, "list_operations", lambda: (operation,))
+
+    async def run() -> None:
+        (transfer,) = await cloud_saves.list_transfers()
+        assert transfer.id == "1:pre-launch"
+        assert "Front & Center" in transfer.label and "save.dat" in transfer.label
+        assert transfer.can_skip and transfer.progress == 0.5
+        await cloud_saves.skip_transfer(transfer.id)
+        assert not (await cloud_saves.list_transfers())[0].can_skip
+        assert game.skip_cloud_sync
+
+    asyncio.run(run())
+
 
 # ---------------------------------------------------------------------------
 # Helpers

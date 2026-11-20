@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 from lutris import api, settings
 from lutris.config import write_game_config
 from lutris.database import sql
-from lutris.database.games import add_game, get_game_by_field, get_game_for_service, get_games
+from lutris.database.games import DbGameDict, add_game, get_game_for_service, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.exceptions import LutrisError
 from lutris.game import GAME_UPDATED, Game
@@ -113,17 +113,11 @@ class BaseService:
             launcher.launch(launch_ui_delegate)
 
     def is_launchable(self):
-        if self.client_installer:
-            db_launcher = get_game_by_field(self.client_installer, "slug")
-            return bool(db_launcher and db_launcher.get("installed"))
-        return False
+        return bool(self.list_launchers())
 
     def get_launcher(self):
-        if not self.client_installer:
-            return None
-        db_launcher = get_game_by_field(self.client_installer, "slug")
-        if db_launcher:
-            return Game(db_launcher["id"])
+        launchers = self.list_launchers()
+        return Game(launchers[0]["id"]) if launchers else None
 
     def is_launcher_installed(self):
         launcher = self.get_launcher()
@@ -197,12 +191,23 @@ class BaseService:
         installer = self.generate_installer(db_game)
         return [installer] if installer else []
 
-    def get_installation_launcher(self) -> dict[str, Any]:
-        """Look up the existing launcher a store-generated installer needs."""
+    def list_launchers(self) -> list[DbGameDict]:
+        """Find registered installations, with the preferred launcher first."""
+        if not self.client_installer:
+            return []
+        launchers: dict[str, DbGameDict] = {}
         for field in ("installer_slug", "slug"):
             for launcher in get_games(filters={field: self.client_installer, "installed": 1}):
-                if launcher["directory"] and launcher["configpath"]:
-                    return launcher
+                if launcher.get("configpath"):
+                    launchers[launcher["id"]] = launcher
+        preferred = settings.read_setting(f"{self.id}_launcher", section="services")
+        return sorted(launchers.values(), key=lambda entry: entry["id"] != preferred)
+
+    def get_installation_launcher(self) -> DbGameDict:
+        """Look up the existing launcher a store-generated installer needs."""
+        for launcher in self.list_launchers():
+            if launcher.get("directory"):
+                return launcher
         raise LutrisError(_("Install the %s launcher and add it to Lutris first.") % self.name)
 
     def get_installer_files(self, installer, installer_file_id):

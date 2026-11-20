@@ -243,7 +243,7 @@ and the category survives a restart.
 Item 7 - Install a store game or run a local Windows setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Do:** start with ``LUTRIS_FRONTEND=qt``. Sync a store library, select a small
+**Do:** start Lutris. Sync a store library, select a small
 uninstalled game, and choose **Game Actions → Install**. A local setup can be
 run through **Library → Run Windows Setup**. Choose a Windows version and
 locale, then select the setup executable.

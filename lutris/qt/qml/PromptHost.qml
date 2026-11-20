@@ -83,6 +83,49 @@ Item {
         onRejected: host.prompts.answer_file(false, "")
     }
 
+    Dialog {
+        id: cloudConflict
+        objectName: "cloudSaveConflict"
+        property string description: ""
+
+        title: qsTr("Cloud Save Conflict")
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        width: Math.min(540, parent.width - 32)
+        modal: true
+        onRejected: host.prompts.answer(false, "")
+
+        contentItem: ColumnLayout {
+            Label {
+                Layout.fillWidth: true
+                text: cloudConflict.description
+                textFormat: Text.PlainText
+                wrapMode: Text.WordWrap
+            }
+
+            RowLayout {
+                Button {
+                    text: qsTr("Keep Local Saves")
+                    onClicked: {
+                        host.prompts.answer(true, "upload")
+                        cloudConflict.close()
+                    }
+                }
+                Button {
+                    text: qsTr("Keep Cloud Saves")
+                    onClicked: {
+                        host.prompts.answer(true, "download")
+                        cloudConflict.close()
+                    }
+                }
+                Button {
+                    text: qsTr("Skip")
+                    onClicked: cloudConflict.reject()
+                }
+            }
+        }
+    }
+
     Loader {
         id: configurationLoader
         active: false
@@ -131,11 +174,18 @@ Item {
             }
         }
 
+        function onConflictRequested(gameName, locationName) {
+            cloudConflict.description = qsTr("Local and cloud saves for %1 (%2) both changed. Which copy should Lutris keep?")
+                                         .arg(gameName).arg(locationName)
+            cloudConflict.open()
+        }
+
         function onCancelRequested() {
             if (configurationLoader.status === Loader.Ready)
                 configurationLoader.dialog.reject()
             notice.close()
             prompt.reject()
+            cloudConflict.reject()
             filePrompt.close()
         }
     }

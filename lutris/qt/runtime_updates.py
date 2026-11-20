@@ -1,5 +1,6 @@
 """Run runtime updates for Qt Quick and show how far they've got."""
 
+import asyncio
 from gettext import gettext as _
 
 from PySide6.QtCore import Property, QObject, Signal, Slot
@@ -20,6 +21,7 @@ class RuntimeUpdatesController(QObject):
         self._status = RuntimeUpdateStatus(running=False)
         self._result = ""
         self._auto_update = True
+        self._task: asyncio.Task[None] | None = None
         self._registration: NotificationRegistration | None = runtime_updates.RUNTIME_UPDATE_CHANGED.register(
             self._on_changed
         )
@@ -62,10 +64,14 @@ class RuntimeUpdatesController(QObject):
         self.update(force=True)
 
     def update(self, force: bool = False) -> None:
-        if not self._status.running:
+        if self._task is None or self._task.done():
             self._result = _("Checking for runtime updates…") if force else ""
             self.stateChanged.emit()
-            start_task(self._update(force), self._prompts.error)
+            self._task = start_task(self._update(force), self._prompts.error)
+
+    async def wait_for_update(self) -> None:
+        if self._task and not self._task.done():
+            await asyncio.wait({self._task})
 
     async def _update(self, force: bool) -> None:
         try:

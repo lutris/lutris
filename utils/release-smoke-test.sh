@@ -16,7 +16,7 @@
 # The game used for the launch checks is a small shell script, so no download,
 # no Wine prefix and no GPU are involved.
 #
-# A display is required: launching games and the GUI check start the GTK client.
+# A display is required: launching games and the GUI check start the Qt Quick client
 # Run this from a desktop session, or with
 # `xvfb-run -a utils/release-smoke-test.sh` when there is none.
 #
@@ -104,7 +104,7 @@ if [ "$(id -u)" -eq 0 ]; then
     exit 2
 fi
 
-# Launching games and the GUI check need the GTK client, so a display; without one,
+# Launching games and the GUI check need the Qt Quick client; without a display,
 # those checks would all fail. Stop here, before the sandbox and the private bus
 # exist, with a message that says what to do instead.
 if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] && ! command -v xvfb-run >/dev/null 2>&1; then
@@ -346,24 +346,18 @@ add_game(**game_data)
 PY
 }
 
-# Recreate the profile an upgrading user has: an old migration_version, a custom
-# setting that must survive, and a runner config still using the pre-platform key.
-# Seeding one below the newest runs that migration and nothing else, which keeps the
-# upgrade offline: migration 13 (migrate_sortname) and 17 (retrieve_discord_appids)
-# call the lutris.net API, and lutris/migrations/__init__.py does not catch their
-# failures. Broader upgrade coverage comes from --existing-profile, which migrates a
-# copy of a real profile.
-# The fixture's E5 checks expect the model -> platform rewrite, so they describe
-# migration 18. When a migration is added, extend this fixture for the new newest
-# migration and move LEGACY_FIXTURE_MIGRATION with it.
+# Start at migration 18 to test the old emulator option and the removal of
+# Lutris.net account data while skipping migrations that require the network
 LEGACY_FIXTURE_MIGRATION=18
 seed_legacy_profile() {
-    mkdir -p "$P_DATA/games"
+    mkdir -p "$P_DATA/games" "$P_CACHE"
+    touch "$P_CACHE/auth-token" "$P_CACHE/user.json"
     cat > "$P_CONF" <<EOF
 [lutris]
-migration_version = $((EXPECTED_MIGRATION_VERSION - 1))
+migration_version = $LEGACY_FIXTURE_MIGRATION
 pga_cache_path = $P_ROOT/pga-cache
 hide_media = False
+library_sync_enabled = True
 EOF
 
     "$PY" - "$REPO_ROOT" "$P_DATA" "$P_GAMES" <<'PY'
@@ -584,15 +578,6 @@ scenario_fresh() {
 
 scenario_existing() {
     section "Existing install (upgrade)"
-    # The seed below runs only the newest migration, so the fixture and the E5 checks
-    # have to describe that one. When they no longer do, say it once, plainly, instead
-    # of leaving two unexplained E5 failures behind.
-    local newest_migration=$((EXPECTED_MIGRATION_VERSION - 1))
-    if [ "$LEGACY_FIXTURE_MIGRATION" -ne "$newest_migration" ]; then
-        local fix="the fixture asserts migration $LEGACY_FIXTURE_MIGRATION, the newest is $newest_migration"
-        fail "existing/fixture: legacy profile matches the newest migration" \
-            "$fix; update seed_legacy_profile() and E5"
-    fi
     profile_reset existing
     local scenario=existing out migrated_yml
     local legacy_yml="$P_DATA/games/legacy-emulator-1.yml"
@@ -613,6 +598,12 @@ scenario_existing() {
         "$out" "migration_version = $EXPECTED_MIGRATION_VERSION"
     expect_contains "E4 settings: custom pga_cache_path preserved" \
         "$out" "pga_cache_path = $P_ROOT/pga-cache"
+    expect_not_contains "E4 settings: legacy Lutris.net sync setting removed" "$out" "library_sync_enabled"
+    if [ ! -e "$P_CACHE/auth-token" ] && [ ! -e "$P_CACHE/user.json" ]; then
+        ok "E4 settings: legacy Lutris.net credentials removed"
+    else
+        fail "E4 settings: legacy Lutris.net credentials removed" "account files remain in $P_CACHE"
+    fi
 
     # E5 - the old runner option key is migrated
     out=$(cat "$legacy_yml" 2>/dev/null || true)

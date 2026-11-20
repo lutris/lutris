@@ -1,6 +1,6 @@
 """The command-line frontend's application, which every `lutris` command starts with.
 
-It's a Gio.Application with the same id as the GTK frontend's, so that Lutris runs
+It's a Gio.Application with the same id as the Qt frontend's, so that Lutris runs
 once: a command line that names a command needing no GUI is forwarded to the
 instance already running, whatever its frontend, or run here, with no GUI toolkit
 loaded, when there's none. Any other command line needs a GUI, so this hands it

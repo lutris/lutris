@@ -5,16 +5,17 @@ from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import pytest
-from PySide6.QtCore import Q_ARG, QCoreApplication, QEvent, QMetaObject, QObject, QPointF, Qt, QTimer, QUrl
-from PySide6.QtGui import QColor, QGuiApplication, QImage
+from PySide6.QtCore import Q_ARG, QCoreApplication, QEvent, QMetaObject, QMimeData, QObject, QPointF, Qt, QTimer, QUrl
+from PySide6.QtGui import QColor, QDragEnterEvent, QDropEvent, QGuiApplication, QImage
 from PySide6.QtQuick import QQuickItem
-from PySide6.QtTest import QTest
+from PySide6.QtTest import QSignalSpy, QTest
 
 from lutris import settings
 from lutris.backend import (
     configuration,
     events,
     game_actions,
+    imports,
     installations,
     installers,
     media,
@@ -121,6 +122,59 @@ async def wait_for_qml(application: QGuiApplication, ready: Callable[[], bool]) 
             return
         await asyncio.sleep(0.02)
     pytest.fail("Qt Quick did not reach the expected state")
+
+
+def test_quit_shortcut_requests_application_shutdown(qt_application: QGuiApplication) -> None:
+    async def run() -> None:
+        window = MainWindow()
+        try:
+            await settle(window)
+            window.show()
+            await wait_for_qml(qt_application, window.window.isExposed)
+            quit_requested = QSignalSpy(window.engine.quit)
+            QTest.keyClick(window.window, Qt.Key.Key_Q, Qt.KeyboardModifier.ControlModifier)
+            await wait_for_qml(qt_application, lambda: quit_requested.count() == 1)
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
+
+
+def test_dropping_rom_files_imports_each_local_file_once(
+    qt_application: QGuiApplication, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    rom = tmp_path / "test.sfc"
+    received: list[str] = []
+
+    async def import_rom(path: str) -> imports.RomImportResult:
+        received.append(path)
+        return imports.RomImportResult(Path(path).name, True)
+
+    monkeypatch.setattr(imports, "import_rom", import_rom)
+
+    async def run() -> None:
+        window = MainWindow()
+        try:
+            await settle(window)
+            window.show()
+            await wait_for_qml(qt_application, window.window.isExposed)
+            mime = QMimeData()
+            url = QUrl.fromLocalFile(str(rom))
+            mime.setUrls([url, QUrl("https://example.invalid/other.sfc"), url])
+            position = QPointF(500, 300)
+            actions = Qt.DropAction.CopyAction
+            buttons = Qt.MouseButton.LeftButton
+            modifiers = Qt.KeyboardModifier.NoModifier
+            QCoreApplication.sendEvent(window.window, QDragEnterEvent(position, actions, mime, buttons, modifiers))
+            drop = QDropEvent(position, actions, mime, buttons, modifiers)
+            QCoreApplication.sendEvent(window.window, drop)
+            assert drop.isAccepted()
+            await wait_for_qml(qt_application, lambda: bool(received))
+            assert received == [str(rom)]
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
 
 
 def test_grid_reloads_artwork_and_keeps_selection_across_layouts(

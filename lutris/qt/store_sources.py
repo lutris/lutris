@@ -19,12 +19,14 @@ class StoreSourcesController(QObject):
     gamesChanged = Signal()
     loginRequested = Signal()
     loginClosed = Signal()
+    launcherRequested = Signal(str)
 
     def __init__(self, prompts: PromptController, parent: QObject) -> None:
         super().__init__(parent)
         self._prompts = prompts
         self._source = ""
         self._info: services.SourceStatus | None = None
+        self._launchers: tuple[services.SourceLauncher, ...] = ()
         self._request: store_login.BrowserLogin | None = None
         self._task: asyncio.Task[None] | None = None
         self._error = ""
@@ -46,6 +48,16 @@ class StoreSourcesController(QObject):
         request = self._request
         return {"name": request.name, "inputKind": request.input_kind} if request else {}
 
+    @Property(list, notify=changed)
+    def launchers(self) -> list[dict[str, str]]:
+        return [
+            {
+                "id": launcher.id,
+                "label": f"{launcher.name} — {launcher.directory}" if launcher.directory else launcher.name,
+            }
+            for launcher in self._launchers
+        ]
+
     @Property(bool, notify=changed)
     def busy(self) -> bool:
         return self._task is not None
@@ -57,15 +69,32 @@ class StoreSourcesController(QObject):
     def select(self, service_id: str) -> None:
         self._source = service_id
         self._info = None
+        self._launchers = ()
         self.changed.emit()
         if service_id:
             start_task(self._load(service_id), self._prompts.error)
 
     async def _load(self, service_id: str) -> None:
         info = await services.get_source_status(service_id)
+        launchers = await services.list_source_launchers(service_id)
         if service_id == self._source:
             self._info = info
+            self._launchers = launchers
             self.changed.emit()
+
+    @Slot(str)
+    def choose_launcher(self, game_id: str) -> None:
+        if self._source and not self._task:
+            self._start(self._choose_launcher(self._source, game_id))
+
+    async def _choose_launcher(self, service_id: str, game_id: str) -> None:
+        await services.set_source_launcher(service_id, game_id)
+        await self._load(service_id)
+
+    @Slot()
+    def run_launcher(self) -> None:
+        if self._launchers and not self._task:
+            self.launcherRequested.emit(self._launchers[0].id)
 
     @Slot()
     def sign_in(self) -> None:

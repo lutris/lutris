@@ -3,9 +3,8 @@
 Some of what the core needs to know about the screen is best answered by the UI
 toolkit: which windowing system it's connected to, the primary monitor's scale,
 and how to keep the computer awake when nothing on D-Bus will. The frontend
-installs a DisplayBackend with set_display_backend() before it starts (the GTK
-frontend's is lutris.gui.display_backend); without one, the core works these out
-from the environment, and reads display modes with xrandr.
+installs a DisplayBackend with set_display_backend() before it starts; without
+one, the core reads the environment and uses xrandr for X11 display modes.
 """
 
 import os

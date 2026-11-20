@@ -53,6 +53,7 @@ class _Origin:
     appid: str | None = None
     game_id: str = ""
     kind: InstallationKind = InstallationKind.INSTALL
+    launcher: games_db.DbGameDict | None = None
 
 
 @dataclass(frozen=True)
@@ -128,7 +129,8 @@ def _store_installers(
         raise LutrisError(_("Sync %s to find this game in your library.") % source.name)
     if games_db.get_games(filters={"service": service_id, "service_id": appid, "installed": 1}):
         raise LutrisError(_("This game is already installed."))
-    return source.generate_installers(row), _Origin(source, appid)
+    launcher = source.get_installation_launcher() if source.client_installer else None
+    return source.generate_installers(row), _Origin(source, appid, launcher=launcher)
 
 
 def _installed_game(game_id: str, service_id: str, appid: str) -> games_db.DbGameDict:
@@ -237,6 +239,12 @@ def _build_interpreter(
 ) -> ScriptInterpreter:
     delegate.service = origin.service
     delegate.appid = origin.appid
+    if origin.launcher is not None and origin.service is not None:
+        launcher = origin.service.get_installation_launcher()
+        keys = ("id", "directory", "configpath")
+        if any(launcher.get(key) != origin.launcher.get(key) for key in keys):
+            raise LutrisError(_("The store launcher changed. Reopen the game's installers to continue."))
+        delegate.required_game = launcher
     if origin.service and origin.appid:
         if isinstance(origin.service, OnlineService) and not origin.service.is_authenticated():
             raise LutrisError(_("Sign in to %s before installing this game.") % origin.service.name)

@@ -101,6 +101,28 @@ def test_unsaved_changes_are_discarded(game_id: str, config_dir: Path) -> None:
     asyncio.run(run())
 
 
+def test_reset_launch_preference_preserves_launch_configurations(game_id: str, config_dir: Path) -> None:
+    config_path = str(config_dir / "games" / "example-1.yml")
+    options = {"exe": "/games/example/run.sh", "launch_configs": [{"name": "Windowed", "args": "--windowed"}]}
+    write_yaml_to_file(
+        {"game": options | {"preferred_launch_config_name": "Windowed", "preferred_launch_config_index": 1}},
+        config_path,
+    )
+
+    async def run() -> None:
+        form = await configuration.open_game_config(game_id)
+        assert form.game and form.game.preferred_launch == "Windowed"
+        updated = await configuration.reset_preferred_launch(form.id)
+        assert updated.game and not updated.game.preferred_launch
+        await configuration.save_config(form.id)
+        await configuration.close_config(form.id)
+
+    asyncio.run(run())
+    row = games_db.get_game_by_field(game_id, "id")
+    assert row is not None
+    assert read_yaml_from_file(str(config_dir / "games" / f"{row['configpath']}.yml"))["game"] == options
+
+
 def test_linux_runtime_can_override_runner_default(game_id: str) -> None:
     async def run() -> None:
         key = "steam_linux_runtime"

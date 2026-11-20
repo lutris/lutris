@@ -41,6 +41,8 @@ GridView {
         selected: grid.currentIndex === index
         keyboardFocus: selected && grid.activeFocus
         placeholder: grid.controller.placeholderArtwork
+        showTitle: !grid.controller.preferences.hideGameTitles
+        showBadges: !grid.controller.preferences.hideBadges
         onClicked: {
             grid.forceActiveFocus()
             grid.controller.select_game(index)

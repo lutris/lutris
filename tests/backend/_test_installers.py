@@ -7,8 +7,11 @@ from typing import Any
 
 import pytest
 
-from lutris.backend import installers
+from lutris import settings
+from lutris.backend import installers, services
+from lutris.database import games as games_db
 from lutris.exceptions import LutrisError
+from lutris.services.ubisoft import UbisoftConnectService
 from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
@@ -118,7 +121,6 @@ def test_closed_and_evicted_catalogs_are_forgotten(scripts: list[dict[str, Any]]
 
 
 def test_store_content_targets_the_selected_installation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    from lutris.database import games as games_db
     from lutris.installer import InstallationKind
     from lutris.installer.interpreter import ScriptInterpreter
     from lutris.services.gog import GOGService
@@ -154,6 +156,55 @@ def test_store_content_targets_the_selected_installation(tmp_path: Path, monkeyp
     finally:
         games_db.delete_game(str(wrong))
         games_db.delete_game(str(expected))
+
+
+def test_store_plan_uses_the_preferred_launcher_as_its_dependency(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    launcher_slug = UbisoftConnectService.client_installer
+    ids = [
+        str(
+            games_db.add_game(
+                name=name,
+                slug=name,
+                installer_slug=launcher_slug,
+                installed=1,
+                runner="wine",
+                directory=str(tmp_path / name),
+                configpath=name,
+            )
+        )
+        for name in ("first-launcher", "preferred-launcher")
+    ]
+    saved: dict[str, str] = {}
+    monkeypatch.setattr(settings, "write_setting", lambda key, value, section: saved.update({key: value}))
+    monkeypatch.setattr(settings, "read_setting", lambda key, default="", section="lutris": saved.get(key, default))
+    monkeypatch.setattr(UbisoftConnectService, "is_authenticated", lambda self: True)
+    monkeypatch.setattr(installers.ServiceGameCollection, "get_game", lambda *_args: {"appid": "test"})
+    monkeypatch.setattr(
+        UbisoftConnectService, "generate_installers", lambda self, row: [make_script("Store", requires=launcher_slug)]
+    )
+
+    async def run() -> None:
+        with pytest.raises(LutrisError, match="no longer available"):
+            await services.set_source_launcher("ubisoft", "no-such-launcher")
+        await services.set_source_launcher("ubisoft", ids[1])
+        assert (await services.list_source_launchers("ubisoft"))[0].id == ids[1]
+        catalog = await installers.find_store_installers("ubisoft", "test")
+        try:
+            selection = await installers.select_installer(catalog.id, "0")
+            assert selection.default_directory == str(tmp_path / "preferred-launcher")
+            await services.set_source_launcher("ubisoft", ids[0])
+            with pytest.raises(LutrisError, match="launcher changed"):
+                await installers.select_installer(catalog.id, "0")
+        finally:
+            await installers.close_catalog(catalog.id)
+
+    try:
+        asyncio.run(run())
+    finally:
+        for game_id in ids:
+            games_db.delete_game(game_id)
 
 
 @pytest.mark.parametrize(("windows_version", "locale"), [("win10", ""), ("win7", "ja_JP.utf8")])

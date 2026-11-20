@@ -205,6 +205,21 @@ class UbisoftConnectClient:
         self._service.store_credentials(self.get_credentials())
         return user_data
 
+    def verify_browser_session(self, credentials: dict[str, str]) -> None:
+        self.user_name = None
+        self.refresh_token = None
+        self.restore_credentials(credentials)
+        result = self._do_request(
+            "post",
+            "https://public-ubiservices.ubi.com/v2/profiles/sessions",
+            add_to_headers={"Content-Type": "application/json"},
+            timeout=15,
+        )
+        if result.get("userId") != self.user_id:
+            raise ValueError("The Ubisoft session does not match the account")
+        if name := result.get("nameOnPlatform"):
+            self.user_name = name
+
     # Deprecated 0.39
     def get_user_data(self):
         return self._do_request_safe("get", f"https://public-ubiservices.ubi.com/v3/users/{self.user_id}")

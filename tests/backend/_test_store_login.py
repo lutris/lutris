@@ -2,6 +2,7 @@
 
 import asyncio
 import hashlib
+import json
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
@@ -13,7 +14,9 @@ from lutris.exceptions import LutrisError
 from lutris.services.amazon import AmazonService
 from lutris.services.gog import GOGService
 from lutris.services.humblebundle import HumbleBundleService
+from lutris.services.ubisoft import UbisoftConnectService
 from lutris.util.credentials import save_credentials
+from lutris.util.ubisoft.client import UbisoftConnectClient
 
 
 def test_gog_rejects_lookalike_origins_and_retries_the_same_request(
@@ -107,3 +110,37 @@ def test_cookie_import_only_persists_the_selected_stores_cookies(
     assert [(cookie.domain, cookie.name) for cookie in cookies] == [(".humblebundle.com", "session")]
     assert "unrelated-session" not in target.read_text(encoding="utf-8")
     assert target.stat().st_mode & 0o777 == 0o600
+
+
+def test_ubisoft_combines_storage_values_and_only_saves_verified_sessions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    token = tmp_path / ".ubisoft.token"
+    monkeypatch.setattr(settings, "CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(UbisoftConnectService, "token_path", str(token))
+
+    def verify(self: UbisoftConnectClient, method: str, url: str, **kwargs: object) -> dict[str, str]:
+        assert method == "post" and url.endswith("/v2/profiles/sessions")
+        assert kwargs["timeout"] == 15
+        return {"userId": "account", "nameOnPlatform": "Player"}
+
+    monkeypatch.setattr(UbisoftConnectClient, "_do_request", verify)
+
+    async def run() -> None:
+        request = await store_login.begin("ubisoft")
+        login = {"ticket": "fixture-ticket", "sessionId": "fixture-session"}
+        with pytest.raises(LutrisError, match="login data as JSON"):
+            await store_login.finish(request.id, json.dumps(login))
+        with pytest.raises(LutrisError, match="did not accept"):
+            await store_login.finish(request.id, json.dumps(login | {"userId": "other"}))
+        assert not token.exists()
+        await store_login.finish(
+            request.id, json.dumps([login, {"rememberMeTicket": "fixture-refresh"}, {"userId": "account"}])
+        )
+        assert (await services.get_source_status("ubisoft")).signed_in
+
+    asyncio.run(run())
+    saved = json.loads(token.read_text(encoding="utf-8"))
+    assert saved["userId"] == "account" and saved["username"] == "Player"
+    assert saved["rememberMeTicket"] == "fixture-refresh"
+    assert token.stat().st_mode & 0o777 == 0o600

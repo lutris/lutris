@@ -3,15 +3,18 @@
 from collections.abc import Coroutine
 from dataclasses import replace
 from gettext import gettext as _
+from pathlib import Path
 from typing import Any
 
 from PySide6.QtCore import Property, QObject, QUrl, Signal, Slot
+from PySide6.QtGui import QDesktopServices
 
 from lutris.backend import configuration
 from lutris.backend.models import ConfigForm, ConfigOptionInfo, ConfigPage
 from lutris.qt.config_model import ConfigOptionModel
 from lutris.qt.delegates import PromptController
 from lutris.qt.game_artwork import GameArtworkController
+from lutris.qt.game_maintenance import GameMaintenanceController
 from lutris.qt.tasks import start_task
 from lutris.util.notifications import NotificationRegistration
 
@@ -36,6 +39,12 @@ class ConfigController(QObject):
         self.model = ConfigOptionModel()
         self.model.setParent(self)
         self.artwork_controller = GameArtworkController(prompts, self)
+        self._maintenance = GameMaintenanceController(prompts, self)
+        self._maintenance.finished.connect(self._reload_moved_game)
+
+    @Property(QObject, constant=True)
+    def maintenance(self) -> GameMaintenanceController:
+        return self._maintenance
 
     @Property(QObject, constant=True)
     def artwork(self) -> GameArtworkController:
@@ -107,7 +116,32 @@ class ConfigController(QObject):
             "playtime": details.playtime,
             "directory": details.directory,
             "configPath": details.config_path,
+            "preferredLaunch": details.preferred_launch,
         }
+
+    @Slot()
+    def open_config_folder(self) -> None:
+        if self._form and (details := self._form.game) and details.config_path:
+            directory = str(Path(details.config_path).parent)
+            if not QDesktopServices.openUrl(QUrl.fromLocalFile(directory)):
+                self._prompts.error(RuntimeError(_("Could not open %s") % directory))
+
+    @Slot(result=bool)
+    def prepare_move(self) -> bool:
+        if not self._game_id or self._modified or self._busy:
+            return False
+        self._maintenance.open_maintenance(self._game_id)
+        return True
+
+    def _reload_moved_game(self) -> None:
+        if self._form and self._form.game and self._game_id:
+            self.open_game(self._game_id, self._form.game.name)
+
+    @Slot()
+    def reset_preferred_launch(self) -> None:
+        if self._form and self._form.game:
+            self._modified = True
+            self._run(configuration.reset_preferred_launch(self._form.id))
 
     @Property(list, notify=stateChanged)
     def runnerChoices(self) -> list[dict[str, str]]:  # noqa: N802

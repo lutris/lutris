@@ -1,7 +1,7 @@
 """Expose runner management to Qt Quick."""
 
 import asyncio
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from gettext import gettext as _
 from typing import Any
 
@@ -159,3 +159,7 @@ class RunnerManagerController(QObject):
         if not await self._ask(title, question):
             return None
         return await self._prompts.ask_async("file", message, "")
+
+    async def prepare_for_launch(self, game_id: str, progress: Callable[[str, float | None], None]) -> bool:
+        interaction = runners.RunnerInstallInteraction(progress, self._ask, self._choose_file)
+        return await runners.prepare_game_runner(game_id, interaction)

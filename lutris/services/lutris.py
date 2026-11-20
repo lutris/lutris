@@ -4,7 +4,7 @@ from lutris.services.base import LutrisBanner, LutrisCoverart, LutrisCoverartMed
 
 
 class LutrisMedia:
-    """The library's artwork for games, by slug, for GTK's views, which pick their formats
+    """The library's artwork for games, by slug, for views that pick their formats
     from a service. It isn't one: lutris.artwork downloads it from each game's store."""
 
     id = "lutris"

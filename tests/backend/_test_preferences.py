@@ -1,6 +1,7 @@
 """Preferences: game sources, storage paths, the Steam account and system info."""
 
 import asyncio
+import json
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,18 @@ from lutris.util.test_config import setup_test_environment
 from lutris.util.yaml import read_yaml_from_file
 
 setup_test_environment()
+
+
+def test_issue_report_exports_description_and_system_information(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(preferences, "gather_system_info", lambda: {"distribution": "Test Linux"})
+    report = tmp_path / "report.json"
+    asyncio.run(preferences.save_issue_report(str(report), "The screen went blank"))
+    assert json.loads(report.read_text(encoding="utf-8")) == {
+        "comment": "The screen went blank",
+        "system": {"distribution": "Test Linux"},
+    }
 
 
 @pytest.fixture

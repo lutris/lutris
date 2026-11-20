@@ -36,6 +36,7 @@ class ScriptInterpreter(CommandsMixin):
             self.service = service
             self.appid = appid
             self.installed_game = installed_game
+            self.required_game: DbGameDict | None = None
 
         def report_error(self, error):
             """Called to report an error during installation. The installation will then stop."""
@@ -195,7 +196,9 @@ class ScriptInterpreter(CommandsMixin):
                     raise ScriptingError(error_message.format(_(" or ").join(dependency)))
                 game = installed_games[0]
             else:
-                game = self._get_game_dependency(dependency)
+                game = self.interpreter_ui_delegate.required_game if index == 0 else None
+                if not game or dependency not in (game.get("installer_slug"), game.get("slug")):
+                    game = self._get_game_dependency(dependency)
                 if not game:
                     raise MissingGameDependencyError(slug=dependency)
             if index == 0:

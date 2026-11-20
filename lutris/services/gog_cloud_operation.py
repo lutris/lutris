@@ -18,7 +18,6 @@ from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.notifications import NotificationSource
 from lutris.util.progress_info import ProgressInfo
-from lutris.util.strings import gtk_safe
 
 if TYPE_CHECKING:
     from lutris.game import Game
@@ -73,9 +72,9 @@ class CloudSyncOperation:
         self._error: str | None = None
 
         if direction == "pre-launch":
-            self._label = _("Syncing cloud saves for %s") % gtk_safe(game.name)
+            self._label = _("Syncing cloud saves for %s") % game.name
         else:
-            self._label = _("Uploading cloud saves for %s") % gtk_safe(game.name)
+            self._label = _("Uploading cloud saves for %s") % game.name
 
     def cancel(self) -> None:
         """Called from the main thread when the user clicks the stop button."""
@@ -137,6 +136,10 @@ class CloudSyncOperation:
 def is_cloud_sync_running() -> bool:
     """True if any cloud sync has started, or is waiting to start, and hasn't ended."""
     return bool(_operations)
+
+
+def list_operations() -> tuple[CloudSyncOperation, ...]:
+    return tuple(_operations.values())
 
 
 def start_cloud_sync(

@@ -165,13 +165,19 @@ class _Form:
     # Building the form
 
     def form(self) -> ConfigForm:
+        details = self.details
+        if details:
+            preferred = self.config.game_level.get("game", {}).get("preferred_launch_config_name")
+            if preferred == Game.PRIMARY_LAUNCH_CONFIG_NAME:
+                preferred = _("Primary configuration")
+            details = replace(details, preferred_launch=str(preferred or ""))
         return ConfigForm(
             id=self.id,
             level=self.level,
             title=self.title,
             pages=tuple(self.page(section) for section in self.sections),
             show_advanced=settings.read_setting(_SHOW_ADVANCED_SETTING) == "True",
-            game=self.details,
+            game=details,
             runner_choices=_runner_choices() if self.level == "game" else (),
         )
 
@@ -579,6 +585,15 @@ async def set_option(form_id: str, section: str, key: str, value: Any) -> Config
 async def reset_option(form_id: str, section: str, key: str) -> ConfigForm:
     """Stop setting an option at the form's level, so it comes from the level below."""
     return await _change(form_id, lambda form: form.reset(section, key))
+
+
+async def reset_preferred_launch(form_id: str) -> ConfigForm:
+    def reset(form: _Form) -> None:
+        options = form.config.game_level.get("game", {})
+        options.pop("preferred_launch_config_name", None)
+        options.pop("preferred_launch_config_index", None)
+
+    return await _change(form_id, reset)
 
 
 async def save_config(form_id: str) -> str:

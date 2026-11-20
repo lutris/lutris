@@ -2,6 +2,8 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs as NativeDialogs
+import QtQuick.Layouts
 
 ApplicationWindow {
     id: window
@@ -37,6 +39,22 @@ ApplicationWindow {
                 onTriggered: windowsSetup.open()
             }
 
+            MenuItem {
+                text: qsTr("Import ROMs…")
+                enabled: !window.controller.gameImports.busy
+                onTriggered: romFolder.open()
+            }
+
+            MenuItem {
+                text: qsTr("Import from Playtron…")
+                enabled: !window.controller.gameImports.busy
+                onTriggered: {
+                    importDialog.scanningRoms = false
+                    window.controller.gameImports.import_playtron()
+                    importDialog.open()
+                }
+            }
+
             MenuSeparator {}
 
             MenuItem {
@@ -50,6 +68,21 @@ ApplicationWindow {
                 text: qsTr("Preferences…")
                 onTriggered: window.controller.preferences.open_preferences()
             }
+
+            MenuSeparator {}
+
+            MenuItem {
+                text: qsTr("Quit")
+                onTriggered: Qt.quit()
+            }
+        }
+
+        Menu {
+            title: qsTr("Help")
+            MenuItem {
+                text: qsTr("Save Issue Report…")
+                onTriggered: window.controller.preferences.open_issue_report()
+            }
         }
     }
 
@@ -60,7 +93,49 @@ ApplicationWindow {
         controller: window.controller
     }
 
+    DropArea {
+        anchors.fill: parent
+        enabled: !window.controller.gameImports.busy && !importDialog.visible
+
+        onEntered: drag => { drag.accepted = drag.hasUrls }
+        onDropped: drop => {
+            if (drop.hasUrls && window.controller.gameImports.import_rom_files(drop.urls)) {
+                drop.acceptProposedAction()
+                importDialog.scanningRoms = true
+                importDialog.open()
+            }
+        }
+    }
+
     PromptHost { prompts: window.prompts }
+
+    Shortcut {
+        sequence: "Ctrl+Q"
+        onActivated: Qt.quit()
+    }
+
+    Shortcut {
+        sequence: "Ctrl+P"
+        onActivated: window.controller.preferences.set_interface_option(
+                         "hide_badges_on_icons", !window.controller.preferences.hideBadges)
+    }
+
+    NativeDialogs.FolderDialog {
+        id: romFolder
+        title: qsTr("Select a folder containing ROMs")
+        onAccepted: {
+            importDialog.scanningRoms = true
+            window.controller.gameImports.import_roms(selectedFolder)
+            importDialog.open()
+        }
+    }
+
+    ImportDialog {
+        id: importDialog
+        controller: window.controller.gameImports
+    }
+
+    IssueReportDialog { controller: window.controller.preferences }
 
     WindowsSetupDialog {
         id: windowsSetup
@@ -179,17 +254,48 @@ ApplicationWindow {
                                           ? window.controller.runtimeUpdates.statusText
                                           : window.controller.statusText
 
-        visible: message.length > 0
-        implicitHeight: visible ? statusLabel.implicitHeight + 14 : 0
+        visible: message.length > 0 || window.controller.cloudSaves.transfers.length > 0
+        implicitHeight: visible ? statusRows.implicitHeight + 14 : 0
 
-        Label {
-            id: statusLabel
-            objectName: "libraryStatus"
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
+        ColumnLayout {
+            id: statusRows
+            anchors.fill: parent
             anchors.leftMargin: 12
-            text: statusBar.message
-            Accessible.role: Accessible.StatusBar
+            anchors.rightMargin: 12
+
+            Repeater {
+                model: window.controller.cloudSaves.transfers
+                delegate: RowLayout {
+                    id: transfer
+                    required property var modelData
+                    Layout.fillWidth: true
+
+                    Label {
+                        Layout.fillWidth: true
+                        elide: Text.ElideRight
+                        text: transfer.modelData.label
+                        textFormat: Text.PlainText
+                    }
+                    ProgressBar {
+                        value: transfer.modelData.progress
+                        indeterminate: value === 0 && transfer.modelData.canSkip
+                    }
+                    Button {
+                        text: qsTr("Skip Cloud Sync")
+                        enabled: transfer.modelData.canSkip
+                        onClicked: window.controller.cloudSaves.skip(transfer.modelData.id)
+                    }
+                }
+            }
+
+            Label {
+                objectName: "libraryStatus"
+                Layout.fillWidth: true
+                visible: text.length > 0
+                text: statusBar.message
+                textFormat: Text.PlainText
+                Accessible.role: Accessible.StatusBar
+            }
         }
     }
 }
