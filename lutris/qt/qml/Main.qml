@@ -36,6 +36,12 @@ ApplicationWindow {
                 text: qsTr("Global Options…")
                 onTriggered: window.controller.configuration.open_system()
             }
+
+            MenuItem {
+                objectName: "openPreferences"
+                text: qsTr("Preferences…")
+                onTriggered: window.controller.preferences.open_preferences()
+            }
         }
     }
 
@@ -82,6 +88,22 @@ ApplicationWindow {
     }
 
     Connections {
+        target: window.controller.preferences
+        function onRequested() { preferencesLoader.active = true }
+    }
+
+    Loader {
+        id: preferencesLoader
+        active: false
+        sourceComponent: PreferencesDialog {
+            controller: window.controller.preferences
+            library: window.controller
+            onClosed: preferencesLoader.active = false
+        }
+        onLoaded: if (status === Loader.Ready) (item as PreferencesDialog).open()
+    }
+
+    Connections {
         target: window.controller.artworkSettings
         function onRequested() { artworkLoader.active = true }
     }
@@ -115,15 +137,23 @@ ApplicationWindow {
     }
 
     footer: ToolBar {
-        visible: window.controller.statusText.length > 0
+        id: statusBar
+
+        // A running runtime update takes over the status bar until it's done
+        readonly property string message: window.controller.runtimeUpdates.running
+                                          ? window.controller.runtimeUpdates.statusText
+                                          : window.controller.statusText
+
+        visible: message.length > 0
         implicitHeight: visible ? statusLabel.implicitHeight + 14 : 0
 
         Label {
             id: statusLabel
+            objectName: "libraryStatus"
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.left
             anchors.leftMargin: 12
-            text: window.controller.statusText
+            text: statusBar.message
             Accessible.role: Accessible.StatusBar
         }
     }

@@ -151,6 +151,8 @@ class QtLutrisApplication(Gio.Application):
             self.window.window.visibleChanged.connect(self.on_window_visibility_changed)
             # Fill in artwork the library is missing, without a word unless some arrives
             self.window.controller.update_artwork(quiet=True)
+            # Keep umu and the rest of the runtime current, if the last check is stale
+            self.window.controller.runtime_updates_controller.update()
         self.window.show()
 
     def on_window_visibility_changed(self) -> None:

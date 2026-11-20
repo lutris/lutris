@@ -346,3 +346,56 @@ class ArtworkChoice:
     thumbnail_url: str
     width: int
     height: int
+
+
+@dataclass(frozen=True)
+class RuntimeComponentProgress:
+    """A runtime component (umu, Winetricks...) being updated."""
+
+    name: str
+    status: str
+    # None while the amount is unknown
+    fraction: float | None
+    finished: bool
+
+
+@dataclass(frozen=True)
+class RuntimeUpdateStatus:
+    running: bool
+    components: tuple[RuntimeComponentProgress, ...] = ()
+
+
+@dataclass(frozen=True)
+class SourceSetting:
+    """A game source (service) the user can turn on or off."""
+
+    id: str
+    name: str
+    description: str
+    enabled: bool
+    # Whether its games also appear in the library's Games view
+    in_games_view: bool
+
+
+@dataclass(frozen=True)
+class StoragePaths:
+    game_path: str
+    # Empty when downloads aren't kept
+    installer_cache_path: str
+    installer_cache_message: str
+    installer_cache_valid: bool
+    bios_path: str
+    bios_warning: str
+
+
+@dataclass(frozen=True)
+class SteamAccount:
+    id: str
+    name: str
+    active: bool
+
+
+@dataclass(frozen=True)
+class SystemInfoSection:
+    title: str
+    items: tuple[tuple[str, str], ...]

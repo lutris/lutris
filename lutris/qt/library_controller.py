@@ -25,6 +25,8 @@ from lutris.qt.game_shortcuts import GameShortcutController
 from lutris.qt.installers import InstallerController
 from lutris.qt.library_model import LibraryModel
 from lutris.qt.local_games import LocalGameController
+from lutris.qt.preferences import PreferencesController
+from lutris.qt.runtime_updates import RuntimeUpdatesController
 from lutris.qt.sidebar import ALL_GAMES, SidebarModel
 from lutris.qt.tasks import start_task
 from lutris.util import datapath
@@ -60,6 +62,9 @@ class LibraryController(QObject):
         self._artwork_settings = ArtworkSettingsController(prompts, self)
         # A new key can find artwork that stores didn't have
         self._artwork_settings.saved.connect(self.update_artwork)
+        self._preferences = PreferencesController(prompts, self)
+        self._preferences.sourcesChanged.connect(self._on_sources_changed)
+        self.runtime_updates_controller = RuntimeUpdatesController(prompts, self)
         self._installers.installation_controller.launchRequested.connect(lambda game_id: self.launch(game_id, False))
         self.model.setParent(self)
         self.sidebar.setParent(self)
@@ -136,6 +141,14 @@ class LibraryController(QObject):
     @Property(QObject, constant=True)
     def localGames(self) -> LocalGameController:  # noqa: N802
         return self._local_games
+
+    @Property(QObject, constant=True)
+    def preferences(self) -> PreferencesController:
+        return self._preferences
+
+    @Property(QObject, constant=True)
+    def runtimeUpdates(self) -> RuntimeUpdatesController:  # noqa: N802
+        return self.runtime_updates_controller
 
     @Property(QObject, constant=True)
     def artworkSettings(self) -> ArtworkSettingsController:  # noqa: N802
@@ -428,6 +441,11 @@ class LibraryController(QObject):
         self._status = message
         self.statusChanged.emit()
 
+    def _on_sources_changed(self) -> None:
+        if not self._closed:
+            self.refresh_sidebar()
+            self.refresh()
+
     def _on_local_game_registered(self, name: str) -> None:
         self._set_status(_("Registered %s in the library.") % name)
         self._status_timer.start()
@@ -540,6 +558,7 @@ class LibraryController(QObject):
 
     def shutdown(self) -> None:
         self._closed = True
+        self.runtime_updates_controller.shutdown()
         self._log.close_log()
         self._maintenance.close_maintenance()
         for registration in self._registrations:

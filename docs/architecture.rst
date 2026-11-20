@@ -341,6 +341,11 @@ Qt shows the details on a Game Info tab before the option pages. Qt's ``ConfigOp
 so editing doesn't reset the view, and ``ConfigOption.qml`` picks an editor per
 option type.
 
+Runtime updates run in the backend (``runtime_updates.update_runtime``), which
+announces each component's progress with ``RUNTIME_UPDATE_CHANGED``. Qt runs
+them at startup when the last check is stale, shows their progress in the status
+bar, and Preferences → Updates checks again on request.
+
 The library opens in a cover grid. The View menu switches to banners or a list
 and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
 row. The backend resolves files from the Lutris and service caches. The same
@@ -379,9 +384,11 @@ What it needs next, roughly in order, each with the backend calls it takes:
   remaining launch delegate methods still need the same plain-data boundary.
 * **Game info leftovers**: the preferred launch configuration reset, and moving
   the game from the Game Info tab (Game Actions → Move already does).
-* **Preferences**: the other tabs of GTK's preferences dialog (interface,
-  runners, sources, accounts, updates, storage, system info). Global system
-  options already work.
+* **Preferences**: Library → Preferences covers sources, storage paths,
+  runtime and artwork updates, the Steam account, system info and global
+  options (``preferences``, ``runtime_updates``). Left: the Runners tab (below),
+  and GTK's Interface tab, whose options (tray icon, badges, theme, Discord Rich
+  Presence) need Qt counterparts first.
 * **Services and runners**: logging in (a web view, QtWebEngine), syncing
   libraries, installing and configuring runners.
 * **The installer**: service installs (GOG, Steam...), local script files,

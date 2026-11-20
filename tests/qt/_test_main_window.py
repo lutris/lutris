@@ -11,9 +11,19 @@ from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 
 from lutris import settings
-from lutris.backend import configuration, events, game_actions, installations, installers, media, shortcuts
+from lutris.backend import (
+    configuration,
+    events,
+    game_actions,
+    installations,
+    installers,
+    media,
+    preferences,
+    runtime_updates,
+    shortcuts,
+)
 from lutris.backend.launch_configurations import LaunchChoice
-from lutris.backend.models import ArtworkSettings
+from lutris.backend.models import ArtworkSettings, SourceSetting, StoragePaths
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
@@ -612,6 +622,78 @@ def test_qml_saves_a_steamgriddb_key_then_fetches_artwork(
             assert saved == ["my-key"]
             dialog = window.window.findChild(QObject, "artworkSettingsDialog")
             assert dialog is None or not dialog.property("visible")
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
+
+
+def test_qml_preferences_change_sources_storage_and_check_the_runtime(
+    qt_application: QGuiApplication, library: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    sources = {"gog": SourceSetting("gog", "GOG", "", False, True)}
+    game_paths: list[str] = []
+
+    async def list_sources() -> tuple[SourceSetting, ...]:
+        return tuple(sources.values())
+
+    async def set_source_enabled(source_id: str, enabled: bool) -> None:
+        sources[source_id] = SourceSetting(source_id, "GOG", "", enabled, True)
+
+    async def get_storage_paths() -> StoragePaths:
+        return StoragePaths(game_paths[-1] if game_paths else "/games", "", "", True, "", "")
+
+    async def set_game_path(path: str) -> StoragePaths:
+        game_paths.append(path)
+        return await get_storage_paths()
+
+    async def update_runtime(force: bool = False) -> tuple[str, ...]:
+        return ("dxvk",) if force else ()
+
+    async def nothing() -> tuple[()]:
+        return ()
+
+    monkeypatch.setattr(preferences, "list_sources", list_sources)
+    monkeypatch.setattr(preferences, "set_source_enabled", set_source_enabled)
+    monkeypatch.setattr(preferences, "get_storage_paths", get_storage_paths)
+    monkeypatch.setattr(preferences, "set_game_path", set_game_path)
+    monkeypatch.setattr(preferences, "list_steam_accounts", nothing)
+    monkeypatch.setattr(preferences, "get_system_info", nothing)
+    monkeypatch.setattr(runtime_updates, "update_runtime", update_runtime)
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        prefs = window.controller._preferences
+        refreshed: list[bool] = []
+        prefs.sourcesChanged.connect(lambda: refreshed.append(True))
+        try:
+            await settle(window)
+            action = window.window.findChild(QObject, "openPreferences")
+            assert action is not None and QMetaObject.invokeMethod(action, "triggered")
+            await wait_for_qml(qt_application, lambda: len(prefs.property("sources")) == 1)
+
+            dialog = window.window.findChild(QObject, "preferencesDialog")
+            assert dialog is not None
+            content = dialog.property("contentItem")
+            await wait_for_qml(qt_application, lambda: find_item(content, "sourceSwitch_gog") is not None)
+            switch = find_item(content, "sourceSwitch_gog")
+            assert switch is not None and not switch.property("checked")
+            switch.setProperty("checked", True)
+            assert QMetaObject.invokeMethod(switch, "toggled")
+            await wait_for_qml(qt_application, lambda: prefs.property("sources")[0]["enabled"] and bool(refreshed))
+
+            await wait_for_qml(qt_application, lambda: find_item(content, "storagePath_game") is not None)
+            path = find_item(content, "storagePath_game")
+            assert path is not None and path.property("text") == "/games"
+            path.setProperty("text", "/mnt/games")
+            assert QMetaObject.invokeMethod(path, "editingFinished")
+            await wait_for_qml(qt_application, lambda: prefs.property("storage")["gamePath"] == "/mnt/games")
+
+            check = window.window.findChild(QObject, "checkRuntimeUpdates")
+            assert check is not None and QMetaObject.invokeMethod(check, "clicked")
+            runtime = window.controller.runtime_updates_controller
+            await wait_for_qml(qt_application, lambda: runtime.property("statusText") == "Updated dxvk.")
         finally:
             window.shutdown()
 
