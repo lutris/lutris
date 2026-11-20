@@ -18,6 +18,12 @@ ApplicationWindow {
             title: qsTr("Library")
 
             MenuItem {
+                objectName: "addGame"
+                text: qsTr("Add Game…")
+                onTriggered: window.controller.configuration.open_new_game()
+            }
+
+            MenuItem {
                 objectName: "addLocalGame"
                 text: qsTr("Add Locally Installed Game…")
                 onTriggered: window.controller.localGames.open_registration("", "")

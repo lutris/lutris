@@ -284,6 +284,24 @@ class ConfigPage:
 
 
 @dataclass(frozen=True)
+class GameDetails:
+    """What the library records about a game, as its configuration form edits it."""
+
+    name: str
+    sortname: str
+    slug: str
+    # Empty until a runner is chosen
+    runner: str
+    # As typed, so empty when unknown
+    year: str
+    # As people write it, such as "2 hours 30 minutes"
+    playtime: str
+    # Read only
+    directory: str = ""
+    config_path: str = ""
+
+
+@dataclass(frozen=True)
 class ConfigForm:
     """A game's, a runner's or the system's options being edited, until saved or closed."""
 
@@ -293,3 +311,6 @@ class ConfigForm:
     title: str
     pages: tuple[ConfigPage, ...]
     show_advanced: bool
+    # For a game: its details, and the runners it can use
+    game: GameDetails | None = None
+    runner_choices: tuple[ConfigChoice, ...] = ()

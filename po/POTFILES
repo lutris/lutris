@@ -366,6 +366,7 @@ lutris/qt/qml/ConfigOption.qml
 lutris/qt/qml/GameActions.qml
 lutris/qt/qml/GameCard.qml
 lutris/qt/qml/GameGrid.qml
+lutris/qt/qml/GameInfoPage.qml
 lutris/qt/qml/GameList.qml
 lutris/qt/qml/GameListRow.qml
 lutris/qt/qml/GameLogDialog.qml

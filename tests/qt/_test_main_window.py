@@ -11,7 +11,7 @@ from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 
 from lutris import settings
-from lutris.backend import events, game_actions, installations, installers, shortcuts
+from lutris.backend import configuration, events, game_actions, installations, installers, shortcuts
 from lutris.backend.launch_configurations import LaunchChoice
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
@@ -483,6 +483,7 @@ def test_qml_configures_a_game_and_the_global_options(
     (config_dir / "games").mkdir(parents=True)
     monkeypatch.setattr(settings, "CONFIG_DIR", str(config_dir))
     monkeypatch.setattr(settings, "write_setting", lambda *_args: None)
+    monkeypatch.setattr(configuration, "download_lutris_media", lambda slug: None)
     write_yaml_to_file({"game": {"exe": "/games/run.sh"}}, str(config_dir / "games" / "qt-config.yml"))
     sql.db_update(settings.DB_PATH, "games", {"configpath": "qt-config"}, {"id": library[0]})
 
@@ -498,8 +499,10 @@ def test_qml_configures_a_game_and_the_global_options(
             options = window.window.findChild(QQuickItem, "configOptions")
             assert dialog is not None and options is not None
             await wait_for_qml(qt_application, lambda: bool(config.property("ready")))
-            assert config.property("pages") == ["Game options", "Runner options", "System options"]
+            assert config.property("pages") == ["Game info", "Game options", "Runner options", "System options"]
             assert dialog.property("title") == "Configure " + PREFIX + "Installed"
+            assert config.property("infoPage") and config.property("game")["runner"] == "linux"
+            config.select_page(1)
 
             await wait_for_qml(qt_application, lambda: find_item(options, "configOption_args") is not None)
             args = find_item(options, "configOption_args")
@@ -508,7 +511,7 @@ def test_qml_configures_a_game_and_the_global_options(
             await wait_for_qml(qt_application, lambda: bool(config.property("modified")) and args.property("setHere"))
             assert args.property("optionValue") == "--fullscreen"
 
-            config.select_page(2)
+            config.select_page(3)
             await wait_for_qml(
                 qt_application, lambda: find_item(options, "optionSwitch_prefer_system_libs") is not None
             )
@@ -526,7 +529,9 @@ def test_qml_configures_a_game_and_the_global_options(
             save = window.window.findChild(QObject, "configSave")
             assert save is not None and save.property("enabled") and QMetaObject.invokeMethod(save, "clicked")
             await wait_for_qml(qt_application, lambda: not config.property("ready"))
-            saved = read_yaml_from_file(str(config_dir / "games" / "qt-config.yml"))
+            row = games_db.get_game_by_field(library[0], "id")
+            assert row is not None
+            saved = read_yaml_from_file(str(config_dir / "games" / f"{row['configpath']}.yml"))
             assert saved["game"] == {"exe": "/games/run.sh", "args": "--fullscreen"}
             assert "prefer_system_libs" in saved["system"]
 
@@ -541,6 +546,27 @@ def test_qml_configures_a_game_and_the_global_options(
             config.open_runner("linux", "Linux")
             await wait_for_qml(qt_application, lambda: config.property("pages") == ["Runner options", "System options"])
             assert config.property("title") == "Configure Linux"
+
+            add = window.window.findChild(QObject, "addGame")
+            assert add is not None and QMetaObject.invokeMethod(add, "triggered")
+            await wait_for_qml(qt_application, lambda: bool(config.property("isNewGame")))
+            assert config.property("pages") == ["Game info", "System options"]
+            # The earlier dialogs' fields linger until their deferred deletion
+            QCoreApplication.sendPostedEvents(None, QEvent.Type.DeferredDelete)
+            name = window.window.findChild(QObject, "gameInfoName")
+            assert name is not None
+            name.setProperty("text", PREFIX + "Hand Added")
+            assert QMetaObject.invokeMethod(name, "editingFinished")
+            config.set_runner("linux")
+            await wait_for_qml(qt_application, lambda: len(config.property("pages")) == 4)
+            config.set_value("game", "exe", "/games/hand.sh")
+            await wait_for_qml(qt_application, lambda: config.property("game")["name"] == PREFIX + "Hand Added")
+            save = window.window.findChild(QObject, "configSave")
+            assert save is not None and QMetaObject.invokeMethod(save, "clicked")
+            await wait_for_qml(qt_application, lambda: not config.property("ready"))
+            added = games_db.get_game_by_field(PREFIX + "Hand Added", "name")
+            assert added is not None and added["runner"] == "linux"
+            games_db.delete_game(added["id"])
         finally:
             window.shutdown()
 

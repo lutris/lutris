@@ -51,6 +51,7 @@ Dialog {
 
             TextField {
                 objectName: "configSearch"
+                visible: !dialog.controller.infoPage
                 Layout.preferredWidth: 200
                 placeholderText: qsTr("Search options")
                 Accessible.name: qsTr("Search options")
@@ -59,6 +60,7 @@ Dialog {
 
             Switch {
                 objectName: "configShowAdvanced"
+                visible: !dialog.controller.infoPage
                 text: qsTr("Advanced")
                 checked: dialog.controller.showAdvanced
                 Accessible.name: qsTr("Show advanced options")
@@ -82,10 +84,18 @@ Dialog {
             Accessible.name: qsTr("Loading options…")
         }
 
+        GameInfoPage {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: dialog.controller.infoPage
+            controller: dialog.controller
+        }
+
         ListView {
             objectName: "configOptions"
             Layout.fillWidth: true
             Layout.fillHeight: true
+            visible: !dialog.controller.infoPage
             clip: true
             model: dialog.controller.options
             reuseItems: false

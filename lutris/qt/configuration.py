@@ -1,13 +1,14 @@
 """Expose game, runner and system configuration forms to Qt Quick."""
 
 from collections.abc import Coroutine
+from dataclasses import replace
 from gettext import gettext as _
 from typing import Any
 
 from PySide6.QtCore import Property, QObject, QUrl, Signal, Slot
 
 from lutris.backend import configuration
-from lutris.backend.models import ConfigForm, ConfigOptionInfo
+from lutris.backend.models import ConfigForm, ConfigOptionInfo, ConfigPage
 from lutris.qt.config_model import ConfigOptionModel
 from lutris.qt.delegates import PromptController
 from lutris.qt.tasks import start_task
@@ -29,6 +30,7 @@ class ConfigController(QObject):
         self._modified = False
         self._busy = False
         self._title = ""
+        self._game_id = ""
         self._registration: NotificationRegistration | None = None
         self.model = ConfigOptionModel()
         self.model.setParent(self)
@@ -55,17 +57,58 @@ class ConfigController(QObject):
 
     @Property(list, notify=stateChanged)
     def pages(self) -> list[str]:
-        return [page.title for page in self._form.pages] if self._form else []
+        return self._page_titles()
+
+    def _page_titles(self) -> list[str]:
+        if not self._form:
+            return []
+        titles = [page.title for page in self._form.pages]
+        return [_("Game info"), *titles] if self._form.game else titles
 
     @Property(int, notify=stateChanged)
     def page(self) -> int:
         return self._page
 
+    @Property(bool, notify=stateChanged)
+    def infoPage(self) -> bool:  # noqa: N802
+        return bool(self._form and self._form.game and self._page == 0)
+
     @Property(str, notify=stateChanged)
     def pageDescription(self) -> str:  # noqa: N802
-        if self._form and self._page < len(self._form.pages):
-            return self._form.pages[self._page].description
+        if page := self._option_page():
+            return page.description
         return ""
+
+    @Property(bool, notify=stateChanged)
+    def isGame(self) -> bool:  # noqa: N802
+        return bool(self._form and self._form.game)
+
+    @Property(bool, notify=stateChanged)
+    def isNewGame(self) -> bool:  # noqa: N802
+        return bool(self._form and self._form.game and not self._game_id)
+
+    @Property(dict, notify=stateChanged)
+    def game(self) -> dict[str, str]:
+        details = self._form.game if self._form else None
+        if not details:
+            return {}
+        return {
+            "name": details.name,
+            "sortname": details.sortname,
+            "slug": details.slug,
+            "runner": details.runner,
+            "year": details.year,
+            "playtime": details.playtime,
+            "directory": details.directory,
+            "configPath": details.config_path,
+        }
+
+    @Property(list, notify=stateChanged)
+    def runnerChoices(self) -> list[dict[str, str]]:  # noqa: N802
+        if not self._form:
+            return []
+        choices = [{"label": _("Select a runner from the list"), "value": ""}]
+        return choices + [{"label": choice.label, "value": choice.value} for choice in self._form.runner_choices]
 
     @Property(bool, notify=stateChanged)
     def showAdvanced(self) -> bool:  # noqa: N802
@@ -73,17 +116,24 @@ class ConfigController(QObject):
 
     @Property(str, notify=stateChanged)
     def emptyText(self) -> str:  # noqa: N802
-        if not self._form or self.model.rowCount():
+        if not self._form or self.model.rowCount() or self.infoPage:
             return ""
         if self._search:
             return _("No options match '%s'") % self._search
         if not self._show_advanced and self._visible_options(include_advanced=True):
             return _("Only advanced options available")
+        if self._form.game and not self._form.game.runner:
+            return _("Select a runner in the Game info tab")
         return _("No options available")
 
     @Slot(str, str)
     def open_game(self, game_id: str, game_name: str) -> None:
         self._open(configuration.open_game_config(game_id), game_name)
+        self._game_id = game_id
+
+    @Slot()
+    def open_new_game(self) -> None:
+        self._open(configuration.open_new_game_config(), _("Add a new game"))
 
     @Slot(str, str)
     def open_runner(self, runner_name: str, human_name: str) -> None:
@@ -122,9 +172,25 @@ class ConfigController(QObject):
 
     @Slot(int)
     def select_page(self, page: int) -> None:
-        if self._form and 0 <= page < len(self._form.pages) and page != self._page:
+        if self._form and 0 <= page < len(self._page_titles()) and page != self._page:
             self._page = page
             self._refresh()
+
+    @Slot(str, str)
+    def set_detail(self, field: str, value: str) -> None:
+        """Change one of a game's details: name, sortname, slug, year or playtime."""
+        details = self._form.game if self._form else None
+        if not self._form or not details or field not in ("name", "sortname", "slug", "year", "playtime"):
+            return
+        if getattr(details, field) != value:
+            self._modified = True
+            self._run(configuration.set_game_details(self._form.id, replace(details, **{field: value})))
+
+    @Slot(str)
+    def set_runner(self, runner_name: str) -> None:
+        if self._form and self._form.game and runner_name != self._form.game.runner:
+            self._modified = True
+            self._run(configuration.set_game_runner(self._form.id, runner_name))
 
     @Slot(str)
     def set_search(self, text: str) -> None:
@@ -173,7 +239,7 @@ class ConfigController(QObject):
 
     async def _save(self, form_id: str) -> None:
         try:
-            await configuration.save_config(form_id)
+            self._game_id = await configuration.save_config(form_id) or self._game_id
         finally:
             self._busy = False
             self.stateChanged.emit()
@@ -189,6 +255,7 @@ class ConfigController(QObject):
         if self._form:
             start_task(configuration.close_config(self._form.id), self._prompts.error)
         self._form = None
+        self._game_id = ""
         self._page = 0
         self._search = ""
         self._modified = False
@@ -205,16 +272,23 @@ class ConfigController(QObject):
 
     def _apply(self, form: ConfigForm) -> None:
         self._form = form
-        self._page = min(self._page, max(len(form.pages) - 1, 0))
+        self._page = min(self._page, max(len(self._page_titles()) - 1, 0))
         self._refresh()
 
+    def _option_page(self) -> ConfigPage | None:
+        if not self._form:
+            return None
+        index = self._page - 1 if self._form.game else self._page
+        return self._form.pages[index] if 0 <= index < len(self._form.pages) else None
+
     def _visible_options(self, include_advanced: bool = False) -> list[ConfigOptionInfo]:
-        if not self._form or self._page >= len(self._form.pages):
+        page = self._option_page()
+        if not page:
             return []
         search = self._search.casefold()
         return [
             option
-            for option in self._form.pages[self._page].options
+            for option in page.options
             if option.visible
             and (include_advanced or self._show_advanced or not option.advanced)
             and (not search or search in option.label.casefold() or search in option.help.casefold())

@@ -331,7 +331,13 @@ the option key and the configuration, so visibility, conditions,
 checked against the option's type, and return the form evaluated again.
 ``save_config`` runs the options' validators, writes the file and fires
 ``GAME_CHANGED`` for a game. Choices loaded in the background (``async_choices``)
-fire ``CONFIG_FORM_CHANGED``. Qt's ``ConfigOptionModel`` updates rows in place,
+fire ``CONFIG_FORM_CHANGED``. A game's form also carries its ``GameDetails``
+(name, sort name, slug, runner, year, playtime), changed with
+``set_game_details`` and written by ``save_config``, which validates them as
+GTK's dialog does and renames the config file when the slug changes.
+``set_game_runner`` starts the game's configuration afresh for another runner.
+``open_new_game_config`` is Library → Add Game: saving it creates the game.
+Qt shows the details on a Game Info tab before the option pages. Qt's ``ConfigOptionModel`` updates rows in place,
 so editing doesn't reset the view, and ``ConfigOption.qml`` picks an editor per
 option type.
 
@@ -346,9 +352,10 @@ What it needs next, roughly in order, each with the backend calls it takes:
 * **Game actions** still need service installation entry points. The launch
   configuration prompt receives ``GameInfo`` and configuration names. The
   remaining launch delegate methods still need the same plain-data boundary.
-* **Game info**: the Game Info tab of GTK's game dialog (name, sort name, slug,
-  runner, year, playtime, artwork), and adding a game by hand with it. Option
-  pages already work through ``configuration``.
+* **Artwork**: setting, downloading and removing a game's custom cover, banner
+  and icon. GTK transcodes them with GdkPixbuf in ``game_info_box``; the backend
+  needs a toolkit-free way (or Qt's ``QImage`` on the frontend's side), and the
+  preferred launch configuration reset from the same tab.
 * **Preferences**: the other tabs of GTK's preferences dialog (interface,
   runners, sources, accounts, updates, storage, system info). Global system
   options already work.

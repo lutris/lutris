@@ -6,6 +6,10 @@ dicts' callables (visibility, conditions, choices, warnings). The backend keeps
 the configuration under the form's id; set_option and reset_option change it
 and return the form evaluated again, and save_config writes it out. Nothing is
 written until then.
+
+A game's form also carries its GameDetails (name, slug, runner...). Choosing
+another runner starts the game's configuration afresh, as the GTK dialog does,
+and a form for a new game creates the game when saved.
 """
 
 import asyncio
@@ -13,20 +17,23 @@ import html
 import re
 from collections import OrderedDict
 from collections.abc import Callable, Mapping
+from dataclasses import replace
 from gettext import gettext as _
 from inspect import Parameter, signature
 from typing import Any
 from uuid import uuid4
 
 from lutris import settings, sysoptions
-from lutris.backend import events, games
-from lutris.backend.models import ConfigChoice, ConfigForm, ConfigOptionInfo, ConfigPage
-from lutris.config import LutrisConfig
+from lutris.backend.models import ConfigChoice, ConfigForm, ConfigOptionInfo, ConfigPage, GameDetails
+from lutris.config import LutrisConfig, make_game_config_id, rename_config
 from lutris.database import games as games_db
 from lutris.exceptions import LutrisError
-from lutris.runners import InvalidRunnerError, import_runner
+from lutris.game import Game
+from lutris.runners import InvalidRunnerError, get_installed, import_runner
+from lutris.services.lutris import download_lutris_media
 from lutris.util.log import logger
 from lutris.util.notifications import NotificationSource
+from lutris.util.strings import get_formatted_playtime, parse_playtime, slugify
 from lutris.util.wine.wine import clear_wine_version_cache
 
 # Fired with a form's id when its options change on their own, such as choices that
@@ -61,13 +68,21 @@ def _to_bool(value: object) -> bool | None:
 class _Form:
     """A configuration being edited; evaluated in worker threads, one call at a time."""
 
-    def __init__(self, level: str, title: str, config: LutrisConfig, game_id: str = "") -> None:
+    def __init__(
+        self, level: str, title: str, config: LutrisConfig, game_id: str = "", details: GameDetails | None = None
+    ) -> None:
         self.id = uuid4().hex
         self.level = level
         self.title = title
-        self.config = config
         self.game_id = game_id
+        self.details = details
+        self.initial_slug = details.slug if details else ""
+        self.initial_playtime = details.playtime if details else ""
         self.lock = asyncio.Lock()
+        self.use_config(config)
+
+    def use_config(self, config: LutrisConfig) -> None:
+        self.config = config
         self.runner = None
         if config.runner_slug:
             try:
@@ -156,6 +171,8 @@ class _Form:
             title=self.title,
             pages=tuple(self.page(section) for section in self.sections),
             show_advanced=settings.read_setting(_SHOW_ADVANCED_SETTING) == "True",
+            game=self.details,
+            runner_choices=_runner_choices() if self.level == "game" else (),
         )
 
     def page(self, section: str) -> ConfigPage:
@@ -306,7 +323,78 @@ class _Form:
                         invalid.append(_plain(option.get("label", option["option"])))
         if invalid:
             raise LutrisError(_("The following fields have invalid values: ") + ", ".join(invalid))
-        self.config.save()
+        if self.level == "game":
+            self.save_game()
+        else:
+            self.config.save()
+
+    def set_runner(self, runner_name: str) -> None:
+        """Start the game's configuration afresh for another runner."""
+        if self.level != "game" or self.details is None:
+            raise LutrisError(_("Only a game's runner can be changed."))
+        if runner_name == (self.config.runner_slug or ""):
+            return
+        if runner_name:
+            try:
+                import_runner(runner_name)
+            except InvalidRunnerError as error:
+                raise LutrisError(_("There is no runner called '%s'.") % runner_name) from error
+        clear_wine_version_cache()
+        self.use_config(LutrisConfig(runner_slug=runner_name or None, level="game"))
+        self.details = replace(self.details, runner=runner_name, config_path="")
+
+    def save_game(self) -> None:
+        """Write the game's configuration and details, creating the game if it's new."""
+        details = self.details
+        assert details is not None
+        name = details.name.strip()
+        runner_name = self.config.runner_slug or ""
+        if not runner_name:
+            raise LutrisError(_("Runner not provided"))
+        if not name:
+            raise LutrisError(_("Please fill in the name"))
+        if runner_name == "steam" and not self.config.game_config.get("appid"):
+            raise LutrisError(_("Steam AppID not provided"))
+        year = None
+        if details.year.strip():
+            if not details.year.strip().isdigit():
+                raise LutrisError(_("The release year must be a number."))
+            year = int(details.year.strip())
+        playtime = None
+        if details.playtime.strip() and details.playtime != self.initial_playtime:
+            try:
+                playtime = parse_playtime(details.playtime)
+            except ValueError as error:
+                raise LutrisError(str(error)) from error
+
+        slug = slugify(details.slug) if details.slug.strip() else slugify(name)
+        game = Game(self.game_id or None)
+        if not self.config.game_config_id:
+            self.config.game_config_id = make_game_config_id(slug)
+        game.name = name
+        game.sortname = details.sortname.strip()
+        game.slug = slug
+        game.year = year
+        if playtime is not None:
+            game.playtime = playtime
+        game.is_installed = True
+        game.config = self.config
+        if new_config_id := rename_config(self.config.game_config_id, slug):
+            self.config.game_config_id = new_config_id
+            game.game_config_id = new_config_id
+        game.runner_name = runner_name
+        if "icon" not in game.custom_images and game.runner:
+            game.runner.extract_icon(slug)
+        game.save()
+        if slug != self.initial_slug:
+            try:
+                download_lutris_media(slug)
+            except Exception as error:
+                logger.warning("Could not download the media for %s: %s", slug, error)
+        self.game_id = str(game.id)
+        self.details = _details(games_db.get_game_by_field(self.game_id, "id") or {}, self.config)
+        self.initial_slug = self.details.slug
+        self.initial_playtime = self.details.playtime
 
 
 def _to_int(value: object, default: Any) -> Any:
@@ -357,6 +445,28 @@ def _checked_value(option: Option, value: Any) -> Any:
     return "" if value is None else str(value)
 
 
+def _runner_choices() -> tuple[ConfigChoice, ...]:
+    runners = sorted(get_installed(), key=lambda runner: runner.human_name.casefold())
+    return tuple(
+        ConfigChoice(label=f"{runner.human_name} ({getattr(runner, 'description', '')})", value=runner.name)
+        for runner in runners
+    )
+
+
+def _details(row: Mapping[str, Any], config: LutrisConfig | None) -> GameDetails:
+    year = row.get("year")
+    return GameDetails(
+        name=row.get("name") or "",
+        sortname=row.get("sortname") or "",
+        slug=row.get("slug") or "",
+        runner=row.get("runner") or "",
+        year=str(year) if year else "",
+        playtime=get_formatted_playtime(row["playtime"]) if row.get("playtime") else "",
+        directory=row.get("directory") or "",
+        config_path=(config.game_config_path or "") if config else "",
+    )
+
+
 _forms: OrderedDict[str, _Form] = OrderedDict()
 
 
@@ -394,15 +504,46 @@ async def open_game_config(game_id: str) -> ConfigForm:
     row = games_db.get_game_by_field(game_id, "id")
     if row is None:
         raise LutrisError(_("This game is no longer in the library."))
-    if not row.get("runner") or not row.get("configpath"):
-        raise LutrisError(_("%s has no configuration yet. Install it first.") % row["name"])
 
     def build() -> _Form:
         clear_wine_version_cache()
-        config = LutrisConfig(runner_slug=row["runner"], game_config_id=row["configpath"])
-        return _Form("game", _("Configure %s") % row["name"], config, game_id=str(row["id"]))
+        config = LutrisConfig(runner_slug=row.get("runner") or None, game_config_id=row.get("configpath") or None)
+        if config.level != "game":
+            config = LutrisConfig(runner_slug=row.get("runner") or None, level="game")
+        title = _("Configure %s") % row["name"]
+        return _Form("game", title, config, game_id=str(row["id"]), details=_details(row, config))
 
     return await _open(build)
+
+
+async def open_new_game_config(runner_name: str = "") -> ConfigForm:
+    """Open a form for a game to add to the library by hand; saving it creates the game."""
+    details = GameDetails(name="", sortname="", slug="", runner="", year="", playtime="")
+
+    def build() -> _Form:
+        form = _Form("game", _("Add a new game"), LutrisConfig(level="game"), details=details)
+        if runner_name:
+            form.set_runner(runner_name)
+        return form
+
+    return await _open(build)
+
+
+async def set_game_runner(form_id: str, runner_name: str) -> ConfigForm:
+    """Choose a game's runner, which starts its configuration afresh."""
+    return await _change(form_id, lambda form: form.set_runner(runner_name))
+
+
+async def set_game_details(form_id: str, details: GameDetails) -> ConfigForm:
+    """Change a game's name, sort name, slug, year or playtime; written by save_config.
+    The runner, directory and config path are kept as they are."""
+    form = _get(form_id)
+    if form.details is None:
+        raise LutrisError(_("Only a game's details can be changed."))
+    form.details = replace(
+        details, runner=form.details.runner, directory=form.details.directory, config_path=form.details.config_path
+    )
+    return await get_config_form(form_id)
 
 
 async def open_runner_config(runner_name: str) -> ConfigForm:
@@ -440,13 +581,14 @@ async def reset_option(form_id: str, section: str, key: str) -> ConfigForm:
     return await _change(form_id, lambda form: form.reset(section, key))
 
 
-async def save_config(form_id: str) -> None:
-    """Write the form's configuration; the form stays open."""
+async def save_config(form_id: str) -> str:
+    """Write the form's configuration, and for a game its details; the form stays open.
+    Returns the game's id, which a new game gets now, or an empty string."""
     form = _get(form_id)
     async with form.lock:
+        # Saving a game fires GAME_CHANGED through the core's own notification
         await asyncio.to_thread(form.save)
-    if form.game_id and (row := games_db.get_game_by_field(form.game_id, "id")):
-        events.GAME_CHANGED.fire(games.to_game_info(row))
+    return form.game_id
 
 
 async def close_config(form_id: str) -> None:
