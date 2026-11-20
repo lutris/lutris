@@ -1,14 +1,17 @@
 import os
 from gettext import gettext as _
-
-from gi.repository import Gio
+from typing import TYPE_CHECKING
 
 from lutris.database.games import get_game_by_field, get_games
 from lutris.game import Game
+from lutris.installer import install_from_lutris
 from lutris.services.steam import SteamGame, SteamService
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+
+if TYPE_CHECKING:
+    from lutris.delegates import Delegate
 
 STEAM_INSTALLER = "steam-wine"  # Lutris installer used to setup the Steam client
 
@@ -54,11 +57,10 @@ class SteamWindowsService(SteamService):
         if db_entry:
             return Game(db_entry["id"])
 
-    def install(self, db_game):
+    def install(self, db_game, ui_delegate: "Delegate", update=False):
         steam_game = self.get_steam()
-        application = Gio.Application.get_default()
         if not steam_game:
-            application.show_lutris_installer_window(game_slug=self.client_installer)
+            install_from_lutris(self.client_installer, ui_delegate)
             return
 
         installers = [self.generate_installer(db_game, steam_game)]
@@ -71,7 +73,7 @@ class SteamWindowsService(SteamService):
             game.save()
             return
 
-        application.show_installer_window(installers, service=self, appid=appid)
+        ui_delegate.start_installer(installers, service=self, appid=appid)
 
     @property
     def steamapps_paths(self):

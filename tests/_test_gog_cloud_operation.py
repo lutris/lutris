@@ -1,21 +1,30 @@
-"""Tests for the CloudSyncProgressAdapter.
+"""Tests for running GOG cloud syncs with lutris.services.gog_cloud_operation.
 
-These tests verify the adapter that bridges GOG cloud sync progress
-to the sidebar ProgressBox polling mechanism, including cancellation
-via the stop button.
+These tests verify the operation that publishes a GOG cloud sync's progress for
+polling, including cancellation via the stop button, and the order in which
+start_cloud_sync() runs a game's syncs.
 """
 
 import unittest
 from unittest.mock import MagicMock
 
+import pytest
+
 from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
 
-from lutris.gui.dialogs.cloud_sync import ask_cloud_sync_conflict
-from lutris.gui.dialogs.cloud_sync_progress import CloudSyncCancelled, CloudSyncProgressAdapter
+from lutris.services import gog_cloud_operation
 from lutris.services.gog_cloud import SyncResult
-from lutris.util.progress_info import ProgressInfo  # noqa: F401
+from lutris.services.gog_cloud_operation import (
+    CLOUD_SYNC_ENDED,
+    CLOUD_SYNC_STARTED,
+    CloudSyncCancelled,
+    CloudSyncOperation,
+    is_cloud_sync_running,
+    start_cloud_sync,
+)
+from lutris.util.notifications import NotificationRegistration, NotificationSource
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -24,6 +33,7 @@ from lutris.util.progress_info import ProgressInfo  # noqa: F401
 
 def _make_game(name: str = "Test Game", service: str = "gog", appid: str = "1234") -> MagicMock:
     game = MagicMock()
+    game.id = "1"
     game.name = name
     game.service = service
     game.appid = appid
@@ -43,13 +53,13 @@ def _make_sync_result(downloaded=None, uploaded=None, error=None) -> SyncResult:
 # ---------------------------------------------------------------------------
 
 
-class TestCloudSyncProgressAdapterInit(unittest.TestCase):
+class TestCloudSyncOperationInit(unittest.TestCase):
     """Test adapter construction."""
 
     def test_initial_state_pre_launch(self):
         game = _make_game()
         sync_func = MagicMock()
-        adapter = CloudSyncProgressAdapter(game, sync_func, "pre-launch")
+        adapter = CloudSyncOperation(game, sync_func, "pre-launch")
         self.assertEqual(adapter.results, [])
         self.assertFalse(adapter._finished)
         self.assertFalse(adapter._cancelled)
@@ -58,18 +68,18 @@ class TestCloudSyncProgressAdapterInit(unittest.TestCase):
     def test_initial_state_post_exit(self):
         game = _make_game()
         sync_func = MagicMock()
-        adapter = CloudSyncProgressAdapter(game, sync_func, "post-exit")
-        self.assertEqual(adapter._direction, "post-exit")
+        adapter = CloudSyncOperation(game, sync_func, "post-exit")
+        self.assertEqual(adapter.direction, "post-exit")
         self.assertIn(game.name, adapter._label)
 
 
-class TestCloudSyncProgressAdapterProgress(unittest.TestCase):
+class TestCloudSyncOperationProgress(unittest.TestCase):
     """Test progress reporting."""
 
     def _make_adapter(self):
         game = _make_game()
         sync_func = MagicMock(return_value=[])
-        return CloudSyncProgressAdapter(game, sync_func, "pre-launch")
+        return CloudSyncOperation(game, sync_func, "pre-launch")
 
     def test_initial_progress_is_zero(self):
         adapter = self._make_adapter()
@@ -111,13 +121,13 @@ class TestCloudSyncProgressAdapterProgress(unittest.TestCase):
         self.assertFalse(progress.can_stop)
 
 
-class TestCloudSyncProgressAdapterCancel(unittest.TestCase):
+class TestCloudSyncOperationCancel(unittest.TestCase):
     """Test cancellation via the stop button."""
 
     def _make_adapter(self):
         game = _make_game()
         sync_func = MagicMock(return_value=[])
-        return CloudSyncProgressAdapter(game, sync_func, "pre-launch")
+        return CloudSyncOperation(game, sync_func, "pre-launch")
 
     def test_cancel_sets_flag(self):
         adapter = self._make_adapter()
@@ -138,7 +148,7 @@ class TestCloudSyncProgressAdapterCancel(unittest.TestCase):
             # Simulate cancel happening between callbacks
             raise CloudSyncCancelled()
 
-        adapter = CloudSyncProgressAdapter(game, fake_sync, "pre-launch")
+        adapter = CloudSyncOperation(game, fake_sync, "pre-launch")
         result = adapter.run()
 
         self.assertEqual(result, [])
@@ -146,27 +156,27 @@ class TestCloudSyncProgressAdapterCancel(unittest.TestCase):
         self.assertIsNone(adapter._error)
 
 
-class TestCloudSyncProgressAdapterRun(unittest.TestCase):
+class TestCloudSyncOperationRun(unittest.TestCase):
     """Test the run method."""
 
     def test_run_calls_sync_func(self):
         game = _make_game()
         expected = [_make_sync_result(downloaded=["x"])]
         sync_func = MagicMock(return_value=expected)
-        adapter = CloudSyncProgressAdapter(game, sync_func, "pre-launch")
+        resolve_conflict = MagicMock()
+        adapter = CloudSyncOperation(game, sync_func, "pre-launch", resolve_conflict)
 
         result = adapter.run()
 
         self.assertEqual(result, expected)
         self.assertEqual(adapter.results, expected)
-        # The GTK frontend resolves conflicts with its dialog
-        sync_func.assert_called_once_with(game, adapter.progress_callback, ask_cloud_sync_conflict)
+        sync_func.assert_called_once_with(game, adapter.progress_callback, resolve_conflict)
         self.assertTrue(adapter._finished)
 
     def test_run_sets_error_on_exception(self):
         game = _make_game()
         sync_func = MagicMock(side_effect=RuntimeError("boom"))
-        adapter = CloudSyncProgressAdapter(game, sync_func, "pre-launch")
+        adapter = CloudSyncOperation(game, sync_func, "pre-launch")
 
         with self.assertRaises(RuntimeError):
             adapter.run()
@@ -177,7 +187,7 @@ class TestCloudSyncProgressAdapterRun(unittest.TestCase):
     def test_run_sets_finished_even_on_error(self):
         game = _make_game()
         sync_func = MagicMock(side_effect=ValueError("bad"))
-        adapter = CloudSyncProgressAdapter(game, sync_func, "post-exit")
+        adapter = CloudSyncOperation(game, sync_func, "post-exit")
 
         with self.assertRaises(ValueError):
             adapter.run()
@@ -185,6 +195,87 @@ class TestCloudSyncProgressAdapterRun(unittest.TestCase):
         self.assertTrue(adapter._finished)
         progress = adapter.get_progress()
         self.assertTrue(progress.has_ended)
+
+
+# ---------------------------------------------------------------------------
+# start_cloud_sync
+# ---------------------------------------------------------------------------
+
+
+class FakeAsyncCall:
+    """Records the syncs start_cloud_sync() puts on a worker thread, to finish by hand."""
+
+    calls: list["FakeAsyncCall"] = []
+
+    def __init__(self, func, callback):
+        self.func = func
+        self.callback = callback
+        FakeAsyncCall.calls.append(self)
+
+    def finish(self, error: BaseException | None = None) -> None:
+        self.callback(None, error)
+
+
+@pytest.fixture
+def worker_threads(fake_main_loop, monkeypatch):
+    FakeAsyncCall.calls = []
+    monkeypatch.setattr(gog_cloud_operation, "AsyncCall", FakeAsyncCall)
+    monkeypatch.setattr(gog_cloud_operation, "_operations", {})
+    return FakeAsyncCall.calls
+
+
+def _record(notification: NotificationSource) -> tuple[list[CloudSyncOperation], NotificationRegistration]:
+    received: list[CloudSyncOperation] = []
+    registration = notification.register(received.append)
+    return received, registration
+
+
+def test_sync_runs_and_reports_its_end(worker_threads, fake_main_loop):
+    game = _make_game()
+    started, started_registration = _record(CLOUD_SYNC_STARTED)
+    ended, ended_registration = _record(CLOUD_SYNC_ENDED)
+    done = MagicMock()
+
+    try:
+        assert start_cloud_sync(game, "pre-launch", on_done=done)
+        fake_main_loop.run_pending()
+        assert [operation.direction for operation in started] == ["pre-launch"]
+        assert is_cloud_sync_running()
+
+        worker_threads[0].finish(RuntimeError("Even a failed sync ends"))
+        fake_main_loop.run_pending()
+    finally:
+        started_registration.unregister()
+        ended_registration.unregister()
+
+    done.assert_called_once_with()
+    assert ended == started
+    assert not is_cloud_sync_running()
+
+
+def test_pre_launch_sync_waits_for_the_upload_after_the_last_session(worker_threads, fake_main_loop):
+    game = _make_game()
+    done = MagicMock()
+
+    start_cloud_sync(game, "post-exit")
+    start_cloud_sync(game, "pre-launch", on_done=done)
+    assert len(worker_threads) == 1  # Only the upload runs
+
+    worker_threads[0].finish()
+    fake_main_loop.run_pending()
+    assert len(worker_threads) == 2  # Then the download
+
+    worker_threads[1].finish()
+    fake_main_loop.run_pending()
+    done.assert_called_once_with()
+
+
+def test_the_same_sync_does_not_run_twice(worker_threads):
+    game = _make_game()
+
+    assert start_cloud_sync(game, "post-exit")
+    assert not start_cloud_sync(game, "post-exit")
+    assert len(worker_threads) == 1
 
 
 if __name__ == "__main__":

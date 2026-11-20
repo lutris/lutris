@@ -6,7 +6,7 @@ import requests
 from lutris.database.games import add_game, delete_game, get_games, update_existing
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
-from lutris.installer.interpreter import ScriptInterpreter
+from lutris.installer.interpreter import RUNNERS_INSTALLED, ScriptInterpreter
 from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
@@ -260,3 +260,18 @@ class TestReusesServiceLibraryEntry(TestCase):
     def test_installed_library_entry_is_not_reused(self):
         update_existing(id=self.library_game_id, installed=1)
         self.assertIsNone(self.get_installer().game_id)
+
+
+def test_installing_no_runners_reports_them_installed(fake_main_loop):
+    interpreter = ScriptInterpreter(TEST_INSTALLER, None)
+    interpreter.runners_to_install = []
+    received: list[ScriptInterpreter] = []
+    registration = RUNNERS_INSTALLED.register(received.append)
+
+    try:
+        interpreter.install_runners(None)
+        fake_main_loop.run_pending()
+    finally:
+        registration.unregister()
+
+    assert received == [interpreter]

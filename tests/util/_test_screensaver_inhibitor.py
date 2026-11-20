@@ -53,7 +53,7 @@ class TestGetSuspendInhibitor(TestCase):
         )
         self.assertEqual(inhibitor.proxy.name, "org.xfce.ScreenSaver")
 
-    def test_no_owned_interface_falls_back_to_gtk(self):
+    def test_no_owned_interface_falls_back_to_the_display_backend(self):
         inhibitor = self.get_inhibitor(
             DesktopEnvironment.XFCE,
             {"org.xfce.ScreenSaver": None, "org.freedesktop.ScreenSaver": None},

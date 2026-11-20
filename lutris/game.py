@@ -11,7 +11,7 @@ import time
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any, cast
 
-from gi.repository import Gio, GLib
+from gi.repository import GLib
 
 from lutris import settings
 from lutris.config import LutrisConfig
@@ -20,17 +20,17 @@ from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.exceptions import GameConfigError, InvalidGameMoveError, MissingExecutableError
 from lutris.game_errors import watch_game_errors
-from lutris.installer import InstallationKind, get_entry_point_path
+from lutris.installer import InstallationKind, get_entry_point_path, install_from_lutris
 from lutris.monitored_command import MonitoredCommand
 from lutris.runner_interpreter import export_bash_script, get_launch_parameters
 from lutris.runners import import_runner, is_valid_runner_name
 from lutris.runners.runner import Runner, kill_processes
 from lutris.util import busy, discord, extract, jobs, linux, strings, system, xdgshortcuts
 from lutris.util.display import (
-    DISPLAY_MANAGER,
     SCREEN_SAVER_INHIBITOR,
     disable_compositing,
     enable_compositing,
+    get_display_manager,
     is_display_x11,
 )
 from lutris.util.graphics.xrandr import turn_off_except
@@ -45,7 +45,6 @@ from lutris.util.yaml import write_yaml_to_file
 
 if TYPE_CHECKING:
     from lutris.delegates import LaunchUIDelegate
-    from lutris.gui.application import LutrisApplication
 
 HEARTBEAT_DELAY = 2000
 
@@ -146,6 +145,8 @@ class Game:
         self.timer = Timer()
         self.screen_saver_inhibitor_cookie = None
         self.skip_cloud_sync = False
+        # The delegate the game was launched with, until it quits
+        self.launch_ui_delegate: "LaunchUIDelegate | None" = None
 
     @staticmethod
     def create_empty_service_game(db_game: dict[str, str | int], service: Any) -> Any:
@@ -395,20 +396,18 @@ class Game:
             raise ValueError("Invalid game passed: %s" % self)
 
         if not self.service or self.service == "lutris":
-            application: "LutrisApplication" = Gio.Application.get_default()
-            application.show_lutris_installer_window(game_slug=self.slug)
+            install_from_lutris(self.slug, launch_ui_delegate)
             return
 
         service = launch_ui_delegate.get_service(self.service)
         db_game = service.get_service_db_game(self)
         if not db_game:
             logger.error("Can't find %s for %s, trying to fall back to Lutris installers", self.name, service.name)
-            application: "LutrisApplication" = Gio.Application.get_default()
-            application.show_lutris_installer_window(game_slug=self.slug)
+            install_from_lutris(self.slug, launch_ui_delegate)
             return
 
         try:
-            game_id = service.install(db_game)
+            game_id = service.install(db_game, launch_ui_delegate)
         except ValueError as e:
             logger.debug(e)
             game_id = None
@@ -436,8 +435,7 @@ class Game:
             if not installers:
                 raise RuntimeError(_("No updates found"))
 
-            application: "LutrisApplication" = Gio.Application.get_default()
-            application.show_installer_window(
+            install_ui_delegate.start_installer(
                 installers, service, self.appid, installation_kind=InstallationKind.UPDATE
             )
 
@@ -458,8 +456,7 @@ class Game:
             if not installers:
                 raise RuntimeError(_("No DLC found"))
 
-            application: "LutrisApplication" = Gio.Application.get_default()
-            application.show_installer_window(installers, service, self.appid, installation_kind=InstallationKind.DLC)
+            install_ui_delegate.start_installer(installers, service, self.appid, installation_kind=InstallationKind.DLC)
 
         busy.BusyAsyncCall(service.get_dlc_installers_runner, on_installers_ready, db_game, db_game["runner"])
         return True
@@ -562,7 +559,7 @@ class Game:
         return True
 
     def restrict_to_display(self, display: str) -> bool:
-        outputs = DISPLAY_MANAGER.get_config()
+        outputs = get_display_manager().get_config()
         if display == "primary":
             display = ""
             for output in outputs:
@@ -748,7 +745,7 @@ class Game:
             system.set_keyboard_layout("us")
 
         # Display control
-        self.original_outputs = DISPLAY_MANAGER.get_config()
+        self.original_outputs = get_display_manager().get_config()
 
         if self.runner.system_config.get("disable_compositor"):
             self.set_desktop_compositing(False)
@@ -761,7 +758,7 @@ class Game:
 
         resolution: str = self.runner.system_config.get("resolution")
         if resolution != "off":
-            DISPLAY_MANAGER.set_resolution(resolution)
+            get_display_manager().set_resolution(resolution)
             time.sleep(3)
             self.resolution_changed = True
 
@@ -781,22 +778,15 @@ class Game:
         self.skip_cloud_sync = False
         if self.service == "gog" and self.appid and self.runner.system_config.get("cloud_save_sync", True):
             try:
-                from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressAdapter  # noqa: PLC0415
-                from lutris.gui.widgets.utils import get_main_window  # noqa: PLC0415
-                from lutris.services.gog_cloud_hooks import sync_before_launch  # noqa: PLC0415
+                from lutris.services.gog_cloud_operation import start_cloud_sync  # noqa: PLC0415
 
-                window = get_main_window()
-                if window:
-                    adapter = CloudSyncProgressAdapter(self, sync_before_launch, "pre-launch")
-                    window.download_queue.start(
-                        operation=adapter.run,
-                        progress_function=adapter.get_progress,
-                        completion_function=lambda _result: self.start_game(),
-                        error_function=lambda _error: self.start_game(),
-                        operation_name="cloud_sync:%s:pre" % self.id,
-                        wait_for={"cloud_sync:%s:post" % self.id},
-                    )
-                    return True
+                start_cloud_sync(
+                    self,
+                    "pre-launch",
+                    resolve_conflict=launch_ui_delegate.resolve_cloud_sync_conflict,
+                    on_done=self.start_game,
+                )
+                return True
             except Exception as ex:
                 logger.warning("GOG cloud sync before launch failed: %s", ex)
 
@@ -812,6 +802,8 @@ class Game:
 
         if not launch_ui_delegate.check_game_launchable(self):
             return False
+
+        self.launch_ui_delegate = launch_ui_delegate
 
         @watch_game_errors(game_stop_result=False, game=self)
         def proceed() -> None:
@@ -1077,21 +1069,14 @@ class Game:
 
         # GOG cloud save sync (upload to cloud after quit)
         if self.service == "gog" and self.appid and self.runner.system_config.get("cloud_save_sync", True):
+            resolve_conflict = self.launch_ui_delegate.resolve_cloud_sync_conflict if self.launch_ui_delegate else None
             try:
-                from lutris.gui.dialogs.cloud_sync_progress import CloudSyncProgressAdapter  # noqa: PLC0415
-                from lutris.gui.widgets.utils import get_main_window  # noqa: PLC0415
-                from lutris.services.gog_cloud_hooks import sync_after_quit  # noqa: PLC0415
+                from lutris.services.gog_cloud_operation import start_cloud_sync  # noqa: PLC0415
 
-                window = get_main_window()
-                if window:
-                    adapter = CloudSyncProgressAdapter(self, sync_after_quit, "post-exit")
-                    window.download_queue.start(
-                        operation=adapter.run,
-                        progress_function=adapter.get_progress,
-                        operation_name="cloud_sync:%s:post" % self.id,
-                    )
+                start_cloud_sync(self, "post-exit", resolve_conflict=resolve_conflict)
             except Exception as ex:
                 logger.warning("GOG cloud sync after quit failed: %s", ex)
+        self.launch_ui_delegate = None
 
         quit_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
         logger.debug("%s stopped at %s", self.name, quit_time)
@@ -1105,7 +1090,7 @@ class Game:
 
         if self.resolution_changed or self.runner.system_config.get("reset_desktop"):
             if self.original_outputs:
-                DISPLAY_MANAGER.set_resolution(self.original_outputs)
+                get_display_manager().set_resolution(self.original_outputs)
 
         if self.compositor_disabled:
             self.set_desktop_compositing(True)

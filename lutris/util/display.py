@@ -1,28 +1,9 @@
 """Module to deal with various aspects of displays"""
 
-from __future__ import annotations
-
-# isort:skip_file
 import enum
 import os
 import subprocess
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any
-
-import gi
-
-try:
-    gi.require_version("GnomeDesktop", "3.0")
-    from gi.repository import GnomeDesktop  # type: ignore
-
-    # check for AttributeError on newer systems on which the
-    # deprecated attributes have been removed
-    GnomeDesktop.RRScreen  # type: ignore  # noqa: B018
-
-    LIB_GNOME_DESKTOP_AVAILABLE = True
-except ValueError, AttributeError:
-    LIB_GNOME_DESKTOP_AVAILABLE = False
-    GnomeDesktop = None
+from typing import Any
 
 try:
     from dbus.exceptions import DBusException
@@ -31,94 +12,27 @@ try:
 except ImportError:
     DBUS_AVAILABLE = False
 
-from gi.repository import Gdk, GLib, Gio, Gtk
+from gi.repository import Gio, GLib
 
 from lutris.util import cache_single
-from lutris.settings import DEFAULT_RESOLUTION_HEIGHT, DEFAULT_RESOLUTION_WIDTH
+from lutris.util.display_backend import DisplayBackend, DisplayManager, get_display_backend
 from lutris.util.graphics.displayconfig import MutterDisplayManager
-from lutris.util.graphics.xrandr import LegacyDisplayManager, change_resolution, get_outputs, Output
+from lutris.util.graphics.xrandr import LegacyDisplayManager
 from lutris.util.log import logger
-
-if TYPE_CHECKING:
-    from lutris.gui.application import LutrisApplication
 
 
 def get_default_dpi() -> int:
     """Computes the DPI to use for the primary monitor
     which we pass to WINE."""
-    display = Gdk.Display.get_default()
-    if display:
-        monitor = display.get_primary_monitor()
-        if monitor:
-            scale = monitor.get_scale_factor()
-            dpi = 96 * scale
-            return int(dpi)
-    return 96
+    return 96 * get_display_backend().get_scale_factor()
 
 
-@cache_single
 def is_display_x11() -> bool:
-    """True if"""
-    display = Gdk.Display.get_default()
-    return "x11" in type(display).__name__.casefold()
+    """True if the frontend runs on X11, rather than Wayland."""
+    return get_display_backend().is_x11()
 
 
-class DisplayManager:
-    """Get display and resolution using GnomeDesktop"""
-
-    def __init__(self, screen: Gdk.Screen):
-        if GnomeDesktop:
-            self.rr_screen = GnomeDesktop.RRScreen.new(screen)
-            self.rr_config = GnomeDesktop.RRConfig.new_current(self.rr_screen)
-            self.rr_config.load_current()
-
-    def get_display_names(self) -> list[str]:
-        """Return names of connected displays"""
-        return [output_info.get_display_name() for output_info in self.rr_config.get_outputs()]
-
-    def get_resolutions(self) -> list[str]:
-        """Return available resolutions"""
-        resolutions = ["%sx%s" % (mode.get_width(), mode.get_height()) for mode in self.rr_screen.list_modes()]
-        if not resolutions:
-            logger.error("Failed to generate resolution list from default GdkScreen")
-            return ["%sx%s" % (DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT)]
-        return sorted(set(resolutions), key=lambda x: int(x.split("x")[0]), reverse=True)
-
-    def _get_primary_output(self) -> GnomeDesktop.RROutput | None:
-        """Return the RROutput used as a primary display"""
-        for output in self.rr_screen.list_outputs():
-            if output.get_is_primary():
-                return output
-        return None
-
-    def get_current_resolution(self) -> tuple[str, str]:
-        """Return the current resolution for the primary display"""
-        output = self._get_primary_output()
-        if not output:
-            logger.error("Failed to get a default output")
-            return str(DEFAULT_RESOLUTION_WIDTH), str(DEFAULT_RESOLUTION_HEIGHT)
-        current_mode = output.get_current_mode()
-        return str(current_mode.get_width()), str(current_mode.get_height())
-
-    @staticmethod
-    def set_resolution(resolution: str | Iterable[Output]) -> None:
-        """Set the resolution of one or more displays.
-        The resolution can either be a string, which will be applied to the
-        primary display or a list of configurations as returned by `get_config`.
-        This method uses XrandR and will not work on Wayland.
-        """
-        return change_resolution(resolution)
-
-    @staticmethod
-    def get_config() -> list[Output]:
-        """Return the current display resolution
-        This method uses XrandR and will not work on wayland
-        The output can be fed in `set_resolution`
-        """
-        return get_outputs()
-
-
-def get_display_manager() -> MutterDisplayManager | DisplayManager | LegacyDisplayManager:
+def _create_display_manager(backend: DisplayBackend) -> DisplayManager:
     """Return the appropriate display manager instance.
     Defaults to Mutter if available. This is the only one to support Wayland.
     """
@@ -132,17 +46,21 @@ def get_display_manager() -> MutterDisplayManager | DisplayManager | LegacyDispl
     else:
         logger.error("DBus is not available, Lutris was not properly installed.")
 
-    if LIB_GNOME_DESKTOP_AVAILABLE:
-        try:
-            screen = Gdk.Screen.get_default()
-            if screen:
-                return DisplayManager(screen)
-        except GLib.Error:
-            pass
-    return LegacyDisplayManager()
+    return backend.get_display_manager() or LegacyDisplayManager()
 
 
-DISPLAY_MANAGER = get_display_manager()
+# The display manager, and the backend it was created with
+_display_manager: tuple[DisplayBackend, DisplayManager] | None = None
+
+
+def get_display_manager() -> DisplayManager:
+    """Return the display manager to read and change display modes with. It's created
+    when first needed, so that the frontend can install its DisplayBackend first."""
+    global _display_manager
+    backend = get_display_backend()
+    if _display_manager is None or _display_manager[0] is not backend:
+        _display_manager = (backend, _create_display_manager(backend))
+    return _display_manager[1]
 
 
 class DesktopEnvironment(enum.Enum):
@@ -369,7 +287,7 @@ def enable_compositing() -> None:
 class DBusScreenSaverInhibitor:
     """Inhibit and uninhibit the suspend using DBus.
 
-    It will use the Gtk.Application's inhibit and uninhibit methods to
+    Without a D-Bus interface to use, it asks the frontend's DisplayBackend to
     prevent the computer from going to sleep.
 
     For enviroments which don't support either org.freedesktop.ScreenSaver or
@@ -378,10 +296,10 @@ class DBusScreenSaverInhibitor:
 
     def __init__(self) -> None:
         self.proxy: Any = None
-        self._used_gtk_fallback = False
+        self._used_backend = False
 
     def set_dbus_iface(self, name: str, path: str, interface: str, bus_type: Gio.BusType = Gio.BusType.SESSION) -> None:
-        """Sets a dbus proxy to be used instead of Gtk.Application methods, this
+        """Sets a dbus proxy to be used instead of the DisplayBackend, this
         method can raise an exception."""
         self.proxy = Gio.DBusProxy.new_for_bus_sync(
             bus_type, Gio.DBusProxyFlags.NONE, None, name, path, interface, None
@@ -392,7 +310,7 @@ class DBusScreenSaverInhibitor:
         Returns a cookie that must be passed to the corresponding uninhibit() call.
         If an error occurs, None is returned instead."""
         reason = "Running game: %s" % game_name
-        self._used_gtk_fallback = False
+        self._used_backend = False
 
         if self.proxy:
             try:
@@ -400,22 +318,15 @@ class DBusScreenSaverInhibitor:
                 if cookie:
                     return cookie
                 # D-Bus call succeeded but returned no cookie
-                logger.warning("D-Bus screensaver inhibit returned no cookie, falling back to GTK")
+                logger.warning("D-Bus screensaver inhibit returned no cookie, falling back to the frontend")
             except Exception as ex:
-                logger.warning("Failed to inhibit screensaver via D-Bus, falling back to GTK: %s", ex)
+                logger.warning("Failed to inhibit screensaver via D-Bus, falling back to the frontend: %s", ex)
 
-        # GTK fallback
-        app: "LutrisApplication" = Gio.Application.get_default()
-
-        window = app.window
-        flags = Gtk.ApplicationInhibitFlags.SUSPEND | Gtk.ApplicationInhibitFlags.IDLE
-        cookie = app.inhibit(window, flags, reason)
-
-        # Gtk.Application.inhibit returns 0 if there was an error.
-        if cookie == 0:
+        cookie = get_display_backend().inhibit_suspend(reason)
+        if cookie is None:
             return None
 
-        self._used_gtk_fallback = True
+        self._used_backend = True
         return cookie
 
     def uninhibit(self, cookie: int | None) -> None:
@@ -424,22 +335,20 @@ class DBusScreenSaverInhibitor:
         if not cookie:
             return
 
-        if self.proxy and not self._used_gtk_fallback:
+        if self.proxy and not self._used_backend:
             try:
                 self.proxy.UnInhibit("(u)", cookie)
                 return
             except Exception as ex:
                 logger.warning("Failed to uninhibit screensaver via D-Bus: %s", ex)
 
-        # GTK fallback
-        app: "LutrisApplication" = Gio.Application.get_default()
-        app.uninhibit(cookie)
+        get_display_backend().uninhibit_suspend(cookie)
 
 
 def _get_suspend_inhibitor() -> DBusScreenSaverInhibitor:
     """Return the appropriate suspend inhibitor instance.
-    If the required interface isn't available, it will default to GTK's
-    implementation."""
+    If the required interface isn't available, it will default to the
+    DisplayBackend's."""
     desktop_environment = get_desktop_environment()
     inhibitor = DBusScreenSaverInhibitor()
 
@@ -472,7 +381,7 @@ def _get_suspend_inhibitor() -> DBusScreenSaverInhibitor:
         logger.debug("Using D-Bus screensaver interface: %s", name)
         return inhibitor
 
-    # No D-Bus interface available, will use GTK fallback
+    # No D-Bus interface available, will use the DisplayBackend
     return inhibitor
 
 

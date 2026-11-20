@@ -6,12 +6,6 @@ import sqlite3
 import threading
 from gettext import gettext as _
 
-import gi
-
-gi.require_version("GdkPixbuf", "2.0")
-
-from gi.repository import GdkPixbuf
-
 from lutris import runners, settings
 from lutris.database.games import get_games
 from lutris.database.schema import syncdb
@@ -119,14 +113,6 @@ def check_vulkan():
             )
 
 
-def check_gnome():
-    required_names = ["svg", "png", "jpeg"]
-    format_names = [f.get_name() for f in GdkPixbuf.Pixbuf.get_formats()]
-    for required in required_names:
-        if required not in format_names:
-            logger.error("'%s' PixBuf support is not installed.", required.upper())
-
-
 def fill_missing_platforms():
     """Sets the platform on games where it's missing.
     This should never happen.
@@ -153,7 +139,6 @@ def run_all_checks(async_ops: bool = True) -> None:
     else:
         check_libs()
     check_vulkan()
-    check_gnome()
     fill_missing_platforms()
     build_path_cache()
 

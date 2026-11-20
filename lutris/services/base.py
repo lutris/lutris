@@ -6,8 +6,6 @@ from gettext import gettext as _
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from gi.repository import Gio
-
 from lutris import api, settings
 from lutris.api import get_game_installers
 from lutris.config import write_game_config
@@ -25,7 +23,7 @@ from lutris.util.notifications import NotificationSource
 from lutris.util.strings import slugify
 
 if TYPE_CHECKING:
-    from lutris.delegates import ServiceLoginUIDelegate
+    from lutris.delegates import Delegate, ServiceLoginUIDelegate
 
 
 class AuthTokenExpiredError(Exception):
@@ -201,7 +199,7 @@ class BaseService:
         installer = self.generate_installer(db_game)
         return [installer] if installer else []
 
-    def install_from_api(self, db_game, appid=None):
+    def install_from_api(self, db_game, ui_delegate: "Delegate", appid=None):
         """Install a game, using the API or generate_installer() to obtain the installer."""
         if not appid:
             appid = db_game["appid"]
@@ -212,8 +210,7 @@ class BaseService:
 
             if not service_installers:
                 service_installers = self.generate_installers(db_game)
-            application = Gio.Application.get_default()
-            application.show_installer_window(service_installers, service=self, appid=appid)
+            ui_delegate.start_installer(service_installers, service=self, appid=appid)
 
         BusyAsyncCall(self.get_installers_from_api, on_installers_ready, appid)
 
@@ -336,12 +333,13 @@ class BaseService:
             logger.error("No installer found for %s", db_game)
         return service_installers, db_game, None
 
-    def install(self, db_game, update=False):
+    def install(self, db_game, ui_delegate: "Delegate", update=False):
         """Install a service game, or starts the installer of the game.
 
         Args:
             db_game (dict or str): Database fields of the game to add, or (for Lutris service only
                 the slug of the game.)
+            ui_delegate (Delegate): Starts the installer, if the game needs one.
 
         Returns:
             str: The slug of the game that was installed, to be run. None if the game should not be
@@ -353,17 +351,22 @@ class BaseService:
         # be added without going through an install dialog.
         if self.local:
             return self.simple_install(db_game)
-        BusyAsyncCall(self.get_service_installers, self.on_service_installers_loaded, db_game, update)
+        BusyAsyncCall(
+            self.get_service_installers,
+            lambda result, error: self.on_service_installers_loaded(result, error, ui_delegate),
+            db_game,
+            update,
+        )
 
-    def install_by_id(self, appid):
+    def install_by_id(self, appid, ui_delegate: "Delegate"):
         """Installs a game given the appid for the game on this service."""
         db_game = ServiceGameCollection.get_game(self.id, appid)
         if not db_game:
             logger.error("No game %s found for %s", appid, self.id)
             return None
-        return self.install(db_game)
+        return self.install(db_game, ui_delegate)
 
-    def on_service_installers_loaded(self, result, error):
+    def on_service_installers_loaded(self, result, error, ui_delegate: "Delegate"):
         if error:
             raise error  # bounce this error off the backstop for default handling
 
@@ -375,8 +378,7 @@ class BaseService:
             GAME_UPDATED.fire(existing_game)
 
         if service_installers and db_game:
-            application = Gio.Application.get_default()
-            application.show_installer_window(service_installers, service=self, appid=db_game["appid"])
+            ui_delegate.start_installer(service_installers, service=self, appid=db_game["appid"])
 
     def simple_install(self, db_game):
         """A simplified version of the install method, used when a game doesn't need any setup"""

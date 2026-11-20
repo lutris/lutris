@@ -28,7 +28,7 @@ from lutris.gui.widgets.navigation_stack import NavigationStack
 from lutris.gui.widgets.utils import get_main_window
 from lutris.installer import InstallationKind, interpreter
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
-from lutris.installer.interpreter import ScriptInterpreter
+from lutris.installer.interpreter import RUNNERS_INSTALLED, ScriptInterpreter
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall, schedule_repeating_at_idle
 from lutris.util.linux import LINUX_SYSTEM
@@ -115,6 +115,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         self.stack = NavigationStack(self.back_button, cancel_button=self.cancel_button)
         self.register_page_creators()
         content_area.pack_start(self.stack, True, True, 0)
+
+        registration = RUNNERS_INSTALLED.register(self.on_runners_installed)
+        self.connect("destroy", lambda _window: registration.unregister())
 
         # Menu buttons
         menu_icon = Gtk.Image.new_from_icon_name("open-menu-symbolic", Gtk.IconSize.MENU)
@@ -433,7 +436,6 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
                 if _script["version"] == installer_version:
                     script = _script
             self.interpreter = interpreter.ScriptInterpreter(script, self)
-            self.interpreter.connect("runners-installed", self.on_runners_ready)
         except MissingGameDependencyError as ex:
             dlg = QuestionDialog(
                 {
@@ -550,8 +552,9 @@ class InstallerWindow(ModelessDialog, DialogInstallUIDelegate, ScriptInterpreter
         settings.write_setting("installer_create_steam_shortcut", checkbutton.get_active())
         self.config["create_steam_shortcut"] = checkbutton.get_active()
 
-    def on_runners_ready(self, _widget=None):
-        AsyncCall(self.interpreter.get_extras, self.on_extras_loaded)
+    def on_runners_installed(self, installed_for: ScriptInterpreter) -> None:
+        if installed_for is self.interpreter:
+            AsyncCall(self.interpreter.get_extras, self.on_extras_loaded)
 
     # Extras Page
     #

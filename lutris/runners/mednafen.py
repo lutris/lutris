@@ -7,7 +7,7 @@ from lutris.exceptions import MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.display import get_display_manager
 from lutris.util.joypad import get_controller_mappings
 from lutris.util.log import logger
 
@@ -464,7 +464,7 @@ class mednafen(Runner):
         scaler = self.runner_config.get("scaler") or DEFAULT_MEDNAFEN_SCALER
         sound_device = self.runner_config.get("sound_device")
 
-        xres, yres = DISPLAY_MANAGER.get_current_resolution()
+        xres, yres = get_display_manager().get_current_resolution()
         options = [
             "-fs",
             fullscreen,

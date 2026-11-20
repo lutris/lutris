@@ -4,7 +4,7 @@ import shutil
 import subprocess
 from gettext import gettext as _
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import requests
 
@@ -16,6 +16,9 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+
+if TYPE_CHECKING:
+    from lutris.delegates import Delegate
 
 
 class FlathubBanner(ServiceMedia):
@@ -96,7 +99,7 @@ class FlathubService(BaseService):
             game.save()
         return flathub_games
 
-    def install(self, db_game):
+    def install(self, db_game, ui_delegate: "Delegate", update=False):
         """Install a Flathub game"""
         app_id = db_game["appid"]
         logger.debug("Installing %s from service %s", app_id, self.id)
@@ -106,7 +109,7 @@ class FlathubService(BaseService):
                 _("Flathub is not configured on the system. Visit https://flatpak.org/setup/ for instructions.")
             )
         # Install the game
-        self.install_from_api(db_game, app_id)
+        self.install_from_api(db_game, ui_delegate, app_id)
 
     def get_installed_apps(self):
         """Get list of installed Flathub apps"""

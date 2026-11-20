@@ -5,16 +5,15 @@ import json
 import os
 import shutil
 from gettext import gettext as _
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import unquote
-
-from gi.repository import Gio
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field, update_existing
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
+from lutris.installer import install_from_lutris
 from lutris.services.base import SERVICE_LOGIN, SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
@@ -27,6 +26,9 @@ from lutris.util.ubisoft.client import UbisoftConnectClient
 from lutris.util.ubisoft.helpers import get_ubisoft_registry
 from lutris.util.ubisoft.parser import UbisoftParser
 from lutris.util.wine.prefix import WinePrefixManager
+
+if TYPE_CHECKING:
+    from lutris.delegates import Delegate
 
 
 class UbisoftCover(ServiceMedia):
@@ -329,14 +331,13 @@ class UbisoftConnectService(OnlineService):
     def get_installed_runner_name(self, db_game):
         return self.runner
 
-    def install(self, db_game):
+    def install(self, db_game, ui_delegate: "Delegate", update=False):
         """Install a game or Ubisoft Connect if not already installed"""
         ubisoft_connect = get_game_by_field(self.client_installer, "slug")
-        application = Gio.Application.get_default()
         if not ubisoft_connect or not ubisoft_connect["installed"]:
             logger.warning("Ubisoft Connect (%s) not installed", self.client_installer)
-            application.show_lutris_installer_window(game_slug=self.client_installer)
+            install_from_lutris(self.client_installer, ui_delegate)
         else:
-            application.show_installer_window(
+            ui_delegate.start_installer(
                 [self.generate_installer(db_game, ubisoft_connect)], service=self, appid=db_game["appid"]
             )

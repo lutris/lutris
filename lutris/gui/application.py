@@ -38,18 +38,22 @@ from lutris.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUID
 from lutris.game import GAME_START, GAME_STOPPED, Game, export_game, import_game
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
 from lutris.gui.dialogs.issue import IssueReportWindow
+from lutris.gui.display_backend import GtkDisplayBackend
 from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED
 from lutris.gui.exception_backstops import init_exception_backstops
 from lutris.gui.installerwindow import INSTALLATION_COMPLETED, INSTALLATION_FAILED, InstallerWindow
 from lutris.gui.style_manager import StyleManager
 from lutris.gui.widgets.status_icon import LutrisStatusIcon
+from lutris.gui.widgets.utils import check_pixbuf_formats
 from lutris.installer import InstallationKind, get_installers
 from lutris.migrations import migrate
 from lutris.monitored_command import exec_command
 from lutris.runners import InvalidRunnerError, RunnerInstallationError, get_runner_names, import_runner
 from lutris.services import get_enabled_services
+from lutris.services.gog_cloud_operation import CLOUD_SYNC_ENDED, CloudSyncOperation, is_cloud_sync_running
 from lutris.startup import init_lutris, run_all_checks
 from lutris.util import datapath, log, resources, system
+from lutris.util.display_backend import set_display_backend
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
@@ -82,6 +86,7 @@ class LutrisApplication(Gtk.Application):
         # Prepare the backstop logic just before the first emission hook (or connection) is
         # established; this will apply to all connections from this point forward.
         init_exception_backstops()
+        set_display_backend(GtkDisplayBackend())
 
         GAME_START.register(self.on_game_start)
         GAME_STOPPED.register(self.on_game_stopped)
@@ -89,6 +94,7 @@ class LutrisApplication(Gtk.Application):
         INSTALLATION_COMPLETED.register(self.on_install_ended)
         INSTALLATION_FAILED.register(self.on_install_ended)
         DOWNLOAD_QUEUE_COMPLETED.register(self.on_download_queue_completed)
+        CLOUD_SYNC_ENDED.register(self.on_cloud_sync_ended)
 
         GLib.set_application_name(_("Lutris"))
         GLib.set_prgname("net.lutris.Lutris")
@@ -413,7 +419,7 @@ class LutrisApplication(Gtk.Application):
     def show_installer_window(
         self,
         installers: list[dict[str, Any]],
-        service: "BaseService" = None,
+        service: "BaseService | None" = None,
         appid: str | None = None,
         installation_kind: InstallationKind = InstallationKind.INSTALL,
     ) -> None:
@@ -487,6 +493,7 @@ class LutrisApplication(Gtk.Application):
         migrate()
 
         run_all_checks(async_ops=not argc)
+        check_pixbuf_formats()
         if option := options.lookup_value("dest"):
             dest_dir = option.get_string()
         else:
@@ -747,7 +754,7 @@ class LutrisApplication(Gtk.Application):
             service_game = ServiceGameCollection.get_game(service, appid)
             if service_game:
                 service = get_enabled_services()[service]()
-                service.install(service_game)
+                service.install(service_game, self.launch_ui_delegate)
                 return 0
 
         if action == "cancel":
@@ -834,6 +841,9 @@ class LutrisApplication(Gtk.Application):
     def on_download_queue_completed(self, _widget: Gtk.Widget = None) -> None:
         self._quit_if_hidden_and_idle()
 
+    def on_cloud_sync_ended(self, _operation: CloudSyncOperation) -> None:
+        self._quit_if_hidden_and_idle()
+
     def _quit_if_hidden_and_idle(self) -> None:
         """Quits Lutris if the window is not visible and there is no ongoing activity
         (running games or active downloads) keeping it alive."""
@@ -844,7 +854,9 @@ class LutrisApplication(Gtk.Application):
 
     @property
     def has_active_downloads(self) -> bool:
-        """True if the download queue has active operations."""
+        """True if the download queue has active operations, or a game's saves are syncing."""
+        if is_cloud_sync_running():
+            return True
         if self.window:
             return not self.window.is_download_queue_empty
         return False

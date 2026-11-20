@@ -275,7 +275,7 @@ class GameBar(Gtk.Box):
 
     def on_install_clicked(self, button):
         """Handler for installing service games"""
-        self.service.install(self.db_game)
+        self.service.install(self.db_game, self.window)
 
     def on_game_state_changed(self, game: Game) -> None:
         """Handler called when the game has changed state"""

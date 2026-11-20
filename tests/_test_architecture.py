@@ -5,10 +5,6 @@ installer, the database. A frontend (the GTK one in lutris/gui today, a Qt one
 later) drives the core, never the other way round, so the core must not import
 lutris.gui or a GUI toolkit. That's what lets a second frontend reuse it, and
 lets it run as a separate process later. See docs/architecture.rst.
-
-KNOWN_VIOLATIONS lists the couplings that predate this rule. The test fails if
-a new one appears, and also when one listed here is gone, so that the list only
-ever shrinks: remove the entry when you untangle a module.
 """
 
 import ast
@@ -34,19 +30,6 @@ UI_NAMESPACES = {
     "WebKit2",
 }
 
-KNOWN_VIOLATIONS: dict[str, set[str]] = {
-    "lutris/__init__.py": {"gi.require_version(Gdk)", "gi.require_version(Gtk)"},
-    "lutris/game.py": {"lutris.gui.application", "lutris.gui.dialogs.cloud_sync_progress", "lutris.gui.widgets.utils"},
-    "lutris/startup.py": {"gi.repository.GdkPixbuf", "gi.require_version(GdkPixbuf)"},
-    "lutris/util/display.py": {
-        "gi.repository.Gdk",
-        "gi.repository.GnomeDesktop",
-        "gi.repository.Gtk",
-        "gi.require_version(GnomeDesktop)",
-        "lutris.gui.application",
-    },
-}
-
 
 def find_ui_dependencies(source: str) -> set[str]:
     """Return what a module's source imports from the UI, wherever the import is."""
@@ -68,6 +51,13 @@ def find_ui_dependencies(source: str) -> set[str]:
             and node.args[0].value in UI_NAMESPACES
         ):
             found.add(f"gi.require_version({node.args[0].value})")
+        elif (
+            # The running application is the frontend's, even though Gio isn't UI
+            isinstance(node, ast.Attribute)
+            and node.attr == "get_default"
+            and ast.unparse(node.value) in ("Gio.Application", "Application")
+        ):
+            found.add("Gio.Application.get_default()")
     return found
 
 
@@ -83,27 +73,12 @@ def find_core_violations() -> dict[str, set[str]]:
     return violations
 
 
-def test_core_gains_no_new_ui_dependencies():
+def test_core_has_no_ui_dependencies():
     violations = find_core_violations()
-    new = {
-        module: dependencies - KNOWN_VIOLATIONS.get(module, set())
-        for module, dependencies in violations.items()
-        if dependencies - KNOWN_VIOLATIONS.get(module, set())
-    }
-    assert not new, (
+    assert not violations, (
         "Core modules must not depend on the GUI; move the UI part into lutris/gui, or have the core "
-        f"call a delegate or fire a notification the GUI handles instead: {new}"
+        f"call a delegate or fire a notification the GUI handles instead: {violations}"
     )
-
-
-def test_known_violations_are_still_current():
-    violations = find_core_violations()
-    fixed = {
-        module: dependencies - violations.get(module, set())
-        for module, dependencies in KNOWN_VIOLATIONS.items()
-        if dependencies - violations.get(module, set())
-    }
-    assert not fixed, f"These are no longer used, so remove them from KNOWN_VIOLATIONS: {fixed}"
 
 
 def test_finds_every_kind_of_ui_dependency():
@@ -115,10 +90,12 @@ from lutris.gui.dialogs import ErrorDialog
 
 def later():
     import lutris.gui.application
+    return Gio.Application.get_default()
 """
     assert find_ui_dependencies(source) == {
         "gi.require_version(Gtk)",
         "gi.repository.Gtk",
         "lutris.gui.dialogs",
         "lutris.gui.application",
+        "Gio.Application.get_default()",
     }

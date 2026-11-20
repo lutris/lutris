@@ -3,8 +3,6 @@
 import os
 from gettext import gettext as _
 
-from gi.repository import GObject
-
 from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
@@ -17,18 +15,18 @@ from lutris.installer.installer import LutrisInstaller
 from lutris.runners import NonInstallableRunnerError, RunnerInstallationError, steam, wine
 from lutris.services.lutris import download_lutris_media
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.display import get_display_manager
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 from lutris.util.strings import unpack_dependencies
 
+# Fired with the ScriptInterpreter once the runners its script needs are installed
+RUNNERS_INSTALLED = NotificationSource()
 
-class ScriptInterpreter(GObject.Object, CommandsMixin):
+
+class ScriptInterpreter(CommandsMixin):
     """Control the execution of an installer"""
-
-    __gsignals__ = {
-        "runners-installed": (GObject.SIGNAL_RUN_FIRST, None, ()),
-    }
 
     class InterpreterUIDelegate(Delegate):
         """This is a base class for objects that provide UI services
@@ -85,7 +83,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
         self.user_inputs = []
         self.current_command = 0  # Current installer command when iterating through them
         self.runners_to_install = []
-        self.current_resolution = DISPLAY_MANAGER.get_current_resolution()
+        self.current_resolution = get_display_manager().get_current_resolution()
         self.installer = LutrisInstaller(installer, self, service=self.service, appid=_appid)
 
         if not self.service and self.installer.service:
@@ -277,7 +275,7 @@ class ScriptInterpreter(GObject.Object, CommandsMixin):
             self.install_runner(self.runners_to_install.pop(0), ui_delegate)
             return  # install_runner calls back into this method to get the next one
 
-        self.emit("runners-installed")
+        RUNNERS_INSTALLED.fire(self)
 
     def install_runner(self, runner, ui_delegate):
         """Install runner required by the install script"""

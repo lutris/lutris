@@ -23,7 +23,7 @@ from lutris.gui.dialogs import display_error
 from lutris.gui.dialogs.runner_install import RunnerInstallDialog
 from lutris.gui.widgets.stock_icon_image import StockIconImage
 from lutris.gui.widgets.utils import get_widget_children, set_cursor_by_name
-from lutris.installer.interpreter import ScriptInterpreter
+from lutris.installer.interpreter import RUNNERS_INSTALLED
 from lutris.runners import InvalidRunnerError
 from lutris.services import SERVICES
 from lutris.services.base import (
@@ -488,11 +488,11 @@ class LutrisSidebar(Gtk.ListBox):
         GObject.add_emission_hook(RunnerBox, "runner-installed", self.update_rows)
         GObject.add_emission_hook(RunnerBox, "runner-removed", self.update_rows)
         GObject.add_emission_hook(RunnerConfigDialog, "runner-updated", self.update_runner_rows)
-        GObject.add_emission_hook(ScriptInterpreter, "runners-installed", self.update_rows)
         GObject.add_emission_hook(ServicesBox, "services-changed", self.update_rows)
         GAME_START.register(self.on_game_start)
         GAME_STOPPED.register(self.on_game_stopped)
         GAME_UPDATED.register(self.update_rows)
+        RUNNERS_INSTALLED.register(self.update_rows)
         CATEGORIES_UPDATED.register(self.update_rows)
         SAVED_SEARCHES_UPDATED.register(self.update_rows)
         SERVICE_LOGIN.register(self.on_service_auth_changed)

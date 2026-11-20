@@ -5,6 +5,7 @@ import os
 import time
 from collections import defaultdict
 from gettext import gettext as _
+from typing import TYPE_CHECKING
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
@@ -21,6 +22,9 @@ from lutris.util.log import logger
 from lutris.util.steam.appmanifest import AppManifest, get_appmanifests
 from lutris.util.steam.config import get_active_steamid64, get_steam_library, get_steamapps_dirs
 from lutris.util.strings import slugify
+
+if TYPE_CHECKING:
+    from lutris.delegates import Delegate
 
 
 class SteamBanner(ServiceMedia):
@@ -272,7 +276,7 @@ class SteamService(BaseService):
     def get_installed_runner_name(self, db_game):
         return self.runner
 
-    def install(self, db_game):
+    def install(self, db_game, ui_delegate: "Delegate", update=False):
         appid = db_game["appid"]
         db_games = get_games(filters={"service_id": appid, "installed": "1", "service": self.id})
         existing_game = self.match_existing_game(db_games, appid)
@@ -281,4 +285,4 @@ class SteamService(BaseService):
             game = Game(existing_game.id)
             game.save()
             return
-        self.install_from_api(db_game, appid)
+        self.install_from_api(db_game, ui_delegate, appid)

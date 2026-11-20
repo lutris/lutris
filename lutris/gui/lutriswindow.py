@@ -46,7 +46,7 @@ from lutris.gui.dialogs.delegates import (
     DialogServiceLoginUIDelegate,
 )
 from lutris.gui.dialogs.game_import import ImportGameDialog
-from lutris.gui.download_queue import DownloadQueue
+from lutris.gui.download_queue import DOWNLOAD_QUEUE_COMPLETED, DownloadQueue
 from lutris.gui.style_manager import THEME_CHANGED
 from lutris.gui.views import (
     COL_INSTALLED_AT,
@@ -72,6 +72,7 @@ from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.search import GameSearch
 from lutris.search_predicate import NotPredicate
 from lutris.services.base import SERVICE_GAMES_LOADED, SERVICE_LOGIN, SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT
+from lutris.services.gog_cloud_operation import CLOUD_SYNC_ENDED, CLOUD_SYNC_STARTED, CloudSyncOperation
 from lutris.services.lutris import LutrisService, sync_media
 from lutris.util import datapath
 from lutris.util.busy import BUSY_STARTED, BUSY_STOPPED
@@ -227,6 +228,8 @@ class LutrisWindow(  # type:ignore[misc]
         GAME_INSTALLED.register(self.on_game_installed)
         GAME_UNHANDLED_ERROR.register(self.on_game_unhandled_error)
         GAME_LAUNCH_STATUS.register(self.on_game_launch_status)
+        CLOUD_SYNC_STARTED.register(self.on_cloud_sync_started)
+        CLOUD_SYNC_ENDED.register(self.on_cloud_sync_ended)
         settings.SETTINGS_CHANGED.register(self.on_settings_changed)
         MISSING_GAMES.updated.register(self.update_missing_games_sidebar_row)
         LUTRIS_ACCOUNT_CONNECTED.register(self.on_lutris_account_connected)
@@ -1502,6 +1505,15 @@ class LutrisWindow(  # type:ignore[misc]
         # instead of waiting up to 0.5s for the next poll.
         box.update_progress()
 
+    def on_cloud_sync_started(self, operation: CloudSyncOperation) -> None:
+        """Show a game's cloud save sync in the download queue while it runs."""
+        self.download_queue.add_progress_box(operation.get_progress)
+
+    def on_cloud_sync_ended(self, operation: CloudSyncOperation) -> None:
+        self.download_queue.remove_progress_box(operation.get_progress)
+        # As if the queue had run the sync, so that what waits for the queue checks again
+        DOWNLOAD_QUEUE_COMPLETED.fire()
+
     def on_game_installed(self, game):
         self.sync_library()
 
@@ -1519,7 +1531,7 @@ class LutrisWindow(  # type:ignore[misc]
             if db_game and db_game["installed"]:
                 game_id = db_game["id"]
             else:
-                game_id = self.service.install_by_id(game_id)
+                game_id = self.service.install_by_id(game_id, self)
 
         if game_id:
             game = Game(game_id)

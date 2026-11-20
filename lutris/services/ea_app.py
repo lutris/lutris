@@ -4,12 +4,11 @@ import json
 import os
 import ssl
 from gettext import gettext as _
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from xml.etree import ElementTree
 
 import requests
 import urllib3
-from gi.repository import Gio
 from PIL import Image
 
 from lutris import settings
@@ -17,6 +16,7 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
+from lutris.installer import install_from_lutris
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
@@ -24,6 +24,9 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util.images import thumbnail_image
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+
+if TYPE_CHECKING:
+    from lutris.delegates import Delegate
 
 SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION = 1 << 18
 
@@ -563,14 +566,13 @@ class EAAppService(OnlineService):
     def get_installed_runner_name(self, db_game):
         return self.runner
 
-    def install(self, db_game):
+    def install(self, db_game, ui_delegate: "Delegate", update=False):
         ea_app_game = get_game_by_field(self.client_installer, "slug")
-        application = Gio.Application.get_default()
         if not ea_app_game or not ea_app_game["installed"]:
             logger.warning("Installing the EA App client")
-            application.show_lutris_installer_window(game_slug=self.client_installer)
+            install_from_lutris(self.client_installer, ui_delegate)
         else:
-            application.show_installer_window(
+            ui_delegate.start_installer(
                 [self.generate_installer(db_game, ea_app_game)], service=self, appid=db_game["appid"]
             )
 

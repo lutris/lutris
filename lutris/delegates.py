@@ -10,9 +10,10 @@ user (lutris.gui.dialogs.delegates does that for GTK).
 
 from collections.abc import Callable
 from gettext import gettext as _
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from lutris.exceptions import UnavailableRunnerError
+from lutris.installer import InstallationKind
 from lutris.services import SERVICES
 from lutris.util.downloader import SimpleDownloader
 from lutris.util.log import logger
@@ -52,6 +53,18 @@ class Delegate:
         """Ask the user to pick a file; returns None if they cancel. The default cancels."""
         return None
 
+    def start_installer(
+        self,
+        installers: list[dict[str, Any]],
+        service: "BaseService | None" = None,
+        appid: str | None = None,
+        installation_kind: InstallationKind = InstallationKind.INSTALL,
+    ) -> None:
+        """Install a game with one of these installer scripts, letting the user pick one and
+        answer its questions; service and appid identify the service game being installed.
+        This returns once the installer has started. The default can't run one, and only logs it."""
+        logger.warning("Not installing %s with no user to run the installer", installers[0].get("name", "a game"))
+
 
 class LaunchUIDelegate(Delegate):
     """These objects provide UI for the game while it is being launched;
@@ -84,6 +97,14 @@ class LaunchUIDelegate(Delegate):
         The default is the select the primary game.
         """
         return {}  # primary game
+
+    def resolve_cloud_sync_conflict(self, game_name: str, location_name: str) -> str | None:
+        """Ask which copy of a game's saves to keep when both the local and the cloud
+        copies changed; returns "download", "upload" or None to skip that location.
+        This is a ConflictResolver (lutris.services.gog_cloud_hooks), so it's called on
+        a worker thread and may block it. The default skips.
+        """
+        return None
 
     def wait_for_component_updates(self, game: "Game", on_ready: Callable[[], None]) -> None:
         """Defer the launch until any in-progress Lutris component downloads

@@ -4,10 +4,9 @@ import json
 import os
 from collections import defaultdict
 from gettext import gettext as _
-from typing import Any, Optional, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import requests
-from gi.repository import Gio
 from PIL import Image
 
 from lutris import settings
@@ -15,6 +14,7 @@ from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
+from lutris.installer import install_from_lutris
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
@@ -24,6 +24,9 @@ from lutris.util.egs.egs_launcher import EGSLauncher
 from lutris.util.images import paste_overlay, thumbnail_image
 from lutris.util.log import logger
 from lutris.util.strings import slugify
+
+if TYPE_CHECKING:
+    from lutris.delegates import Delegate
 
 EGS_LOGO_PATH = os.path.join(settings.CACHE_DIR, "egs/game_logo")
 
@@ -554,15 +557,13 @@ class EpicGamesStoreService(OnlineService):
     def get_installed_runner_name(self, db_game: dict[str, Any]) -> str:
         return self.runner
 
-    def install(self, db_game: dict[str, Any]) -> None:  # type: ignore[override]
+    def install(self, db_game: dict[str, Any], ui_delegate: "Delegate", update: bool = False) -> None:
         egs_game = get_game_by_field(self.client_installer, "slug")
-        application = Gio.Application.get_default()
-        assert application is not None
         if not egs_game or not egs_game.get("installed"):
             logger.warning("EGS (%s) not installed", self.client_installer)
-            application.show_lutris_installer_window(game_slug=self.client_installer)  # type: ignore[attr-defined]
+            install_from_lutris(self.client_installer, ui_delegate)
         else:
-            application.show_installer_window(  # type: ignore[attr-defined]
+            ui_delegate.start_installer(
                 [self.generate_installer(db_game, egs_game)], service=self, appid=db_game["appid"]
             )
 

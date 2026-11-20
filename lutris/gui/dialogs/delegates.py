@@ -1,14 +1,16 @@
 from collections.abc import Callable
 from gettext import gettext as _
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from gi.repository import Gdk, Gio, Gtk
 
 from lutris.delegates import Delegate, InstallUIDelegate, LaunchUIDelegate, ServiceLoginUIDelegate
 from lutris.game import Game
 from lutris.gui import dialogs
+from lutris.gui.dialogs.cloud_sync import ask_cloud_sync_conflict
 from lutris.gui.dialogs.download import DownloadDialog
 from lutris.gui.dialogs.webconnect_dialog import WebConnectDialog
+from lutris.installer import InstallationKind, install_from_lutris
 from lutris.services.base import SERVICE_LOGIN
 from lutris.util.downloader import BaseDownloader
 
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
     from lutris.config import LaunchConfigDict
     from lutris.gui.application import LutrisApplication
     from lutris.gui.lutriswindow import LutrisWindow
-    from lutris.services.base import OnlineService
+    from lutris.services.base import BaseService, OnlineService
 
 
 class DialogDelegate(Delegate):
@@ -41,6 +43,16 @@ class DialogDelegate(Delegate):
     def ask_for_file(self, message: str, default_path: str | None = None) -> str | None:
         return dialogs.FileDialog(message, default_path=default_path, parent=cast(Gtk.Window, self)).filename
 
+    def start_installer(
+        self,
+        installers: list[dict[str, Any]],
+        service: "BaseService | None" = None,
+        appid: str | None = None,
+        installation_kind: InstallationKind = InstallationKind.INSTALL,
+    ) -> None:
+        application = cast("LutrisApplication", Gio.Application.get_default())
+        application.show_installer_window(installers, service, appid, installation_kind=installation_kind)
+
 
 class DialogServiceLoginUIDelegate(DialogDelegate, ServiceLoginUIDelegate):
     """This provides UI for logging in to services via dialogs."""
@@ -54,8 +66,7 @@ class DialogServiceLoginUIDelegate(DialogDelegate, ServiceLoginUIDelegate):
             % service.name
         )
         if service.client_installer:
-            application = cast("LutrisApplication", Gio.Application.get_default())
-            application.show_lutris_installer_window(game_slug=service.client_installer)
+            install_from_lutris(service.client_installer, self)
 
     def show_web_login(self, service: "OnlineService") -> None:
         WebConnectDialog(service, cast(Gtk.Window, self)).run()
@@ -110,6 +121,9 @@ class DialogLaunchUIDelegate(DialogDelegate, LaunchUIDelegate):
                 return False
 
         return True
+
+    def resolve_cloud_sync_conflict(self, game_name: str, location_name: str) -> str | None:
+        return ask_cloud_sync_conflict(game_name, location_name)
 
     def wait_for_component_updates(self, game: Game, on_ready: Callable[[], None]) -> None:
         from lutris.gui.lutriswindow import LutrisWindow  # noqa: PLC0415

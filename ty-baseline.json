@@ -69,24 +69,6 @@
         "startColumn": 20,
         "endColumn": 55,
         "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 47,
-        "endColumn": 68,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 47,
-        "endColumn": 68,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 47,
-        "endColumn": 68,
-        "lineCount": 1
       }
     ],
     "lutris/gui/addgameswindow.py": [
@@ -260,12 +242,6 @@
       }
     ],
     "lutris/gui/application.py": [
-      {
-        "rule": "invalid-parameter-default",
-        "startColumn": 8,
-        "endColumn": 37,
-        "lineCount": 1
-      },
       {
         "rule": "invalid-parameter-default",
         "startColumn": 42,
@@ -1085,12 +1061,6 @@
         "lineCount": 1
       },
       {
-        "rule": "missing-union-attribute",
-        "startColumn": 18,
-        "endColumn": 45,
-        "lineCount": 1
-      },
-      {
         "rule": "invalid-argument-type",
         "startColumn": 61,
         "endColumn": 93,
@@ -1890,12 +1860,6 @@
         "rule": "invalid-argument-type",
         "startColumn": 34,
         "endColumn": 52,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 34,
-        "endColumn": 51,
         "lineCount": 1
       },
       {
@@ -2853,12 +2817,6 @@
     ],
     "lutris/services/base.py": [
       {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 45,
-        "lineCount": 1
-      },
-      {
         "rule": "invalid-argument-type",
         "startColumn": 100,
         "endColumn": 107,
@@ -2892,12 +2850,6 @@
         "rule": "invalid-argument-type",
         "startColumn": 49,
         "endColumn": 56,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 45,
         "lineCount": 1
       },
       {
@@ -2978,12 +2930,6 @@
         "rule": "missing-union-attribute",
         "startColumn": 38,
         "endColumn": 65,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 8,
-        "endColumn": 41,
         "lineCount": 1
       },
       {
@@ -3093,24 +3039,6 @@
         "startColumn": 38,
         "endColumn": 64,
         "lineCount": 1
-      },
-      {
-        "rule": "incompatible-method-override",
-        "startColumn": 8,
-        "endColumn": 30,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 52,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 45,
-        "lineCount": 1
       }
     ],
     "lutris/services/egs.py": [
@@ -3142,32 +3070,6 @@
         "rule": "incompatible-method-override",
         "startColumn": 8,
         "endColumn": 104,
-        "lineCount": 1
-      },
-      {
-        "rule": "incompatible-method-override",
-        "startColumn": 8,
-        "endColumn": 54,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 52,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 45,
-        "lineCount": 1
-      }
-    ],
-    "lutris/services/flathub.py": [
-      {
-        "rule": "incompatible-method-override",
-        "startColumn": 8,
-        "endColumn": 30,
         "lineCount": 1
       }
     ],
@@ -3206,20 +3108,6 @@
         "rule": "invalid-argument-type",
         "startColumn": 20,
         "endColumn": 88,
-        "lineCount": 1
-      }
-    ],
-    "lutris/services/lutris.py": [
-      {
-        "rule": "incompatible-method-override",
-        "startColumn": 8,
-        "endColumn": 30,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 45,
         "lineCount": 1
       }
     ],
@@ -3323,12 +3211,6 @@
         "startColumn": 8,
         "endColumn": 64,
         "lineCount": 1
-      },
-      {
-        "rule": "incompatible-method-override",
-        "startColumn": 8,
-        "endColumn": 30,
-        "lineCount": 1
       }
     ],
     "lutris/services/steamwindows.py": [
@@ -3336,18 +3218,6 @@
         "rule": "incompatible-method-override",
         "startColumn": 8,
         "endColumn": 53,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 52,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 8,
-        "endColumn": 41,
         "lineCount": 1
       }
     ],
@@ -3380,24 +3250,6 @@
         "rule": "missing-union-attribute",
         "startColumn": 38,
         "endColumn": 72,
-        "lineCount": 1
-      },
-      {
-        "rule": "incompatible-method-override",
-        "startColumn": 8,
-        "endColumn": 30,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 52,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 12,
-        "endColumn": 45,
         "lineCount": 1
       }
     ],
@@ -3472,18 +3324,6 @@
       }
     ],
     "lutris/util/display.py": [
-      {
-        "rule": "unused-type-ignore-comment",
-        "startColumn": 27,
-        "endColumn": 43,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 37,
-        "endColumn": 58,
-        "lineCount": 1
-      },
       {
         "rule": "missing-union-attribute",
         "startColumn": 15,

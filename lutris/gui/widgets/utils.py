@@ -17,6 +17,14 @@ if TYPE_CHECKING:
     from lutris.gui.lutriswindow import LutrisWindow
 
 
+def check_pixbuf_formats() -> None:
+    """Log an error for each image format Lutris shows that GdkPixbuf can't load."""
+    format_names = [f.get_name() for f in GdkPixbuf.Pixbuf.get_formats()]
+    for required in ("svg", "png", "jpeg"):
+        if required not in format_names:
+            logger.error("'%s' PixBuf support is not installed.", required.upper())
+
+
 def get_application() -> "LutrisApplication | None":
     return cast("LutrisApplication", Gio.Application.get_default())
 

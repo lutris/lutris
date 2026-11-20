@@ -4,8 +4,6 @@ from collections.abc import Iterable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
 
-from gi.repository import Gio
-
 from lutris import settings
 from lutris.api import get_api_games, get_game_installers, read_api_key
 from lutris.database.games import get_games
@@ -25,7 +23,7 @@ from lutris.util.busy import BusyAsyncCall
 from lutris.util.log import logger
 
 if TYPE_CHECKING:
-    from lutris.delegates import ServiceLoginUIDelegate
+    from lutris.delegates import Delegate, ServiceLoginUIDelegate
 
 
 class LutrisGame(ServiceGame):
@@ -117,18 +115,17 @@ class LutrisService(OnlineService):
     def get_installed_slug(self, db_game):
         return db_game["slug"]
 
-    def install(self, db_game):
+    def install(self, db_game, ui_delegate: "Delegate", update=False):
         slug = db_game["slug"]
-        return self.install_by_id(slug)
+        return self.install_by_id(slug, ui_delegate)
 
-    def install_by_id(self, appid):
+    def install_by_id(self, appid, ui_delegate: "Delegate"):
         def on_installers_ready(installers, error):
             if error:
                 raise error  # bounce any error off the backstop
             if not installers:
                 raise RuntimeError(_("Lutris has no installers for %s. Try using a different service instead.") % appid)
-            application = Gio.Application.get_default()
-            application.show_installer_window(installers)
+            ui_delegate.start_installer(installers)
 
         BusyAsyncCall(get_game_installers, on_installers_ready, appid)  # appid is the slug for Lutris games
 

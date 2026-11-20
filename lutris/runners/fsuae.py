@@ -6,7 +6,7 @@ from typing import Any
 from lutris import settings
 from lutris.runners.runner import Runner
 from lutris.util import system
-from lutris.util.display import DISPLAY_MANAGER
+from lutris.util.display import get_display_manager
 
 AMIGAS: dict[str, Any] = {
     "A500": {
@@ -426,7 +426,7 @@ class fsuae(Runner):
                 params.append(param % option_value)
 
         if self.runner_config.get("gfx_fullscreen_amiga"):
-            width = DISPLAY_MANAGER.get_current_resolution()[0]
+            width = get_display_manager().get_current_resolution()[0]
             params.append("--fullscreen")
             # params.append("--fullscreen_mode=fullscreen-window")
             params.append("--fullscreen_mode=fullscreen")

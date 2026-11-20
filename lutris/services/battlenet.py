@@ -3,8 +3,7 @@
 import json
 import os
 from gettext import gettext as _
-
-from gi.repository import Gio
+from typing import TYPE_CHECKING
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
@@ -18,6 +17,9 @@ from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
 from lutris.util.battlenet.product_db import ProductDb
 from lutris.util.log import logger
+
+if TYPE_CHECKING:
+    from lutris.delegates import Delegate
 
 GAME_IDS = {
     "s1": ("s1", "StarCraft", "S1", "starcraft-remastered"),
@@ -249,14 +251,11 @@ class BattleNetService(BaseService):
     def get_installed_runner_name(self, db_game):
         return self.runner
 
-    def install(self, db_game, update=False):
+    def install(self, db_game, ui_delegate: "Delegate", update=False):
         bnet_game = get_game_by_field(self.client_installer, "slug")
         if not bnet_game or not bnet_game.get("installed"):
-            return super().install(db_game, update)
-        application = Gio.Application.get_default()
-        application.show_installer_window(
-            [self.generate_installer(db_game, bnet_game)], service=self, appid=db_game["appid"]
-        )
+            return super().install(db_game, ui_delegate, update)
+        ui_delegate.start_installer([self.generate_installer(db_game, bnet_game)], service=self, appid=db_game["appid"])
 
 
 class BlizzardProductDbParser:

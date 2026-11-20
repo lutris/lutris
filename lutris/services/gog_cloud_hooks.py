@@ -5,7 +5,7 @@ Provides functions to synchronize cloud saves before game launch
 
 These hooks check if the game is a GOG game, resolve cloud save
 locations from the remote config API, and trigger synchronization.
-When a conflict is detected the user is prompted via a GTK dialog.
+When a conflict is detected, a ConflictResolver asks the user which saves to keep.
 """
 
 import os
