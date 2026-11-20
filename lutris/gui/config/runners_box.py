@@ -5,6 +5,7 @@ from gettext import gettext as _
 from gi.repository import Gtk
 
 from lutris import runners, settings
+from lutris.gui.config.add_runner_config_box import AddRunnerConfigBox
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.runner_box import RunnerBox
 from lutris.gui.widgets.utils import open_uri
@@ -31,20 +32,35 @@ class RunnersBox(BaseConfigBox):
         self.runner_listbox = Gtk.ListBox(visible=True)
         self.runner_list_frame.add(self.runner_listbox)
         self.pack_start(self.runner_list_frame, False, False, 0)
+        self.add_runner_config_box = AddRunnerConfigBox(visible=True)
+
+        # Trampoline from AddRunnerConfigBox "show-created" signal
+        # to allow the RunnersBox widget to listen to CreateRunnerConfigDialog runner-saved signal
+        def on_show_create_runner_dialog(widget, create_dialog_window):
+            create_dialog_window.connect("runner-saved", self._on_runner_saved)
+
+        self.add_runner_config_box.connect("show-created", on_show_create_runner_dialog)
+        self.pack_start(self.add_runner_config_box, False, False, 0)
 
     def populate_runners(self):
-        runner_count = 0
-        for runner_name in sorted(runners.__all__):
+        self.runner_count = 0
+        self.append_runners(runners.__all__)
+
+    def _on_runner_saved(self, _widget, runner_name):
+        self.append_runners([runner_name])
+
+    def append_runners(self, runners_list):
+        for runner_name in sorted(runners_list):
             list_box_row = Gtk.ListBoxRow(visible=True)
             list_box_row.set_selectable(False)
             list_box_row.set_activatable(False)
             list_box_row.add(RunnerBox(runner_name))
             self.runner_listbox.add(list_box_row)
-            runner_count += 1
+            self.runner_count += 1
 
         self._update_row_visibility()
         # pretty sure there will always be many runners, so assume plural
-        self.search_entry_placeholder_text = _("Search %s runners") % runner_count
+        self.search_entry_placeholder_text = _("Search %s runners") % self.runner_count
 
     @staticmethod
     def on_folder_clicked(_widget):
