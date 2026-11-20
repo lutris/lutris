@@ -137,7 +137,7 @@ def unpack_dependencies(string: str | None) -> list[str | tuple[str, ...]]:
     return [dep for dep in [_expand_dep(dep) for dep in string.split(",")] if dep]
 
 
-def gtk_safe(text: str) -> str:
+def gtk_safe(text: str | None) -> str:
     """Return a string ready to used in Gtk widgets, with anything that could
     be Pango markup escaped."""
     if not text:

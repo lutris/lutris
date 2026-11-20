@@ -1297,36 +1297,6 @@
         "lineCount": 1
       },
       {
-        "rule": "missing-union-attribute",
-        "startColumn": 42,
-        "endColumn": 79,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 27,
-        "endColumn": 61,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 95,
-        "endColumn": 110,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 15,
-        "endColumn": 34,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-attribute",
-        "startColumn": 43,
-        "endColumn": 72,
-        "lineCount": 1
-      },
-      {
         "rule": "invalid-argument-type",
         "startColumn": 50,
         "endColumn": 66,

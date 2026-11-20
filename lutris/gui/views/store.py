@@ -4,13 +4,13 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from lutris.backend.models import LibraryGame
     from lutris.services.base import BaseService
     from lutris.services.service_media import ServiceMedia
 
 from gi.repository import GObject, Gtk
 
 from lutris import settings
-from lutris.database.games import get_all_installed_game_for_service
 from lutris.gui.views.store_item import StoreItem
 from lutris.util.strings import gtk_safe
 
@@ -123,15 +123,15 @@ class GameStore(GObject.Object):
             self._rows_by_id.pop(str(game_id), None)
             self.store.remove(row.iter)
 
-    def update(self, db_game: dict) -> set[int] | None:
+    def update(self, library_game: "LibraryGame") -> set[int] | None:
         """Update game information
         Return the indices of the row that were updated, or an empty set if no change
         was made, or None if the game could not be found.
         """
-        store_item = StoreItem(db_game, self.service, self.service_media)
+        store_item = StoreItem(library_game, self.service, self.service_media)
         row = self.get_row_by_id(store_item.id)
-        if not row and "service_id" in db_game:
-            row = self.get_row_by_id(db_game["service_id"])
+        if not row and library_game.service_id:
+            row = self.get_row_by_id(library_game.service_id)
         if not row:
             return None
 
@@ -169,10 +169,10 @@ class GameStore(GObject.Object):
 
         return changed_indices
 
-    def add_game(self, db_game):
-        """Add a game to the store"""
-        store_item = StoreItem(db_game, self.service, self.service_media)
-        self.add_item(store_item)
+    def add_games(self, library_games: "list[LibraryGame]") -> None:
+        """Add games to the store, in order."""
+        for library_game in library_games:
+            self.add_item(StoreItem(library_game, self.service, self.service_media))
 
     def add_item(self, store_item):
         tree_iter = self.store.append(
@@ -196,21 +196,3 @@ class GameStore(GObject.Object):
             )
         )
         self._rows_by_id[store_item.id] = Gtk.TreeRowReference(self.store, self.store.get_path(tree_iter))
-
-    def add_preloaded_games(self, db_games, service_id):
-        """Add games to the store, but preload their installed-game data
-        all at once, for faster database access. This should be used if all or almost all
-        games are being loaded."""
-
-        installed_db_games = {}
-        if service_id and db_games:
-            installed_db_games = get_all_installed_game_for_service(service_id)
-
-        for db_game in db_games:
-            if installed_db_games is not None and "appid" in db_game:
-                appid = db_game["appid"]
-                store_item = StoreItem(db_game, self.service, self.service_media)
-                store_item.apply_installed_game_data(installed_db_games.get(appid))
-                self.add_item(store_item)
-            else:
-                self.add_game(db_game)

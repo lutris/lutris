@@ -190,8 +190,11 @@ eventually through nothing else:
   message is meant for the user.
 * **Calls that need the user take a delegate**, as the core does.
 
-It's grouped by subject: ``games``, ``services``, ``steam``, ``runners``,
-``processes`` (running a command the way Lutris runs games) and ``saves``.
+It's grouped by subject: ``games``, ``library`` (what the library's views
+list: ``query_games`` takes a ``LibraryQuery``, the view's sidebar row, search
+and sort, and returns ``LibraryGame`` rows), ``services``, ``steam``,
+``runners``, ``processes`` (running a command the way Lutris runs games) and
+``saves``.
 ``lutris.backend.startup.start_backend()`` starts it; that isn't an API call,
 but what the backend's own process will do in stage 3.
 
@@ -199,7 +202,9 @@ asyncio runs on GLib's main loop: ``bin/lutris`` calls
 ``lutris.util.mainloop.run_asyncio_on_glib()``, after which PyGObject runs
 asyncio whenever a ``Gio.Application`` (so a ``Gtk.Application`` too) runs.
 Frontends start a call with ``Gio.Application.create_asyncio_task()``, which
-keeps the application running until it finishes. A command line handled that
+keeps the application running until it finishes; in the GTK frontend,
+``lutris.gui.tasks.start_task()`` does that and shows any error the call
+raises, as the exception backstops do for callbacks. A command line handled that
 way reports its exit status with ``set_exit_status()`` and ``done()`` (see
 ``lutris.cli.commands.handle_command_line``). Nested loops such as
 ``Gtk.Dialog.run()`` still work, but pause asyncio while they run, so new code
@@ -211,10 +216,13 @@ strings, settings, notifications, delegates), and nothing else from the core.
 Its ``KNOWN_VIOLATIONS`` list is what the GTK frontend still uses directly, and
 is the to-do list for stage 2. Roughly in order:
 
-* **The library**: the game views, the sidebar and the game bar read the
-  database and build ``Game`` objects. They need calls for games, categories,
-  saved searches and search, and events carrying ``GameInfo`` instead of
-  ``Game`` (``GAME_UPDATED`` and the rest).
+* **The library**: the game views now get their rows from
+  ``library.query_games``, and ``GameStore`` and ``StoreItem`` only display
+  them. Left: events carrying ``GameInfo`` instead of ``Game``
+  (``GAME_UPDATED`` and the rest; the window still asks the ``Game`` for its
+  categories when one changes), calls for categories and saved searches (the
+  sidebar and their dialogs), the missing-games tracking, and the media
+  (``StoreItem`` still finds its images through the services).
 * **Game actions**: launching, stopping, installing, uninstalling, moving,
   and the shortcuts, through calls that take a game id. Delegate methods then
   receive ``GameInfo`` rather than a ``Game``.
