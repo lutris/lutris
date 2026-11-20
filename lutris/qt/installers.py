@@ -1,4 +1,4 @@
-"""Expose install script discovery and selection to Qt Quick."""
+"""Expose install script discovery and selection to Qt Quick, and start the chosen script."""
 
 import asyncio
 from collections.abc import Coroutine
@@ -9,6 +9,7 @@ from PySide6.QtCore import Property, QObject, QUrl, Signal, Slot
 from lutris.backend import installers
 from lutris.backend.models import InstallerCatalog, InstallerSelection
 from lutris.qt.delegates import PromptController
+from lutris.qt.installation import InstallationController
 from lutris.qt.tasks import start_task
 
 
@@ -25,6 +26,11 @@ class InstallerController(QObject):
         self._selection: InstallerSelection | None = None
         self._directory = ""
         self._task: asyncio.Task[None] | None = None
+        self.installation_controller = InstallationController(prompts, self)
+
+    @Property(QObject, constant=True)
+    def installation(self) -> InstallationController:
+        return self.installation_controller
 
     @Property(bool, notify=stateChanged)
     def loading(self) -> bool:
@@ -108,8 +114,20 @@ class InstallerController(QObject):
             self._directory = directory
             self.stateChanged.emit()
 
+    @Slot(bool, bool)
+    def install(self, desktop_shortcut: bool, menu_shortcut: bool) -> None:
+        """Start installing with the selected script, into the chosen folder."""
+        selection = self._selection
+        if not selection or selection.required_game_slug or self._task:
+            return
+        if selection.creates_game_folder and not self._directory.strip():
+            return
+        kinds = tuple(kind for kind, chosen in (("desktop", desktop_shortcut), ("menu", menu_shortcut)) if chosen)
+        self.installation_controller.start(selection.catalog_id, selection.choice_id, self._directory.strip(), kinds)
+
     @Slot()
     def close_installers(self) -> None:
+        self.installation_controller.close()
         self._reset("")
 
     def _reset(self, game_name: str) -> None:

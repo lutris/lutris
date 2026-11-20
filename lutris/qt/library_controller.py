@@ -54,6 +54,7 @@ class LibraryController(QObject):
         self._local_games = LocalGameController(prompts, self)
         self._local_games.registered.connect(self._on_local_game_registered)
         self._installers = InstallerController(prompts, self)
+        self._installers.installation_controller.launchRequested.connect(lambda game_id: self.launch(game_id, False))
         self.model.setParent(self)
         self.sidebar.setParent(self)
         self.categories.setParent(self)

@@ -79,12 +79,18 @@ async def close_catalog(catalog_id: str) -> None:
 
 async def select_installer(catalog_id: str, choice_id: str) -> InstallerSelection:
     """Check a script can be used here, and say what installing with it involves."""
+    script = copy_script(catalog_id, choice_id)
+    return await asyncio.to_thread(_check_script, catalog_id, choice_id, script)
+
+
+def copy_script(catalog_id: str, choice_id: str) -> _Script:
+    """Return a copy of a catalog's script for the backend to use, leaving the catalog's intact."""
     try:
         script = _catalogs[catalog_id][choice_id]
     except KeyError as error:
         raise LutrisError(_("This installer is no longer available. Open the game's installers again.")) from error
     _catalogs.move_to_end(catalog_id)
-    return await asyncio.to_thread(_check_script, catalog_id, choice_id, copy.deepcopy(script))
+    return copy.deepcopy(script)
 
 
 def _is_usable(script: _Script) -> bool:

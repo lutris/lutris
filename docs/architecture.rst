@@ -208,6 +208,7 @@ It's grouped by subject: ``games``, ``library`` (what the library's views
 list: ``query_games`` takes a ``LibraryQuery``, the view's sidebar row, search
 and sort, and returns ``LibraryGame`` rows), ``services``, ``steam``,
 ``runners``, ``installers`` (finding and checking install scripts),
+``installations`` (running them),
 ``processes`` (running a command the way Lutris runs games) and ``saves``.
 ``lutris.backend.startup.start_backend()`` starts it; that isn't an API call,
 but what the backend's own process will do in stage 3.
@@ -296,7 +297,26 @@ also keeps only the most recent few). ``installers.select_installer`` builds a
 it, and returns an ``InstallerSelection``: the default folder, the runners
 that would be installed first, or the slug of a game that must be installed
 before it. The dialog can then show that game's installers. Nothing runs and
-no folder is created; the dialog says Qt can't run install scripts yet.
+no folder is created until the user starts the installation.
+
+``installations.start_installation`` runs a catalog's script into the chosen
+folder. It builds a fresh ``ScriptInterpreter`` from the catalog's script with
+a backend delegate, and the installation then moves through stages:
+preparing (runners, then extras), ``extras``, ``files``, ``downloading``,
+``installing`` (the script's commands), ``menu`` and ``disc`` (questions the
+script asks), and finally ``finished``, ``failed`` or ``cancelled``. Each
+change fires ``INSTALLATION_CHANGED`` with an ``InstallationInfo`` snapshot,
+and command output fires ``INSTALLATION_LOG_CHANGED``. Where the script needs
+the user, the installation waits in that stage until the frontend answers
+(``choose_extras``, ``set_file_source`` and ``start_files``, ``answer_menu``,
+``answer_disc``). Runners are installed in worker threads, one after another,
+without the shared ``RUNNERS_INSTALLED`` notification. Downloads use
+``lutris.util.file_downloads``, three at a time. ``cancel_installation``
+reverts, optionally removing the folder the installation created, and
+``close_installation`` forgets it and cleans the installer cache. When it
+finishes, the backend creates the chosen desktop and menu shortcuts and fires
+``GAME_INSTALLED``. Qt's ``InstallerDialog`` shows these stages with
+``InstallationPage`` and can launch the game at the end.
 
 The library opens in a cover grid. The View menu switches to banners or a list
 and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
@@ -313,38 +333,39 @@ What it needs next, roughly in order, each with the backend calls it takes:
   generator like ``lutris/gui/config``.
 * **Services and runners**: logging in (a web view, QtWebEngine), syncing
   libraries, installing and configuring runners.
-* **The installer**: starting an installation, its questions as delegate calls,
-  its progress and downloads as events.
+* **The installer**: service installs (GOG, Steam...), local script files,
+  installer URIs, Steam-provided files, and the yes/no and file questions some
+  runners ask while installing.
 * **Preferences** and the rest of the application still need the tray icon,
   runtime updates, and the remaining command-line actions, including installer URIs.
 
 Script installer handoff
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Discovery and selection are done (see above). The next slice runs the selected
-script. Add a backend call that takes the catalog id, the choice id, the
-chosen folder and the shortcut options, builds a ``ScriptInterpreter`` with a
-backend delegate, and reports progress as plain-data events or delegate calls
-scoped to that installation. Build the interpreter again from the catalog's
-script rather than reusing the one ``select_installer`` checked, since a
-selection holds no live objects.
+Lutris.net scripts install from Qt end to end (see above). Not handled yet:
 
-Use ``lutris.gui.installerwindow.InstallerWindow`` as a reference without
-importing or changing it. It sequences runner prerequisites
-(``launch_install``, then ``RUNNERS_INSTALLED``), extras, file preparation and
-downloads (``InstallerFilesBox`` is GTK, so the download driving needs a
-toolkit-free counterpart over ``lutris.util.downloader``), interpreter
-commands, and cleanup or ``revert`` on failure and cancellation.
-``ScriptInterpreter.InterpreterUIDelegate`` already reports progress and
-status and requests disc and menu input, but still passes live objects to
-some callbacks (``begin_disc_prompt`` gets the installer). Bridge those to
-plain data and make failure and cancellation explicit. ``RUNNERS_INSTALLED``
-is shared: scope callbacks to the active interpreter. Runner installation
-takes an ``InstallUIDelegate``, whose downloads the Qt side must show. Test
-with local fixtures before trying store downloads; selection already calls
-``get_current_resolution``, which runs xrandr in tests. Keep GTK as the
-default until Qt reaches parity. Service installs, local script files and
-installer URIs can reuse the catalog once execution works.
+* **Steam-provided files** (``$STEAM`` URLs): ``prepare_files`` fails the
+  installation with a message. GTK drives them with
+  ``lutris.installer.steam_installer.SteamInstaller``, which is toolkit-free
+  and can be bridged the way downloads are.
+* **Runner questions**: ``_RunnerDelegate`` answers yes to yes/no questions and
+  gives no file to file questions, as the base ``InstallUIDelegate`` does. A few
+  runners ask for BIOS files this way. Bridge them with
+  ``asyncio.run_coroutine_threadsafe`` from the worker thread to a frontend
+  prompt, since ``runner.install`` runs in a thread.
+* **Runner download progress**: the download is kept so cancelling stops it,
+  but its progress isn't reported yet.
+* **Service installs**: ``Game.install`` hands store games to
+  ``service.install``, which may use its own installers (GOG's ``gogdl``) or
+  build a script; that needs the service's login state from the backend first.
+* **Local script files and installer URIs**: ``lutris.installer.get_installers``
+  already reads files; give the catalog a constructor for them, and route the
+  ``lutris:install/...`` command line to the Qt dialog.
+* **Updates and DLC** (``InstallationKind``): GTK passes a patch version to
+  ``prepare_game_files``.
+
+Keep GTK as the default until Qt reaches parity, and keep using
+``InstallerWindow`` only as a reference.
 
 Stage 3
 -------

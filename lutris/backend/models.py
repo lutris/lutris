@@ -164,3 +164,72 @@ class InstallerSelection:
     # Set when the script needs another game installed first, which must happen
     # before this script can be used
     required_game_slug: str | None = None
+
+
+@dataclass(frozen=True)
+class InstallerFileInfo:
+    """A file an installation needs, and how it will be provided."""
+
+    id: str
+    label: str
+    # Where the script says the file comes from, for people (a URL, or a hint for the user)
+    hint: str
+    # Extra details, such as the file's size
+    details: str
+    # The sources the file can come from: "download", "pga" (the cache) or "user"
+    providers: tuple[str, ...]
+    provider: str
+    # The file the user chose, for the "user" provider
+    user_path: str
+    # Whether the file can be fetched from its provider as things are
+    ready: bool
+    # "pending", "downloading", "available", "failed" or "cancelled"
+    state: str
+    fraction: float
+    progress_text: str
+    error: str
+
+
+@dataclass(frozen=True)
+class InstallerExtraInfo:
+    """Extra content (manuals, soundtracks...) a service offers with a game."""
+
+    id: str
+    source: str
+    label: str
+
+
+@dataclass(frozen=True)
+class InstallerMenuOption:
+    id: str
+    label: str
+
+
+@dataclass(frozen=True)
+class InstallationInfo:
+    """A snapshot of an installation in progress, sent with INSTALLATION_CHANGED."""
+
+    id: str
+    game_name: str
+    # "preparing", "extras", "files", "downloading", "installing", "menu", "disc",
+    # "cancelling", "finished", "failed" or "cancelled"
+    stage: str
+    # Whether the installation is still going, rather than finished, failed or cancelled
+    running: bool
+    status: str
+    # None hides the progress, and a negative fraction means busy without a known amount
+    progress: float | None
+    progress_text: str
+    extras: tuple[InstallerExtraInfo, ...] = ()
+    files: tuple[InstallerFileInfo, ...] = ()
+    menu_options: tuple[InstallerMenuOption, ...] = ()
+    menu_preselect: str = ""
+    disc_requires: str = ""
+    disc_can_eject: bool = False
+    # Whether installer commands have written output, which get_installation_log returns
+    has_log: bool = False
+    # Whether cancelling can remove the folder the installation created
+    can_remove_files: bool = False
+    # The installed game, once finished
+    game_id: str = ""
+    error_details: str = ""

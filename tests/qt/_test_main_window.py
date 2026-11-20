@@ -11,12 +11,14 @@ from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 
 from lutris import settings
-from lutris.backend import events, game_actions, installers, shortcuts
+from lutris.backend import events, game_actions, installations, installers, shortcuts
 from lutris.backend.launch_configurations import LaunchChoice
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
 from lutris.game import LOG_BUFFERS, Game
+from lutris.installer import interpreter
+from lutris.installer.installer import LutrisInstaller
 from lutris.qt.main_window import MainWindow
 from lutris.services.base import LutrisBanner, LutrisCoverart
 from lutris.util import path_cache
@@ -365,6 +367,109 @@ def test_qml_lists_and_selects_installers_without_running_them(
             window.shutdown()
 
     asyncio.run(run())
+
+
+def test_qml_runs_an_install_script_to_the_end(
+    qt_application: QGuiApplication,
+    library: list[str],
+    fake_main_loop: FakeMainLoop,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    (tmp_path / "config" / "games").mkdir(parents=True)
+    monkeypatch.setattr(settings, "CONFIG_DIR", str(tmp_path / "config"))
+    monkeypatch.setattr(settings, "INSTALLER_CACHE_DIR", str(tmp_path / "installer-cache"))
+    monkeypatch.setattr(settings, "write_setting", lambda *_args: None)
+    monkeypatch.setattr(interpreter, "download_lutris_media", lambda slug: None)
+    monkeypatch.setattr(LutrisInstaller, "_get_discord_id_from_api", lambda self: None)
+    setup = tmp_path / "setup.txt"
+    setup.write_text("game data", encoding="utf-8")
+    target = tmp_path / "Games" / "qt-installed"
+    script = {
+        "name": PREFIX + "Uninstalled",
+        "game_slug": PREFIX + "uninstalled",
+        "slug": PREFIX + "uninstalled-local",
+        "version": "Local",
+        "runner": "linux",
+        "script": {
+            "game": {"exe": "$GAMEDIR/setup.txt"},
+            "files": [{"setup": "N/A:Select the game data"}],
+            "installer": [
+                {"input_menu": {"id": "LANG", "options": [{"en": "English"}, {"fr": "French"}], "preselect": "fr"}},
+                {"copy": {"src": "setup", "dst": "$GAMEDIR"}},
+                {"write_file": {"file": "$GAMEDIR/lang.txt", "content": "$INPUT_LANG"}},
+            ],
+        },
+    }
+    monkeypatch.setattr(installers, "get_installers", lambda game_slug: [script])
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        controller = window.controller
+        progress = controller._installers.installation_controller
+        try:
+            controller.set_installed_only(False)
+            await settle(window)
+            await open_game_action(window, qt_application, library[1], "installGame")
+            choices = window.window.findChild(QQuickItem, "installerChoices")
+            assert choices is not None
+            await wait_for_qml(qt_application, lambda: find_item(choices, "chooseInstaller0") is not None)
+            choose = find_item(choices, "chooseInstaller0")
+            assert choose is not None and QMetaObject.invokeMethod(choose, "clicked")
+            await wait_for_qml(qt_application, lambda: bool(controller._installers.property("selected")))
+            controller._installers.set_directory(str(target))
+
+            def reached(stage: str) -> Callable[[], bool]:
+                def check() -> bool:
+                    fake_main_loop.run_pending()
+                    assert progress.property("stage") != "failed", progress.property("status")
+                    return progress.property("stage") == stage
+
+                return check
+
+            start = window.window.findChild(QObject, "installerStart")
+            assert start is not None and start.property("enabled") and QMetaObject.invokeMethod(start, "clicked")
+            await wait_for_qml(qt_application, reached("files"))
+
+            page = window.window.findChild(QQuickItem, "installationPage")
+            assert page is not None
+            await wait_for_qml(qt_application, lambda: find_item(page, "filePath_setup") is not None)
+            path = find_item(page, "filePath_setup")
+            assert path is not None
+            path.setProperty("text", str(setup))
+            assert QMetaObject.invokeMethod(path, "editingFinished")
+            await wait_for_qml(qt_application, lambda: fake_main_loop.run_pending() or progress.property("filesReady"))
+            files = window.window.findChild(QObject, "startInstallationFiles")
+            assert files is not None and QMetaObject.invokeMethod(files, "clicked")
+
+            await wait_for_qml(qt_application, reached("menu"))
+            menu = window.window.findChild(QObject, "installationMenu")
+            assert menu is not None and menu.property("currentValue") == "fr"
+            confirm = window.window.findChild(QObject, "confirmInstallationMenu")
+            assert confirm is not None and QMetaObject.invokeMethod(confirm, "clicked")
+
+            await wait_for_qml(qt_application, reached("finished"))
+            launch = window.window.findChild(QObject, "installerLaunch")
+            assert launch is not None and launch.property("visible")
+
+            def installed_in_library() -> bool:
+                fake_main_loop.run_pending()
+                model = controller.model
+                game = model.game_at(model.find_row(library[1]))
+                return bool(game and game.installed)
+
+            await wait_for_qml(qt_application, installed_in_library)
+            close = window.window.findChild(QObject, "installerClose")
+            assert close is not None and QMetaObject.invokeMethod(close, "clicked")
+            await wait_for_qml(qt_application, lambda: not progress.property("active"))
+            await wait_for_qml(qt_application, lambda: not installations._installations)
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
+    assert (target / "setup.txt").read_text(encoding="utf-8") == "game data"
+    assert (target / "lang.txt").read_text(encoding="utf-8") == "fr"
 
 
 @pytest.mark.parametrize("link_existing", [False, True])

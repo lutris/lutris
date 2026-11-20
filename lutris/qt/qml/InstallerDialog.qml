@@ -10,6 +10,7 @@ Dialog {
     objectName: "installerDialog"
 
     required property QtObject controller
+    readonly property QtObject installation: controller.installation
 
     parent: Overlay.overlay
     anchors.centerIn: parent
@@ -17,7 +18,7 @@ Dialog {
     height: Math.min(520, parent.height - 32)
     title: qsTr("Install %1").arg(controller.gameName)
     modal: true
-    closePolicy: Popup.CloseOnEscape
+    closePolicy: installation.running ? Popup.NoAutoClose : Popup.CloseOnEscape
 
     Connections {
         target: dialog.controller
@@ -30,8 +31,32 @@ Dialog {
         onAccepted: dialog.controller.choose_directory(selectedFolder)
     }
 
+    Dialog {
+        id: cancelConfirmation
+        objectName: "cancelInstallationDialog"
+        parent: Overlay.overlay
+        anchors.centerIn: parent
+        modal: true
+        title: qsTr("Cancel installation?")
+        standardButtons: Dialog.Yes | Dialog.No
+
+        ColumnLayout {
+            Label { text: qsTr("Are you sure you want to cancel the installation?") }
+
+            CheckBox {
+                id: removeFiles
+                objectName: "removeInstallationFiles"
+                visible: dialog.installation.canRemoveFiles
+                checked: true
+                text: qsTr("Remove game files")
+            }
+        }
+
+        onAccepted: dialog.installation.cancel(removeFiles.checked && dialog.installation.canRemoveFiles)
+    }
+
     contentItem: StackLayout {
-        currentIndex: dialog.controller.selected ? 1 : 0
+        currentIndex: dialog.installation.active ? 2 : dialog.controller.selected ? 1 : 0
 
         ColumnLayout {
             spacing: 8
@@ -160,11 +185,20 @@ Dialog {
                 wrapMode: Text.WordWrap
             }
 
-            Label {
-                Layout.fillWidth: true
+            CheckBox {
+                id: desktopShortcut
+                objectName: "installerDesktopShortcut"
                 visible: dialog.controller.requiredGame.length === 0
-                text: qsTr("The Qt frontend can't run install scripts yet. Use the GTK frontend to install this game.")
-                wrapMode: Text.WordWrap
+                checked: dialog.installation.desktopShortcutDefault
+                text: qsTr("Create desktop shortcut")
+            }
+
+            CheckBox {
+                id: menuShortcut
+                objectName: "installerMenuShortcut"
+                visible: dialog.controller.requiredGame.length === 0
+                checked: dialog.installation.menuShortcutDefault
+                text: qsTr("Create application menu shortcut")
             }
 
             ProgressBar {
@@ -176,20 +210,56 @@ Dialog {
 
             Item { Layout.fillHeight: true }
         }
+
+        InstallationPage {
+            installation: dialog.installation
+        }
     }
 
     footer: DialogButtonBox {
         Button {
             objectName: "installerBack"
             text: qsTr("Back")
-            visible: dialog.controller.selected
+            visible: dialog.controller.selected && !dialog.installation.active
             enabled: !dialog.controller.loading
             DialogButtonBox.buttonRole: DialogButtonBox.ActionRole
             onClicked: dialog.controller.back()
         }
 
         Button {
+            objectName: "installerStart"
+            text: qsTr("Install")
+            visible: dialog.controller.selected && !dialog.installation.active
+                     && dialog.controller.requiredGame.length === 0
+            enabled: !dialog.controller.loading
+                     && (!dialog.controller.createsGameFolder || dialog.controller.directory.trim().length > 0)
+            DialogButtonBox.buttonRole: DialogButtonBox.ActionRole
+            onClicked: dialog.controller.install(desktopShortcut.checked, menuShortcut.checked)
+        }
+
+        Button {
+            objectName: "installerCancel"
+            text: qsTr("Cancel Installation")
+            visible: dialog.installation.running && dialog.installation.stage !== "cancelling"
+            DialogButtonBox.buttonRole: DialogButtonBox.ActionRole
+            onClicked: cancelConfirmation.open()
+        }
+
+        Button {
+            objectName: "installerLaunch"
+            text: qsTr("Launch")
+            visible: dialog.installation.stage === "finished" && dialog.installation.installedGameId.length > 0
+            DialogButtonBox.buttonRole: DialogButtonBox.ActionRole
+            onClicked: {
+                dialog.installation.launch()
+                dialog.close()
+            }
+        }
+
+        Button {
+            objectName: "installerClose"
             text: qsTr("Close")
+            visible: !dialog.installation.running
             DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
         }
     }
