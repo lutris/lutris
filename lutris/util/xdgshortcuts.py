@@ -10,7 +10,7 @@ from gi.repository import GLib
 
 from lutris.api import format_installer_url
 from lutris.settings import CACHE_DIR
-from lutris.util import system
+from lutris.util import resources, system
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
@@ -77,6 +77,8 @@ def create_launcher(
     command = f"{lutris_executable} {shlex.quote(url)}".replace("%", "%%")
 
     try_exec = "" if LINUX_SYSTEM.is_flatpak() else "TryExec=lutris"
+    icon_path = resources.get_icon_path(game_slug, game_id=game_id)
+    icon = icon_path if os.path.isfile(icon_path) else f"lutris_{game_slug}"
 
     launcher_content = dedent(
         """
@@ -87,7 +89,7 @@ def create_launcher(
         Exec=env LUTRIS_SKIP_INIT=1 {}
         Categories=Game
         {}
-        """.format(game_name, f"lutris_{game_slug}", command, try_exec)
+        """.format(game_name, icon, command, try_exec)
     )
 
     launcher_filename = get_xdg_basename(game_slug, game_id)

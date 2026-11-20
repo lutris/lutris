@@ -161,7 +161,7 @@ def generate_shortcut(game: "Game", launch_config_name: str | None) -> SteamShor
         "AppName": game.name,
         "Exe": f'"{lutris_binary}"',
         "StartDir": f'"{Path.home()}"',
-        "icon": resources.get_icon_path(game.slug),
+        "icon": resources.get_icon_path(game.slug, game_id=game.id),
         "LaunchOptions": launch_options,
         "IsHidden": 0,
         "AllowDesktopConfig": 1,
@@ -191,7 +191,7 @@ def generate_standalone_shortcut(game: "Game", launch_config_name: str | None) -
         "AppName": game.name,
         "Exe": f'"{Path.home()!s}/.local/share/applications/lutris-{game.slug}.sh"',
         "StartDir": f'"{Path.home()!s}/.local/share/applications/"',
-        "icon": resources.get_icon_path(game.slug),
+        "icon": resources.get_icon_path(game.slug, game_id=game.id),
         "LaunchOptions": launch_options,
         "IsHidden": 0,
         "AllowDesktopConfig": 1,
@@ -215,9 +215,9 @@ def set_artwork(game: "Game") -> None:
     if not os.path.exists(artwork_path):
         os.makedirs(artwork_path)
     shortcut_id = generate_appid(game)
-    source_cover = resources.get_cover_path(game.slug)
-    source_banner = resources.get_banner_path(game.slug)
-    source_icon = resources.get_icon_path(game.slug)
+    source_cover = resources.get_cover_path(game.slug, game_id=game.id)
+    source_banner = resources.get_banner_path(game.slug, game_id=game.id)
+    source_icon = resources.get_icon_path(game.slug, game_id=game.id)
     assets = [
         ("grid horizontal", source_banner, os.path.join(artwork_path, "{}.jpg".format(shortcut_id))),
         ("grid vertical", source_cover, os.path.join(artwork_path, "{}p.jpg".format(shortcut_id))),
