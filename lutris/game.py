@@ -1109,7 +1109,8 @@ class Game:
         if self.compositor_disabled:
             self.set_desktop_compositing(True)
 
-        if self.runner.system_config.get("use_us_layout"):
+        # The layout is only changed on X11 (see configure_game), so only reset it there
+        if self.runner.system_config.get("use_us_layout") and is_display_x11():
             with subprocess.Popen(["setxkbmap"], env=os.environ) as setxkbmap:
                 setxkbmap.communicate()
 
