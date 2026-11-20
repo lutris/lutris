@@ -15,9 +15,7 @@ from lutris.database import sql
 from lutris.database.games import add_game, get_game_by_field, get_game_for_service, get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import GAME_UPDATED, Game
-from lutris.gui.views.media_loader import download_media
-from lutris.gui.widgets.utils import BANNER_SIZE, ICON_SIZE
-from lutris.services.service_media import ServiceMedia
+from lutris.services.service_media import BANNER_SIZE, ICON_SIZE, ServiceMedia, download_media
 from lutris.util import system
 from lutris.util.busy import BusyAsyncCall
 from lutris.util.cookies import WebkitCookieJar

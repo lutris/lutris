@@ -21,10 +21,11 @@ from lutris.game import Game
 from lutris.gui.config.boxes import AdvancedSettingsBox
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.scaled_image import ScaledImage
-from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_image_file_extension, open_uri
+from lutris.gui.widgets.utils import open_uri
 from lutris.runners import get_installed
 from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
-from lutris.services.service_media import resolve_media_path
+from lutris.services.service_media import MEDIA_CACHE_INVALIDATED, resolve_media_path
+from lutris.util.images import get_image_file_extension
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 

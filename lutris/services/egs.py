@@ -8,19 +8,20 @@ from typing import Any, Optional, cast
 
 import requests
 from gi.repository import Gio
+from PIL import Image
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.gui.widgets.utils import Image, paste_overlay, thumbnail_image
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
 from lutris.util.egs.egs_launcher import EGSLauncher
+from lutris.util.images import paste_overlay, thumbnail_image
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -38,22 +39,22 @@ class DieselGameMedia(ServiceMedia):
         game_box_path = os.path.join(self.dest_path, filename)
         logo_path = os.path.join(EGS_LOGO_PATH, filename.replace(".jpg", ".png"))
         has_logo = os.path.exists(logo_path)
-        thumb_image = Image.open(game_box_path)  # type: ignore[union-attr]
+        thumb_image = Image.open(game_box_path)
         thumb_image = thumb_image.convert("RGBA")
         thumb_image = thumbnail_image(thumb_image, self.remote_size)
         if has_logo:
-            logo_image = Image.open(logo_path)  # type: ignore[union-attr]
+            logo_image = Image.open(logo_path)
             logo_image = logo_image.convert("RGBA")
             logo_width, logo_height = logo_image.size
             if logo_width > self.min_logo_x:
                 logo_image = logo_image.resize(
                     (self.min_logo_x, int(logo_height * (self.min_logo_x / logo_width))),
-                    resample=Image.Resampling.BICUBIC,  # type: ignore[union-attr]
+                    resample=Image.Resampling.BICUBIC,
                 )
             elif logo_height > self.min_logo_y:
                 logo_image = logo_image.resize(
                     (int(logo_width * (self.min_logo_y / logo_height)), self.min_logo_y),
-                    resample=Image.Resampling.BICUBIC,  # type: ignore[union-attr]
+                    resample=Image.Resampling.BICUBIC,
                 )
             thumb_image = paste_overlay(thumb_image, logo_image)
         thumb_path = os.path.join(self.dest_path, filename)

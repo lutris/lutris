@@ -11,7 +11,6 @@ from lutris.api import get_api_games, get_game_installers, read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.gui.views.media_loader import download_media
 from lutris.services.base import (
     LutrisBanner,
     LutrisCoverart,
@@ -20,6 +19,7 @@ from lutris.services.base import (
     OnlineService,
 )
 from lutris.services.service_game import ServiceGame
+from lutris.services.service_media import download_media
 from lutris.util import http
 from lutris.util.busy import BusyAsyncCall
 from lutris.util.log import logger

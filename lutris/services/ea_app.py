@@ -10,17 +10,18 @@ from xml.etree import ElementTree
 import requests
 import urllib3
 from gi.repository import Gio
+from PIL import Image
 
 from lutris import settings
 from lutris.config import LutrisConfig, write_game_config
 from lutris.database.games import add_game, get_game_by_field
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
-from lutris.gui.widgets.utils import Image, thumbnail_image
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
 from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
+from lutris.util.images import thumbnail_image
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 

@@ -1,18 +1,28 @@
+"""Game media (icons, banners, cover art): where services keep it, and downloading it"""
+
+import concurrent.futures
 import json
 import os
 import random
 import time
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from typing import TYPE_CHECKING, Any, cast
 
 from lutris.database.services import ServiceGameCollection
 from lutris.util import system
 from lutris.util.http import HTTPError, download_file
 from lutris.util.log import logger
+from lutris.util.notifications import NotificationSource
 from lutris.util.portals import TrashPortal
 
 if TYPE_CHECKING:
     from lutris.services.base import BaseService
+
+ICON_SIZE = (32, 32)
+BANNER_SIZE = (184, 69)
+
+# Fired when media files have changed on disk, so frontends reload what they show
+MEDIA_CACHE_INVALIDATED = NotificationSource()
 
 
 class MediaPath:
@@ -187,3 +197,30 @@ class ServiceMedia:
 
     def render(self):
         """Used if the media requires extra processing"""
+
+
+def download_media(media_urls: Mapping[str, str | None], service_media: ServiceMedia) -> dict[str, str]:
+    """Download a list of media files concurrently.
+
+    Limits the number of simultaneous downloads to avoid API throttling.
+    Returns the path of each file downloaded, by slug.
+    """
+    icons: dict[str, str] = {}
+    num_workers = 5
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
+        future_downloads = {
+            executor.submit(service_media.download, slug, url): slug for slug, url in media_urls.items() if url
+        }
+        for future in concurrent.futures.as_completed(future_downloads):
+            slug = future_downloads[future]
+            try:
+                path = future.result()
+            except Exception as ex:
+                logger.exception("%r failed: %s", slug, ex)
+                path = None
+            if path and system.path_exists(path):
+                icons[slug] = path
+
+    if icons:
+        MEDIA_CACHE_INVALIDATED.fire()
+    return icons

@@ -1,13 +1,8 @@
 from gi.repository import Gtk
 
-from lutris.gui.widgets.utils import (
-    ICON_SIZE,
-    get_default_icon_path,
-    get_pixbuf_by_path,
-    get_required_pixbuf_by_path,
-    get_runtime_icon_path,
-    has_stock_icon,
-)
+from lutris.gui.widgets.utils import get_pixbuf_by_path, get_required_pixbuf_by_path, has_stock_icon
+from lutris.services.service_media import ICON_SIZE
+from lutris.util.images import get_default_icon_path, get_runtime_icon_path
 
 
 class ScaledImage(Gtk.Image):

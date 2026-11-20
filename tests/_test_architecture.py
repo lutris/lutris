@@ -38,10 +38,6 @@ KNOWN_VIOLATIONS: dict[str, set[str]] = {
     "lutris/__init__.py": {"gi.require_version(Gdk)", "gi.require_version(Gtk)"},
     "lutris/exception_backstops.py": {"gi.repository.Gtk", "lutris.gui.dialogs", "lutris.gui.widgets.utils"},
     "lutris/game.py": {"lutris.gui.application", "lutris.gui.dialogs.cloud_sync_progress", "lutris.gui.widgets.utils"},
-    "lutris/services/base.py": {"lutris.gui.views.media_loader", "lutris.gui.widgets.utils"},
-    "lutris/services/ea_app.py": {"lutris.gui.widgets.utils"},
-    "lutris/services/egs.py": {"lutris.gui.widgets.utils"},
-    "lutris/services/lutris.py": {"lutris.gui.views.media_loader"},
     "lutris/startup.py": {"gi.repository.GdkPixbuf", "gi.require_version(GdkPixbuf)"},
     "lutris/util/display.py": {
         "gi.repository.Gdk",

@@ -14,14 +14,9 @@ gi.require_version("PangoCairo", "1.0")
 import cairo
 from gi.repository import Gdk, GObject, Gtk, Pango, PangoCairo
 
-from lutris.gui.widgets.utils import (
-    MEDIA_CACHE_INVALIDATED,
-    get_default_icon_path,
-    get_runtime_icon_path,
-    get_scaled_surface_by_path,
-    get_surface_size,
-)
-from lutris.services.service_media import resolve_media_path
+from lutris.gui.widgets.utils import get_scaled_surface_by_path, get_surface_size
+from lutris.services.service_media import MEDIA_CACHE_INVALIDATED, resolve_media_path
+from lutris.util.images import get_default_icon_path, get_runtime_icon_path
 from lutris.util.path_cache import MISSING_GAMES
 
 _MEDIA_CACHE_GENERATION_NUMBER = 0

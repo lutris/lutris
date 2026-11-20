@@ -89,11 +89,15 @@ Delegates: ``lutris.delegates``
 Models instead of widgets
     When the core produces something a frontend displays as it changes, it
     keeps it in a plain object with a notification, and the frontend adapts
-    that to its own widgets. Two examples:
+    that to its own widgets. For example:
 
     * ``lutris.util.log_buffer.LogBuffer``: games and installer commands write
       their output to one, and the GTK frontend mirrors it into a
       ``Gtk.TextBuffer`` (``lutris.gui.widgets.log_text_view.mirror_log_buffer``).
+    * ``lutris.services.service_media``: services download game artwork
+      with ``download_media`` and process it with Pillow
+      (``lutris.util.images``), then fire ``MEDIA_CACHE_INVALIDATED``; frontends
+      only load and draw the files.
     * ``lutris.util.file_downloads``: ``SingleFileDownload`` and
       ``FileCollectionDownload`` run an installer's downloads (queueing,
       retries, the download cache) and publish their progress as
@@ -109,11 +113,6 @@ Remaining work for stage 1
 --------------------------
 
 Grouped by what has to be built, roughly in the order planned:
-
-Media
-    Services build game artwork with helpers from ``gui/widgets/utils.py`` and
-    ``gui/views/media_loader.py``. The parts that only download and process
-    images (with Pillow) move into the core; only drawing stays in the GUI.
 
 Errors
     ``exception_backstops.py`` both reports unhandled errors with GTK dialogs
