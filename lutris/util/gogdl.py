@@ -1,12 +1,12 @@
 """Bridge module for invoking heroic-gogdl.
 
 gogdl is a tool from the Heroic Games Launcher project that downloads
-GOG games directly from GOG's depot/CDN system. It is shipped as a
-Lutris runtime component — the pre-built binary is downloaded and
-updated via the standard runtime update system.
+GOG games directly from GOG's depot/CDN system. Lutris downloads the
+pre-built binary and keeps it updated with its other components, such
+as umu and Winetricks.
 
 This module handles:
-- Locating the gogdl binary from the runtime directory
+- Locating the downloaded gogdl binary
 - Auth token conversion between Lutris and gogdl formats
 - Subprocess invocation with progress parsing
 - Reading back refreshed tokens after gogdl operations
@@ -22,7 +22,7 @@ import time
 from lutris import settings
 from lutris.util.log import logger
 
-# Where the runtime system installs gogdl
+# Where the component updates install gogdl
 GOGDL_DIR = os.path.join(settings.RUNTIME_DIR, "gogdl")
 
 # Auth config file written for gogdl
@@ -44,13 +44,12 @@ BROKEN_FILES_RE = re.compile(r"^\[(V1|V2)\] INFO: Found (?P<count>\d+) broken fi
 
 
 def _get_gogdl_binary():
-    """Return the path to the gogdl binary from the runtime directory."""
+    """Return the path to the gogdl binary that Lutris downloads with its other components."""
     binary = os.path.join(GOGDL_DIR, "gogdl")
     if os.path.isfile(binary) and os.access(binary, os.X_OK):
         return binary
     raise FileNotFoundError(
-        "gogdl runtime component not found. "
-        "Please update your Lutris runtime (Preferences > Global Options > Update Runtime)."
+        "gogdl hasn't been downloaded yet. Check for updates in Preferences → Updates, then try again."
     )
 
 

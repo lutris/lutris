@@ -177,7 +177,6 @@ class steam(Runner):
         },
     ]
     system_options_override = [
-        {"option": "disable_runtime", "default": True},
         {"option": "gamemode", "default": False},
     ]
 

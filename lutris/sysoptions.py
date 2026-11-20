@@ -115,26 +115,6 @@ system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
     },
     {
         "section": _("Lutris"),
-        "option": "disable_runtime",
-        "type": "bool",
-        "label": _("Disable Lutris Runtime"),
-        "default": False,
-        "help": _(
-            "The Lutris Runtime loads some libraries before running the "
-            "game, which can cause some incompatibilities in some cases. "
-            "Check this option to disable it."
-        ),
-    },
-    {
-        "section": _("Lutris"),
-        "option": "prefer_system_libs",
-        "type": "bool",
-        "label": _("Prefer system libraries"),
-        "default": True,
-        "help": _("When the runtime is enabled, prioritize the system libraries over the provided ones."),
-    },
-    {
-        "section": _("Lutris"),
         "option": "use_sniper_runtime",
         "type": "bool",
         "label": _("Use Sniper runtime"),
@@ -142,8 +122,8 @@ system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
         "condition": lambda: get_sniper_run_command() is not None,
         "visible": _is_not_wine_runner,
         "help": _(
-            "Run the game inside the Steam Sniper runtime (pressure-vessel container). "
-            "This replaces the Lutris runtime with Valve's curated library set. "
+            "Run the game inside the Steam Sniper runtime (pressure-vessel container), "
+            "with Valve's curated library set. "
             "Requires umu-launcher or Steam to be installed."
         ),
     },

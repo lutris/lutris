@@ -162,8 +162,8 @@ class web(Runner):
     ]
     runner_executable = "web/electron/electron"
 
-    def get_env(self, os_env=True, disable_runtime=False):
-        env = super().get_env(os_env, disable_runtime=disable_runtime)
+    def get_env(self, os_env=True):
+        env = super().get_env(os_env)
 
         enable_flash_player = self.runner_config.get("enable_flash")
         env["ENABLE_FLASH_PLAYER"] = "1" if enable_flash_player else "0"
@@ -187,7 +187,6 @@ class web(Runner):
 
         # keep the old behavior from browser runner, but with support for extra arguments!
         if self.runner_config.get("external_browser"):
-            # is it possible to disable lutris runtime here?
             browser = self.runner_config.get("custom_browser_executable") or "xdg-open"
 
             args = self.runner_config.get("custom_browser_args")

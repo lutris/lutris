@@ -9,7 +9,7 @@ import time
 from gettext import gettext as _
 from typing import TYPE_CHECKING, cast
 
-from lutris import runtime, settings
+from lutris import settings
 from lutris.config import LutrisConfig
 from lutris.exceptions import MissingExecutableError
 from lutris.monitored_command import MonitoredCommand
@@ -23,11 +23,9 @@ from lutris.util.wine.cabinstall import CabInstaller
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.wine import (
     WINE_DEFAULT_ARCH,
-    WINE_DIR,
     detect_arch,
     get_overrides_env,
     get_real_executable,
-    is_installed_systemwide,
     is_prefix_directory,
 )
 
@@ -325,22 +323,6 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path="", env=None, initial_pid
     logger.debug("Done waiting.")
 
 
-def use_lutris_runtime(wine_path, force_disable=False):
-    """Returns whether to use the Lutris runtime.
-    The runtime can be forced to be disabled, otherwise
-    it's disabled automatically if Wine is installed system wide.
-    """
-    if proton.is_proton_path(wine_path):
-        return False
-    if force_disable or runtime.RUNTIME_DISABLED:
-        return False
-    if WINE_DIR in wine_path:
-        return True
-    if is_installed_systemwide():
-        return False
-    return True
-
-
 def wineexec(
     executable: str,
     prefix: str,
@@ -353,7 +335,6 @@ def wineexec(
     config: LutrisConfig | None = None,
     include_processes: list | None = None,
     exclude_processes: list | None = None,
-    disable_runtime: bool = False,
     env: dict | None = None,
     overrides=None,
     runner: "wine | None" = None,
@@ -426,31 +407,13 @@ def wineexec(
         wine_bin = winetricks_wine if winetricks_wine and not proton.is_proton_path(wine_path) else wine_path
         create_prefix(prefix, wine_path=wine_bin, arch=arch, runner=runner)
 
-    wine_system_config = config.system_config if config else runner.system_config
-    disable_runtime = disable_runtime or wine_system_config["disable_runtime"]
-    if use_lutris_runtime(wine_path=wineenv["WINE"], force_disable=disable_runtime) and not proton.is_proton_path(
-        wine_path
-    ):
-        if WINE_DIR in wine_path:
-            wine_root_path = os.path.dirname(os.path.dirname(wine_path))
-        elif winetricks_wine and WINE_DIR in winetricks_wine:
-            wine_root_path = os.path.dirname(os.path.dirname(winetricks_wine))
-        else:
-            wine_root_path = None
-        wineenv["LD_LIBRARY_PATH"] = ":".join(
-            runtime.get_paths(
-                prefer_system_libs=wine_system_config["prefer_system_libs"],
-                wine_path=wine_root_path,
-            )
-        )
-
     if overrides:
         wineenv["WINEDLLOVERRIDES"] = get_overrides_env(overrides)
 
     if proton_verb:
         wineenv["PROTON_VERB"] = proton_verb
 
-    baseenv = runner.get_env(disable_runtime=disable_runtime)
+    baseenv = runner.get_env()
     if proton.is_proton_path(wine_path):
         # The runner's environment describes the runner's *own* Wine version, which may be a
         # different Proton than the one we were asked to run (an installer script can pin one
@@ -535,7 +498,6 @@ def winetricks(
     wine_path: str | None = None,
     config=None,
     env=None,
-    disable_runtime=False,
     system_winetricks=False,
     runner=None,
     proton_verb=None,
@@ -590,7 +552,6 @@ def winetricks(
         args=args,
         config=config,
         env=env,
-        disable_runtime=disable_runtime,
         runner=runner,
         proton_verb=proton_verb,
     )

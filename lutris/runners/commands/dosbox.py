@@ -4,7 +4,6 @@
 import os
 
 # Lutris Modules
-from lutris import runtime
 from lutris.runners import import_runner
 from lutris.util import system
 from lutris.util.log import logger
@@ -37,7 +36,7 @@ def dosexec(config_file=None, executable=None, args=None, close_on_exit=True, wo
         command += args.split()
     if close_on_exit:
         command.append("-exit")
-    system.execute(command, cwd=working_dir, env=runtime.get_env())
+    system.execute(command, cwd=working_dir)
 
 
 def makeconfig(path, drives, commands):

@@ -1,9 +1,10 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Dialogs as NativeDialogs
 import QtQuick.Layouts
+import LutrisStyle
 
 ColumnLayout {
     id: page
@@ -123,6 +124,7 @@ ColumnLayout {
 
     Button {
         objectName: "confirmExtras"
+        highlighted: true
         visible: page.stage === "extras"
         text: qsTr("Continue")
         onClicked: page.installation.choose_extras(page.chosenExtras)
@@ -203,6 +205,7 @@ ColumnLayout {
 
                     Button {
                         text: qsTr("Browse…")
+                        icon.source: Theme.icon("folder")
                         Accessible.name: qsTr("Browse for %1").arg(file.modelData.label)
                         onClicked: {
                             filePicker.fileId = file.modelData.id
@@ -246,6 +249,7 @@ ColumnLayout {
 
     Button {
         objectName: "startInstallationFiles"
+        highlighted: true
         visible: page.stage === "files"
         enabled: page.installation.filesReady
         text: qsTr("Install")
@@ -271,6 +275,7 @@ ColumnLayout {
 
         Button {
             objectName: "confirmInstallationMenu"
+            highlighted: true
             text: qsTr("Continue")
             enabled: menu.currentIndex >= 0
             onClicked: page.installation.answer_menu(menu.currentValue)
@@ -288,6 +293,7 @@ ColumnLayout {
 
         Button {
             text: qsTr("Browse…")
+            icon.source: Theme.icon("folder")
             Accessible.name: qsTr("Browse for the disc")
             onClicked: discPicker.open()
         }

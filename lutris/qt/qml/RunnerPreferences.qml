@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import LutrisStyle
 
 ColumnLayout {
     id: page
@@ -10,7 +11,7 @@ ColumnLayout {
     required property QtObject controller
     required property QtObject configuration
 
-    spacing: 8
+    spacing: 12
     Component.onCompleted: controller.open()
 
     RowLayout {
@@ -19,6 +20,7 @@ ColumnLayout {
 
         Button {
             text: qsTr("Back to Runners")
+            icon.source: Theme.icon("arrow-up")
             enabled: !page.controller.busy
             onClicked: page.controller.open()
         }
@@ -27,6 +29,7 @@ ColumnLayout {
 
         Button {
             text: qsTr("Check for Releases")
+            icon.source: Theme.icon("refresh")
             enabled: !page.controller.busy
             onClicked: page.controller.show_proton()
         }
@@ -37,91 +40,101 @@ ColumnLayout {
         visible: page.controller.proton
         text: qsTr("GE-Proton (Latest) is downloaded by umu when needed. Install a specific release to select it in Runner Options.")
         wrapMode: Text.WordWrap
+        font.pointSize: Theme.smallSize
+        color: Theme.textMuted
     }
 
-    ListView {
-        id: entries
-        objectName: "runnerCatalog"
+    Rectangle {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        clip: true
-        spacing: 2
-        model: page.controller.entries
-        ScrollBar.vertical: ScrollBar {}
+        radius: Theme.radiusLarge
+        color: Theme.surface
+        border.color: Theme.border
 
-        delegate: RowLayout {
-            id: entry
+        ListView {
+            id: entries
+            objectName: "runnerCatalog"
+            anchors.fill: parent
+            anchors.margins: 1
+            clip: true
+            model: page.controller.entries
+            boundsBehavior: Flickable.StopAtBounds
+            ScrollBar.vertical: ScrollBar {}
 
-            required property var modelData
+            delegate: SettingsRow {
+                id: entry
 
-            width: entries.width - 16
-            spacing: 8
+                required property var modelData
 
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 2
+                width: ListView.view.width
+                title: modelData.label
+                subtitle: modelData.description
 
-                Label {
-                    Layout.fillWidth: true
-                    text: entry.modelData.label
-                    font.bold: true
-                    textFormat: Text.PlainText
-                    elide: Text.ElideRight
+                Rectangle {
+                    implicitWidth: stateLabel.implicitWidth + 16
+                    implicitHeight: stateLabel.implicitHeight + 6
+                    radius: height / 2
+                    color: entry.modelData.installed ? Qt.alpha(Theme.success, 0.15) : Theme.hover
+
+                    Label {
+                        id: stateLabel
+                        anchors.centerIn: parent
+                        text: entry.modelData.installed ? qsTr("Installed") : qsTr("Not installed")
+                        font.pointSize: Theme.smallSize * 0.9
+                        font.weight: Font.Medium
+                        color: entry.modelData.installed ? Theme.success : Theme.textMuted
+                    }
                 }
 
-                Label {
-                    Layout.fillWidth: true
-                    text: entry.modelData.description
-                    visible: text.length > 0
-                    textFormat: Text.PlainText
-                    wrapMode: Text.WordWrap
+                ToolButton {
+                    objectName: "runnerConfigure_" + entry.modelData.key
+                    visible: entry.modelData.canConfigure
+                    enabled: !page.controller.busy
+                    icon.source: Theme.icon("configure")
+                    Accessible.name: qsTr("Configure %1").arg(entry.modelData.label)
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Configure…")
+                    onClicked: page.configuration.open_runner(entry.modelData.key, entry.modelData.label)
+                }
+
+                Button {
+                    objectName: "runnerVersions_" + entry.modelData.key
+                    visible: entry.modelData.manageProton
+                    enabled: !page.controller.busy
+                    text: qsTr("Manage GE-Proton")
+                    onClicked: page.controller.show_proton()
+                }
+
+                Button {
+                    objectName: "runnerInstall_" + entry.modelData.key
+                    visible: entry.modelData.canInstall
+                    enabled: !page.controller.busy
+                    highlighted: true
+                    text: qsTr("Install")
+                    icon.source: Theme.icon("download")
+                    Accessible.name: qsTr("Install %1").arg(entry.modelData.label)
+                    onClicked: page.controller.install(entry.modelData.key)
+                }
+
+                ToolButton {
+                    objectName: "runnerRemove_" + entry.modelData.key
+                    visible: entry.modelData.canRemove
+                    enabled: !page.controller.busy
+                    icon.source: Theme.icon("trash")
+                    icon.color: Theme.danger
+                    Accessible.name: qsTr("Remove %1").arg(entry.modelData.label)
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Remove…")
+                    onClicked: page.controller.remove(entry.modelData.key)
                 }
             }
 
             Label {
-                text: entry.modelData.installed ? qsTr("Installed") : qsTr("Not installed")
+                anchors.centerIn: parent
+                visible: !page.controller.busy && entries.count === 0
+                text: page.controller.proton ? qsTr("No GE-Proton builds found") : qsTr("No runners found")
+                color: Theme.textMuted
             }
-
-            Button {
-                objectName: "runnerConfigure_" + entry.modelData.key
-                visible: entry.modelData.canConfigure
-                enabled: !page.controller.busy
-                text: qsTr("Configure…")
-                Accessible.name: qsTr("Configure %1").arg(entry.modelData.label)
-                onClicked: page.configuration.open_runner(entry.modelData.key, entry.modelData.label)
-            }
-
-            Button {
-                objectName: "runnerVersions_" + entry.modelData.key
-                visible: entry.modelData.manageProton
-                enabled: !page.controller.busy
-                text: qsTr("Manage GE-Proton")
-                onClicked: page.controller.show_proton()
-            }
-
-            Button {
-                objectName: "runnerInstall_" + entry.modelData.key
-                visible: entry.modelData.canInstall
-                enabled: !page.controller.busy
-                text: qsTr("Install")
-                Accessible.name: qsTr("Install %1").arg(entry.modelData.label)
-                onClicked: page.controller.install(entry.modelData.key)
-            }
-
-            Button {
-                objectName: "runnerRemove_" + entry.modelData.key
-                visible: entry.modelData.canRemove
-                enabled: !page.controller.busy
-                text: qsTr("Remove…")
-                Accessible.name: qsTr("Remove %1").arg(entry.modelData.label)
-                onClicked: page.controller.remove(entry.modelData.key)
-            }
-        }
-
-        Label {
-            anchors.centerIn: parent
-            visible: !page.controller.busy && entries.count === 0
-            text: page.controller.proton ? qsTr("No GE-Proton builds found") : qsTr("No runners found")
         }
     }
 
@@ -130,6 +143,7 @@ ColumnLayout {
         visible: text.length > 0
         text: page.controller.message
         wrapMode: Text.WordWrap
+        color: Theme.textMuted
     }
 
     ProgressBar {

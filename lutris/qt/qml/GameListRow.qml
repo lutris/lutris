@@ -1,6 +1,10 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
+import QtQuick.Controls.impl
 import QtQuick.Layouts
+import LutrisStyle
 
 ItemDelegate {
     id: row
@@ -15,65 +19,112 @@ ItemDelegate {
     required property string playTimeText
     required property bool installed
     required property bool running
-    required property bool showPlatform
-    required property bool showDetails
+    required property url coverUrl
+    required property url bannerUrl
+    required property url iconUrl
+    required property string iconName
+    required property var columns
+    required property url placeholder
     required property bool selected
     required property bool keyboardFocus
 
     readonly property string gameStatus: running ? qsTr("Running") : installed ? "" : qsTr("Not installed")
 
+    signal menuRequested()
+
     focusPolicy: Qt.NoFocus
-    padding: 7
+    hoverEnabled: true
+    padding: 6
+    horizontalPadding: 12
     Accessible.name: gameTitle
     Accessible.description: gameStatus
 
+    TapHandler {
+        acceptedButtons: Qt.RightButton
+        onTapped: row.menuRequested()
+    }
+
     background: Rectangle {
-        color: row.selected ? row.palette.highlight : row.index % 2 ? row.palette.alternateBase : row.palette.base
-        border.width: row.keyboardFocus ? 2 : 0
-        border.color: row.palette.highlightedText
+        radius: Theme.radius
+        color: row.selected ? Theme.accentSubtle : row.down ? Theme.pressed : row.hovered ? Theme.hover : "transparent"
+        border.width: row.keyboardFocus ? 1 : 0
+        border.color: Theme.accent
     }
 
     contentItem: RowLayout {
-        spacing: 6
+        spacing: 10
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 6
+            Layout.preferredWidth: 180
+            spacing: 10
+
+            Item {
+                implicitWidth: 28
+                implicitHeight: 28
+
+                ArtworkImage {
+                    id: icon
+                    anchors.fill: parent
+                    radius: Theme.radiusSmall
+                    fillMode: Image.PreserveAspectFit
+                    source: row.iconUrl
+                    visible: status === Image.Ready
+                }
+
+                IconImage {
+                    anchors.fill: parent
+                    visible: !icon.visible
+                    name: row.iconName
+                    source: row.placeholder
+                    sourceSize: Qt.size(56, 56)
+                    color: "transparent"
+                    opacity: 0.8
+                    Accessible.ignored: true
+                }
+            }
 
             Label {
                 Layout.fillWidth: true
                 text: row.gameTitle
                 textFormat: Text.PlainText
-                font.bold: row.running
+                font.weight: row.selected || row.running ? Font.DemiBold : Font.Normal
+                color: row.installed || row.running ? Theme.text : Theme.textMuted
                 elide: Text.ElideRight
-                color: row.selected ? row.palette.highlightedText : row.palette.text
             }
 
-            Label {
+            Rectangle {
                 visible: row.gameStatus.length > 0
-                text: row.gameStatus
-                color: row.selected ? row.palette.highlightedText : row.palette.text
+                implicitWidth: statusLabel.implicitWidth + 14
+                implicitHeight: statusLabel.implicitHeight + 4
+                radius: height / 2
+                color: row.running ? Qt.alpha(Theme.success, 0.16) : Theme.hover
+
+                Label {
+                    id: statusLabel
+                    anchors.centerIn: parent
+                    text: row.gameStatus
+                    font.pointSize: Theme.smallSize * 0.9
+                    font.weight: Font.Medium
+                    color: row.running ? Theme.success : Theme.textMuted
+                }
             }
         }
 
         Repeater {
-            model: [
-                { text: row.runnerText, width: 88, visible: row.showPlatform },
-                { text: row.platformText, width: 88, visible: row.showPlatform },
-                { text: row.yearText, width: 58, visible: row.showDetails },
-                { text: row.lastPlayedText, width: 100, visible: row.showDetails },
-                { text: row.installedAtText, width: 100, visible: row.showDetails },
-                { text: row.playTimeText, width: 105, visible: row.showDetails }
-            ]
+            model: row.columns.length
             delegate: Label {
-                required property var modelData
-                Layout.minimumWidth: modelData.width
-                Layout.preferredWidth: modelData.width
-                Layout.maximumWidth: modelData.width
-                visible: modelData.visible
-                text: modelData.text
+                required property int index
+                readonly property var column: row.columns[index]
+
+                Layout.minimumWidth: column.width
+                Layout.preferredWidth: column.width
+                Layout.maximumWidth: column.width
+                visible: column.visible
+                text: [row.runnerText, row.platformText, row.yearText, row.lastPlayedText,
+                       row.installedAtText, row.playTimeText][index]
                 textFormat: Text.PlainText
-                color: row.selected ? row.palette.highlightedText : row.palette.text
+                color: Theme.textMuted
                 elide: Text.ElideRight
             }
         }

@@ -1,4 +1,4 @@
-"""Run runtime updates for Qt Quick and show how far they've got."""
+"""Update the components games run with (umu, gogdl, Winetricks...) for Qt Quick, and show how far it's got."""
 
 import asyncio
 from gettext import gettext as _
@@ -42,7 +42,7 @@ class RuntimeUpdatesController(QObject):
             return self._result
         active = [component for component in self._status.components if not component.finished]
         if not active:
-            return _("Updating the runtime…")
+            return _("Updating components…")
         component = active[0]
         if component.fraction is None:
             return component.status
@@ -65,7 +65,7 @@ class RuntimeUpdatesController(QObject):
 
     def update(self, force: bool = False) -> None:
         if self._task is None or self._task.done():
-            self._result = _("Checking for runtime updates…") if force else ""
+            self._result = _("Checking for updates…") if force else ""
             self.stateChanged.emit()
             self._task = start_task(self._update(force), self._prompts.error)
 
@@ -77,13 +77,13 @@ class RuntimeUpdatesController(QObject):
         try:
             updated = await runtime_updates.update_runtime(force=force)
         except Exception:
-            self._result = _("The runtime could not be updated.")
+            self._result = _("Components could not be updated.")
             self.stateChanged.emit()
             raise
         if updated:
             self._result = _("Updated %s.") % ", ".join(updated)
         elif force:
-            self._result = _("The runtime is up to date.")
+            self._result = _("Everything is up to date.")
         self.stateChanged.emit()
 
     def _on_changed(self, status: RuntimeUpdateStatus) -> None:

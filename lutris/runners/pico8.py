@@ -71,8 +71,6 @@ class pico8(Runner):
         },
     ]
 
-    system_options_override = [{"option": "disable_runtime", "default": True}]
-
     runner_executable = "pico8/web.py"
 
     def __init__(self, config=None):

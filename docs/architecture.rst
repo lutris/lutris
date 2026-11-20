@@ -195,6 +195,19 @@ The tests run on Qt's offscreen platform.
 The frontend uses Qt Quick Controls and a PySide6 ``QApplication`` so it can
 integrate with the native system tray.
 ``lutris/qt/qml`` defines the windows, views and dialogs.
+Every control is drawn by ``LutrisStyle`` (``lutris/qt/qml/LutrisStyle``), a
+Qt Quick Controls style that ``MainWindow`` selects with ``QQuickStyle`` before
+loading QML, so plain ``import QtQuick.Controls`` gets the Lutris look. Its
+``Theme`` singleton holds the colors, metrics and type sizes for light and dark,
+following the theme preference and, for "System Default", the desktop's color
+scheme. ``Theme.icon()`` names an SVG of the style's icon set, and ``Icon`` draws
+one tinted to the text around it. Views reach for ``Theme`` rather than literal
+colors, so both themes stay consistent.
+
+The window has a sidebar of library views, a header with search, the installed
+filter, sorting, the layout switcher, the **Add** menu and the main menu, and a
+bar under the library for the selected game, with Play, Stop or Install and its
+Game Actions menu (also on right-click).
 ``LibraryController`` exposes Qt properties, model roles and slots to QML.
 It queries the backend, handles its events, and translates launch prompts
 into QML dialogs. QML strings use the application's gettext catalogs.
@@ -225,7 +238,7 @@ again before moving or trashing files and blocks protected, overlapping, and
 externally managed installations. Qt refreshes the library on ``GAME_CHANGED``
 or ``GAME_REMOVED``.
 
-The Library menu can add an existing native Linux executable as a new game.
+The Add menu can add an existing native Linux executable as a new game.
 For an eligible uninstalled entry, Game Actions can link the executable to
 that entry and keep its ID, category membership and playtime. The
 ``local_games`` backend validates the path and writes the launch configuration
@@ -263,7 +276,7 @@ Cancelling that wait leaves Steam's own installation in progress.
 fires ``GAME_INSTALLED``. New installs can create shortcuts and launch the
 game from the dialog.
 
-Game Actions → Configure, Library → Global Options and a runner's context menu
+Game Actions → Configure, the main menu's Global Options and a runner's context menu
 in the sidebar open configuration forms. ``configuration.open_game_config``,
 ``open_runner_config`` and ``open_system_config`` build a ``LutrisConfig`` at
 that level and return a ``ConfigForm``: a ``ConfigPage`` per config section
@@ -280,7 +293,7 @@ fire ``CONFIG_FORM_CHANGED``. A game's form also carries its ``GameDetails``
 ``set_game_details`` and written by ``save_config``, which validates them and
 renames the config file when the slug changes.
 ``set_game_runner`` starts the game's configuration afresh for another runner.
-``open_new_game_config`` is Library → Add Game: saving it creates the game.
+``open_new_game_config`` is Add → Add Game: saving it creates the game.
 Qt shows the details on a Game Info tab before the option pages. Qt's ``ConfigOptionModel`` updates rows in place,
 so editing doesn't reset the view, and ``ConfigOption.qml`` picks an editor per
 option type.
@@ -292,8 +305,7 @@ container. Lutris finds the launchers in Steam libraries or in umu's runtime
 directory. Scout uses the Steam compatibility tool inside Soldier. If a
 runtime is missing, the launch error gives its Steam install URI. The runner
 applies the choice to primary and alternate launch configurations, including
-standalone shortcuts. Legacy Lutris Runtime settings do not affect Linux game
-launches.
+standalone shortcuts.
 
 The dedicated Flatpak runner and Flathub game source have been removed.
 Existing library records can still be removed without changing the installed

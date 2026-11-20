@@ -97,6 +97,7 @@ Dialog {
         Button {
             id: finish
             objectName: "finishStoreLogin"
+            highlighted: true
 
             text: dialog.needsCookies ? qsTr("Select Cookies…") : qsTr("Sign In")
             enabled: !dialog.controller.busy && (dialog.inputKind === "cookies" || response.text.trim().length > 0)

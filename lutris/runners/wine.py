@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any
 
-from lutris import runtime, settings
+from lutris import settings
 from lutris.api import normalize_version_architecture
 from lutris.config import LutrisConfig, is_option_visible
 from lutris.database.games import get_game_by_field
@@ -941,20 +941,14 @@ class wine(Runner):
     def run_winetricks(self, *args):
         """Run winetricks in the current context"""
         self.prelaunch()
-        disable_runtime = not self.use_runtime()
         system_winetricks = self.runner_config.get("system_winetricks")
-        if system_winetricks:
-            # Don't run the system winetricks with the runtime; let the
-            # system be the system
-            disable_runtime = True
         winetricks(
             "",
             prefix=self.prefix_path,
             wine_path=self.get_executable(),
             config=self,
-            disable_runtime=disable_runtime,
             system_winetricks=system_winetricks,
-            env=self.get_env(os_env=True, disable_runtime=disable_runtime),
+            env=self.get_env(os_env=True),
             runner=self,
         )
 
@@ -1147,12 +1141,12 @@ class wine(Runner):
             overrides = {}
         return overrides
 
-    def get_env(self, os_env=False, disable_runtime=False):
+    def get_env(self, os_env=False):
         """Return environment variables used by the game"""
         # Always false to runner.get_env, the default value
         # of os_env is inverted in the wine class,
         # the OS env is read later.
-        env = super().get_env(os_env, disable_runtime=disable_runtime)
+        env = super().get_env(os_env)
         show_debug = self.runner_config.get("show_debug", "-all")
         if show_debug != "inherit":
             env["WINEDEBUG"] = show_debug
@@ -1272,19 +1266,6 @@ class wine(Runner):
         data = super().get_run_data()
         self.finish_env(data["env"])
         return data
-
-    def get_runtime_env(self):
-        """Return runtime environment variables with path to wine for Lutris builds"""
-        try:
-            wine_path = os.path.dirname(os.path.dirname(self.get_executable()))
-        except MisconfigurationError:
-            wine_path = None
-
-        return runtime.get_env(
-            version="Ubuntu-18.04",
-            prefer_system_libs=self.system_config.get("prefer_system_libs", True),
-            wine_path=wine_path,
-        )
 
     def get_wine_executable_pids(self):
         """Return a list of pids of processes using the current wine exe."""

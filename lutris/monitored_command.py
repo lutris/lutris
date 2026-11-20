@@ -349,6 +349,6 @@ def exec_command(command: str) -> MonitoredCommand:
 
     Used by the --exec command line flag.
     """
-    monitored_command = MonitoredCommand(shlex.split(command), env={})  # runtime.get_env())
+    monitored_command = MonitoredCommand(shlex.split(command), env={})
     monitored_command.start()
     return monitored_command

@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Dialogs as NativeDialogs
 import QtQuick.Layouts
+import LutrisStyle
 
 ApplicationWindow {
     id: window
@@ -12,85 +13,110 @@ ApplicationWindow {
     required property QtObject prompts
 
     title: qsTr("Lutris")
-    width: 1100
-    height: 700
-    minimumWidth: 640
-    minimumHeight: 420
+    width: 1200
+    height: 760
+    minimumWidth: 720
+    minimumHeight: 460
 
-    menuBar: MenuBar {
-        Menu {
-            title: qsTr("Library")
-
-            MenuItem {
-                objectName: "addGame"
-                text: qsTr("Add Game…")
-                onTriggered: window.controller.configuration.open_new_game()
-            }
-
-            MenuItem {
-                objectName: "addLocalGame"
-                text: qsTr("Add Locally Installed Game…")
-                onTriggered: window.controller.localGames.open_registration("", "")
-            }
-
-            MenuItem {
-                text: qsTr("Run Windows Setup…")
-                enabled: !window.controller.installers.installation.active
-                onTriggered: windowsSetup.open()
-            }
-
-            MenuItem {
-                text: qsTr("Import ROMs…")
-                enabled: !window.controller.gameImports.busy
-                onTriggered: romFolder.open()
-            }
-
-            MenuItem {
-                text: qsTr("Import from Playtron…")
-                enabled: !window.controller.gameImports.busy
-                onTriggered: {
-                    importDialog.scanningRoms = false
-                    window.controller.gameImports.import_playtron()
-                    importDialog.open()
-                }
-            }
-
-            MenuSeparator {}
-
-            MenuItem {
-                objectName: "globalOptions"
-                text: qsTr("Global Options…")
-                onTriggered: window.controller.configuration.open_system()
-            }
-
-            MenuItem {
-                objectName: "openPreferences"
-                text: qsTr("Preferences…")
-                onTriggered: window.controller.preferences.open_preferences()
-            }
-
-            MenuSeparator {}
-
-            MenuItem {
-                text: qsTr("Quit")
-                onTriggered: Qt.quit()
-            }
-        }
-
-        Menu {
-            title: qsTr("Help")
-            MenuItem {
-                text: qsTr("Save Issue Report…")
-                onTriggered: window.controller.preferences.open_issue_report()
-            }
-        }
+    Binding {
+        target: Theme
+        property: "preference"
+        value: window.controller.preferences.theme
     }
-
-    header: LibraryToolbar { controller: window.controller }
 
     LibraryView {
         anchors.fill: parent
         controller: window.controller
+        onAddMenuRequested: button => addMenu.popup(button, 0, button.height + 4)
+        onMainMenuRequested: button => mainMenu.popup(button, button.width - mainMenu.width, button.height + 4)
+    }
+
+    Menu {
+        id: addMenu
+        objectName: "addMenu"
+
+        MenuItem {
+            objectName: "addGame"
+            text: qsTr("Add Game…")
+            icon.source: Theme.icon("plus")
+            onTriggered: window.controller.configuration.open_new_game()
+        }
+
+        MenuItem {
+            objectName: "addLocalGame"
+            text: qsTr("Add Locally Installed Game…")
+            icon.source: Theme.icon("folder")
+            onTriggered: window.controller.localGames.open_registration("", "")
+        }
+
+        MenuItem {
+            text: qsTr("Run Windows Setup…")
+            icon.source: Theme.icon("package")
+            enabled: !window.controller.installers.installation.active
+            onTriggered: windowsSetup.open()
+        }
+
+        MenuSeparator {}
+
+        MenuItem {
+            text: qsTr("Import ROMs…")
+            icon.source: Theme.icon("download")
+            enabled: !window.controller.gameImports.busy
+            onTriggered: romFolder.open()
+        }
+
+        MenuItem {
+            text: qsTr("Import from Playtron…")
+            icon.source: Theme.icon("download")
+            enabled: !window.controller.gameImports.busy
+            onTriggered: {
+                importDialog.scanningRoms = false
+                window.controller.gameImports.import_playtron()
+                importDialog.open()
+            }
+        }
+    }
+
+    Menu {
+        id: mainMenu
+        objectName: "mainMenu"
+
+        MenuItem {
+            objectName: "artworkSources"
+            text: qsTr("Artwork Sources…")
+            icon.source: Theme.icon("image")
+            onTriggered: window.controller.artworkSettings.open_settings()
+        }
+
+        MenuSeparator {}
+
+        MenuItem {
+            objectName: "globalOptions"
+            text: qsTr("Global Options…")
+            icon.source: Theme.icon("configure")
+            onTriggered: window.controller.configuration.open_system()
+        }
+
+        MenuItem {
+            objectName: "openPreferences"
+            text: qsTr("Preferences…")
+            icon.source: Theme.icon("settings")
+            onTriggered: window.controller.preferences.open_preferences()
+        }
+
+        MenuSeparator {}
+
+        MenuItem {
+            text: qsTr("Save Issue Report…")
+            icon.source: Theme.icon("warning")
+            onTriggered: window.controller.preferences.open_issue_report()
+        }
+
+        MenuItem {
+            text: qsTr("Quit")
+            icon.source: Theme.icon("power")
+            onTriggered: Qt.quit()
+        }
     }
 
     DropArea {
@@ -103,6 +129,25 @@ ApplicationWindow {
                 drop.acceptProposedAction()
                 importDialog.scanningRoms = true
                 importDialog.open()
+            }
+        }
+
+        // Shows where ROMs dropped on the window go
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 10
+            visible: parent.containsDrag
+            radius: 16
+            color: Theme.accentSubtle
+            border.width: 2
+            border.color: Theme.accent
+
+            Label {
+                anchors.centerIn: parent
+                text: qsTr("Drop ROMs to import them")
+                font.pointSize: Theme.titleSize
+                font.weight: Font.DemiBold
+                color: Theme.accentText
             }
         }
     }
@@ -118,6 +163,11 @@ ApplicationWindow {
         sequence: "Ctrl+P"
         onActivated: window.controller.preferences.set_interface_option(
                          "hide_badges_on_icons", !window.controller.preferences.hideBadges)
+    }
+
+    Shortcut {
+        sequences: [StandardKey.Preferences]
+        onActivated: window.controller.preferences.open_preferences()
     }
 
     NativeDialogs.FolderDialog {
@@ -244,58 +294,5 @@ ApplicationWindow {
             }
         }
         onLoaded: if (status === Loader.Ready) (item as ConfigDialog).open()
-    }
-
-    footer: ToolBar {
-        id: statusBar
-
-        // A running runtime update takes over the status bar until it's done
-        readonly property string message: window.controller.runtimeUpdates.running
-                                          ? window.controller.runtimeUpdates.statusText
-                                          : window.controller.statusText
-
-        visible: message.length > 0 || window.controller.cloudSaves.transfers.length > 0
-        implicitHeight: visible ? statusRows.implicitHeight + 14 : 0
-
-        ColumnLayout {
-            id: statusRows
-            anchors.fill: parent
-            anchors.leftMargin: 12
-            anchors.rightMargin: 12
-
-            Repeater {
-                model: window.controller.cloudSaves.transfers
-                delegate: RowLayout {
-                    id: transfer
-                    required property var modelData
-                    Layout.fillWidth: true
-
-                    Label {
-                        Layout.fillWidth: true
-                        elide: Text.ElideRight
-                        text: transfer.modelData.label
-                        textFormat: Text.PlainText
-                    }
-                    ProgressBar {
-                        value: transfer.modelData.progress
-                        indeterminate: value === 0 && transfer.modelData.canSkip
-                    }
-                    Button {
-                        text: qsTr("Skip Cloud Sync")
-                        enabled: transfer.modelData.canSkip
-                        onClicked: window.controller.cloudSaves.skip(transfer.modelData.id)
-                    }
-                }
-            }
-
-            Label {
-                objectName: "libraryStatus"
-                Layout.fillWidth: true
-                visible: text.length > 0
-                text: statusBar.message
-                textFormat: Text.PlainText
-                Accessible.role: Accessible.StatusBar
-            }
-        }
     }
 }

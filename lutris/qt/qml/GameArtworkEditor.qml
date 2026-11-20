@@ -1,9 +1,10 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Dialogs as NativeDialogs
 import QtQuick.Layouts
+import LutrisStyle
 
 // A game's cover, banner and icon, each of which can be replaced or reset
 ColumnLayout {
@@ -26,7 +27,7 @@ ColumnLayout {
 
     Label {
         text: qsTr("Artwork")
-        font.bold: true
+        font.weight: Font.DemiBold
     }
 
     Flow {
@@ -47,28 +48,33 @@ ColumnLayout {
 
                 Label {
                     text: slot.modelData.custom ? qsTr("%1 (custom)").arg(slot.modelData.label) : slot.modelData.label
+                    font.pointSize: Theme.smallSize
+                    color: Theme.textMuted
                 }
 
                 Rectangle {
                     implicitWidth: slot.frame.width
                     implicitHeight: slot.frame.height
-                    color: "transparent"
-                    border.color: palette.mid
+                    radius: Theme.radius
+                    color: Theme.surface
+                    border.color: Theme.border
 
                     Image {
                         objectName: "artworkImage_" + slot.modelData.kind
                         anchors.fill: parent
-                        anchors.margins: 1
+                        anchors.margins: 6
                         source: slot.modelData.url
                         fillMode: Image.PreserveAspectFit
                         asynchronous: true
                         cache: false
                     }
 
-                    Label {
+                    Icon {
                         anchors.centerIn: parent
                         visible: slot.modelData.url.toString().length === 0
-                        text: qsTr("None")
+                        symbol: "image"
+                        size: 28
+                        color: Theme.textSubtle
                     }
 
                     BusyIndicator {
@@ -79,7 +85,9 @@ ColumnLayout {
                 }
 
                 Button {
+                    Layout.fillWidth: true
                     text: qsTr("Choose File…")
+                    icon.source: Theme.icon("folder")
                     enabled: !editor.artwork.working
                     Accessible.name: qsTr("Choose a file for the %1").arg(slot.modelData.label)
                     onClicked: {
@@ -90,7 +98,9 @@ ColumnLayout {
 
                 Button {
                     objectName: "steamGridDbArtwork_" + slot.modelData.kind
+                    Layout.fillWidth: true
                     text: qsTr("SteamGridDB…")
+                    icon.source: Theme.icon("image")
                     enabled: !editor.artwork.working && !editor.artwork.loadingChoices
                     Accessible.name: qsTr("Choose the %1 from SteamGridDB").arg(slot.modelData.label)
                     onClicked: {
@@ -101,7 +111,10 @@ ColumnLayout {
 
                 Button {
                     objectName: "resetArtwork_" + slot.modelData.kind
+                    Layout.fillWidth: true
+                    flat: true
                     text: qsTr("Reset")
+                    icon.source: Theme.icon("refresh")
                     enabled: !editor.artwork.working
                     Accessible.name: qsTr("Reset the %1").arg(slot.modelData.label)
                     ToolTip.visible: hovered

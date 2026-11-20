@@ -12,6 +12,33 @@ ALL_GAMES = {"category": "all"}
 _LABEL_ROLE = Qt.ItemDataRole.UserRole + 1
 _SECTION_ROLE = _LABEL_ROLE + 1
 _RUNNER_ROLE = _LABEL_ROLE + 2
+_ICON_ROLE = _LABEL_ROLE + 3
+
+# The icons of the library's own views; the others take their section's icon
+_VIEW_ICONS = {
+    ("category", "all"): "games",
+    ("dynamic_category", "recent"): "recent",
+    ("dynamic_category", "running"): "running",
+    ("category", "favorite"): "favorite",
+    ("dynamic_category", ".uncategorized"): "uncategorized",
+    ("dynamic_category", "missing"): "missing",
+    ("category", ".hidden"): "hidden",
+}
+_KIND_ICONS = {
+    "category": "category",
+    "saved_search": "saved-search",
+    "service": "store",
+    "runner": "runner",
+    "platform": "platform",
+}
+
+
+def get_view_icon(view: dict[str, str]) -> str:
+    """Name the icon, from the style's icon set, that shows a view in the sidebar."""
+    for kind, value in view.items():
+        if icon := _VIEW_ICONS.get((kind, value)) or _KIND_ICONS.get(kind):
+            return icon
+    return "games"
 
 
 @dataclass(frozen=True)
@@ -72,6 +99,7 @@ class SidebarModel(QAbstractListModel):
             _LABEL_ROLE: QByteArray(b"viewTitle"),
             _SECTION_ROLE: QByteArray(b"sectionTitle"),
             _RUNNER_ROLE: QByteArray(b"runnerName"),
+            _ICON_ROLE: QByteArray(b"viewIcon"),
         }
 
     def data(self, index: ModelIndex, role: int = Qt.ItemDataRole.DisplayRole) -> str | None:
@@ -82,4 +110,6 @@ class SidebarModel(QAbstractListModel):
             return entry.title
         if role == _RUNNER_ROLE:
             return entry.view.get("runner", "")
+        if role == _ICON_ROLE:
+            return get_view_icon(entry.view)
         return section if role == _SECTION_ROLE else None

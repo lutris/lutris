@@ -7,10 +7,19 @@ GridView {
 
     required property QtObject controller
     readonly property bool banners: controller.layout === "banners"
-    readonly property int columns: Math.max(1, Math.floor(width / (banners ? 224 : 162)))
+    readonly property bool showTitle: !controller.preferences.hideGameTitles
+    readonly property int columns: Math.max(1, Math.floor((width - leftMargin - rightMargin) / (banners ? 270 : 178)))
+    readonly property Item selectedGame: currentItem
 
-    cellWidth: Math.floor(width / columns)
-    cellHeight: banners ? 152 : 238
+    signal menuRequested()
+
+    leftMargin: 12
+    rightMargin: 12
+    topMargin: 4
+    bottomMargin: 16
+    cellWidth: Math.floor((width - leftMargin - rightMargin) / columns)
+    // A card's padding and title around artwork in its layout's shape
+    cellHeight: Math.ceil((cellWidth - 16) * (banners ? 69 / 184 : 4 / 3)) + (showTitle ? 46 : 22)
     model: controller.gamesModel
     currentIndex: controller.selectedRow
     clip: true
@@ -27,6 +36,9 @@ GridView {
         if (event.key === Qt.Key_Home || event.key === Qt.Key_End) {
             controller.select_game(event.key === Qt.Key_Home ? 0 : count - 1)
             event.accepted = true
+        } else if (event.key === Qt.Key_Menu) {
+            menuRequested()
+            event.accepted = true
         }
     }
     Keys.onReturnPressed: controller.play()
@@ -41,7 +53,7 @@ GridView {
         selected: grid.currentIndex === index
         keyboardFocus: selected && grid.activeFocus
         placeholder: grid.controller.placeholderArtwork
-        showTitle: !grid.controller.preferences.hideGameTitles
+        showTitle: grid.showTitle
         showBadges: !grid.controller.preferences.hideBadges
         onClicked: {
             grid.forceActiveFocus()
@@ -50,6 +62,11 @@ GridView {
         onDoubleClicked: {
             grid.controller.select_game(index)
             grid.controller.play()
+        }
+        onMenuRequested: {
+            grid.forceActiveFocus()
+            grid.controller.select_game(index)
+            grid.menuRequested()
         }
     }
 }

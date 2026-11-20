@@ -7,7 +7,7 @@ from collections.abc import Generator
 from gettext import gettext as _
 from typing import Any
 
-from lutris import runtime, settings
+from lutris import settings
 from lutris.exceptions import GameConfigError
 from lutris.runners.runner import Runner
 from lutris.util import async_choices, system
@@ -292,11 +292,10 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     def write_xml_list(self) -> None:
         """Write the full game list in XML to disk"""
-        env = runtime.get_env(prefer_system_libs=True)
         listxml_command = self.get_command() + ["-listxml"]
         os.makedirs(self.cache_dir, exist_ok=True)
         try:
-            output, error_output = system.execute_with_error(listxml_command, env=env)
+            output, error_output = system.execute_with_error(listxml_command)
         except OSError as ex:
             logger.warning("Failed to run mame -listxml: %s", ex)
             return
@@ -332,7 +331,6 @@ class mame(Runner):  # pylint: disable=invalid-name
                 return
             system.execute(
                 self.get_command() + ["-createconfig", "-inipath", self.config_dir],
-                env=runtime.get_env(),
                 cwd=self.working_dir,
             )
 

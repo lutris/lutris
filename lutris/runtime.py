@@ -1,4 +1,4 @@
-"""Runtime handling module"""
+"""Download the components Lutris runs games with, such as umu, gogdl and Winetricks"""
 
 import concurrent.futures
 import os
@@ -25,92 +25,24 @@ from lutris.util.strings import parse_version
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").casefold() in ("0", "off")
-DEFAULT_RUNTIME = "Ubuntu-18.04"
 
 DLL_MANAGERS = {
     "dgvoodoo2": dgvoodoo2Manager,
 }
 
-# Components Proton bundles, so Lutris no longer downloads them
-UNUSED_RUNTIMES = {"d3d_extras", "dxvk", "dxvk-cache-tool", "dxvk-nvapi", "vkd3d"}
-
-
-def get_env(
-    version: str | None = None, prefer_system_libs: bool = False, wine_path: str | None = None
-) -> dict[str, str]:
-    """Return a dict containing LD_LIBRARY_PATH env var
-
-    Params:
-        version: Version of the runtime to use, such as "Ubuntu-18.04" or "legacy"
-        prefer_system_libs: Whether to prioritize system libs over runtime libs
-        wine_path: If you prioritize system libs, provide the path for a lutris wine build
-                         if one is being used. This allows Lutris to prioritize the wine libs
-                         over everything else.
-    """
-    library_path = ":".join(get_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path))
-    env = {}
-    if library_path:
-        env["LD_LIBRARY_PATH"] = library_path
-        network_tools_path = os.path.join(settings.RUNTIME_DIR, "network-tools")
-        env["PATH"] = "%s:%s" % (network_tools_path, os.environ["PATH"])
-    return env
-
-
-def get_winelib_paths(wine_path: str) -> list[str]:
-    """Return wine libraries path for a Lutris wine build"""
-    paths = []
-    # Prioritize libwine.so.1 for lutris builds
-    for winelib_path in ("lib", "lib64"):
-        winelib_fullpath = os.path.join(wine_path or "", winelib_path)
-        if system.path_exists(winelib_fullpath):
-            paths.append(winelib_fullpath)
-    return paths
-
-
-def get_runtime_paths(
-    version: str | None = None, prefer_system_libs: bool = True, wine_path: str | None = None
-) -> list[str]:
-    """Return Lutris runtime paths"""
-    version = version or DEFAULT_RUNTIME
-    lutris_runtime_path = "%s-i686" % version
-    runtime_paths = [
-        lutris_runtime_path,
-        "steam/i386/lib/i386-linux-gnu",
-        "steam/i386/lib",
-        "steam/i386/usr/lib/i386-linux-gnu",
-        "steam/i386/usr/lib",
-    ]
-
-    if LINUX_SYSTEM.is_64_bit:
-        lutris_runtime_path = "%s-x86_64" % version
-        runtime_paths += [
-            lutris_runtime_path,
-            "steam/amd64/lib/x86_64-linux-gnu",
-            "steam/amd64/lib",
-            "steam/amd64/usr/lib/x86_64-linux-gnu",
-            "steam/amd64/usr/lib",
-        ]
-
-    paths = []
-    if prefer_system_libs:
-        if wine_path:
-            paths += get_winelib_paths(wine_path)
-        paths += list(LINUX_SYSTEM.iter_lib_folders())
-    # Then resolve absolute paths for the runtime
-    paths += [os.path.join(settings.RUNTIME_DIR, path) for path in runtime_paths]
-    return paths
-
-
-def get_paths(version: str | None = None, prefer_system_libs: bool = True, wine_path: str | None = None) -> list[str]:
-    """Return a list of paths containing the runtime libraries."""
-    if not RUNTIME_DISABLED:
-        paths = get_runtime_paths(version=version, prefer_system_libs=prefer_system_libs, wine_path=wine_path)
-    else:
-        paths = []
-    # Put existing LD_LIBRARY_PATH at the end
-    if os.environ.get("LD_LIBRARY_PATH"):
-        paths.append(os.environ["LD_LIBRARY_PATH"])
-    return paths
+# Components Lutris doesn't download: Proton bundles the graphics layers, and the
+# Ubuntu libraries and network tools made up the old Lutris runtime, which Wine and
+# Proton aren't meant to run against
+UNUSED_RUNTIMES = {
+    "d3d_extras",
+    "dxvk",
+    "dxvk-cache-tool",
+    "dxvk-nvapi",
+    "vkd3d",
+    "Ubuntu-18.04-i686",
+    "Ubuntu-18.04-x86_64",
+    "network-tools",
+}
 
 
 class ComponentUpdater:
@@ -152,7 +84,7 @@ class RuntimeUpdater:
 
     def __init__(self, force: bool = False):
         if RUNTIME_DISABLED:
-            logger.warning("Runtime disabled by environment variable. Re-enable runtime before submitting issues.")
+            logger.warning("Component updates disabled by the LUTRIS_RUNTIME environment variable.")
             self.update_runtime = False
         elif force:
             self.update_runtime = True
@@ -160,7 +92,7 @@ class RuntimeUpdater:
             self.update_runtime = settings.read_bool_setting("auto_update_runtime", default=True)
 
             if not self.update_runtime:
-                logger.warning("Runtime updates are disabled. This configuration is not supported.")
+                logger.warning("Component updates are disabled. This configuration is not supported.")
 
             if not check_stale_runtime_versions():
                 self.update_runtime = False

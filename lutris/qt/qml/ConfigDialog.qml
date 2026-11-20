@@ -1,8 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
+import LutrisStyle
 
 Dialog {
     id: dialog
@@ -12,8 +13,8 @@ Dialog {
 
     parent: Overlay.overlay
     anchors.centerIn: parent
-    width: Math.min(900, parent.width - 32)
-    height: Math.min(680, parent.height - 32)
+    width: Math.min(920, parent.width - 48)
+    height: Math.min(700, parent.height - 48)
     title: controller.title
     modal: true
     closePolicy: controller.busy ? Popup.NoAutoClose : Popup.CloseOnEscape
@@ -24,15 +25,16 @@ Dialog {
     }
 
     contentItem: ColumnLayout {
-        spacing: 8
+        spacing: 12
 
         RowLayout {
             Layout.fillWidth: true
+            spacing: 10
 
             TabBar {
                 id: tabs
                 objectName: "configPages"
-                Layout.fillWidth: true
+                Layout.maximumWidth: parent.width - (search.visible ? search.width + advanced.width + 20 : 0)
                 currentIndex: dialog.controller.page
 
                 Repeater {
@@ -49,16 +51,29 @@ Dialog {
                 }
             }
 
+            Item { Layout.fillWidth: true }
+
             TextField {
+                id: search
                 objectName: "configSearch"
                 visible: !dialog.controller.infoPage
-                Layout.preferredWidth: 200
+                Layout.preferredWidth: 220
+                leftPadding: 34
                 placeholderText: qsTr("Search options")
                 Accessible.name: qsTr("Search options")
                 onTextEdited: dialog.controller.set_search(text)
+
+                Icon {
+                    x: 11
+                    anchors.verticalCenter: parent.verticalCenter
+                    symbol: "search"
+                    size: 16
+                    color: Theme.textSubtle
+                }
             }
 
             Switch {
+                id: advanced
                 objectName: "configShowAdvanced"
                 visible: !dialog.controller.infoPage
                 text: qsTr("Advanced")
@@ -74,7 +89,8 @@ Dialog {
             text: dialog.controller.pageDescription
             textFormat: Text.PlainText
             wrapMode: Text.WordWrap
-            font.italic: true
+            font.pointSize: Theme.smallSize
+            color: Theme.textMuted
         }
 
         ProgressBar {
@@ -99,30 +115,53 @@ Dialog {
             clip: true
             model: dialog.controller.options
             reuseItems: false
+            spacing: 2
+            rightMargin: 10
+            boundsBehavior: Flickable.StopAtBounds
             ScrollBar.vertical: ScrollBar {}
 
             section.property: "optionGroup"
-            section.delegate: Label {
+            section.delegate: ColumnLayout {
                 required property string section
 
-                width: ListView.view.width
-                topPadding: 12
-                bottomPadding: 4
-                text: section
-                font.bold: true
+                width: ListView.view.width - ListView.view.rightMargin
                 visible: section.length > 0
                 height: visible ? implicitHeight : 0
+                spacing: 6
+
+                Label {
+                    Layout.fillWidth: true
+                    Layout.topMargin: 18
+                    Layout.leftMargin: 10
+                    text: parent.section.toUpperCase()
+                    font.pointSize: Theme.smallSize * 0.92
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 0.8
+                    color: Theme.accentText
+                    elide: Text.ElideRight
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: 4
+                    implicitHeight: 1
+                    color: Theme.border
+                }
             }
 
             delegate: ConfigOption {
-                width: ListView.view.width
+                width: ListView.view.width - ListView.view.rightMargin
                 controller: dialog.controller
             }
 
             Label {
                 anchors.centerIn: parent
+                width: parent.width - 48
                 text: dialog.controller.emptyText
                 visible: text.length > 0
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                color: Theme.textMuted
             }
         }
     }
@@ -136,6 +175,7 @@ Dialog {
 
         Button {
             objectName: "configSave"
+            highlighted: true
             text: qsTr("Save")
             enabled: dialog.controller.ready && dialog.controller.modified && !dialog.controller.busy
             DialogButtonBox.buttonRole: DialogButtonBox.ActionRole

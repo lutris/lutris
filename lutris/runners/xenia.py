@@ -54,8 +54,6 @@ class xenia(wine):
         },
     ] + wine.runner_options
 
-    system_options_override = [{"option": "disable_runtime", "default": True}]
-
     @property
     def game_exe(self):
         """Return path to the managed Xenia Windows binary."""

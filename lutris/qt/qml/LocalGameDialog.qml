@@ -1,9 +1,10 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Dialogs as NativeDialogs
 import QtQuick.Layouts
+import LutrisStyle
 
 Dialog {
     id: dialog
@@ -67,6 +68,7 @@ Dialog {
 
             Button {
                 text: qsTr("Browse…")
+                icon.source: Theme.icon("folder")
                 enabled: !dialog.controller.working
                 Accessible.name: qsTr("Browse for executable")
                 onClicked: picker.open()
@@ -100,6 +102,7 @@ Dialog {
 
         Button {
             objectName: "confirmLocalGame"
+            highlighted: true
             text: dialog.controller.linking ? qsTr("Link Game") : qsTr("Add Game")
             enabled: !dialog.controller.working && executable.text.trim().length > 0
                      && (dialog.controller.linking || gameName.text.trim().length > 0)

@@ -481,9 +481,8 @@ Executing a file
 Execute files with the ``execute`` directive. Use the ``file`` parameter to
 reference a ``file id`` or a path, ``args`` to add command arguments,
 ``working_dir`` to set the directory to execute the command in (defaults to the install path).
-The command is executed within the Lutris Runtime (resolving most shared
-library dependencies). The file is made executable if necessary, no need to run
-chmodx before. You can also use ``env`` (environment variables), ``exclude_processes`` (space-separated list of processes to exclude from being monitored when determining if the execute phase finished), ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusion list) and ``disable_runtime`` (run a process without the Lutris Runtime, useful for running system binaries).
+The file is made executable if necessary, no need to run
+chmodx before. You can also use ``env`` (environment variables), ``exclude_processes`` (space-separated list of processes to exclude from being monitored when determining if the execute phase finished) and ``include_processes`` (the opposite of ``exclude_processes``, is used to override Lutris' built-in monitoring exclusion list).
 
 Example::
 

@@ -45,9 +45,6 @@ class yuzu(Runner):
         },
     ]
 
-    # yuzu currently uses an AppImage, no need for the runtime.
-    system_options_override = [{"option": "disable_runtime", "default": True}]
-
     @property
     def yuzu_data_dir(self):
         """Return dir where Yuzu files lie."""

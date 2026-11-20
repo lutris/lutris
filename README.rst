@@ -28,9 +28,10 @@ can use the following command:
 Installing games
 ================
 
-Sync a store library, select a game, and choose **Game Actions → Install**.
-For a local Windows setup executable, choose **Library → Run Windows Setup** in
-the Qt frontend. Use **Add Game** to configure a game that is already installed.
+Sync a store library, select a game, and choose **Install** in the bar at the
+bottom of the window (or right-click the game → **Install**). For a local
+Windows setup executable, choose **Add → Run Windows Setup**. Use
+**Add → Add Game** to configure a game that is already installed.
 
 Game library
 ============
@@ -43,7 +44,7 @@ runtime versions.
 Artwork comes from each game's store (Steam, Epic, GOG...), and from
 `SteamGridDB <https://www.steamgriddb.com>`_ for what stores lack and for games
 from no store. SteamGridDB needs your own API key, from your SteamGridDB
-account; set it in View → Artwork Sources, or in the
+account; set it in the main menu → Artwork Sources, or in the
 ``LUTRIS_STEAMGRIDDB_API_KEY`` environment variable. Upgrading from a
 version that was connected deletes the stored token
 (``~/.cache/lutris/auth-token``).
@@ -82,7 +83,7 @@ The following command line arguments are available::
 -v, --version                    Print the version of Lutris and exit
 -d, --debug                      Show debug messages
 -b, --output-script              Generate a bash script to run a game without the client
--e, --exec                       Execute a program with the lutris runtime
+-e, --exec                       Execute a program, monitored by Lutris
 -l, --list-games                 List all games in database
 -o, --installed                  Only list installed games
 -s, --list-steam-games           List available Steam games

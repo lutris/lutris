@@ -9,9 +9,7 @@ import shutil
 from gettext import gettext as _
 from pathlib import Path
 
-from lutris import runtime
 from lutris.cache import is_file_in_custom_cache
-from lutris.config import LutrisConfig
 from lutris.exceptions import MissingExecutableError, UnspecifiedVersionError
 from lutris.installer.errors import ScriptingError
 from lutris.installer.installer import LutrisInstaller
@@ -145,11 +143,6 @@ class CommandsMixin:
             working_dir = data.get("working_dir")
             if working_dir:
                 working_dir = self._substitute(working_dir)
-            if not data.get("disable_runtime"):
-                # Like Runner.get_runtime_env(); runtime-first breaks system GTK tools on new distros (#6998)
-                system_config = LutrisConfig(runner_slug=self.installer.runner).system_config
-                env.update(runtime.get_env(prefer_system_libs=system_config.get("prefer_system_libs", True)))
-
             # Loading environment variables set in the script
             env.update(self.script_env)
 
@@ -868,7 +861,9 @@ class CommandsMixin:
                 progress_callback=progress_callback,
             )
         except FileNotFoundError as err:
-            raise ScriptingError(_("gogdl runtime component not found. Please update your Lutris runtime.")) from err
+            raise ScriptingError(
+                _("gogdl hasn't been downloaded yet. Check for updates in Preferences → Updates, then try again.")
+            ) from err
         except Exception as err:
             raise ScriptingError(_("GOG depot download failed: %s") % err) from err
 

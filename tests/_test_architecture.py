@@ -23,7 +23,7 @@ NATIVE_QT_IMPORTS = {
     "lutris/qt/application.py": {"PySide6.QtWidgets.QApplication"},
     "lutris/qt/tray.py": {"PySide6.QtWidgets.QMenu", "PySide6.QtWidgets.QSystemTrayIcon"},
 }
-QUICK_MODULES = {"PySide6.QtCore", "PySide6.QtGui", "PySide6.QtQml", "PySide6.QtQuick"}
+QUICK_MODULES = {"PySide6.QtCore", "PySide6.QtGui", "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtQuickControls2"}
 GIO_DEFAULT = "Gio.Application.get_default()"
 
 

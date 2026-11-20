@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Dialogs as NativeDialogs
 import QtQuick.Layouts
 
@@ -80,6 +80,7 @@ Dialog {
 
         Button {
             objectName: "confirmGameMove"
+            highlighted: true
             text: qsTr("Move")
             enabled: dialog.controller.moveTarget.length > 0 && !dialog.controller.working
             DialogButtonBox.buttonRole: DialogButtonBox.ActionRole

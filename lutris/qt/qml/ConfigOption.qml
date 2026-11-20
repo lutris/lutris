@@ -1,9 +1,10 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Dialogs as NativeDialogs
 import QtQuick.Layouts
+import LutrisStyle
 
 // One option of a configuration page; the editor depends on the option's type
 ItemDelegate {
@@ -28,7 +29,13 @@ ItemDelegate {
 
     objectName: "configOption_" + optionKey
     hoverEnabled: true
-    padding: 6
+    padding: 8
+    horizontalPadding: 10
+
+    background: Rectangle {
+        radius: Theme.radius
+        color: option.hovered ? Theme.hover : "transparent"
+    }
 
     function commit(value: var): void {
         controller.set_value(optionSection, optionKey, value)
@@ -50,17 +57,33 @@ ItemDelegate {
 
         RowLayout {
             Layout.fillWidth: true
-            spacing: 12
+            spacing: 16
 
-            Label {
-                Layout.preferredWidth: option.optionType === "label" ? -1 : Math.min(260, option.width * 0.35)
+            RowLayout {
+                Layout.preferredWidth: option.optionType === "label" ? -1 : Math.min(280, option.width * 0.36)
+                Layout.maximumWidth: option.optionType === "label" ? -1 : Math.min(280, option.width * 0.36)
                 Layout.fillWidth: option.optionType === "label"
-                text: option.optionLabel
-                textFormat: Text.PlainText
-                wrapMode: Text.Wrap
-                font.bold: option.setHere
-                font.italic: option.changedBelow
-                enabled: option.optionEnabled
+                spacing: 8
+
+                // Marks the options this configuration level sets
+                Rectangle {
+                    implicitWidth: 6
+                    implicitHeight: 6
+                    radius: 3
+                    color: Theme.accent
+                    visible: option.setHere
+                }
+
+                Label {
+                    Layout.fillWidth: true
+                    text: option.optionLabel
+                    textFormat: Text.PlainText
+                    wrapMode: Text.Wrap
+                    font.weight: option.setHere ? Font.DemiBold : Font.Normal
+                    font.italic: option.changedBelow
+                    color: option.optionType === "label" ? Theme.textMuted : Theme.text
+                    enabled: option.optionEnabled
+                }
             }
 
             Loader {
@@ -87,7 +110,7 @@ ItemDelegate {
 
             ToolButton {
                 objectName: "resetOption_" + option.optionKey
-                text: qsTr("Reset")
+                icon.source: Theme.icon("refresh")
                 visible: option.setHere
                 ToolTip.visible: hovered
                 ToolTip.text: qsTr("Reset option to global or default config")
@@ -102,7 +125,8 @@ ItemDelegate {
             text: option.error || option.warning
             textFormat: Text.PlainText
             wrapMode: Text.Wrap
-            color: option.error ? "firebrick" : "darkorange"
+            font.pointSize: Theme.smallSize
+            color: option.error ? Theme.danger : Theme.warning
         }
     }
 
@@ -212,6 +236,7 @@ ItemDelegate {
 
             Button {
                 text: qsTr("Browse…")
+                icon.source: Theme.icon("folder")
                 Accessible.name: qsTr("Browse for %1").arg(option.optionLabel)
                 onClicked: filePicker.open()
             }
@@ -238,6 +263,7 @@ ItemDelegate {
 
             Button {
                 text: qsTr("Browse…")
+                icon.source: Theme.icon("folder")
                 Accessible.name: qsTr("Browse for %1").arg(option.optionLabel)
                 onClicked: folderPicker.open()
             }
@@ -273,7 +299,7 @@ ItemDelegate {
                     }
 
                     ToolButton {
-                        text: qsTr("Remove")
+                        icon.source: Theme.icon("close")
                         Accessible.name: qsTr("Remove %1").arg(fileRow.modelData)
                         onClicked: {
                             const files = Array.from(option.optionValue)
@@ -286,6 +312,7 @@ ItemDelegate {
 
             Button {
                 text: qsTr("Add Files…")
+                icon.source: Theme.icon("plus")
                 onClicked: filesPicker.open()
             }
 
@@ -343,7 +370,8 @@ ItemDelegate {
                     }
 
                     ToolButton {
-                        text: qsTr("Remove")
+                        icon.source: Theme.icon("close")
+                        Accessible.name: qsTr("Remove")
                         onClicked: {
                             mapping.rows.splice(mappingRow.index, 1)
                             mapping.commitRows()
@@ -354,6 +382,7 @@ ItemDelegate {
 
             Button {
                 text: qsTr("Add")
+                icon.source: Theme.icon("plus")
                 // A row without a name isn't saved, so it only lives here until it gets one
                 onClicked: mapping.rows = mapping.rows.concat([{ name: "", value: "" }])
             }

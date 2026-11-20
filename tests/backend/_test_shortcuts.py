@@ -99,7 +99,7 @@ def test_standalone_shortcut_runs_selected_configuration(
     (tmp_path / "games" / "shortcut.yml").write_text(
         f'game:\n  exe: "{executable}"\n  args: --primary\n  launch_configs:\n'
         f'    - name: Safe / Windowed\n      exe: "{executable}"\n      args: --windowed\n'
-        "system:\n  disable_runtime: true\n  gamemode: false\n",
+        "system:\n  gamemode: false\n",
         encoding="utf-8",
     )
 

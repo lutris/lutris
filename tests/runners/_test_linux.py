@@ -89,17 +89,11 @@ def test_runtime_wraps_primary_and_alternate_launches(steamapps: Path, tmp_path:
     assert command == ["wrapper", "--flag", str(launcher), "--", "./alternate game", "--name", "a b"]
 
 
-def test_none_skips_legacy_lutris_runtime(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_none_runs_against_no_library_overrides(tmp_path: Path) -> None:
     runner = linux()
     runner.game_config["exe"] = str(make_launcher(tmp_path / "game"))
-    runner.system_config.update(
-        disable_runtime=False, prefer_system_libs=False, use_sniper_runtime=True, gamemode=False
-    )
+    runner.system_config.update(use_sniper_runtime=True, gamemode=False)
 
-    def fail_if_called() -> dict[str, str]:
-        pytest.fail("Native Linux games should never load the old runtime")
-
-    monkeypatch.setattr(runner, "get_runtime_env", fail_if_called)
     command, env = get_launch_parameters(runner, runner.play())
     assert command == ["./game"]
     assert "LD_LIBRARY_PATH" not in env

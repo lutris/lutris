@@ -35,8 +35,6 @@ class linux(Runner):
         },
     ]
     system_options_override = [
-        {"option": "disable_runtime", "available": False},
-        {"option": "prefer_system_libs", "available": False},
         {"option": "use_sniper_runtime", "available": False},
     ]
 

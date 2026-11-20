@@ -1,9 +1,10 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Dialogs as NativeDialogs
 import QtQuick.Layouts
+import LutrisStyle
 
 Dialog {
     id: dialog
@@ -14,8 +15,8 @@ Dialog {
 
     parent: Overlay.overlay
     anchors.centerIn: parent
-    width: Math.min(640, parent.width - 32)
-    height: Math.min(520, parent.height - 32)
+    width: Math.min(680, parent.width - 48)
+    height: Math.min(560, parent.height - 48)
     title: controller.title
     modal: true
     closePolicy: installation.running ? Popup.NoAutoClose : Popup.CloseOnEscape
@@ -59,13 +60,14 @@ Dialog {
         currentIndex: dialog.installation.active ? 2 : dialog.controller.selected ? 1 : 0
 
         ColumnLayout {
-            spacing: 8
+            spacing: 12
 
             Label {
                 Layout.fillWidth: true
                 text: dialog.controller.choices.length === 0 ? qsTr("Looking for installers…")
                         : qsTr("Choose an installer.")
                 wrapMode: Text.WordWrap
+                color: Theme.textMuted
             }
 
             ProgressBar {
@@ -80,8 +82,10 @@ Dialog {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 clip: true
-                spacing: 6
+                spacing: 8
+                boundsBehavior: Flickable.StopAtBounds
                 model: dialog.controller.choices
+                ScrollBar.vertical: ScrollBar {}
 
                 delegate: Frame {
                     id: choice
@@ -97,16 +101,32 @@ Dialog {
                         RowLayout {
                             Layout.fillWidth: true
 
-                            Label {
+                            ColumnLayout {
                                 Layout.fillWidth: true
-                                text: qsTr("%1 · %2").arg(choice.modelData.version).arg(choice.modelData.runnerName)
-                                textFormat: Text.PlainText
-                                font.bold: true
-                                elide: Text.ElideRight
+                                spacing: 0
+
+                                Label {
+                                    Layout.fillWidth: true
+                                    text: choice.modelData.version
+                                    textFormat: Text.PlainText
+                                    font.pointSize: Theme.largeSize
+                                    font.weight: Font.DemiBold
+                                    elide: Text.ElideRight
+                                }
+
+                                Label {
+                                    Layout.fillWidth: true
+                                    text: choice.modelData.runnerName
+                                    textFormat: Text.PlainText
+                                    font.pointSize: Theme.smallSize
+                                    color: Theme.accentText
+                                    elide: Text.ElideRight
+                                }
                             }
 
                             Button {
                                 objectName: "chooseInstaller" + choice.modelData.id
+                                highlighted: true
                                 text: qsTr("Choose")
                                 enabled: !dialog.controller.loading
                                 Accessible.name: qsTr("Choose %1").arg(choice.modelData.version)
@@ -125,6 +145,8 @@ Dialog {
                                 text: modelData
                                 textFormat: Text.PlainText
                                 wrapMode: Text.Wrap
+                                font.pointSize: Theme.smallSize
+                                color: Theme.textMuted
                             }
                         }
                     }
@@ -138,6 +160,7 @@ Dialog {
             Label {
                 objectName: "installerSummary"
                 Layout.fillWidth: true
+                font.pointSize: Theme.largeSize
                 text: dialog.controller.requiredGame.length > 0
                         ? qsTr("This installer needs %1 to be installed first.").arg(dialog.controller.requiredGame)
                         : qsTr("Installer: %1").arg(dialog.controller.selectedVersion)
@@ -146,8 +169,10 @@ Dialog {
             }
 
             Label {
+                Layout.topMargin: 8
                 visible: dialog.controller.createsGameFolder
                 text: qsTr("Installation folder")
+                font.weight: Font.DemiBold
             }
 
             RowLayout {
@@ -164,6 +189,7 @@ Dialog {
 
                 Button {
                     text: qsTr("Browse…")
+                    icon.source: Theme.icon("folder")
                     Accessible.name: qsTr("Browse for installation folder")
                     onClicked: picker.open()
                 }
@@ -221,6 +247,7 @@ Dialog {
 
         Button {
             objectName: "installerStart"
+            highlighted: true
             text: qsTr("Install")
             visible: dialog.controller.selected && !dialog.installation.active
                      && dialog.controller.requiredGame.length === 0
@@ -240,6 +267,7 @@ Dialog {
 
         Button {
             objectName: "installerLaunch"
+            highlighted: true
             text: qsTr("Launch")
             visible: dialog.installation.stage === "finished" && dialog.installation.installedGameId.length > 0
             DialogButtonBox.buttonRole: DialogButtonBox.ActionRole

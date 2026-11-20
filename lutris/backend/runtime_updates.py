@@ -1,5 +1,5 @@
-"""Update the Lutris runtime: umu, Winetricks and the other components
-games run with. Progress is announced with RUNTIME_UPDATE_CHANGED."""
+"""Update the components Lutris runs games with: umu, gogdl, Winetricks and the
+rest. Progress is announced with RUNTIME_UPDATE_CHANGED."""
 
 import asyncio
 import html

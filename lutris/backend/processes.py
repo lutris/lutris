@@ -7,7 +7,7 @@ from lutris.util.log import logger
 
 
 async def run_command(command: str) -> int:
-    """Run a shell-style command line with the Lutris runtime, monitored like a game, and
+    """Run a shell-style command line, monitored like a game, and
     return its exit code, 128 + the signal number if it was killed, or 1 if it could not
     be run. Cancelling the call stops the command."""
     logger.info("Running command '%s'", command)

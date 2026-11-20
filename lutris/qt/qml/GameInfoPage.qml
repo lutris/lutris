@@ -1,8 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
+import LutrisStyle
 
 // The game's own details on its configuration form
 ScrollView {
@@ -44,16 +45,17 @@ ScrollView {
     }
 
     ColumnLayout {
-        width: page.availableWidth
-        spacing: 16
+        width: page.availableWidth - 10
+        spacing: 24
 
         GridLayout {
             Layout.fillWidth: true
+            Layout.topMargin: 6
             columns: 2
-            columnSpacing: 12
-            rowSpacing: 8
+            columnSpacing: 20
+            rowSpacing: 10
 
-            Label { text: qsTr("Name") }
+            Label { text: qsTr("Name"); color: Theme.textMuted }
             TextField {
                 objectName: "gameInfoName"
                 Layout.fillWidth: true
@@ -62,7 +64,7 @@ ScrollView {
                 onEditingFinished: page.controller.set_detail("name", text)
             }
 
-            Label { text: qsTr("Sort name") }
+            Label { text: qsTr("Sort name"); color: Theme.textMuted }
             TextField {
                 Layout.fillWidth: true
                 text: page.game.sortname ?? ""
@@ -71,7 +73,7 @@ ScrollView {
                 onEditingFinished: page.controller.set_detail("sortname", text)
             }
 
-            Label { text: qsTr("Runner") }
+            Label { text: qsTr("Runner"); color: Theme.textMuted }
             ComboBox {
                 id: runnerBox
                 objectName: "gameInfoRunner"
@@ -98,7 +100,7 @@ ScrollView {
                 }
             }
 
-            Label { text: qsTr("Release year") }
+            Label { text: qsTr("Release year"); color: Theme.textMuted }
             TextField {
                 Layout.preferredWidth: 120
                 text: page.game.year ?? ""
@@ -108,7 +110,7 @@ ScrollView {
                 onEditingFinished: page.controller.set_detail("year", text)
             }
 
-            Label { text: qsTr("Playtime") }
+            Label { text: qsTr("Playtime"); color: Theme.textMuted }
             TextField {
                 Layout.fillWidth: true
                 text: page.game.playtime ?? ""
@@ -117,7 +119,7 @@ ScrollView {
                 onEditingFinished: page.controller.set_detail("playtime", text)
             }
 
-            Label { text: qsTr("Identifier") }
+            Label { text: qsTr("Identifier"); color: Theme.textMuted }
             TextField {
                 Layout.fillWidth: true
                 text: page.game.slug ?? ""
@@ -129,6 +131,7 @@ ScrollView {
             Label {
                 visible: (page.game.directory ?? "").length > 0
                 text: qsTr("Directory")
+                color: Theme.textMuted
             }
             RowLayout {
                 visible: (page.game.directory ?? "").length > 0
@@ -150,6 +153,7 @@ ScrollView {
             Label {
                 visible: (page.game.configPath ?? "").length > 0
                 text: qsTr("Game config")
+                color: Theme.textMuted
             }
             RowLayout {
                 visible: (page.game.configPath ?? "").length > 0
@@ -170,6 +174,7 @@ ScrollView {
             Label {
                 visible: (page.game.preferredLaunch ?? "").length > 0
                 text: qsTr("Preferred launch configuration")
+                color: Theme.textMuted
             }
 
             RowLayout {

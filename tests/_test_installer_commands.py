@@ -56,7 +56,7 @@ class TestExecuteCommand(TestCase):
         self.assertEqual(params["return_code"], "7")
 
     def test_string_command_keeps_shell_parsing_and_monitoring(self):
-        result = self.interpreter.execute({"command": "  echo Hello World! | cat  ", "disable_runtime": True})
+        result = self.interpreter.execute({"command": "  echo Hello World! | cat  "})
 
         self.assertEqual(result, "STOP")
         self.assertEqual(self.process.call_args.args[0][1:], ["-c", "echo Hello World! | cat"])
@@ -72,7 +72,6 @@ class TestExecuteCommand(TestCase):
             "file": sys.executable,
             "args": '-c "print(123)"',
             "return_code": "7",
-            "disable_runtime": True,
         }
         result = self.interpreter.execute(params)
 
@@ -82,17 +81,12 @@ class TestExecuteCommand(TestCase):
         self.assertEqual(self.process.return_value.accepted_return_code, "7")
         self.process.return_value.start.assert_called_once_with()
 
-    def test_runtime_env_honours_prefer_system_libs(self):
-        for configured, expected in (({}, True), ({"prefer_system_libs": False}, False)):
-            with self.subTest(configured=configured):
-                with (
-                    patch("lutris.installer.commands.LutrisConfig") as config,
-                    patch("lutris.installer.commands.runtime.get_env", return_value={}) as get_env,
-                ):
-                    config.return_value.system_config = configured
-                    self.interpreter.execute({"command": "true"})
-                config.assert_called_once_with(runner_slug="linux")
-                get_env.assert_called_once_with(prefer_system_libs=expected)
+    def test_commands_run_without_library_overrides(self):
+        self.interpreter.execute({"command": "true", "env": {"GAME_SETTING": "1"}})
+
+        env = self.process.call_args.kwargs["env"]
+        self.assertEqual(env["GAME_SETTING"], "1")
+        self.assertNotIn("LD_LIBRARY_PATH", env)
 
     def test_file_and_command_remain_mutually_exclusive(self):
         with self.assertRaisesRegex(ScriptingError, "file and command can't be used at the same time"):

@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 
 Dialog {
@@ -89,6 +89,7 @@ Dialog {
 
         Button {
             objectName: "saveSteamGridDbKey"
+            highlighted: true
             text: qsTr("Save Key")
             visible: !dialog.controller.keyFromEnvironment
             enabled: !dialog.controller.working && key.text.trim().length > 0

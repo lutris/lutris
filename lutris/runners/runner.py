@@ -8,7 +8,7 @@ from collections.abc import Callable, Iterable
 from gettext import gettext as _
 from typing import TYPE_CHECKING, Any, TypeAlias, cast
 
-from lutris import runtime, settings
+from lutris import settings
 from lutris.api import format_runner_version, get_default_runner_version_info
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
@@ -295,7 +295,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
         return command
 
-    def get_env(self, os_env: bool = False, disable_runtime: bool = False) -> dict[str, str]:
+    def get_env(self, os_env: bool = False) -> dict[str, str]:
         """Return environment variables used for a game."""
         env = {}
         if os_env:
@@ -351,16 +351,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         if self.system_config.get("pulse_latency"):
             env["PULSE_LATENCY_MSEC"] = "60"
 
-        runtime_ld_library_path = None
-
-        if not disable_runtime and self.use_runtime():
-            runtime_env = self.get_runtime_env()
-            runtime_ld_library_path = runtime_env.get("LD_LIBRARY_PATH")
-
-        if runtime_ld_library_path:
-            ld_library_path = env.get("LD_LIBRARY_PATH")
-            env["LD_LIBRARY_PATH"] = os.pathsep.join(filter(None, [runtime_ld_library_path, ld_library_path]))
-
         # Apply user overrides at the end
         env.update(self.system_config.get("env") or {})
 
@@ -373,18 +363,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         'game' is None when the runner is launched standalone (get_run_data), in which
         case there is no game context to derive settings from."""
         return None
-
-    def get_runtime_env(self) -> dict[str, str]:
-        """Return runtime environment variables.
-
-        This method may be overridden in runner classes.
-        (Notably for Lutris wine builds)
-
-        Returns:
-            dict
-
-        """
-        return runtime.get_env(prefer_system_libs=self.system_config.get("prefer_system_libs", True))
 
     def apply_launch_config(self, gameplay_info: GamePlayInfoDict, launch_config: LaunchConfigDict) -> None:
         """Updates the gameplay_info to reflect a launch_config section. Called only
@@ -535,18 +513,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         if config_value is not None:
             return bool(config_value)
         return self.use_sniper_runtime
-
-    def use_runtime(self) -> bool:
-        if runtime.RUNTIME_DISABLED:
-            logger.info("Runtime disabled by environment")
-            return False
-        if self.system_config.get("disable_runtime"):
-            logger.info("Runtime disabled by system configuration")
-            return False
-        if self.sniper_enabled and get_sniper_run_command():
-            logger.info("Using Sniper runtime; old Lutris runtime disabled for %s", self.name)
-            return False
-        return True
 
     def filter_game_pids(self, candidate_pids: Iterable[int], game_uuid: str, game_folder: str) -> set[int]:
         """Checks the pids given and returns a set containing only those that are part of the running game,

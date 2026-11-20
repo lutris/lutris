@@ -25,9 +25,6 @@ class duckstation(Runner):
         }
     ]
 
-    # Duckstation uses an AppImage, no need for the runtime.
-    system_options_override = [{"option": "disable_runtime", "default": True}]
-
     def play(self):
         arguments = self.get_command()
 

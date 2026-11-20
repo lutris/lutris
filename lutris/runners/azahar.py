@@ -16,8 +16,6 @@ class azahar(Runner):
     flatpak_id = "org.azahar_emu.Azahar"
     download_url = f"https://github.com/azahar-emu/azahar/releases/download/{VER_STR}/azahar.AppImage"
 
-    # Azahar uses an AppImage, runtime causes QT  platform plugins issues.
-    system_options_override = [{"option": "disable_runtime", "default": True}]
     game_options = [
         {
             "option": "main_file",

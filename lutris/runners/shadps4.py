@@ -51,8 +51,6 @@ class shadps4(Runner):
         },
     ]
 
-    system_options_override = [{"option": "disable_runtime", "default": True}]
-
     def get_sdl_emulator_path(self):
         """Derive the SDL emulator path from the launcher path."""
         launcher = self.get_executable()

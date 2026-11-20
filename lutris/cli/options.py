@@ -37,7 +37,7 @@ _OPTIONS: list[tuple[str, str, GLib.OptionArg, str, str | None]] = [
     ("debug", "d", GLib.OptionArg.NONE, _("Show debug messages"), None),
     ("force", "f", GLib.OptionArg.NONE, _("Force updates"), None),
     ("output-script", "b", GLib.OptionArg.STRING, _("Generate a bash script to run a game without the client"), None),
-    ("exec", "e", GLib.OptionArg.STRING, _("Execute a program with the Lutris Runtime"), None),
+    ("exec", "e", GLib.OptionArg.STRING, _("Execute a program, monitored by Lutris"), None),
     ("list-games", "l", GLib.OptionArg.NONE, _("List all games in database"), None),
     ("installed", "o", GLib.OptionArg.NONE, _("Only list installed games"), None),
     ("list-steam-games", "s", GLib.OptionArg.NONE, _("List available Steam games"), None),

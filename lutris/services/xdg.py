@@ -118,7 +118,6 @@ class XDGService(BaseService):
                     "args": details["args"],
                     "working_dir": details["path"],
                 },
-                "system": {"disable_runtime": True},
             },
         }
 

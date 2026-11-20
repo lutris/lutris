@@ -14,11 +14,5 @@
             "label": "ROM file",
             "help": "The game data, commonly called a ROM image."
         }
-    ],
-    "system_options_override": [
-        {
-            "option": "disable_runtime",
-            "default": true
-        }
     ]
 }

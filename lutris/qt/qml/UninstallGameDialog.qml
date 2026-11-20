@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Basic
+import QtQuick.Controls
 import QtQuick.Layouts
 
 Dialog {
@@ -77,6 +77,7 @@ Dialog {
 
         Button {
             objectName: "confirmGameUninstall"
+            highlighted: true
             text: dialog.targetInstalled ? qsTr("Uninstall") : qsTr("Remove")
             enabled: dialog.controller.ready && !dialog.controller.working
             DialogButtonBox.buttonRole: DialogButtonBox.DestructiveRole

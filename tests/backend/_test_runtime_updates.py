@@ -8,7 +8,8 @@ import pytest
 
 from lutris.backend import runtime_updates
 from lutris.backend.models import RuntimeUpdateStatus
-from lutris.runtime import ComponentUpdater
+from lutris.runtime import ComponentUpdater, RuntimeUpdater
+from lutris.sysoptions import system_options
 from lutris.util.progress_info import ProgressInfo
 from tests.conftest import FakeMainLoop
 
@@ -87,3 +88,17 @@ def test_nothing_to_update(monkeypatch: pytest.MonkeyPatch, fake_main_loop: Fake
     monkeypatch.setattr(runtime_updates, "RuntimeUpdater", UpToDate)
     assert asyncio.run(runtime_updates.update_runtime()) == ()
     fake_main_loop.run_pending()
+
+
+def test_the_old_lutris_runtime_libraries_are_not_downloaded() -> None:
+    def component(name: str) -> dict[str, Any]:
+        return {"name": name, "architecture": "all", "url": f"https://example.invalid/{name}.tar.xz"}
+
+    names = ("umu", "gogdl", "winetricks", "Ubuntu-18.04-i686", "Ubuntu-18.04-x86_64", "network-tools")
+    updaters = RuntimeUpdater._get_runtime_updaters({"runtimes": {name: component(name) for name in names}})
+    assert [updater.name for updater in updaters] == ["umu", "gogdl", "winetricks"]
+
+
+def test_system_options_no_longer_offer_the_lutris_runtime() -> None:
+    options = {option["option"] for option in system_options}
+    assert not {"disable_runtime", "prefer_system_libs"} & options

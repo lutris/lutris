@@ -23,11 +23,5 @@
             "label": "Fullscreen",
             "argument": "--fullscreen"
         }
-    ],
-    "system_options_override": [
-        {
-            "option": "disable_runtime",
-            "default": true
-        }
     ]
 }
