@@ -33,14 +33,25 @@ class TestDllManager(TestCase):
         self.assertEqual(manager.version, "2.6")
 
 
-class TestDxvkVersionWarning(TestCase):
-    def test_numeric_version_does_not_raise(self):
-        config = SimpleNamespace(runner_config={"dxvk": True, "dxvk_version": 2.6})
+class TestProtonGraphics(TestCase):
+    """Proton brings its own DXVK and VKD3D; Lutris only falls back to WineD3D without Vulkan."""
+
+    def get_env(self, vulkan: bool) -> dict[str, str]:
+        runner = wine.wine()
         with (
-            patch.object(wine.LINUX_SYSTEM, "is_vulkan_supported", return_value=True),
-            patch.object(wine.vkquery, "get_vulkan_api_version", return_value=None),
+            patch.object(wine.LINUX_SYSTEM, "is_vulkan_supported", return_value=vulkan),
+            patch.object(runner, "get_executable", return_value="/usr/bin/wine"),
+            patch.object(runner, "read_version_from_config", return_value="system"),
         ):
-            self.assertIsNone(wine._get_dxvk_version_warning("dxvk_version", config))
+            return runner.get_env()
+
+    def test_wined3d_only_without_vulkan(self):
+        self.assertNotIn("PROTON_USE_WINED3D", self.get_env(vulkan=True))
+        self.assertEqual(self.get_env(vulkan=False)["PROTON_USE_WINED3D"], "1")
+
+    def test_no_dxvk_or_vkd3d_options(self):
+        option_names = {option["option"] for option in wine.wine().runner_options}
+        self.assertFalse(option_names & {"dxvk", "dxvk_version", "vkd3d", "vkd3d_version", "dxvk_nvapi", "d3d_extras"})
 
 
 class TestInstallerRunnerVersion(TestCase):

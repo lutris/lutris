@@ -279,11 +279,8 @@ has known regressions with the current default build. Abusing this feature
 slows down the development of the Wine project.
 Example: ``version: staging-2.21-x86_64``
 
-``dxvk``: Use this to disable DXVK if needed. (``dxvk: false``)
-
-``dxvk_version``: Use this to define a specific DXVK version. Version values
-must be quoted because YAML can parse numeric-looking versions as numbers.
-(``dxvk_version: "1.10.3"``)
+DXVK and VKD3D come with Proton, so scripts don't choose them; ``dxvk``,
+``dxvk_version``, ``vkd3d`` and their kind are ignored.
 
 ``esync``: Use this to disable esync. (``esync: false``)
 

@@ -38,20 +38,16 @@ from lutris.runners.commands.wine import (  # noqa: F401 pylint: disable=unused-
 from lutris.runners.runner import RunDataDict, Runner
 from lutris.util import system
 from lutris.util.display import get_default_dpi, get_display_manager, is_display_x11
-from lutris.util.graphics import drivers, vkquery
+from lutris.util.graphics import vkquery
 from lutris.util.http import HTTPError
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.process import Process
 from lutris.util.strings import split_arguments
 from lutris.util.wine import proton
-from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
-from lutris.util.wine.dxvk import REQUIRED_VULKAN_API_VERSION, DXVKManager
-from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
 from lutris.util.wine.extract_icon import PEFILE_AVAILABLE, IconExtractor
 from lutris.util.wine.prefix import DEFAULT_DLL_OVERRIDES, WinePrefixManager, find_prefix
-from lutris.util.wine.vkd3d import VKD3DManager
 from lutris.util.wine.wine import (
     GE_PROTON_LATEST,
     WINE_DEFAULT_ARCH,
@@ -144,59 +140,6 @@ def _get_exe_warning(_option_key: str, config: LutrisConfig) -> str | None:
 
     if not os.path.isfile(exe):
         return _("<b>Warning</b> Executable file does not exist")
-
-    return None
-
-
-def _get_dxvk_warning() -> str | None:
-    if drivers.is_outdated():
-        driver_info = drivers.get_nvidia_driver_info()
-        return _(
-            "<b>Warning</b> Your NVIDIA driver is outdated.\n"
-            "You are currently running driver %s which does not "
-            "fully support all features for Vulkan and DXVK games."
-        ) % (driver_info["version"],)
-
-    return None
-
-
-def _get_simple_vulkan_support_error(option_key: str, config: LutrisConfig, feature: str) -> str | None:
-    if os.environ.get("LUTRIS_NO_VKQUERY"):
-        return None
-    if config.runner_config.get(option_key) and not LINUX_SYSTEM.is_vulkan_supported():
-        return (
-            _("<b>Error</b> Vulkan is not installed or is not supported by your system, %s is not available.") % feature
-        )
-    return None
-
-
-def _get_dxvk_version_warning(_option_key: str, config: LutrisConfig) -> str | None:
-    if os.environ.get("LUTRIS_NO_VKQUERY"):
-        return None
-    runner_config = config.runner_config
-    if runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported():
-        version = runner_config.get("dxvk_version")
-        if version is not None:
-            version = str(version)
-        if version and not version.startswith("v1."):
-            library_api_version = vkquery.get_vulkan_api_version()
-            if library_api_version and library_api_version < REQUIRED_VULKAN_API_VERSION:
-                return _(
-                    "<b>Warning</b> Lutris has detected that Vulkan API version %s is installed, "
-                    "but to use the latest DXVK version, %s is required."
-                ) % (vkquery.format_version(library_api_version), vkquery.format_version(REQUIRED_VULKAN_API_VERSION))
-
-            devices = vkquery.get_device_info()
-
-            if devices and devices[0].api_version < REQUIRED_VULKAN_API_VERSION:
-                return _(
-                    "<b>Warning</b> Lutris has detected that the best device available ('%s') supports Vulkan API %s, "
-                    "but to use the latest DXVK version, %s is required."
-                ) % (
-                    devices[0].name,
-                    vkquery.format_version(devices[0].api_version),
-                    vkquery.format_version(REQUIRED_VULKAN_API_VERSION),
-                )
 
     return None
 
@@ -364,101 +307,6 @@ class wine(Runner):
             "default": False,
             "advanced": True,
             "help": _("Switch on to use /usr/bin/winetricks for winetricks."),
-        },
-        {
-            "option": "dxvk",
-            "section": _("Graphics"),
-            "label": _("Enable DXVK"),
-            "type": "bool",
-            "default": True,
-            "warning": _get_dxvk_warning,
-            "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("DXVK")),
-            "active": True,
-            "help": _(
-                "Use DXVK to "
-                "increase compatibility and performance in Direct3D 11, 10 "
-                "and 9 applications by translating their calls to Vulkan."
-            ),
-        },
-        {
-            "option": "dxvk_version",
-            "section": _("Graphics"),
-            "label": _("DXVK version"),
-            "advanced": True,
-            "type": "choice_with_entry",
-            "visible": _is_pre_proton,
-            "condition": LINUX_SYSTEM.is_vulkan_supported,
-            "conditional_on": "dxvk",
-            "choices": lambda: DXVKManager().version_choices,
-            "default": lambda: DXVKManager().version,
-            "warning": _get_dxvk_version_warning,
-        },
-        {
-            "option": "vkd3d",
-            "section": _("Graphics"),
-            "label": _("Enable VKD3D"),
-            "type": "bool",
-            "visible": _is_pre_proton,
-            "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("VKD3D")),
-            "default": True,
-            "active": True,
-            "help": _("Use VKD3D to enable support for Direct3D 12 applications by translating their calls to Vulkan."),
-        },
-        {
-            "option": "vkd3d_version",
-            "section": _("Graphics"),
-            "label": _("VKD3D version"),
-            "advanced": True,
-            "type": "choice_with_entry",
-            "visible": _is_pre_proton,
-            "condition": LINUX_SYSTEM.is_vulkan_supported,
-            "conditional_on": "vkd3d",
-            "choices": lambda: VKD3DManager().version_choices,
-            "default": lambda: VKD3DManager().version,
-        },
-        {
-            "option": "d3d_extras",
-            "section": _("Graphics"),
-            "label": _("Enable D3D Extras"),
-            "type": "bool",
-            "default": True,
-            "advanced": True,
-            "help": _(
-                "Replace Wine's D3DX and D3DCOMPILER libraries with alternative ones. "
-                "Needed for proper functionality of DXVK with some games."
-            ),
-        },
-        {
-            "option": "d3d_extras_version",
-            "section": _("Graphics"),
-            "label": _("D3D Extras version"),
-            "advanced": True,
-            "conditional_on": "d3d_extras",
-            "type": "choice_with_entry",
-            "choices": lambda: D3DExtrasManager().version_choices,
-            "default": lambda: D3DExtrasManager().version,
-        },
-        {
-            "option": "dxvk_nvapi",
-            "section": _("Graphics"),
-            "label": _("Enable DXVK-NVAPI / DLSS"),
-            "type": "bool",
-            "error": lambda k, c: _get_simple_vulkan_support_error(k, c, _("DXVK-NVAPI / DLSS")),
-            "default": True,
-            "advanced": True,
-            "visible": _is_pre_proton,
-            "help": _("Enable emulation of Nvidia's NVAPI and add DLSS support, if available."),
-        },
-        {
-            "option": "dxvk_nvapi_version",
-            "section": _("Graphics"),
-            "label": _("DXVK NVAPI version"),
-            "advanced": True,
-            "conditional_on": "dxvk_nvapi",
-            "visible": _is_pre_proton,
-            "type": "choice_with_entry",
-            "choices": lambda: DXVKNVAPIManager().version_choices,
-            "default": lambda: DXVKNVAPIManager().version,
         },
         {
             "option": "proton_hdr",
@@ -1264,10 +1112,6 @@ class wine(Runner):
         and the values are the enabled flags for them. If 'enabled_only' is true,
         only enabled managers are returned, so disabled managers are not created."""
         manager_classes = [
-            (DXVKManager, "dxvk", "dxvk_version"),
-            (VKD3DManager, "vkd3d", "vkd3d_version"),
-            (DXVKNVAPIManager, "dxvk_nvapi", "dxvk_nvapi_version"),
-            (D3DExtrasManager, "d3d_extras", "d3d_extras_version"),
             (dgvoodoo2Manager, "dgvoodoo2", "dgvoodoo2_version"),
         ]
 
@@ -1364,33 +1208,30 @@ class wine(Runner):
         if self.runner_config.get("fsr"):
             env["WINE_FULLSCREEN_FSR"] = "1"
 
-        if self.runner_config.get("dxvk_nvapi"):
-            env["DXVK_NVAPIHACK"] = "0"
-            env["DXVK_ENABLE_NVAPI"] = "1"
-
         if self.runner_config.get("battleye"):
             env["PROTON_BATTLEYE_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "battleye_runtime")
 
         if self.runner_config.get("eac"):
             env["PROTON_EAC_RUNTIME"] = os.path.join(settings.RUNTIME_DIR, "eac_runtime")
 
-        using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported()
-        if not using_dxvk:
+        # Proton brings its own DXVK and VKD3D, which need Vulkan; without it, WineD3D
+        has_vulkan = LINUX_SYSTEM.is_vulkan_supported()
+        if not has_vulkan:
             env["PROTON_USE_WINED3D"] = "1"
 
         if "PROTON_DXVK_D3D8" not in env:
-            env["PROTON_DXVK_D3D8"] = "1" if using_dxvk else "0"
+            env["PROTON_DXVK_D3D8"] = "1" if has_vulkan else "0"
 
         if (
-            using_dxvk
+            has_vulkan
             and is_proton_version
             and "PROTON_DXVK_SAREK" not in env
             and not os.environ.get("LUTRIS_NO_VKQUERY")
         ):
             lib_api_version = vkquery.get_vulkan_api_version()
             devices = vkquery.get_device_info()
-            if (lib_api_version and lib_api_version < REQUIRED_VULKAN_API_VERSION) or (
-                devices and devices[0].api_version < REQUIRED_VULKAN_API_VERSION
+            if (lib_api_version and lib_api_version < vkquery.REQUIRED_VULKAN_API_VERSION) or (
+                devices and devices[0].api_version < vkquery.REQUIRED_VULKAN_API_VERSION
             ):
                 env["PROTON_DXVK_SAREK"] = "1"
 
@@ -1479,9 +1320,7 @@ class wine(Runner):
         game_exe = self.game_exe
         arguments: str = self.game_config.get("args", "")
         launch_info: dict = {"env": self.get_env(os_env=False)}
-        using_dxvk = self.runner_config.get("dxvk") and LINUX_SYSTEM.is_vulkan_supported()
-
-        if using_dxvk:
+        if LINUX_SYSTEM.is_vulkan_supported():
             # Set this to 1 to enable access to more RAM for 32-bit applications
             launch_info["env"]["WINE_LARGE_ADDRESS_AWARE"] = "1"
 

@@ -63,6 +63,10 @@ def vk_make_version(major: int, minor: int, patch: int) -> int:
     return (major << 22) | (minor << 12) | patch
 
 
+# The Vulkan API version DXVK 2, as Proton bundles it, needs
+REQUIRED_VULKAN_API_VERSION = vk_make_version(1, 3, 0)
+
+
 def vk_api_version_major(version: int) -> int:
     return (version >> 22) & 0x7F
 

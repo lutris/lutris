@@ -22,22 +22,17 @@ from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.progress_info import ProgressInfo
 from lutris.util.strings import parse_version
-from lutris.util.wine.d3d_extras import D3DExtrasManager
 from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
-from lutris.util.wine.dxvk import DXVKManager
-from lutris.util.wine.dxvk_nvapi import DXVKNVAPIManager
-from lutris.util.wine.vkd3d import VKD3DManager
 
 RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").casefold() in ("0", "off")
 DEFAULT_RUNTIME = "Ubuntu-18.04"
 
 DLL_MANAGERS = {
-    "dxvk": DXVKManager,
-    "vkd3d": VKD3DManager,
-    "d3d_extras": D3DExtrasManager,
     "dgvoodoo2": dgvoodoo2Manager,
-    "dxvk_nvapi": DXVKNVAPIManager,
 }
+
+# Components Proton bundles, so Lutris no longer downloads them
+UNUSED_RUNTIMES = {"d3d_extras", "dxvk", "dxvk-cache-tool", "dxvk-nvapi", "vkd3d"}
 
 
 def get_env(
@@ -220,6 +215,8 @@ class RuntimeUpdater:
         """Launch the update process"""
         updaters: list[ComponentUpdater] = []
         for name, remote_runtime in runtime_versions.get("runtimes", {}).items():
+            if name in UNUSED_RUNTIMES:
+                continue
             if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
                 logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
                 continue

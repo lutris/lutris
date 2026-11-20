@@ -353,17 +353,13 @@ lutris/util/ubisoft/parser.py
 lutris/util/urlhandler.py
 lutris/util/wine/__init__.py
 lutris/util/wine/cabinstall.py
-lutris/util/wine/d3d_extras.py
 lutris/util/wine/dgvoodoo2.py
 lutris/util/wine/dll_manager.py
-lutris/util/wine/dxvk.py
-lutris/util/wine/dxvk_nvapi.py
 lutris/util/wine/extract_icon.py
 lutris/util/wine/fsync.py
 lutris/util/wine/prefix.py
 lutris/util/wine/proton.py
 lutris/util/wine/registry.py
-lutris/util/wine/vkd3d.py
 lutris/util/wine/wine.py
 lutris/util/xdgshortcuts.py
 lutris/util/yaml.py

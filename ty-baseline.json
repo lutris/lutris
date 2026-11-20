@@ -249,20 +249,6 @@
         "lineCount": 1
       }
     ],
-    "lutris/gui/config/accounts_box.py": [
-      {
-        "rule": "too-many-positional-arguments",
-        "startColumn": 28,
-        "endColumn": 39,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 41,
-        "endColumn": 67,
-        "lineCount": 1
-      }
-    ],
     "lutris/gui/config/base_config_box.py": [
       {
         "rule": "missing-union-attribute",
@@ -1801,18 +1787,6 @@
         "startColumn": 106,
         "endColumn": 115,
         "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 8,
-        "endColumn": 37,
-        "lineCount": 1
-      },
-      {
-        "rule": "missing-union-attribute",
-        "startColumn": 8,
-        "endColumn": 37,
-        "lineCount": 1
       }
     ],
     "lutris/gui/widgets/status_icon.py": [
@@ -2885,12 +2859,6 @@
         "lineCount": 1
       },
       {
-        "rule": "invalid-argument-type",
-        "startColumn": 55,
-        "endColumn": 64,
-        "lineCount": 1
-      },
-      {
         "rule": "unsupported-operator",
         "startColumn": 11,
         "endColumn": 39,
@@ -3037,18 +3005,6 @@
     ],
     "lutris/services/service_media.py": [
       {
-        "rule": "not-subscriptable",
-        "startColumn": 15,
-        "endColumn": 27,
-        "lineCount": 1
-      },
-      {
-        "rule": "not-subscriptable",
-        "startColumn": 15,
-        "endColumn": 27,
-        "lineCount": 1
-      },
-      {
         "rule": "invalid-argument-type",
         "startColumn": 53,
         "endColumn": 67,
@@ -3076,30 +3032,6 @@
         "rule": "not-iterable",
         "startColumn": 93,
         "endColumn": 111,
-        "lineCount": 1
-      },
-      {
-        "rule": "not-subscriptable",
-        "startColumn": 23,
-        "endColumn": 39,
-        "lineCount": 1
-      },
-      {
-        "rule": "not-subscriptable",
-        "startColumn": 42,
-        "endColumn": 54,
-        "lineCount": 1
-      },
-      {
-        "rule": "not-subscriptable",
-        "startColumn": 27,
-        "endColumn": 43,
-        "lineCount": 1
-      },
-      {
-        "rule": "not-subscriptable",
-        "startColumn": 47,
-        "endColumn": 59,
         "lineCount": 1
       },
       {
@@ -3542,20 +3474,6 @@
         "rule": "invalid-argument-type",
         "startColumn": 22,
         "endColumn": 39,
-        "lineCount": 1
-      }
-    ],
-    "lutris/util/wine/dxvk_nvapi.py": [
-      {
-        "rule": "no-matching-overload",
-        "startColumn": 23,
-        "endColumn": 67,
-        "lineCount": 1
-      },
-      {
-        "rule": "no-matching-overload",
-        "startColumn": 23,
-        "endColumn": 67,
         "lineCount": 1
       }
     ],
@@ -4030,14 +3948,6 @@
         "rule": "invalid-argument-type",
         "startColumn": 56,
         "endColumn": 59,
-        "lineCount": 1
-      }
-    ],
-    "tests/_test_wine.py": [
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 77,
-        "endColumn": 83,
         "lineCount": 1
       }
     ],
