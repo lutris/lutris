@@ -6,28 +6,28 @@ from lutris.backend.models import LibraryGame
 from lutris.qt.library_model import COLUMNS, GameRole, LibraryModel
 
 
-def make_game(game_id: str, name: str, installed: bool = True, **values) -> LibraryGame:
-    fields = {
-        "id": game_id,
-        "game_id": game_id,
-        "name": name,
-        "sortname": "",
-        "slug": name.lower(),
-        "year": None,
-        "runner": "linux",
-        "runner_name": "Linux",
-        "platform": "Linux",
-        "installed": installed,
-        "installed_at": None,
-        "lastplayed": None,
-        "playtime": None,
-        "service": None,
-        "service_id": None,
-        "appid": None,
-        "icon": None,
-    }
-    fields.update(values)
-    return LibraryGame(**fields)
+def make_game(
+    game_id: str, name: str, installed: bool = True, *, year: int | None = None, playtime: float | None = None
+) -> LibraryGame:
+    return LibraryGame(
+        id=game_id,
+        game_id=game_id,
+        name=name,
+        sortname="",
+        slug=name.lower(),
+        year=year,
+        runner="linux",
+        runner_name="Linux",
+        platform="Linux",
+        installed=installed,
+        installed_at=None,
+        lastplayed=None,
+        playtime=playtime,
+        service=None,
+        service_id=None,
+        appid=None,
+        icon=None,
+    )
 
 
 def column(name: str) -> int:

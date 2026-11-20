@@ -51,6 +51,16 @@ class SteamGameInfo:
 
 
 @dataclass(frozen=True)
+class LibraryArtwork:
+    """Local artwork for a library row, with an optional desktop icon name."""
+
+    cover_path: str | None
+    banner_path: str | None
+    icon_path: str | None
+    icon_name: str | None = None
+
+
+@dataclass(frozen=True)
 class LibraryGame:
     """A row of a library view: a game in the library, or in a service's view, a game the
     service offers, with what the library knows about it if it was installed from there."""
@@ -81,6 +91,8 @@ class LibraryGame:
     appid: str | None
     # The icon the service provided, for some services
     icon: str | None
+    # Resolved only when the query requests artwork
+    artwork: LibraryArtwork | None = None
 
 
 @dataclass(frozen=True)

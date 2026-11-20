@@ -78,7 +78,7 @@ class ServiceMedia:
     """Information about the service's media format"""
 
     service = NotImplemented
-    size = NotImplemented
+    size: tuple[int, int] = NotImplemented
     source = "remote"  # set to local if the files don't need to be downloaded
     visible = True  # This media should be displayed as an option in the UI
     dest_path = NotImplemented
@@ -87,9 +87,9 @@ class ServiceMedia:
     url_pattern = "%s"
     can_be_fallback = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         if self.dest_path and not system.path_exists(self.dest_path):
-            os.makedirs(self.dest_path)
+            os.makedirs(self.dest_path, exist_ok=True)
 
     def get_filename(self, slug):
         return self.file_patterns[0] % slug

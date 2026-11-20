@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any
 
 from lutris import settings
+from lutris.backend.media import ArtworkResolver
 from lutris.backend.models import LibraryGame, SavedSearchInfo
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
@@ -61,11 +62,12 @@ class LibraryQuery:
     # The games running now, for the "running" dynamic category
     running_game_ids: tuple[str, ...] = ()
     sort: LibrarySort = field(default_factory=LibrarySort)
+    include_artwork: bool = False
 
 
 async def query_games(query: LibraryQuery) -> list[LibraryGame]:
     """Return the games a view shows, in order. A service's view is empty while its
-    account is logged out."""
+    account is logged out. Artwork is read from local caches when requested."""
     return await asyncio.to_thread(_query_games, query)
 
 
@@ -138,14 +140,17 @@ async def search_mentions(text: str, tag: str) -> bool:
 
 def _query_games(query: LibraryQuery, only_game_ids: set[str] | None = None) -> list[LibraryGame]:
     """Return the games a view shows; only those in only_game_ids, if given."""
+    artwork = ArtworkResolver() if query.include_artwork else None
     if query.service in SERVICES:
         service = SERVICES[query.service]()
         if isinstance(service, OnlineService) and not service.is_authenticated():
             return []
-        return _get_service_games(query, query.service, service)
+        return _get_service_games(query, query.service, service, artwork)
 
     if query.dynamic_category in DYNAMIC_CATEGORIES:
-        return [_to_library_game(db_game) for db_game in _get_dynamic_category_games(query, only_game_ids)]
+        return [
+            _to_library_game(db_game, artwork=artwork) for db_game in _get_dynamic_category_games(query, only_game_ids)
+        ]
 
     search = _get_game_search(query)
     category = query.category or "all"
@@ -186,7 +191,7 @@ def _query_games(query: LibraryQuery, only_game_ids: set[str] | None = None) -> 
     db_games = games_db.get_games(filters=filters, excludes=excludes)
     db_games = [g for g in db_games if g["id"] in category_game_ids and (not only_game_ids or g["id"] in only_game_ids)]
     db_games = _filter_games(query, db_games, searches)
-    return [_to_library_game(db_game) for db_game in _sort_games(query.sort, db_games)]
+    return [_to_library_game(db_game, artwork=artwork) for db_game in _sort_games(query.sort, db_games)]
 
 
 def _get_dynamic_category_games(query: LibraryQuery, only_game_ids: set[str] | None = None) -> list[dict[str, Any]]:
@@ -231,7 +236,9 @@ def _filter_games(
     return [game for game in db_games if all(search.matches(game) for search in to_apply)]
 
 
-def _get_service_games(query: LibraryQuery, service_id: str, service: BaseService) -> list[LibraryGame]:
+def _get_service_games(
+    query: LibraryQuery, service_id: str, service: BaseService, artwork: ArtworkResolver | None
+) -> list[LibraryGame]:
     service_games = ServiceGameCollection.get_for_service(service_id)
     for service_game in service_games:
         service_game["year"] = service.get_game_release_year(service_game)
@@ -250,7 +257,7 @@ def _get_service_games(query: LibraryQuery, service_id: str, service: BaseServic
         for service_game in _sort_games(query.sort, service_games, get_sort_data, service)
     ]
     return [
-        _to_library_game(game, service, installed_games.get(game["appid"]))
+        _to_library_game(game, service, installed_games.get(game["appid"]), artwork=artwork)
         for game in _filter_games(query, combined, service=service)
     ]
 
@@ -266,7 +273,11 @@ def _combine_games(service_game: dict[str, Any], lutris_game: dict[str, Any] | N
 
 
 def _to_library_game(
-    game: dict[str, Any], service: BaseService | None = None, installed_game: dict[str, Any] | None = None
+    game: dict[str, Any],
+    service: BaseService | None = None,
+    installed_game: dict[str, Any] | None = None,
+    *,
+    artwork: ArtworkResolver | None = None,
 ) -> LibraryGame:
     """Return the row for a library game, or a service game together with the library
     game installed from it, if any, which provides what the service doesn't know."""
@@ -291,12 +302,26 @@ def _to_library_game(
         platform = ", ".join(platforms) if platforms else None
 
     runner = get("runner") or ""
+    slug = game["slug"] or ""
+    artwork_info = None
+    if artwork:
+        lutris_slug = slug
+        if is_service_game:
+            lutris_slug = (installed_game or {}).get("slug") or game.get("lutris_slug") or ""
+        artwork_info = artwork.resolve(
+            lutris_slug=lutris_slug,
+            service=game.get("service") or "",
+            service_id=str(game.get("service_id") or ""),
+            service_slug=slug if is_service_game else "",
+            icon=game.get("icon") or "",
+        )
+
     return LibraryGame(
         id=str(view_id),
         game_id=str(game["id"]) if not is_service_game else (str(installed_game["id"]) if installed_game else None),
         name=game["name"] or "",
         sortname=get("sortname") or "",
-        slug=game["slug"] or "",
+        slug=slug,
         year=_to_int(get("year")),
         runner=runner or None,
         runner_name=get_runner_human_name(runner) or None,
@@ -309,6 +334,7 @@ def _to_library_game(
         service_id=game.get("service_id") or None,
         appid=game.get("appid") or None,
         icon=game.get("icon") or None,
+        artwork=artwork_info,
     )
 
 

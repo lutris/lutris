@@ -94,6 +94,13 @@ class LibraryModel(QAbstractTableModel):
             return get_column_text(game, COLUMNS[index.column()][0])
         if role == GameRole:
             return game
+        if role == Qt.ItemDataRole.ToolTipRole and index.column() == 0:
+            return game.name
+        if role == Qt.ItemDataRole.AccessibleDescriptionRole and index.column() == 0:
+            if game.game_id in self._running_game_ids:
+                return _("Running")
+            if not game.installed:
+                return _("Not installed")
         if role == Qt.ItemDataRole.FontRole and game.game_id in self._running_game_ids:
             font = QFont()
             font.setBold(True)

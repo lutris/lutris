@@ -6,7 +6,9 @@ from lutris import game as core
 from lutris.backend import events
 from lutris.backend.models import GameInfo
 from lutris.database import games as games_db
+from lutris.services.service_media import MEDIA_CACHE_INVALIDATED
 from lutris.util.test_config import setup_test_environment
+from tests.conftest import FakeMainLoop
 
 setup_test_environment()
 
@@ -22,6 +24,18 @@ def collect(event):
     received = []
     registration = event.register(lambda *args: received.append(args))
     return received, registration
+
+
+def test_media_cache_invalidation_is_forwarded(fake_main_loop: FakeMainLoop) -> None:
+    received, registration = collect(events.ARTWORK_CHANGED)
+    try:
+        MEDIA_CACHE_INVALIDATED.fire()
+        fake_main_loop.run_pending()
+        fake_main_loop.run_pending()
+    finally:
+        registration.unregister()
+
+    assert received == [()]
 
 
 @pytest.mark.parametrize(
@@ -42,6 +56,10 @@ def test_game_events_carry_game_info(fake_main_loop, game, core_event, event):
         fake_main_loop.run_pending()  # The backend's
     finally:
         registration.unregister()
+        if core_event is core.GAME_START:
+            core.GAME_STOPPED.fire(game)
+            fake_main_loop.run_pending()
+            fake_main_loop.run_pending()
 
     assert len(received) == 1
     (info,) = received[0]

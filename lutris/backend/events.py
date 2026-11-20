@@ -12,6 +12,7 @@ from lutris import game as core
 from lutris.backend.games import game_info_from
 from lutris.database.categories import CATEGORIES_UPDATED
 from lutris.database.saved_searches import SAVED_SEARCHES_UPDATED
+from lutris.services.service_media import MEDIA_CACHE_INVALIDATED
 from lutris.util.notifications import NotificationSource
 
 # Fired with a GameInfo when a game's details change: its name, playtime, categories...
@@ -34,6 +35,8 @@ GAME_FAILED = NotificationSource()
 CATEGORIES_CHANGED = NotificationSource()
 # Fired with nothing when saved searches are added, changed or removed
 SAVED_SEARCHES_CHANGED = NotificationSource()
+# Fired with nothing when local artwork is downloaded or replaced
+ARTWORK_CHANGED = NotificationSource()
 
 
 def _forward_game(event: NotificationSource) -> Any:
@@ -52,3 +55,4 @@ core.GAME_LAUNCH_STATUS.register(lambda game: GAME_LAUNCH_STATUS.fire(game.id, g
 core.GAME_UNHANDLED_ERROR.register(lambda game, error: GAME_FAILED.fire(game.id, error))
 CATEGORIES_UPDATED.register(lambda *_args: CATEGORIES_CHANGED.fire())
 SAVED_SEARCHES_UPDATED.register(lambda *_args: SAVED_SEARCHES_CHANGED.fire())
+MEDIA_CACHE_INVALIDATED.register(ARTWORK_CHANGED.fire)

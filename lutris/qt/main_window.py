@@ -5,8 +5,8 @@ from gettext import gettext as _
 from gettext import ngettext
 from typing import Any
 
-from PySide6.QtCore import QModelIndex, Qt, QTimer, Signal
-from PySide6.QtGui import QAction, QCloseEvent, QKeySequence
+from PySide6.QtCore import QItemSelectionModel, QModelIndex, Qt, QTimer, Signal
+from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
@@ -14,17 +14,20 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QMainWindow,
+    QMenu,
     QSplitter,
     QStackedWidget,
     QTableView,
     QToolBar,
+    QToolButton,
 )
 
 from lutris import settings
-from lutris.backend import events, games, library
+from lutris.backend import events, games, library, media
 from lutris.backend.library import LibraryQuery, LibrarySort
 from lutris.backend.models import GameInfo, LibraryGame
 from lutris.qt.delegates import QtLaunchUIDelegate
+from lutris.qt.library_grid import LibraryGrid
 from lutris.qt.library_model import COLUMNS, GameRole, LibraryModel
 from lutris.qt.sidebar import ALL_GAMES, Sidebar
 from lutris.qt.tasks import show_error, start_task
@@ -32,6 +35,7 @@ from lutris.util.notifications import NotificationRegistration
 
 # How long typing in the search field pauses before the view follows it, in milliseconds
 SEARCH_DELAY_MS = 250
+LIBRARY_LAYOUTS = (("covers", _("Covers")), ("banners", _("Banners")), ("list", _("List")))
 
 
 class MainWindow(QMainWindow):
@@ -49,6 +53,7 @@ class MainWindow(QMainWindow):
         self._view: dict[str, str] = dict(ALL_GAMES)
         self._running_game_ids: set[str] = set()
         self._refresh_task: asyncio.Task[None] | None = None
+        self._artwork_task: asyncio.Task[None] | None = None
         self._refresh_timer = QTimer(self, singleShot=True, interval=SEARCH_DELAY_MS)
         self._refresh_timer.timeout.connect(self.refresh)
 
@@ -71,12 +76,28 @@ class MainWindow(QMainWindow):
         header.setSectionsClickable(True)
         header.sectionClicked.connect(self.on_header_clicked)
         self.table.doubleClicked.connect(self.on_game_activated)
-        self.table.selectionModel().selectionChanged.connect(lambda *_args: self.update_actions())
+        self.selection = self.table.selectionModel()
+        self.selection.selectionChanged.connect(lambda *_args: self.update_actions())
+
+        self.grid = LibraryGrid()
+        self.grid.setModel(self.model)
+        self.grid.setSelectionModel(self.selection)
+        self.grid.doubleClicked.connect(self.on_game_activated)
+        grid_launch = QShortcut(self.grid)
+        grid_launch.setKeys([QKeySequence(Qt.Key.Key_Return), QKeySequence(Qt.Key.Key_Enter)])
+        grid_launch.setContext(Qt.ShortcutContext.WidgetShortcut)
+        grid_launch.activated.connect(self.on_grid_enter)
+
+        saved_layout = settings.read_setting("qt_library_layout", "covers")
+        self._layout = saved_layout if saved_layout in dict(LIBRARY_LAYOUTS) and settings.SHOW_MEDIA else "list"
+        self.grid.set_banners(self._layout == "banners")
 
         self.empty_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter, wordWrap=True)
         self.games_stack = QStackedWidget()
         self.games_stack.addWidget(self.table)
+        self.games_stack.addWidget(self.grid)
         self.games_stack.addWidget(self.empty_label)
+        self.games_stack.setCurrentWidget(self.empty_label)
 
         splitter = QSplitter()
         splitter.addWidget(self.sidebar)
@@ -105,6 +126,9 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         toolbar.addWidget(self.search_entry)
         toolbar.addWidget(self.installed_check)
+        toolbar.addWidget(self.create_sort_button())
+        if settings.SHOW_MEDIA:
+            toolbar.addWidget(self.create_view_button())
         self.addToolBar(toolbar)
 
         self._registrations: list[NotificationRegistration] = [
@@ -115,10 +139,52 @@ class MainWindow(QMainWindow):
             events.GAME_FAILED.register(self.on_game_failed),
             events.CATEGORIES_CHANGED.register(self.refresh_sidebar),
             events.SAVED_SEARCHES_CHANGED.register(self.refresh_sidebar),
+            events.ARTWORK_CHANGED.register(self.on_artwork_changed),
         ]
         self.update_sort_indicator()
         self.update_actions()
-        start_task(self.load(), self)
+        self._load_task = start_task(self.load(), self)
+
+    def create_sort_button(self) -> QToolButton:
+        button = QToolButton(popupMode=QToolButton.ToolButtonPopupMode.InstantPopup)
+        button.setText(_("Sort By"))
+        menu = QMenu(button)
+        button.setMenu(menu)
+        group = QActionGroup(menu)
+        self._sort_actions: dict[str, QAction] = {}
+        for _column, title, key in COLUMNS:
+            if key:
+                action = menu.addAction(title)
+                action.setCheckable(True)
+                group.addAction(action)
+                action.triggered.connect(
+                    lambda _checked, sort_key=key: self.change_sort(
+                        sort_key, self.sort.key == sort_key and self.sort.reverse
+                    )
+                )
+                self._sort_actions[key] = action
+        menu.addSeparator()
+        self._reverse_sort = menu.addAction(_("Reverse Order"))
+        self._reverse_sort.setCheckable(True)
+        self._reverse_sort.triggered.connect(lambda checked: self.change_sort(self.sort.key, checked))
+        return button
+
+    def create_view_button(self) -> QToolButton:
+        button = QToolButton(popupMode=QToolButton.ToolButtonPopupMode.InstantPopup)
+        button.setText(_("View"))
+        menu = QMenu(button)
+        button.setMenu(menu)
+        group = QActionGroup(menu)
+        for layout, title in LIBRARY_LAYOUTS:
+            action = menu.addAction(title)
+            action.setCheckable(True)
+            action.setChecked(self._layout == layout)
+            group.addAction(action)
+            action.triggered.connect(lambda _checked, new_layout=layout: self.change_layout(new_layout))
+        menu.addSeparator()
+        self._update_artwork_action = menu.addAction(_("Update Game Artwork"))
+        self._update_artwork_action.triggered.connect(self.on_update_artwork)
+        return button
 
     async def load(self) -> None:
         self._running_game_ids = set(await games.list_running_game_ids())
@@ -143,6 +209,7 @@ class MainWindow(QMainWindow):
             installed_only=self.installed_check.isChecked(),
             running_game_ids=tuple(self._running_game_ids),
             sort=self.sort,
+            include_artwork=self._layout != "list",
             **self._view,  # type: ignore[arg-type]
         )
 
@@ -154,19 +221,18 @@ class MainWindow(QMainWindow):
 
     async def _refresh(self) -> None:
         query = self.get_query()
-        selected = self.get_selected_game()
         game_list = await library.query_games(query)
+        empty_text = await self.get_empty_text(query) if not game_list else ""
+        selected = self.get_selected_game()
         self.model.set_games(game_list)
         if selected:
             row = self.model.find_row(selected.id)
             if row is not None:
-                self.table.selectRow(row)
+                flags = QItemSelectionModel.SelectionFlag
+                self.selection.setCurrentIndex(self.model.index(row, 0), flags.ClearAndSelect | flags.Rows)
 
-        if game_list:
-            self.games_stack.setCurrentWidget(self.table)
-        else:
-            self.empty_label.setText(await self.get_empty_text(query))
-            self.games_stack.setCurrentWidget(self.empty_label)
+        self.empty_label.setText(empty_text)
+        self.show_library_view()
         self.search_entry.setPlaceholderText(
             ngettext("Search %d game", "Search %d games", len(game_list)) % len(game_list)
             if game_list
@@ -191,7 +257,7 @@ class MainWindow(QMainWindow):
         start_task(self.sidebar.refresh(), self)
 
     def get_selected_game(self) -> LibraryGame | None:
-        indexes = self.table.selectionModel().selectedRows() if self.table.selectionModel() else []
+        indexes = self.selection.selectedIndexes()
         return self.model.get_game(indexes[0]) if indexes else None
 
     def update_actions(self) -> None:
@@ -207,16 +273,70 @@ class MainWindow(QMainWindow):
         descending = sort.reverse if sort.key == "name" else not sort.reverse
         order = Qt.SortOrder.DescendingOrder if descending else Qt.SortOrder.AscendingOrder
         self.table.horizontalHeader().setSortIndicator(column, order)
+        action = self._sort_actions.get(sort.key)
+        if action:
+            action.setChecked(True)
+        self._reverse_sort.setChecked(sort.reverse)
 
     def on_header_clicked(self, column: int) -> None:
         """Sort by a column, or flip the order if it sorts by it already."""
         key = COLUMNS[column][2]
         if key:
             sort = self.sort
-            settings.write_setting("view_reverse_order", not sort.reverse if key == sort.key else False)
-            settings.write_setting("view_sorting", key)
-            self.refresh()
+            self.change_sort(key, not sort.reverse if key == sort.key else False)
+
+    def change_sort(self, key: str, reverse: bool) -> None:
+        settings.write_setting("view_sorting", key)
+        settings.write_setting("view_reverse_order", reverse)
         self.update_sort_indicator()
+        self.refresh()
+
+    def change_layout(self, layout: str) -> None:
+        if layout == self._layout:
+            return
+        needs_artwork = self._layout == "list" and layout != "list"
+        self._layout = layout
+        settings.write_setting("qt_library_layout", layout)
+        self.grid.set_banners(layout == "banners")
+        self.show_library_view()
+        if needs_artwork:
+            self.refresh()
+
+    def show_library_view(self) -> None:
+        if not self.model.rowCount():
+            self.games_stack.setCurrentWidget(self.empty_label)
+            return
+        view = self.table if self._layout == "list" else self.grid
+        self.games_stack.setCurrentWidget(view)
+        if self.selection.currentIndex().isValid():
+            view.scrollTo(self.selection.currentIndex(), QAbstractItemView.ScrollHint.EnsureVisible)
+
+    def on_artwork_changed(self) -> None:
+        self.grid.invalidate_artwork()
+        if self._layout != "list":
+            self._refresh_timer.start()
+
+    def on_update_artwork(self) -> None:
+        if self._artwork_task and not self._artwork_task.done():
+            return
+        self._artwork_task = start_task(self.update_artwork(), self)
+
+    async def update_artwork(self) -> None:
+        self._update_artwork_action.setEnabled(False)
+        self.statusBar().showMessage(_("Updating artwork…"))
+        try:
+            count = await media.update_artwork()
+            message = (
+                ngettext("Downloaded %d image", "Downloaded %d images", count) % count
+                if count
+                else _("No new artwork found")
+            )
+            self.statusBar().showMessage(message, 5000)
+        except Exception:
+            self.statusBar().clearMessage()
+            raise
+        finally:
+            self._update_artwork_action.setEnabled(True)
 
     def on_view_selected(self, view: dict[str, str]) -> None:
         self._view = view
@@ -228,8 +348,12 @@ class MainWindow(QMainWindow):
 
     def on_game_activated(self, index: QModelIndex) -> None:
         game = self.model.data(index, GameRole)
-        if game and game.installed and game.game_id:
+        if game and game.installed and game.game_id and game.game_id not in self._running_game_ids:
             start_task(self.launch(game.game_id), self)
+
+    def on_grid_enter(self) -> None:
+        if self.play_action.isEnabled():
+            self.on_play()
 
     def on_play(self) -> None:
         game = self.get_selected_game()
@@ -266,7 +390,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event: QCloseEvent) -> None:  # noqa: N802
         for registration in self._registrations:
             registration.unregister()
-        if self._refresh_task:
-            self._refresh_task.cancel()
+        self._refresh_timer.stop()
+        for task in (self._load_task, self._refresh_task, self._artwork_task):
+            if task:
+                task.cancel()
         super().closeEvent(event)
         self.closed.emit()

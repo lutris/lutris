@@ -250,9 +250,14 @@ and sorting, refreshed as ``lutris.backend.events`` report changes, and it
 launches and stops games (``games.launch_game`` and ``games.stop_game``; the
 backend keeps the running games). Its delegate asks questions with Qt dialogs.
 
+The library opens in a cover grid. The View menu switches to banners or a list
+and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
+row. The backend resolves files from the Lutris and service caches. The same
+menu can download missing Lutris artwork with ``media.update_artwork``. The
+grid reloads its thumbnails when it receives ``ARTWORK_CHANGED``.
+
 What it needs next, roughly in order, each with the backend calls it takes:
 
-* **Media**: covers and banners, so the library can be a grid like GTK's.
 * **Game actions**: install, uninstall, categories, shortcuts, moving a game,
   showing its logs (events carrying ``LogBuffer`` content), and launch
   configurations; delegate methods then receive ``GameInfo`` rather than a
