@@ -1,10 +1,10 @@
 import os
 
 from lutris.api import get_api_games, get_game_installers
+from lutris.artwork import fetch_game_artwork
 from lutris.database.games import get_games
 from lutris.installer.errors import MissingGameDependencyError
 from lutris.installer.interpreter import ScriptInterpreter
-from lutris.services.lutris import download_lutris_media
 from lutris.util.log import logger
 from lutris.util.strings import slugify
 
@@ -94,7 +94,7 @@ def scan_directory(dirname):
                 install_game(installer, game_folder)
             except MissingGameDependencyError as ex:
                 logger.error("Skipped %s: %s", api_game["name"], ex)
-            download_lutris_media(installer["game_slug"])
+            fetch_game_artwork(installer["game_slug"])
             slugs_installed.add(api_game["slug"])
 
     installed_map = {slug: folder for slug, folder in slugs_map.items() if slug in slugs_installed}

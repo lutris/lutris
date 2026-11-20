@@ -149,6 +149,8 @@ class QtLutrisApplication(Gio.Application):
         if not self.window:
             self.window = MainWindow()
             self.window.window.visibleChanged.connect(self.on_window_visibility_changed)
+            # Fill in artwork the library is missing, without a word unless some arrives
+            self.window.controller.update_artwork(quiet=True)
         self.window.show()
 
     def on_window_visibility_changed(self) -> None:

@@ -47,7 +47,7 @@ class TestImportInstalledEGSGames(TestCase):
             manifest = {"AppName": app_name, "MainGameAppName": parent}
             (self.manifests_path / (app_name + ".item")).write_text(json.dumps(manifest), encoding="utf-8")
 
-        with patch("lutris.services.egs.sync_media") as sync_media:
+        with patch("lutris.artwork.sync_artwork") as sync_media:
             service = EpicGamesStoreService()
             service.add_installed_games()
             self.assertCountEqual(sync_media.call_args.args[0], ["base-game", "matching-game"])

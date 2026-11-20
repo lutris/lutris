@@ -24,13 +24,13 @@ from typing import Any
 from uuid import uuid4
 
 from lutris import settings, sysoptions
+from lutris.artwork import fetch_game_artwork
 from lutris.backend.models import ConfigChoice, ConfigForm, ConfigOptionInfo, ConfigPage, GameDetails
 from lutris.config import LutrisConfig, make_game_config_id, rename_config
 from lutris.database import games as games_db
 from lutris.exceptions import LutrisError
 from lutris.game import Game
 from lutris.runners import InvalidRunnerError, get_installed, import_runner
-from lutris.services.lutris import download_lutris_media
 from lutris.util.log import logger
 from lutris.util.notifications import NotificationSource
 from lutris.util.strings import get_formatted_playtime, parse_playtime, slugify
@@ -388,9 +388,9 @@ class _Form:
         game.save()
         if slug != self.initial_slug:
             try:
-                download_lutris_media(slug)
+                fetch_game_artwork(slug)
             except Exception as error:
-                logger.warning("Could not download the media for %s: %s", slug, error)
+                logger.warning("Could not download the artwork for %s: %s", slug, error)
         self.game_id = str(game.id)
         self.details = _details(games_db.get_game_by_field(self.game_id, "id") or {}, self.config)
         self.initial_slug = self.details.slug

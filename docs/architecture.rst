@@ -344,18 +344,35 @@ option type.
 The library opens in a cover grid. The View menu switches to banners or a list
 and remembers the choice. Grid queries ask for ``LibraryArtwork`` with each
 row. The backend resolves files from the Lutris and service caches. The same
-menu can download missing Lutris artwork with ``media.update_artwork``. The
-grid reloads its thumbnails when it receives ``ARTWORK_CHANGED``.
+menu downloads missing artwork with ``media.update_artwork``, which Qt also
+runs quietly at startup. The grid reloads its thumbnails when it receives
+``ARTWORK_CHANGED``.
+
+``lutris.artwork`` fills in each library game's cover, banner and icon (the
+``coverart``, ``banners`` and icon files the library reads by slug). It asks the
+game's store first: Steam's 2:3 library capsule and header, Epic's tall and wide
+box art, GOG's vertical cover from its public game database and its product
+image, and for other services the largest portrait and landscape formats their
+media classes know. SteamGridDB fills in what's left, and serves games that come
+from no store: it's searched by Steam app id or by name, for 2:3 grids (600x900,
+or its near 2:3 sizes) and 920x430-shaped ones, and for icons. SteamGridDB needs
+the user's API key, saved through ``media.set_steamgriddb_api_key`` (which checks
+it first) or given in ``LUTRIS_STEAMGRIDDB_API_KEY``; View → Artwork Sources in
+Qt sets it. Only missing files are downloaded, so custom artwork is never
+replaced, and what no source has is remembered for a week in
+``artwork-misses.json``, kept apart for with and without SteamGridDB, so that adding
+a key retries at once.
 
 What it needs next, roughly in order, each with the backend calls it takes:
 
 * **Game actions** still need service installation entry points. The launch
   configuration prompt receives ``GameInfo`` and configuration names. The
   remaining launch delegate methods still need the same plain-data boundary.
-* **Artwork**: setting, downloading and removing a game's custom cover, banner
-  and icon. GTK transcodes them with GdkPixbuf in ``game_info_box``; the backend
-  needs a toolkit-free way (or Qt's ``QImage`` on the frontend's side), and the
-  preferred launch configuration reset from the same tab.
+* **Custom artwork**: setting, choosing from SteamGridDB and removing a game's
+  own cover, banner and icon. GTK transcodes them with GdkPixbuf in
+  ``game_info_box``; Qt can scale them with ``QImage`` off the GUI thread and
+  show them as ``QPixmap``. The preferred launch configuration reset from the
+  same tab is also left.
 * **Preferences**: the other tabs of GTK's preferences dialog (interface,
   runners, sources, accounts, updates, storage, system info). Global system
   options already work.

@@ -11,8 +11,9 @@ from PySide6.QtQuick import QQuickItem
 from PySide6.QtTest import QTest
 
 from lutris import settings
-from lutris.backend import configuration, events, game_actions, installations, installers, shortcuts
+from lutris.backend import configuration, events, game_actions, installations, installers, media, shortcuts
 from lutris.backend.launch_configurations import LaunchChoice
+from lutris.backend.models import ArtworkSettings
 from lutris.database import categories as categories_db
 from lutris.database import games as games_db
 from lutris.database import sql
@@ -381,7 +382,7 @@ def test_qml_runs_an_install_script_to_the_end(
     monkeypatch.setattr(settings, "CONFIG_DIR", str(tmp_path / "config"))
     monkeypatch.setattr(settings, "INSTALLER_CACHE_DIR", str(tmp_path / "installer-cache"))
     monkeypatch.setattr(settings, "write_setting", lambda *_args: None)
-    monkeypatch.setattr(interpreter, "download_lutris_media", lambda slug: None)
+    monkeypatch.setattr(interpreter, "fetch_game_artwork", lambda slug: 0)
     monkeypatch.setattr(LutrisInstaller, "_get_discord_id_from_api", lambda self: None)
     setup = tmp_path / "setup.txt"
     setup.write_text("game data", encoding="utf-8")
@@ -483,7 +484,7 @@ def test_qml_configures_a_game_and_the_global_options(
     (config_dir / "games").mkdir(parents=True)
     monkeypatch.setattr(settings, "CONFIG_DIR", str(config_dir))
     monkeypatch.setattr(settings, "write_setting", lambda *_args: None)
-    monkeypatch.setattr(configuration, "download_lutris_media", lambda slug: None)
+    monkeypatch.setattr(configuration, "fetch_game_artwork", lambda slug: 0)
     write_yaml_to_file({"game": {"exe": "/games/run.sh"}}, str(config_dir / "games" / "qt-config.yml"))
     sql.db_update(settings.DB_PATH, "games", {"configpath": "qt-config"}, {"id": library[0]})
 
@@ -567,6 +568,50 @@ def test_qml_configures_a_game_and_the_global_options(
             added = games_db.get_game_by_field(PREFIX + "Hand Added", "name")
             assert added is not None and added["runner"] == "linux"
             games_db.delete_game(added["id"])
+        finally:
+            window.shutdown()
+
+    asyncio.run(run())
+
+
+def test_qml_saves_a_steamgriddb_key_then_fetches_artwork(
+    qt_application: QGuiApplication, library: list[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    saved: list[str] = []
+
+    async def get_artwork_settings() -> ArtworkSettings:
+        return ArtworkSettings(bool(saved), False, "https://example.com/key")
+
+    async def set_steamgriddb_api_key(api_key: str) -> ArtworkSettings:
+        saved.append(api_key)
+        return await get_artwork_settings()
+
+    async def update_artwork() -> int:
+        return 2
+
+    monkeypatch.setattr(media, "get_artwork_settings", get_artwork_settings)
+    monkeypatch.setattr(media, "set_steamgriddb_api_key", set_steamgriddb_api_key)
+    monkeypatch.setattr(media, "update_artwork", update_artwork)
+
+    async def run() -> None:
+        window = MainWindow()
+        window.show()
+        try:
+            await settle(window)
+            action = window.window.findChild(QObject, "artworkSources")
+            assert action is not None and QMetaObject.invokeMethod(action, "triggered")
+            await wait_for_qml(qt_application, lambda: window.window.findChild(QObject, "steamGridDbKey") is not None)
+            key = window.window.findChild(QObject, "steamGridDbKey")
+            save = window.window.findChild(QObject, "saveSteamGridDbKey")
+            assert key is not None and save is not None and not save.property("enabled")
+            key.setProperty("text", "my-key")
+            assert save.property("enabled") and QMetaObject.invokeMethod(save, "clicked")
+            await wait_for_qml(
+                qt_application, lambda: window.controller.property("statusText") == "Downloaded 2 images"
+            )
+            assert saved == ["my-key"]
+            dialog = window.window.findChild(QObject, "artworkSettingsDialog")
+            assert dialog is None or not dialog.property("visible")
         finally:
             window.shutdown()
 

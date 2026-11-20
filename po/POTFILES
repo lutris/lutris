@@ -11,6 +11,10 @@ share/lutris/ui/uninstall-dialog.ui
 
 lutris/__init__.py
 lutris/api.py
+lutris/artwork/__init__.py
+lutris/artwork/fetcher.py
+lutris/artwork/steamgriddb.py
+lutris/artwork/stores.py
 lutris/backend/__init__.py
 lutris/backend/configuration.py
 lutris/backend/errors.py
@@ -150,6 +154,7 @@ lutris/migrations/retrieve_discord_appids.py
 lutris/monitored_command.py
 lutris/qt/__init__.py
 lutris/qt/application.py
+lutris/qt/artwork_settings.py
 lutris/qt/category_model.py
 lutris/qt/config_model.py
 lutris/qt/configuration.py
@@ -359,6 +364,7 @@ lutris/util/yaml.py
 lutris/version.py
 
 lutris/qt/qml/ArtworkImage.qml
+lutris/qt/qml/ArtworkSettingsDialog.qml
 lutris/qt/qml/CategoryDialog.qml
 lutris/qt/qml/ConfigDialog.qml
 lutris/qt/qml/ConfigOption.qml

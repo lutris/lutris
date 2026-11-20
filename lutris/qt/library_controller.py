@@ -15,6 +15,7 @@ from lutris.backend import events, game_actions, games, installers, library, loc
 from lutris.backend.library import LibraryQuery, LibrarySort
 from lutris.backend.models import GameInfo, LibraryGame
 from lutris.exceptions import LutrisError
+from lutris.qt.artwork_settings import ArtworkSettingsController
 from lutris.qt.category_model import CategoryModel
 from lutris.qt.configuration import ConfigController
 from lutris.qt.delegates import PromptController, QtLaunchUIDelegate
@@ -56,6 +57,9 @@ class LibraryController(QObject):
         self._local_games.registered.connect(self._on_local_game_registered)
         self._installers = InstallerController(prompts, self)
         self._configuration = ConfigController(prompts, self)
+        self._artwork_settings = ArtworkSettingsController(prompts, self)
+        # A new key can find artwork that stores didn't have
+        self._artwork_settings.saved.connect(self.update_artwork)
         self._installers.installation_controller.launchRequested.connect(lambda game_id: self.launch(game_id, False))
         self.model.setParent(self)
         self.sidebar.setParent(self)
@@ -132,6 +136,10 @@ class LibraryController(QObject):
     @Property(QObject, constant=True)
     def localGames(self) -> LocalGameController:  # noqa: N802
         return self._local_games
+
+    @Property(QObject, constant=True)
+    def artworkSettings(self) -> ArtworkSettingsController:  # noqa: N802
+        return self._artwork_settings
 
     @Property(QObject, constant=True)
     def configuration(self) -> ConfigController:
@@ -392,19 +400,22 @@ class LibraryController(QObject):
             self._refresh_timer.start()
 
     @Slot()
-    def update_artwork(self) -> None:
+    def update_artwork(self, quiet: bool = False) -> None:
         if not self.updatingArtwork:
-            self._artwork_task = self._start_task(self._update_artwork())
+            self._artwork_task = self._start_task(self._update_artwork(quiet))
             self._artwork_task.add_done_callback(lambda _: self.statusChanged.emit())
-            self._status_timer.stop()
-            self._set_status(_("Updating artwork…"))
+            if not quiet:
+                self._status_timer.stop()
+                self._set_status(_("Updating artwork…"))
 
-    async def _update_artwork(self) -> None:
+    async def _update_artwork(self, quiet: bool) -> None:
         try:
             count = await media.update_artwork()
         except Exception:
             self._set_status("")
             raise
+        if quiet and not count:
+            return
         message = (
             ngettext("Downloaded %d image", "Downloaded %d images", count) % count
             if count

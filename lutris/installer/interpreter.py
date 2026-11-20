@@ -4,6 +4,7 @@ import os
 from gettext import gettext as _
 
 from lutris import settings
+from lutris.artwork import fetch_game_artwork
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.delegates import Delegate
@@ -13,7 +14,6 @@ from lutris.installer.commands import CommandsMixin
 from lutris.installer.errors import MissingGameDependencyError, ScriptingError
 from lutris.installer.installer import LutrisInstaller
 from lutris.runners import NonInstallableRunnerError, RunnerInstallationError, steam, wine
-from lutris.services.lutris import download_lutris_media
 from lutris.util import system
 from lutris.util.display import get_display_manager
 from lutris.util.jobs import AsyncCall
@@ -418,7 +418,7 @@ class ScriptInterpreter(CommandsMixin):
                 or self.installer.script.get("install_complete_text")
                 or _("Installation completed!")
             )
-        AsyncCall(download_lutris_media, None, self.installer.game_slug)
+        AsyncCall(fetch_game_artwork, None, self.installer.game_slug)
         self.interpreter_ui_delegate.report_finished(game_id, status)
 
     def cleanup(self):

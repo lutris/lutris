@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from gi.repository import Gio, Gtk
 
+from lutris.artwork import fetch_game_artwork
 from lutris.config import duplicate_game_config
 from lutris.database import games
 from lutris.database.games import add_game, get_game_by_field
@@ -26,7 +27,6 @@ from lutris.gui.widgets.utils import open_uri
 from lutris.monitored_command import MonitoredCommand
 from lutris.services import SERVICES
 from lutris.services.base import BaseService
-from lutris.services.lutris import download_lutris_media
 from lutris.util import xdgshortcuts
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -484,7 +484,7 @@ class SingleGameActions(GameActions):
 
         # Download in the background; we'll update the LutrisWindow when this
         # completes, no need to wait for it.
-        AsyncCall(download_lutris_media, None, db_game["slug"])
+        AsyncCall(fetch_game_artwork, None, db_game["slug"])
 
     def _select_game_launch_config_name(self, game: Game) -> str | None:
         if not game.config:

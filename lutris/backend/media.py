@@ -6,19 +6,39 @@ import stat
 from collections.abc import Iterable
 from typing import Literal
 
-from lutris.backend.models import LibraryArtwork
+from lutris import settings
+from lutris.artwork import sync_artwork
+from lutris.artwork.steamgriddb import API_KEY_ENVIRONMENT, API_KEY_PAGE, API_KEY_SETTING, SteamGridDB, get_api_key
+from lutris.backend.models import ArtworkSettings, LibraryArtwork
 from lutris.database.services import DBServiceGame, ServiceGameCollection
 from lutris.services import SERVICES
 from lutris.services.base import LutrisBanner, LutrisCoverart, LutrisIcon
-from lutris.services.lutris import sync_media
 from lutris.services.service_media import ServiceMedia
 
 type ArtworkKind = Literal["cover", "banner", "icon"]
 
 
 async def update_artwork() -> int:
-    """Download missing Lutris artwork and return the number of images downloaded."""
-    return sum((await asyncio.to_thread(sync_media)).values())
+    """Download the library's missing artwork and return the number of images downloaded."""
+    return await asyncio.to_thread(sync_artwork)
+
+
+async def get_artwork_settings() -> ArtworkSettings:
+    return ArtworkSettings(
+        steamgriddb_key_set=bool(get_api_key()),
+        steamgriddb_key_from_environment=bool(os.environ.get(API_KEY_ENVIRONMENT)),
+        steamgriddb_key_page=API_KEY_PAGE,
+    )
+
+
+async def set_steamgriddb_api_key(api_key: str) -> ArtworkSettings:
+    """Check a SteamGridDB API key and save it, or forget the saved key when given none.
+    Raises LutrisError if SteamGridDB refuses the key."""
+    api_key = api_key.strip()
+    if api_key:
+        await asyncio.to_thread(SteamGridDB(api_key).check_api_key)
+    settings.write_setting(API_KEY_SETTING, api_key)
+    return await get_artwork_settings()
 
 
 def _existing_image(path: str) -> str | None:

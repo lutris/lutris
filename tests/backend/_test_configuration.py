@@ -11,7 +11,6 @@ from lutris.backend import configuration, events
 from lutris.backend.models import ConfigForm, ConfigOptionInfo, GameDetails, GameInfo
 from lutris.database import games as games_db
 from lutris.exceptions import LutrisError
-from lutris.services import lutris as lutris_service
 from lutris.util.test_config import setup_test_environment
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 from tests.conftest import FakeMainLoop
@@ -159,8 +158,7 @@ def test_choices_mark_the_default_and_keep_unknown_values(config_dir: Path) -> N
 
 @pytest.fixture
 def no_media(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(configuration, "download_lutris_media", lambda slug: None)
-    monkeypatch.setattr(lutris_service, "download_lutris_media", lambda slug: None)
+    monkeypatch.setattr(configuration, "fetch_game_artwork", lambda slug: 0)
 
 
 def test_game_details_are_saved_with_the_configuration(

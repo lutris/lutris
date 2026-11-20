@@ -314,3 +314,14 @@ class ConfigForm:
     # For a game: its details, and the runners it can use
     game: GameDetails | None = None
     runner_choices: tuple[ConfigChoice, ...] = ()
+
+
+@dataclass(frozen=True)
+class ArtworkSettings:
+    """Where artwork comes from. The SteamGridDB API key itself is never handed out."""
+
+    steamgriddb_key_set: bool
+    # A key in LUTRIS_STEAMGRIDDB_API_KEY wins over the saved one, and can't be changed here
+    steamgriddb_key_from_environment: bool
+    # Where users create their SteamGridDB API key
+    steamgriddb_key_page: str

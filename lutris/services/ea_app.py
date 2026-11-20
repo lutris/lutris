@@ -18,7 +18,6 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer import install_from_lutris
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
-from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.images import thumbnail_image
@@ -501,7 +500,10 @@ class EAAppService(OnlineService):
             slug = self.install_from_ea_app(ea_app_game, content_ids)
             if slug:
                 installed_slugs.append(slug)
-        sync_media(installed_slugs)
+        # Imported here: the artwork package uses the services
+        from lutris.artwork import sync_artwork
+
+        sync_artwork(installed_slugs)
         logger.debug("Installed %s EA games", len(installed_slugs))
 
     def install_from_ea_app(self, ea_game, content_ids):

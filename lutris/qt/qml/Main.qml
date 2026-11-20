@@ -82,6 +82,21 @@ ApplicationWindow {
     }
 
     Connections {
+        target: window.controller.artworkSettings
+        function onRequested() { artworkLoader.active = true }
+    }
+
+    Loader {
+        id: artworkLoader
+        active: false
+        sourceComponent: ArtworkSettingsDialog {
+            controller: window.controller.artworkSettings
+            onClosed: artworkLoader.active = false
+        }
+        onLoaded: if (status === Loader.Ready) (item as ArtworkSettingsDialog).open()
+    }
+
+    Connections {
         target: window.controller.configuration
         function onRequested() { configLoader.active = true }
     }

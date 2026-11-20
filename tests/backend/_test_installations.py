@@ -43,7 +43,7 @@ def game_id(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
     (tmp_path / "config" / "games").mkdir(parents=True)
     monkeypatch.setattr(settings, "CONFIG_DIR", str(tmp_path / "config"))
     monkeypatch.setattr(settings, "INSTALLER_CACHE_DIR", str(tmp_path / "installer-cache"))
-    monkeypatch.setattr(interpreter, "download_lutris_media", lambda slug: None)
+    monkeypatch.setattr(interpreter, "fetch_game_artwork", lambda slug: 0)
     monkeypatch.setattr(LutrisInstaller, "_get_discord_id_from_api", lambda self: None)
     new_id = str(games_db.add_game(name="Installations Test", slug=SLUG, runner="linux", installed=0))
     yield new_id

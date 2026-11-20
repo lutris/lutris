@@ -11,7 +11,6 @@ from lutris.database.games import add_game, get_game_by_field, get_games, update
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.services.base import BaseService
-from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.battlenet.definitions import ProductDbInfo
@@ -150,7 +149,10 @@ class BattleNetService(BaseService):
             slug = self.install_from_battlenet(bnet_game, game)
             if slug:
                 installed_slugs.append(slug)
-        sync_media(installed_slugs)
+        # Imported here: the artwork package uses the services
+        from lutris.artwork import sync_artwork
+
+        sync_artwork(installed_slugs)
 
     def install_from_battlenet(self, bnet_game, game):
         app_id = game.ngdp

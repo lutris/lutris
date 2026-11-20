@@ -15,7 +15,6 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer import install_from_lutris
 from lutris.services.base import SERVICE_LOGIN, SERVICE_LOGIN_REQUIRED, SERVICE_LOGOUT, OnlineService
-from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.jobs import AsyncCall
@@ -288,7 +287,10 @@ class UbisoftConnectService(OnlineService):
                 if slug:
                     installed_slugs.append(slug)
         logger.debug("Syncing media for %s games", len(installed_slugs))
-        sync_media(installed_slugs)
+        # Imported here: the artwork package uses the services
+        from lutris.artwork import sync_artwork
+
+        sync_artwork(installed_slugs)
 
     def generate_installer(self, db_game, ubi_db_game):
         ubisoft_connect = Game(ubi_db_game["id"])

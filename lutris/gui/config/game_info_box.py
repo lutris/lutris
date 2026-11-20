@@ -17,13 +17,14 @@ from gi.repository import GdkPixbuf, Gtk, Pango
 
 # Lutris Modules
 from lutris import settings
+from lutris.artwork import fetch_game_artwork
 from lutris.game import Game
 from lutris.gui.config.boxes import AdvancedSettingsBox
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.scaled_image import ScaledImage
 from lutris.gui.widgets.utils import open_uri
 from lutris.runners import get_installed
-from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
+from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon
 from lutris.services.service_media import MEDIA_CACHE_INVALIDATED, resolve_media_path
 from lutris.util.images import get_image_file_extension
 from lutris.util.jobs import AsyncCall
@@ -434,7 +435,7 @@ class GameInfoBox(AdvancedSettingsBox):
         self.slug_entry.set_sensitive(False)
         if self.slug_change_button:
             self.slug_change_button.set_label(_("Change"))
-        AsyncCall(download_lutris_media, self.refresh_all_images_cb, self.slug)
+        AsyncCall(fetch_game_artwork, self.refresh_all_images_cb, self.slug)
 
     def refresh_all_images_cb(self, _result, _error):
         for image_type, image_button in self.image_buttons.items():
@@ -606,7 +607,7 @@ class GameInfoBox(AdvancedSettingsBox):
             AsyncCall(download, self.image_refreshed_cb)
 
         def download():
-            download_lutris_media(slug)
+            fetch_game_artwork(slug)
             return image_type
 
         service_media.trash_media(slug, completion_function=on_trashed)

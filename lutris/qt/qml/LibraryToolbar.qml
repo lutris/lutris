@@ -129,6 +129,12 @@ ToolBar {
                     enabled: !toolbar.controller.updatingArtwork
                     onTriggered: toolbar.controller.update_artwork()
                 }
+
+                MenuItem {
+                    objectName: "artworkSources"
+                    text: qsTr("Artwork Sources…")
+                    onTriggered: toolbar.controller.artworkSettings.open_settings()
+                }
             }
         }
     }

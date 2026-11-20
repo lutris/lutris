@@ -39,7 +39,13 @@ Game library
 Your library is kept locally. This fork doesn't connect to Lutris.net
 accounts, so it never logs in to the website or uploads your library or play
 time. It still downloads public data from Lutris.net that needs no account:
-install scripts, artwork, runner builds and runtime versions. Upgrading from a
+install scripts, runner builds and runtime versions.
+
+Artwork comes from each game's store (Steam, Epic, GOG...), and from
+`SteamGridDB <https://www.steamgriddb.com>`_ for what stores lack and for games
+from no store. SteamGridDB needs your own API key, from your SteamGridDB
+account; set it in View → Artwork Sources, or in the
+``LUTRIS_STEAMGRIDDB_API_KEY`` environment variable. Upgrading from a
 version that was connected deletes the stored token
 (``~/.cache/lutris/auth-token``).
 

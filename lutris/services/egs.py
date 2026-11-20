@@ -16,7 +16,6 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer import install_from_lutris
 from lutris.services.base import SERVICE_LOGIN, AuthTokenExpiredError, OnlineService
-from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
@@ -497,7 +496,10 @@ class EpicGamesStoreService(OnlineService):
             slug = self.install_from_egs(egs_game, manifest)
             if slug:
                 installed_slugs.append(slug)
-        sync_media(installed_slugs)
+        # Imported here: the artwork package uses the services
+        from lutris.artwork import sync_artwork
+
+        sync_artwork(installed_slugs)
         logger.debug("All EGS games imported")
 
     def generate_installer(self, db_game: dict[str, Any], egs_db_game: dict[str, Any]) -> dict[str, Any]:  # type: ignore[override]

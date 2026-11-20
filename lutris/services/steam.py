@@ -15,7 +15,6 @@ from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
 from lutris.installer.installer_file import InstallerFile
 from lutris.services.base import BaseService
-from lutris.services.lutris import sync_media
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util.log import logger
@@ -258,7 +257,10 @@ class SteamService(BaseService):
                     except Exception as ex:
                         logger.error("Failed to deduplicate game %s: %s", game_id, ex)
 
-        sync_media(installed_slugs)
+        # Imported here: the artwork package uses the services
+        from lutris.artwork import sync_artwork
+
+        sync_artwork(installed_slugs)
         logger.debug("%s Steam games deduplicated", stats["deduped"])
 
     def generate_installer(self, db_game):

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from gi.repository import Gtk
 
 from lutris import settings
+from lutris.artwork import fetch_game_artwork
 from lutris.config import LutrisConfig, find_option, make_game_config_id, rename_config
 from lutris.game import Game
 from lutris.gui.config import DIALOG_HEIGHT, DIALOG_WIDTH
@@ -19,7 +20,6 @@ from lutris.gui.dialogs.delegates import DialogInstallUIDelegate
 from lutris.gui.dialogs.move_game import MoveDialog
 from lutris.gui.widgets.notifications import send_notification
 from lutris.runners import import_runner
-from lutris.services.lutris import download_lutris_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.strings import parse_playtime, slugify
@@ -415,7 +415,7 @@ class GameDialogCommon(SavableModelessDialog, DialogInstallUIDelegate):
         if not game_info_box.slug:
             game_info_box.slug = slugify(name)
         if game_info_box.slug != game_info_box.initial_slug:
-            AsyncCall(download_lutris_media, None, game_info_box.slug)
+            AsyncCall(fetch_game_artwork, None, game_info_box.slug)
         if not self.game:
             self.game = Game()
 

@@ -51,7 +51,7 @@ class TestImportInstalledSteamGames(TestCase):
         ):
             patcher.start()
             self.addCleanup(patcher.stop)
-        patcher = patch("lutris.services.steam.sync_media")
+        patcher = patch("lutris.artwork.sync_artwork")
         self.sync_media = patcher.start()
         self.addCleanup(patcher.stop)
 

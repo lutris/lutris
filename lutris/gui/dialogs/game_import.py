@@ -4,13 +4,13 @@ from gettext import gettext as _
 
 from gi.repository import Gio, GLib, Gtk
 
+from lutris.artwork import fetch_game_artwork
 from lutris.config import write_game_config
 from lutris.database.games import add_game
 from lutris.game import GAME_INSTALLED, GAME_UPDATED, Game
 from lutris.gui.dialogs import ModelessDialog
 from lutris.scanners.default_installers import DEFAULT_INSTALLERS
 from lutris.scanners.tosec import clean_rom_name, guess_platform, search_tosec_by_md5
-from lutris.services.lutris import download_lutris_media
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
 from lutris.util.path_cache import get_path_cache
@@ -266,5 +266,5 @@ class ImportGameDialog(ModelessDialog):
             installer_slug="%s-%s" % (slug, installer["runner"]),
             configpath=configpath,
         )
-        download_lutris_media(slug)
+        fetch_game_artwork(slug)
         return game_id
