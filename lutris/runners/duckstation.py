@@ -6,6 +6,7 @@ from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
+from lutris.util.upstream import ReleaseSource
 
 
 class duckstation(Runner):
@@ -14,8 +15,9 @@ class duckstation(Runner):
     platform_dict = Runner.to_platform_dict([_("Sony PlayStation")])
     runnable_alone = True
     runner_executable = "duckstation/DuckStation-x64.AppImage"
-    flatpak_id = "org.duckstation.DuckStation"
-    download_url = "https://github.com/stenzek/duckstation/releases/download/latest/DuckStation-x64.AppImage"
+    system_executable = "duckstation-qt"
+    upstream = ReleaseSource("stenzek/duckstation", r"^DuckStation-x64\.AppImage$")
+    upstream_arch = "x86_64"
 
     game_options = [
         {

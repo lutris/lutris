@@ -12,7 +12,7 @@ class TestJsonRunners(unittest.TestCase):
         runner's own subdirectory of the runners dir."""
         ags = load_json_runners()["ags"]()
         self.assertEqual(ags.runner_name, "ags")
-        self.assertEqual(ags.runner_executable_path, "ags/ags.sh")
+        self.assertEqual(ags.runner_executable_path, "ags/data/ags64")
 
     def test_platforms_list(self):
         """A list of platforms names each platform after itself."""

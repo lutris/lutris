@@ -10,6 +10,7 @@ from lutris import settings
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner, RunnerOptionDict
 from lutris.util import datapath, system
+from lutris.util.upstream import UpstreamSource, source_from_dict
 
 JSON_RUNNER_DIRS = [
     os.path.join(datapath.get(), "json"),
@@ -25,10 +26,12 @@ class JsonRunnerSpec:
     human_name: str
     description: str
     platform_dict: dict[str, str]
-    runner_executable: str
+    runner_executable: str | None
+    system_executable: str | None
     system_options_override: list[RunnerOptionDict]
     entry_point_option: str
-    download_url: str | None
+    upstream: UpstreamSource | None
+    upstream_arch: str | None
     runnable_alone: bool | None
     flatpak_id: str | None
     env: dict[str, str]
@@ -40,7 +43,6 @@ _REQUIRED_KEYS = {
     "human_name",
     "description",
     "platforms",
-    "runner_executable",
 }
 
 
@@ -69,10 +71,12 @@ def _load_and_validate_json(path: str) -> JsonRunnerSpec:
         human_name=data["human_name"],
         description=data["description"],
         platform_dict=_to_platform_dict(path, data["platforms"]),
-        runner_executable=data["runner_executable"],
+        runner_executable=data.get("runner_executable"),
+        system_executable=data.get("system_executable"),
         system_options_override=data.get("system_options_override", []),
         entry_point_option=data.get("entry_point_option", "main_file"),
-        download_url=data.get("download_url"),
+        upstream=source_from_dict(data["upstream"]) if data.get("upstream") else None,
+        upstream_arch=data.get("upstream_arch"),
         runnable_alone=data.get("runnable_alone"),
         flatpak_id=data.get("flatpak_id"),
         env=data.get("env") or {},
@@ -104,9 +108,11 @@ class JsonRunner(Runner):
         self.description = spec.description
         self.platform_dict = spec.platform_dict
         self.runner_executable = spec.runner_executable
+        self.system_executable = spec.system_executable
         self.system_options_override = spec.system_options_override
         self.entry_point_option = spec.entry_point_option
-        self.download_url = spec.download_url
+        self.upstream = spec.upstream
+        self.upstream_arch = spec.upstream_arch
         self.runnable_alone = spec.runnable_alone
         self.flatpak_id = spec.flatpak_id
 
@@ -120,7 +126,8 @@ class JsonRunner(Runner):
             args.extend((opt["argument"], val))
 
     def _opt_string(self, opt, args):
-        args.extend((opt["argument"], self.runner_config.get(opt["option"])))
+        if value := self.runner_config.get(opt["option"]):
+            args.extend((opt["argument"], value))
 
     def _opt_cmd(self, opt, args):
         arg = opt.get("argument")
@@ -131,6 +138,7 @@ class JsonRunner(Runner):
     _OPTION_HANDLERS = {
         "bool": _opt_bool,
         "choice": _opt_choice,
+        "file": _opt_string,
         "string": _opt_string,
         "command_line": _opt_cmd,
     }
@@ -148,23 +156,19 @@ class JsonRunner(Runner):
             except KeyError:
                 raise RuntimeError(f"Unhandled type {opt['type']}")
 
-        # Prepend the option flag before for entry_point_option value
-        for option in self.game_options:
-            if self.entry_point_option != option["option"]:
-                continue
-            if "argument" in option:
-                arguments.append(option["argument"])
-
+        option = next((option for option in self.game_options if option["option"] == self.entry_point_option), {})
         main_file = self.game_config.get(self.entry_point_option)
-        if not main_file or not system.path_exists(main_file):
+        if not main_file or (option.get("type") != "string" and not system.path_exists(main_file)):
             raise MissingGameExecutableError(filename=main_file)
 
+        if argument := option.get("argument"):
+            arguments.append(argument)
         arguments.append(main_file)
         result = {"command": arguments}
         if self.spec.env:
             result["env"] = dict(self.spec.env)
         if self.spec.working_dir == "runner":
-            result["working_dir"] = os.path.dirname(os.path.join(settings.RUNNER_DIR, self.runner_executable_path))
+            result["working_dir"] = os.path.dirname(self.get_executable())
         return result
 
 

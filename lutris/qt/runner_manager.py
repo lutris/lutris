@@ -87,7 +87,7 @@ class RunnerManagerController(QObject):
     def show_proton(self) -> None:
         if self._task is None:
             self._proton = True
-            self._start(self._load_proton(), _("Looking up GE-Proton releases…"))
+            self._start(self._load_proton(), _("Looking up Proton releases…"))
 
     @Slot(str)
     def install(self, key: str) -> None:
@@ -125,7 +125,7 @@ class RunnerManagerController(QObject):
     async def _load_proton(self) -> None:
         self._builds = await runners.list_proton_builds(self._releases)
         self.stateChanged.emit()
-        self._releases = await runners.list_ge_proton_releases()
+        self._releases = await runners.list_proton_releases()
         self._builds = await runners.list_proton_builds(self._releases)
 
     async def _install(self, key: str) -> None:

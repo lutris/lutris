@@ -31,9 +31,18 @@ DEFAULT_INSTALLERS = {
         "runner": "libretro",
         "game": {"core": "flycast", "main_file": "rom"},
     },
-    "colecovision": {"runner": "mame", "game": {"main_file": "rom", "machine": "coleco", "device": "cart"}},
-    "atari800": {"runner": "atari800", "game": {"main_file": "rom", "machine": "xl"}},
-    "atari2600": {"runner": "stella", "game": {"main_file": "rom"}},
+    "colecovision": {
+        "runner": "libretro",
+        "game": {"core": "gearcoleco", "main_file": "rom"},
+    },
+    "atari800": {
+        "runner": "libretro",
+        "game": {"core": "atari800", "main_file": "rom"},
+    },
+    "atari2600": {
+        "runner": "libretro",
+        "game": {"core": "stella", "main_file": "rom"},
+    },
     "lynx": {
         "runner": "libretro",
         "game": {"core": "handy", "main_file": "rom"},
@@ -51,10 +60,7 @@ DEFAULT_INSTALLERS = {
     "amiga": {"runner": "fsuae", "game": {"main_file": "rom"}},
     "amiga-1200": {"runner": "fsuae", "game": {"main_file": "rom"}, "fsuae": {"model": "A1200"}},
     "amiga-cd32": {"runner": "fsuae", "game": {"main_file": "rom"}, "fsuae": {"model": "CD32"}},
-    "ds": {
-        "runner": "libretro",
-        "game": {"core": "desmume", "main_file": "rom"},
-    },
+    "ds": {"runner": "libretro", "game": {"core": "melonds", "main_file": "rom"}},
     "gb": {
         "runner": "libretro",
         "game": {"core": "gambatte", "main_file": "rom"},
@@ -77,7 +83,7 @@ DEFAULT_INSTALLERS = {
     },
     "gamecube": {"runner": "dolphin", "game": {"main_file": "rom", "platform": "0"}},
     "wii": {"runner": "dolphin", "game": {"main_file": "rom", "platform": "1"}},
-    "switch": {"runner": "yuzu", "game": {"main_file": "rom"}},
+    "switch": {"runner": "ryubing", "game": {"main_file": "rom"}},
     "ps1": {
         "runner": "libretro",
         "game": {"core": "mednafen_psx_hw", "main_file": "rom"},

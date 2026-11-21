@@ -14,7 +14,6 @@ from time import monotonic
 from typing import Any
 
 from lutris import settings
-from lutris.api import get_runners
 from lutris.backend.models import RunnerInfo
 from lutris.delegates import InstallUIDelegate
 from lutris.exceptions import LutrisError
@@ -23,9 +22,10 @@ from lutris.runners import RunnerInstallationError, get_installed, get_runner_na
 from lutris.util import linux, system
 from lutris.util.downloader import BaseDownloader, SimpleDownloader
 from lutris.util.http import HTTPError
+from lutris.util.log import logger
 from lutris.util.strings import get_natural_sort_key, human_size
 from lutris.util.wine import proton
-from lutris.util.wine.wine import clear_wine_version_cache
+from lutris.util.wine.wine import clear_wine_version_cache, get_installed_wine_versions
 
 
 @dataclass(frozen=True)
@@ -121,7 +121,7 @@ def _runner_catalog() -> tuple[RunnerCatalogEntry, ...]:
                 runner.human_name,
                 str(getattr(runner, "description", "")),
                 installed,
-                not installed and name not in {"linux", "steam", "wine"},
+                not installed and runner.can_install,
                 name != "wine" and runner.can_uninstall(),
             )
         )
@@ -129,7 +129,7 @@ def _runner_catalog() -> tuple[RunnerCatalogEntry, ...]:
 
 
 def _managed_proton_path(version: str) -> Path | None:
-    if not proton.is_ge_proton_release(version):
+    if not proton.is_proton_release(version):
         return None
     root = Path(proton.get_steam_compat_dir())
     for name in (version, f"{version}-{linux.LINUX_SYSTEM.arch}"):
@@ -140,7 +140,7 @@ def _managed_proton_path(version: str) -> Path | None:
 
 
 async def list_proton_builds(available: tuple[str, ...] = ()) -> tuple[ProtonBuild, ...]:
-    """List installed and available GE-Proton builds with removable copies identified."""
+    """List managed Proton releases and identify removable installations."""
     return await asyncio.to_thread(_proton_builds, available)
 
 
@@ -149,7 +149,7 @@ def _proton_builds(available: tuple[str, ...]) -> tuple[ProtonBuild, ...]:
     installed_names = list(proton.get_proton_versions())
     if compat_dir.is_dir():
         installed_names.extend(path.name for path in compat_dir.iterdir() if (path / "proton").is_file())
-    installed = {tag for name in installed_names if (tag := proton.get_ge_proton_release_tag(name))}
+    installed = {tag for name in installed_names if (tag := proton.get_proton_release_tag(name))}
     builds = []
     for version in sorted(installed.union(available), key=get_natural_sort_key, reverse=True):
         managed = _managed_proton_path(version) is not None
@@ -157,24 +157,32 @@ def _proton_builds(available: tuple[str, ...]) -> tuple[ProtonBuild, ...]:
     return tuple(builds)
 
 
-async def list_ge_proton_releases() -> tuple[str, ...]:
-    """Fetch recent released builds for the current architecture."""
+async def list_proton_releases() -> tuple[str, ...]:
+    """Fetch recent GE-Proton builds."""
     try:
-        return await asyncio.to_thread(proton.get_ge_proton_releases)
+        return await asyncio.to_thread(proton.get_proton_releases)
     except (HTTPError, ValueError) as error:
-        raise LutrisError(_("Could not load GE-Proton releases.")) from error
+        logger.warning("Could not load GE-Proton releases: %s", error)
+        return ()
 
 
-async def list_wine_versions() -> list[dict[str, Any]]:
-    """Return the Wine versions Lutris can download, as lutris.net describes them."""
-    runner_info = await asyncio.to_thread(get_runners, "wine")
-    return [version for version in runner_info["versions"] if version["version"]]
+async def list_wine_versions() -> tuple[str, ...]:
+    """Return installed Wine builds and available upstream Proton releases."""
+    installed, available = await asyncio.gather(asyncio.to_thread(get_installed_wine_versions), list_proton_releases())
+    return tuple(dict.fromkeys((*available, *installed)))
+
+
+def parse_runner_name(name: str) -> tuple[str, str | None]:
+    """Resolve a runner name or a managed Proton release from the command line."""
+    return ("wine", name) if proton.is_proton_release(name) else (name, None)
 
 
 async def is_runner_installed(name: str, version: str | None = None) -> bool:
     """True if a runner is installed; for "wine", a version names one of the Wine
     versions Lutris downloads."""
     if name == "wine" and version:
+        if proton.is_proton_release(version):
+            return bool(_managed_proton_path(version) or proton.is_proton_version(version))
         return os.path.isdir(_get_wine_version_path(version))
     return import_runner(name)().is_installed()
 
@@ -184,7 +192,7 @@ async def install_runner(
 ) -> None:
     """Download and install a runner, or one version of it."""
     runner = import_runner(name)()
-    if version and name == "wine" and proton.is_ge_proton_release(version):
+    if version and name == "wine" and proton.is_proton_release(version):
         if _managed_proton_path(version) or proton.is_proton_version(version):
             return
     delegate = _InstallDelegate(interaction, asyncio.get_running_loop()) if interaction else InstallUIDelegate()
@@ -193,7 +201,7 @@ async def install_runner(
         interaction
         and name == "wine"
         and version
-        and proton.is_ge_proton_release(version)
+        and proton.is_proton_release(version)
         and not _managed_proton_path(version)
     ):
         raise RunnerInstallationError(_("%s was not installed.") % version)
@@ -238,10 +246,10 @@ async def _wait_for_callbacks(start: Callable[[Callable[[], None], Callable[[Exc
 async def uninstall_runner(name: str, version: str | None = None) -> None:
     """Move a runner, or one Wine version Lutris downloaded, to the trash."""
     if name == "wine" and version:
-        if proton.is_ge_proton_release(version):
+        if proton.is_proton_release(version):
             proton_path = _managed_proton_path(version)
             if proton_path is None:
-                raise LutrisError(_("%s is outside the GE-Proton folder managed here.") % version)
+                raise LutrisError(_("%s is outside the Proton folder managed here.") % version)
             await _wait_for_callbacks(lambda done, error: system.remove_folder(str(proton_path), done, error))
             clear_wine_version_cache()
             return

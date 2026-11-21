@@ -1,0 +1,19 @@
+{
+    "name": "gargoyle",
+    "human_name": "Gargoyle",
+    "description": "Interactive fiction player for Z-machine, Glulx, TADS and other formats",
+    "platforms": ["Z-Machine"],
+    "runner_executable": "Gargoyle-x86_64.AppImage",
+    "system_executable": "gargoyle",
+    "upstream": {"repo": "garglk/garglk", "asset": "^Gargoyle-x86_64\\.AppImage$"},
+    "upstream_arch": "x86_64",
+    "entry_point_option": "story",
+    "game_options": [
+        {
+            "option": "story",
+            "type": "file",
+            "label": "Story file",
+            "help": "The game file, such as a Z-machine story (.z1 to .z8), a Glulx game (.ulx, .gblorb) or a TADS game (.gam, .t3)."
+        }
+    ]
+}

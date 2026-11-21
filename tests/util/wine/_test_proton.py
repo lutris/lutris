@@ -99,14 +99,15 @@ class TestFindProtonVersion(unittest.TestCase):
 
 class TestIsGeProtonRelease(unittest.TestCase):
     def test_release_tags(self):
-        self.assertTrue(proton.is_ge_proton_release("GE-Proton11-7"))
-        self.assertTrue(proton.is_ge_proton_release("GE-Proton9-26"))
+        self.assertTrue(proton.is_proton_release("GE-Proton11-7"))
+        self.assertTrue(proton.is_proton_release("GE-Proton9-26"))
 
     def test_sentinel_and_other_versions_are_not_releases(self):
-        self.assertFalse(proton.is_ge_proton_release("ge-proton"))
-        self.assertFalse(proton.is_ge_proton_release("wine-ge-8-26-x86_64"))
-        self.assertFalse(proton.is_ge_proton_release("Proton 11.0"))
-        self.assertFalse(proton.is_ge_proton_release(None))
+        self.assertFalse(proton.is_proton_release("ge-proton"))
+        self.assertFalse(proton.is_proton_release("wine-ge-8-26-x86_64"))
+        self.assertFalse(proton.is_proton_release("Proton 11.0"))
+        self.assertFalse(proton.is_proton_release("UMU-Proton-11.0-2e"))
+        self.assertFalse(proton.is_proton_release(None))
 
 
 class TestSteamCompatDir(unittest.TestCase):
@@ -131,7 +132,7 @@ class TestGeProtonReleaseUrls(unittest.TestCase):
     def get_urls(self, release):
         with patch.object(proton, "Request") as request:
             request.return_value.get.return_value.json = release
-            return proton.get_ge_proton_release_urls("GE-Proton11-7")
+            return proton.get_proton_release_urls("GE-Proton11-7")
 
     def test_picks_the_build_for_this_architecture(self):
         release = make_release(

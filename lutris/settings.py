@@ -42,7 +42,6 @@ INSTALLER_CACHE_DIR = os.path.join(CACHE_DIR, "installer")
 BANNER_PATH = os.path.join(DATA_DIR, "banners")
 COVERART_PATH = os.path.join(DATA_DIR, "coverart")
 
-RUNTIME_VERSIONS_PATH = os.path.join(CACHE_DIR, "versions.json")
 ICON_PATH = os.path.join(GLib.get_user_data_dir(), "icons", "hicolor", "128x128", "apps")
 
 DB_PATH = sio.read_setting("pga_path") or os.path.join(DATA_DIR, "pga.db")
@@ -62,7 +61,6 @@ for test_module in test_modules:
 SITE_URL = sio.read_setting("website") or "https://lutris.net"
 
 GAME_URL = SITE_URL + "/games/%s/"
-RUNTIME_URL = SITE_URL + "/api/runtimes"
 
 GITHUB_URL = "https://github.com/lutris/lutris"
 BUG_TRACKER_URL = GITHUB_URL + "/issues"

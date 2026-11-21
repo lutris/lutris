@@ -6,6 +6,7 @@ from lutris.exceptions import DirectoryNotFoundError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.upstream import ReleaseSource
 
 
 class cemu(Runner):
@@ -14,7 +15,9 @@ class cemu(Runner):
     description = _("Wii U emulator")
     runnable_alone = True
     runner_executable = "cemu/Cemu"
-    flatpak_id = "info.cemu.Cemu"
+    system_executable = "Cemu"
+    upstream = ReleaseSource("cemu-project/Cemu", r"^cemu-.*-ubuntu-.*-x64\.zip$")
+    upstream_arch = "x86_64"
     game_options = [
         {
             "option": "main_file",

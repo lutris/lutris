@@ -318,7 +318,6 @@ class HumbleBundleService(OnlineService):
                 ]
             else:
                 script = [{"extract": {"file": "humblegame"}}]
-                system_config = {"gamemode": "false"}  # Unity games crash with gamemode
         else:
             game_config = {"exe": AUTO_WIN32_EXE, "prefix": "$GAMEDIR"}
             filename = self.get_filename_for_platform(details["downloads"], "windows")

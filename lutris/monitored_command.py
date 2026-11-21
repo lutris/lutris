@@ -201,8 +201,6 @@ class MonitoredCommand:
             return False
         if "Bad file descriptor" in line:
             return False
-        if "'libgamemodeauto.so.0' from LD_PRELOAD" in line:
-            return False
         if "Unable to read VR Path Registry" in line:
             return False
         return True

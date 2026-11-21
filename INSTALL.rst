@@ -64,7 +64,7 @@ from ``uv.lock``); it does not require GTK introspection packages:
 On X11, Qt's ``xcb`` plugin also needs your distribution's XCB helper libraries,
 including ``xcb-util-cursor`` (``libxcb-cursor0`` on Debian/Ubuntu).
 To run games you'll also want the 32-bit OpenGL and Vulkan drivers for your
-graphics card, and optionally Wine, gamemode and gamescope. Bundled or separately
+graphics card, and optionally Wine and gamescope. Bundled or separately
 installed tools and games may still use GTK themselves.
 
 Install GNU gettext if you want translations. After installing the system

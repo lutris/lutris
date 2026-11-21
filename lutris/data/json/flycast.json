@@ -1,0 +1,29 @@
+{
+    "name": "flycast",
+    "human_name": "Flycast",
+    "description": "Sega Dreamcast, NAOMI and Atomiswave emulator",
+    "platforms": ["Sega Dreamcast", "Arcade"],
+    "runner_executable": "flycast.AppImage",
+    "system_executable": "flycast",
+    "upstream": {"repo": "flyinghead/flycast", "asset": "^flycast-x86_64(?:-.*)?\\.AppImage$"},
+    "upstream_arch": "x86_64",
+    "runnable_alone": true,
+    "game_options": [
+        {
+            "option": "main_file",
+            "type": "file",
+            "label": "Disc image",
+            "help": "A GDI, CHD or CDI disc image, or a NAOMI or Atomiswave ROM"
+        }
+    ],
+    "runner_options": [
+        {
+            "option": "display",
+            "type": "choice",
+            "label": "Display",
+            "choices": [["Fullscreen", "window:fullscreen=yes"], ["Window", "off"]],
+            "default": "window:fullscreen=yes",
+            "argument": "-config"
+        }
+    ]
+}

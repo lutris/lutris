@@ -8,9 +8,10 @@ import pytest
 
 from lutris.backend import runtime_updates
 from lutris.backend.models import RuntimeUpdateStatus
-from lutris.runtime import ComponentUpdater, RuntimeUpdater
+from lutris.runtime import ComponentUpdater, get_components
 from lutris.sysoptions import system_options
 from lutris.util.progress_info import ProgressInfo
+from lutris.util.upstream import ReleaseSource
 from tests.conftest import FakeMainLoop
 
 
@@ -90,13 +91,17 @@ def test_nothing_to_update(monkeypatch: pytest.MonkeyPatch, fake_main_loop: Fake
     fake_main_loop.run_pending()
 
 
-def test_the_old_lutris_runtime_libraries_are_not_downloaded() -> None:
-    def component(name: str) -> dict[str, Any]:
-        return {"name": name, "architecture": "all", "url": f"https://example.invalid/{name}.tar.xz"}
-
-    names = ("umu", "gogdl", "winetricks", "Ubuntu-18.04-i686", "Ubuntu-18.04-x86_64", "network-tools")
-    updaters = RuntimeUpdater._get_runtime_updaters({"runtimes": {name: component(name) for name in names}})
-    assert [updater.name for updater in updaters] == ["umu", "gogdl", "winetricks"]
+def test_runtime_components_come_from_individual_upstreams() -> None:
+    components = {component.name: component.source for component in get_components("x86_64")}
+    for name, expected in (
+        ("umu", "Open-Wine-Components/umu-launcher"),
+        ("gogdl", "Heroic-Games-Launcher/heroic-gogdl"),
+        ("winetricks", "Winetricks/winetricks"),
+    ):
+        source = components[name]
+        assert isinstance(source, ReleaseSource)
+        assert source.repo == expected
+    assert not {"dxvk", "vkd3d", "lib32", "lib64", "network-tools"} & components.keys()
 
 
 def test_system_options_no_longer_offer_the_lutris_runtime() -> None:

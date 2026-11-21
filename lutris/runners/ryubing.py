@@ -1,22 +1,25 @@
 import filecmp
 import os
 from gettext import gettext as _
+from pathlib import Path
 from shutil import copyfile
 
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
+from lutris.util.upstream import ReleaseSource
 
 
-class ryujinx(Runner):
-    human_name = _("Ryujinx")
+class ryubing(Runner):
+    human_name = _("Ryubing")
     platform_dict = Runner.to_platform_dict([_("Nintendo Switch")])
     description = _("Nintendo Switch emulator")
     runnable_alone = True
-    runner_executable = "ryujinx/publish/Ryujinx"
-    flatpak_id = "io.github.ryubing.Ryujinx"
-    download_url = "https://lutris.nyc3.digitaloceanspaces.com/runners/ryujinx/ryujinx-1.0.7074-linux_x64.tar.gz"
+    runner_executable = "ryubing/Ryujinx"
+    system_executable = "Ryujinx"
+    upstream = ReleaseSource("ryubing/ryujinx", r"^ryujinx-[\d.]+-linux_x64\.tar\.gz$", host="git.ryujinx.app")
+    upstream_arch = "x86_64"
 
     game_options = [
         {
@@ -48,13 +51,12 @@ class ryujinx(Runner):
     ]
 
     @property
-    def ryujinx_data_dir(self):
-        """Return dir where Ryujinx files lie."""
-        candidates = ("~/.local/share/ryujinx",)
-        for candidate in candidates:
-            path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
-            if system.path_exists(path):
-                return path[: -len("nand")]
+    def ryubing_data_dir(self) -> Path:
+        portable = Path(self.get_executable()).resolve().parent / "portable"
+        if portable.is_dir():
+            return portable
+        config_home = os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config"
+        return Path(config_home) / "Ryujinx"
 
     def play(self):
         """Run the game."""
@@ -69,36 +71,20 @@ class ryujinx(Runner):
         arguments.append(rom)
         return {"command": arguments}
 
-    def _update_key(self, key_type):
-        """Update a keys file if set"""
-        ryujinx_data_dir = self.ryujinx_data_dir
-        if not ryujinx_data_dir:
-            logger.error("Ryujinx data dir not set")
-            return
-        if key_type == "prod_keys":
-            key_loc = os.path.join(ryujinx_data_dir, "keys/prod.keys")
-        elif key_type == "title_keys":
-            key_loc = os.path.join(ryujinx_data_dir, "keys/title.keys")
-        else:
-            logger.error("Invalid keys type %s!", key_type)
-            return
-
+    def _update_key(self, key_type: str) -> None:
         key = self.runner_config.get(key_type)
         if not key:
-            logger.debug("No %s file was set.", key_type)
             return
         if not system.path_exists(key):
-            logger.warning("Keys file %s does not exist!", key)
+            logger.warning("Keys file %s does not exist", key)
             return
 
-        keys_dir = os.path.dirname(key_loc)
-        if not os.path.exists(keys_dir):
-            os.makedirs(keys_dir)
-        elif os.path.isfile(key_loc) and filecmp.cmp(key, key_loc):
-            # If the files are identical, don't do anything
+        key_loc = self.ryubing_data_dir / "system" / key_type.replace("_", ".")
+        if key_loc.is_file() and filecmp.cmp(key, key_loc):
             return
+        key_loc.parent.mkdir(parents=True, exist_ok=True)
         copyfile(key, key_loc)
 
-    def prelaunch(self):
+    def prelaunch(self) -> None:
         for key in ["prod_keys", "title_keys"]:
             self._update_key(key_type=key)

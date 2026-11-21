@@ -380,32 +380,6 @@ modules:
     cleanup: *sndio_cleanup
     sources: *sndio15_sources
 
-  - name: gamemode
-    buildsystem: meson
-    config-opts: &gamemode_config_opts
-      - -Dwith-examples=false
-      - -Dwith-util=false
-      - -Dwith-sd-bus-provider=no-daemon
-    post-install:
-      - install -Dm0775 -t /app/bin ../data/gamemoderun
-    sources: &gamemode_sources
-      - type: archive
-        url: https://github.com/FeralInteractive/gamemode/releases/download/1.8.2/gamemode-1.8.2.tar.xz
-        sha256: 98cd1bcf6101c92fe87f974c7776af23c7e18f29ce6ecfe572b1c39dcde5c181
-        x-checker-data:
-          type: anitya
-          project-id: 17410
-          stable-only: true
-          url-template: https://github.com/FeralInteractive/gamemode/releases/download/$version/gamemode-$version.tar.xz
-
-  - name: gamemode-32bit
-    build-options:
-      arch:
-        x86_64: *compat_i386_opts
-    buildsystem: meson
-    config-opts: *gamemode_config_opts
-    sources: *gamemode_sources
-
   - name: libcaca
     config-opts: &libcaca_config_opts
       - --disable-doc
@@ -697,42 +671,35 @@ modules:
     build-commands:
       - /usr/lib/sdk/openjdk17/install.sh
 
-  # Modern DOSBox replacement
-  - name: dosbox-staging
-    buildsystem: meson
+  - name: retroarch
+    buildsystem: simple
+    cleanup:
+      - /share/applications/com.libretro.RetroArch.desktop
+      - /share/metainfo/com.libretro.RetroArch.metainfo.xml
+      - /share/pixmaps/com.libretro.RetroArch.svg
+    build-commands:
+      - ./configure --prefix=/app --disable-qt --enable-dbus
+      - make -j"${FLATPAK_BUILDER_N_JOBS}"
+      - make install
     sources:
       - type: archive
-        url: https://github.com/dosbox-staging/dosbox-staging/archive/v0.79.1.tar.gz
-        sha256: 43f23fd0a5cff55e06a3ba2be8403f872ae47423f3bb4f823301eaae8a39ac2f
-      # SDL2_net headers are no longer next to SDL2's, libdos needs the dep for SDL_net.h
-      - type: patch
-        path: patches/dosbox-staging-libdos-sdl2-net.patch
-    modules:
-      # SDL2_net was dropped from the 26.08 runtime
-      - modules/SDL2_net.json
-      - name: iir1
-        buildsystem: cmake-ninja
-        sources:
-          - type: archive
-            url: https://github.com/berndporr/iir1/archive/refs/tags/1.10.0.tar.gz
-            sha256: 13b53f14d276adf6cafd3564fcda1d4b3e72342108d1c40ec4b4f0c7fc3ac95a
-      - name: libslirp
-        buildsystem: meson
-        sources:
-          - type: archive
-            url: https://gitlab.freedesktop.org/slirp/libslirp/-/archive/v4.9.1/libslirp-v4.9.1.tar.gz
-            sha256: 3970542143b7c11e6a09a4d2b50f30a133473c41f15ed0bdcc3b7a1c450d9a5c
-      - name: munt
-        buildsystem: cmake-ninja
-        config-opts:
-          - -Dmunt_WITH_MT32EMU_SMF2WAV=FALSE
-          - -Dmunt_WITH_MT32EMU_QT=FALSE
-          - -Dlibmt32emu_WITH_VERSION_TAGGING=TRUE
-          - -Dlibmt32emu_WITH_SYMBOL_VERSIONING=TRUE
-        sources:
-          - type: archive
-            url: https://github.com/munt/munt/archive/libmt32emu_2_7_2.tar.gz
-            sha256: 3b0beff64e83d2b4879baba2326eed1300edc9663b3dc52621fc74d196ca9a80
+        url: https://github.com/libretro/RetroArch/releases/download/v1.22.2/retroarch-sourceonly-1.22.2.tar.xz
+        sha256: 2a8b1713f7f4d2b53bad3e2297e48d78f5666098cf00d583d3e08f3c213f8aa6
+
+  # Supermodel's Linux build needs SDL2_net, which the SDK no longer includes
+  - modules/SDL2_net.json
+
+  - name: dosbox-staging
+    only-arches: [x86_64]
+    buildsystem: simple
+    build-commands:
+      - install -d /app/bin /app/libexec/dosbox-staging
+      - cp -a . /app/libexec/dosbox-staging
+      - ln -s ../libexec/dosbox-staging/dosbox /app/bin/dosbox
+    sources:
+      - type: archive
+        url: https://github.com/dosbox-staging/dosbox-staging/releases/download/v0.83.1/dosbox-staging-linux-x86_64-v0.83.1.tar.xz
+        sha256: 3c7c925e28a5c88ae9f9f1a315ad07d91176b135fbe5f6f240eeee148ed176b0
 
   # Needed for FreeSO
   - name: mono

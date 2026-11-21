@@ -13,7 +13,7 @@ from lutris.util import cache_single, linux, system
 from lutris.util.log import logger
 from lutris.util.process import Process
 from lutris.util.strings import get_natural_sort_key, parse_version
-from lutris.util.wine import fsync, proton
+from lutris.util.wine import proton
 
 WINE_DEFAULT_ARCH: str = "win64" if linux.LINUX_SYSTEM.is_64_bit else "win32"
 GE_PROTON_LATEST: str = "ge-proton"
@@ -230,16 +230,6 @@ def version_sort(versions: list[str], reverse: bool = False) -> list[str]:
         return sort_key
 
     return sorted(versions, key=version_key, reverse=reverse)
-
-
-def is_esync_limit_set() -> bool:
-    """Checks if the number of files open is acceptable for esync usage."""
-    return linux.LINUX_SYSTEM.has_enough_file_descriptors()
-
-
-def is_fsync_supported() -> bool:
-    """Checks if the running kernel has Valve's futex patch applied."""
-    return fsync.get_fsync_support()
 
 
 def get_default_wine_version() -> str:

@@ -1,10 +1,7 @@
 # Standard Library
-import os
-import shutil
 from gettext import gettext as _
 
 # Lutris Modules
-from lutris.config import LutrisConfig
 from lutris.exceptions import MissingBiosError, MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
@@ -15,8 +12,7 @@ class hatari(Runner):
     description = _("Atari ST computers emulator")
     platform_dict = Runner.to_platform_dict([_("Atari ST")])
     runnable_alone = True
-    flatpak_id = "org.tuxfamily.hatari"
-    runner_executable = "hatari/bin/hatari"
+    system_executable = "hatari"
     entry_point_option = "disk-a"
 
     game_options = [
@@ -117,27 +113,6 @@ class hatari(Runner):
             "default": "real",
         },
     ]
-
-    def install(self, install_ui_delegate, version=None, callback=None):
-        def on_runner_installed(*args):
-            bios_path = system.create_folder("~/.hatari/bios")
-
-            bios_filename = install_ui_delegate.show_install_file_inquiry(
-                question=_("Do you want to select an Atari ST BIOS file?"),
-                title=_("Use BIOS file?"),
-                message=_("Select a BIOS file"),
-            )
-
-            if bios_filename:
-                shutil.copy(bios_filename, bios_path)
-                bios_path = os.path.join(bios_path, os.path.basename(bios_filename))
-                config = LutrisConfig(runner_slug="hatari")
-                config.raw_runner_config.update({"bios_file": bios_path})
-                config.save()
-            if callback:
-                callback()
-
-        super().install(install_ui_delegate, version=version, callback=on_runner_installed)
 
     def play(self):  # pylint: disable=too-many-branches
         params = self.get_command()

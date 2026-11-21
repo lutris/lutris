@@ -4,15 +4,18 @@ import json
 import os
 import shutil
 from gettext import gettext as _
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Any
 
 from lutris import settings
-from lutris.api import get_runtime_versions
 from lutris.exceptions import MissingRuntimeComponentError
 from lutris.util import system
 from lutris.util.extract import extract_archive
 from lutris.util.http import download_file
 from lutris.util.log import logger
 from lutris.util.strings import parse_version
+from lutris.util.upstream import ReleaseSource
 from lutris.util.wine.prefix import WinePrefixManager
 
 
@@ -23,7 +26,7 @@ class DLLManager:
     human_name = NotImplemented
     managed_dlls = NotImplemented
     managed_appdata_files = []  # most managers have none
-    releases_url = NotImplemented
+    release_source: ReleaseSource
     archs = {32: "x32", 64: "x64"}
     proton_compatible = False  # Proton manages its own DLLs
 
@@ -116,34 +119,23 @@ class DLLManager:
             _choices.append((version, version))
         return _choices
 
-    def load_versions(self) -> list:
-        if not system.path_exists(self.versions_path):
+    def _load_releases(self) -> list[dict[str, Any]]:
+        try:
+            with open(self.versions_path, encoding="utf-8") as version_file:
+                data = json.load(version_file)
+        except FileNotFoundError:
             return []
+        except json.JSONDecodeError as ex:
+            logger.warning("Invalid release information in %s: %s", self.versions_path, ex)
+            return []
+        return [release for release in data if not (release.get("draft") or release.get("prerelease"))]
 
-        with open(self.versions_path, "r", encoding="utf-8") as dll_version_file:
-            try:
-                dll_versions = [v["tag_name"] for v in json.load(dll_version_file)]
-            except KeyError, json.decoder.JSONDecodeError:
-                logger.warning(
-                    "Invalid versions file %s, deleting so it is downloaded on next start.", self.versions_path
-                )
-                os.remove(self.versions_path)
-                return []
-
-        # Ensure the versions.json specified version is present and
-        # is the default by moving it to the top.
-        versions = get_runtime_versions()
-        runtimes = versions.get("runtimes")
-        if runtimes:
-            runtime = runtimes.get(self.name)
-            if runtime and runtime.get("versioned"):
-                default_version = runtime.get("version")
-                if default_version:
-                    if default_version in dll_versions:
-                        dll_versions.remove(default_version)
-                    dll_versions.insert(0, default_version)
-
-        return dll_versions
+    def load_versions(self) -> list[str]:
+        return [
+            build.version
+            for release in self._load_releases()
+            if (build := self.release_source.build_for_release(release))
+        ]
 
     @staticmethod
     def is_managed_dll(dll_path):
@@ -162,18 +154,14 @@ class DLLManager:
         return any(system.path_exists(os.path.join(self.path, arch, dll_name + ".dll")) for arch in self.archs.values())
 
     def get_download_url(self) -> str | None:
-        """Fetch the download URL from the JSON version file"""
-        with open(self.versions_path, "r", encoding="utf-8") as version_file:
-            releases = json.load(version_file)
-        for release in releases:
-            if release.get("tag_name") != self.version:
-                continue
-            assets = release.get("assets") or []
-            if not assets:
-                logger.warning("No file to download for %s %s", self.human_name, self.version)
-                continue
-            return assets[0].get("browser_download_url")
+        version = self.version
+        for release in self._load_releases():
+            if release.get("tag_name") == version and (build := self.release_source.build_for_release(release)):
+                return build.url
         return None
+
+    def prepare_download(self, staged: Path) -> None:
+        """Prepare the DLL layout before publishing the extracted release."""
 
     def download(self):
         """Download component to the local cache; returns True if successful but False
@@ -181,22 +169,24 @@ class DLLManager:
         if self.is_available():
             logger.warning("%s already available at %s", self.human_name, self.path)
 
-        if not system.path_exists(self.versions_path):
+        if not self._load_releases():
             self.fetch_versions()
 
         url = self.get_download_url()
         if not url:
             logger.warning("Could not find a release for %s %s", self.human_name, self.version)
             return False
-        archive_path = os.path.join(self.base_dir, os.path.basename(url))
-        logger.info("Downloading %s to %s", url, archive_path)
-        download_file(url, archive_path, overwrite=True)
-        if not system.path_exists(archive_path) or not os.stat(archive_path).st_size:
-            logger.error("Failed to download %s %s", self.human_name, self.version)
-            return False
-        logger.info("Extracting %s to %s", archive_path, self.path)
-        extract_archive(archive_path, self.path, merge_single=True)
-        os.remove(archive_path)
+        with TemporaryDirectory(dir=self.base_dir) as temp:
+            archive_path = os.path.join(temp, os.path.basename(url))
+            logger.info("Downloading %s %s from %s", self.human_name, self.version, url)
+            download_file(url, archive_path)
+            if not system.path_exists(archive_path, exclude_empty=True):
+                logger.error("Failed to download %s %s", self.human_name, self.version)
+                return False
+            staged = Path(temp) / "release"
+            extract_archive(archive_path, str(staged))
+            self.prepare_download(staged)
+            shutil.copytree(staged, self.path, dirs_exist_ok=True)
         return True
 
     def enable_dll(self, system_dir, arch, dll_path):
@@ -319,9 +309,11 @@ class DLLManager:
 
     def fetch_versions(self):
         """Get releases from GitHub"""
-        if not os.path.isdir(self.base_dir):
-            os.mkdir(self.base_dir)
-        download_file(self.releases_url, self.versions_path, overwrite=True)
+        os.makedirs(self.base_dir, exist_ok=True)
+        with TemporaryDirectory(dir=self.base_dir) as temp:
+            metadata = Path(temp) / "releases.json"
+            if download_file(self.release_source.api_url, str(metadata)) and metadata.is_file():
+                metadata.replace(self.versions_path)
 
     def upgrade(self):
         if not self.is_available():

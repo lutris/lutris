@@ -1,5 +1,5 @@
-"""Migrate the game configs for runners of FS-UAE, Mednafen, O2EM and Vice to use the platforms key
-for specifying their list of choices for selecting which platform to run through their emulators."""
+"""Migrate the game configs of FS-UAE to use the platforms key for specifying its list of
+choices for selecting which platform to run through the emulator."""
 
 from gettext import gettext as _
 from pathlib import Path
@@ -8,16 +8,12 @@ from lutris import settings
 from lutris.database.games import get_games_by_runner
 from lutris.util.yaml import read_yaml_from_file, write_yaml_to_file
 
-BIOS_PLATFORM_RUNNERS = ["o2em"]
-MACHINE_PLATFORM_RUNNERS = ["mednafen", "vice"]
-MODEL_PLATFORM_RUNNERS = ["fsuae"]
-
 
 def migrate() -> None:
     """Run migration"""
     try:
         # Used
-        runner_to_config_path_table: dict[str, list[Path]] = {"o2em": [], "mednafen": [], "vice": [], "fsuae": []}
+        runner_to_config_path_table: dict[str, list[Path]] = {"fsuae": []}
 
         for runner_name in runner_to_config_path_table.keys():
             for db_game in get_games_by_runner(runner_name):
@@ -35,14 +31,9 @@ def migrate() -> None:
                         if not isinstance(game_section, dict) or not game_section:
                             continue
 
-                        if runner_name in BIOS_PLATFORM_RUNNERS:
-                            old_platform_key = "bios"
-                        elif runner_name in MACHINE_PLATFORM_RUNNERS:
-                            old_platform_key = "machine"
-                        else:
-                            old_platform_key = "model"
+                        old_platform_key = "model"
 
-                        # Migrate the old 'bios', 'machine' 'or 'model' key to the use the 'platform' key
+                        # Migrate the old 'model' key to the use the 'platform' key
                         # underneath the "game" object in the config file
                         if old_platform_value := game_section.get(old_platform_key):
                             game_section["platform"] = old_platform_value

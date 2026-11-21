@@ -1,6 +1,6 @@
 """Utility module to deal with Proton and umu"""
 
-import json
+import csv
 import os
 import re
 from collections.abc import Generator
@@ -22,11 +22,7 @@ if TYPE_CHECKING:
 DEFAULT_GAMEID = "umu-default"
 
 GE_PROTON_RELEASES_URL = "https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases"
-GE_PROTON_RELEASE_URL = GE_PROTON_RELEASES_URL + "/tags/%s"
-
-# A GE-Proton release tag such as 'GE-Proton11-7'; unlike the lower-case 'ge-proton'
-# sentinel, this pins one specific build.
-_GE_PROTON_TAG_RE = re.compile(r"^GE-Proton\d+-\d+$")
+_GE_PROTON_RELEASE_TAG = re.compile(r"GE-Proton\d+-\d+")
 
 # Matches a umu log line such as
 #   [umu.umu_proton:348] INFO: Downloading GE-Proton10-34.tar.gz...
@@ -90,16 +86,15 @@ def find_proton_version(version: str | None) -> str | None:
     return None
 
 
-def is_ge_proton_release(version: str | None) -> bool:
-    """True if the version is a GE-Proton release tag, which can be downloaded from
-    GitHub when it isn't installed. This excludes the 'ge-proton' sentinel."""
-    return bool(version and _GE_PROTON_TAG_RE.fullmatch(version))
+def is_proton_release(version: str | None) -> bool:
+    """Check whether a version names a specific GE-Proton release."""
+    return version is not None and _GE_PROTON_RELEASE_TAG.fullmatch(version) is not None
 
 
-def get_ge_proton_release_tag(build_name: str) -> str | None:
-    """Return the release tag of an installed GE-Proton build for this architecture."""
+def get_proton_release_tag(build_name: str) -> str | None:
+    """Return the release tag of an installed build for this architecture."""
     tag = build_name.removesuffix(f"-{LINUX_SYSTEM.arch}")
-    return tag if is_ge_proton_release(tag) else None
+    return tag if is_proton_release(tag) else None
 
 
 def is_umu_path(path: str | None) -> bool:
@@ -261,18 +256,20 @@ def get_steam_compat_dir() -> str:
     return os.path.join(data_home, "Steam", "compatibilitytools.d")
 
 
-def get_ge_proton_release_urls(tag: str) -> tuple[str, str] | None:
+def get_proton_release_urls(tag: str) -> tuple[str, str] | None:
     """Return the URLs of the archive and SHA-512 checksum of a GE-Proton release for
     this system's architecture, or None if the release has no build for it.
 
     GE-Proton 11 and later name their builds '<tag>-<arch>.tar.gz'; older releases
     only shipped an x86_64 build named '<tag>.tar.gz'."""
-    release = Request(GE_PROTON_RELEASE_URL % tag).get().json
-    return _get_ge_proton_assets(tag, release)
+    if not is_proton_release(tag):
+        return None
+    release = Request(f"{GE_PROTON_RELEASES_URL}/tags/{tag}").get().json
+    return _get_proton_assets(tag, release)
 
 
-def get_ge_proton_releases() -> tuple[str, ...]:
-    """Return recent GE-Proton tags with builds for this architecture."""
+def get_proton_releases() -> tuple[str, ...]:
+    """Return recent GE-Proton releases with builds for this architecture."""
     releases = Request(f"{GE_PROTON_RELEASES_URL}?per_page=30").get().json
     if not isinstance(releases, list):
         raise ValueError("Expected a list of GE-Proton releases")
@@ -280,12 +277,12 @@ def get_ge_proton_releases() -> tuple[str, ...]:
         tag
         for release in releases
         if not (release.get("draft") or release.get("prerelease"))
-        and is_ge_proton_release(tag := release.get("tag_name") or "")
-        and _get_ge_proton_assets(tag, release)
+        and is_proton_release(tag := release.get("tag_name") or "")
+        and _get_proton_assets(tag, release)
     )
 
 
-def _get_ge_proton_assets(tag: str, release: dict[str, Any]) -> tuple[str, str] | None:
+def _get_proton_assets(tag: str, release: dict[str, Any]) -> tuple[str, str] | None:
     assets = {asset["name"]: asset["browser_download_url"] for asset in release.get("assets", [])}
     build_names = ["%s-%s" % (tag, LINUX_SYSTEM.arch)]
     if LINUX_SYSTEM.arch == "x86_64":
@@ -298,8 +295,8 @@ def _get_ge_proton_assets(tag: str, release: dict[str, Any]) -> tuple[str, str] 
     return None
 
 
-def get_ge_proton_checksum(checksum_url: str) -> str:
-    """Return the SHA-512 digest from a GE-Proton '.sha512sum' file, which is in
+def get_proton_checksum(checksum_url: str) -> str:
+    """Return the SHA-512 digest from a Proton '.sha512sum' file, which is in
     sha512sum's '<digest>  <file name>' format, or "" if the file is empty."""
     fields = Request(checksum_url).get().text.split()
     return fields[0] if fields else ""
@@ -384,21 +381,29 @@ def get_game_id(game, env) -> str:
     if game_id:
         return game_id
 
-    games_path = os.path.join(settings.RUNTIME_DIR, "umu-games/umu-games.json")
+    games_path = os.path.join(settings.RUNTIME_DIR, "umu-games", "umu-database.csv")
 
     if not os.path.exists(games_path):
         return DEFAULT_GAMEID
 
-    with open(games_path, "r", encoding="utf-8") as games_file:
-        umu_games = json.load(games_file)
-
-    for umu_game in umu_games:
-        if (
-            umu_game["store"]
-            and (
-                umu_game["store"] == game.service or (umu_game["store"] == "humble" and game.service == "humblebundle")
-            )
-            and umu_game["appid"] == game.appid
-        ):
-            return umu_game["umu_id"]
+    store = "humble" if game.service == "humblebundle" else game.service
+    with open(games_path, encoding="utf-8", newline="") as games_file:
+        for row in csv.DictReader(games_file):
+            if store and row["STORE"] == store and row["CODENAME"] == game.appid:
+                return row["UMU_ID"]
     return DEFAULT_GAMEID
+
+
+def get_anti_cheat_runtimes() -> dict[str, str]:
+    """Locate the official anti-cheat runtimes installed by Steam."""
+    names = {
+        "PROTON_BATTLEYE_RUNTIME": "Proton BattlEye Runtime",
+        "PROTON_EAC_RUNTIME": "Proton EasyAntiCheat Runtime",
+    }
+    paths = {}
+    for steamapps in get_steamapps_dirs():
+        for variable, name in names.items():
+            path = os.path.join(steamapps, "common", name)
+            if variable not in paths and os.path.isdir(path):
+                paths[variable] = path
+    return paths

@@ -10,15 +10,18 @@ from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.commands.dosbox import dosexec, makeconfig  # NOQA pylint: disable=unused-import
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.upstream import ReleaseSource
 
 
 class dosbox(Runner):
-    human_name = _("DOSBox")
+    human_name = _("DOSBox Staging")
     description = _("MS-DOS emulator")
     platform_dict = Runner.to_platform_dict([_("MS-DOS")])
     runnable_alone = True
     runner_executable = "dosbox/dosbox"
-    flatpak_id = "io.github.dosbox-staging"
+    system_executable = "dosbox"
+    upstream = ReleaseSource("dosbox-staging/dosbox-staging", r"^dosbox-staging-linux-x86_64-v[\d.]+\.tar\.xz$")
+    upstream_arch = "x86_64"
     game_options = [
         {
             "option": "main_file",

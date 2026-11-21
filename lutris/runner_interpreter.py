@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 
 from lutris.util import cache_single, system
 from lutris.util.graphics.gpu import get_gpus
-from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 
 if TYPE_CHECKING:
@@ -70,11 +69,6 @@ def get_launch_parameters(runner: "Runner", gameplay_info: "GamePlayInfoDict") -
         launch_arguments.insert(0, "0-%d" % (limit_cpu_count - 1))
         launch_arguments.insert(0, "-c")
         launch_arguments.insert(0, "taskset")
-
-    # Feral gamemode
-    gamemode = system_config.get("gamemode") and LINUX_SYSTEM.gamemode_available()
-    if gamemode:
-        launch_arguments.insert(0, "gamemoderun")
 
     # Gamescope
     has_gamescope = system_config.get("gamescope") and system.can_find_executable("gamescope")

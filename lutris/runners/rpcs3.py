@@ -6,6 +6,7 @@ from lutris.exceptions import MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.upstream import ReleaseSource
 
 
 class rpcs3(Runner):
@@ -13,8 +14,10 @@ class rpcs3(Runner):
     description = _("PlayStation 3 emulator")
     platform_dict = Runner.to_platform_dict([_("Sony PlayStation 3")])
     runnable_alone = True
-    runner_executable = "rpcs3/rpcs3"
-    flatpak_id = "net.rpcs3.RPCS3"
+    runner_executable = "rpcs3/rpcs3.AppImage"
+    system_executable = "rpcs3"
+    upstream = ReleaseSource("RPCS3/rpcs3-binaries-linux", r"^rpcs3-.*_linux64\.AppImage$")
+    upstream_arch = "x86_64"
     game_options = [
         {
             "option": "main_file",

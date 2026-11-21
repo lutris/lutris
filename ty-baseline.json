@@ -519,26 +519,6 @@
         "lineCount": 1
       }
     ],
-    "lutris/runners/atari800.py": [
-      {
-        "rule": "no-matching-overload",
-        "startColumn": 27,
-        "endColumn": 75,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 50,
-        "endColumn": 61,
-        "lineCount": 1
-      },
-      {
-        "rule": "no-matching-overload",
-        "startColumn": 29,
-        "endColumn": 62,
-        "lineCount": 1
-      }
-    ],
     "lutris/runners/commands/wine.py": [
       {
         "rule": "invalid-argument-type",
@@ -588,14 +568,6 @@
         "rule": "invalid-argument-type",
         "startColumn": 22,
         "endColumn": 27,
-        "lineCount": 1
-      }
-    ],
-    "lutris/runners/mednafen.py": [
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 27,
-        "endColumn": 33,
         "lineCount": 1
       }
     ],
@@ -709,58 +681,6 @@
         "lineCount": 1
       }
     ],
-    "lutris/runners/redream.py": [
-      {
-        "rule": "unsupported-operator",
-        "startColumn": 27,
-        "endColumn": 69,
-        "lineCount": 1
-      },
-      {
-        "rule": "unsupported-operator",
-        "startColumn": 27,
-        "endColumn": 73,
-        "lineCount": 1
-      },
-      {
-        "rule": "unsupported-operator",
-        "startColumn": 27,
-        "endColumn": 77,
-        "lineCount": 1
-      },
-      {
-        "rule": "unsupported-operator",
-        "startColumn": 27,
-        "endColumn": 79,
-        "lineCount": 1
-      },
-      {
-        "rule": "unsupported-operator",
-        "startColumn": 27,
-        "endColumn": 79,
-        "lineCount": 1
-      },
-      {
-        "rule": "unsupported-operator",
-        "startColumn": 27,
-        "endColumn": 71,
-        "lineCount": 1
-      },
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 23,
-        "endColumn": 56,
-        "lineCount": 1
-      }
-    ],
-    "lutris/runners/reicast.py": [
-      {
-        "rule": "no-matching-overload",
-        "startColumn": 16,
-        "endColumn": 85,
-        "lineCount": 1
-      }
-    ],
     "lutris/runners/runner.py": [
       {
         "rule": "redundant-cast",
@@ -800,14 +720,6 @@
         "rule": "incompatible-method-override",
         "startColumn": 8,
         "endColumn": 53,
-        "lineCount": 1
-      }
-    ],
-    "lutris/runners/vice.py": [
-      {
-        "rule": "invalid-argument-type",
-        "startColumn": 46,
-        "endColumn": 57,
         "lineCount": 1
       }
     ],

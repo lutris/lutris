@@ -129,26 +129,6 @@ class InvalidGameMoveError(LutrisError):
     """Raised when a game can't be moved as desired; we may have to just set the location."""
 
 
-class EsyncLimitError(Exception):
-    """Raised when the ESYNC limit is not set correctly."""
-
-    def __init__(self, message: str | None = None, *args: Any, **kwargs: Any):
-        if not message:
-            message = _("Your ESYNC limits are not set correctly.")
-
-        super().__init__(message, *args, **kwargs)
-
-
-class FsyncUnsupportedError(Exception):
-    """Raised when FSYNC is enabled, but is not supported by the kernel."""
-
-    def __init__(self, message: str | None = None, *args: Any, **kwargs: Any):
-        if not message:
-            message = _("Your kernel is not patched for fsync. Please get a patched kernel to use fsync.")
-
-        super().__init__(message, *args, **kwargs)
-
-
 class InvalidSearchTermError(ValueError):
     def __init__(self, message: str, *args: Any, **kwargs: Any):
         super().__init__(message, *args, **kwargs)

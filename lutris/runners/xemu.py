@@ -3,6 +3,7 @@ from gettext import gettext as _
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.upstream import ReleaseSource
 
 
 class xemu(Runner):
@@ -10,8 +11,10 @@ class xemu(Runner):
     platform_dict = Runner.to_platform_dict([_("Xbox")])
     description = _("Xbox emulator")
     runnable_alone = True
-    runner_executable = "xemu/xemu"
-    flatpak_id = "app.xemu.xemu"
+    runner_executable = "xemu/xemu.AppImage"
+    system_executable = "xemu"
+    upstream = ReleaseSource("xemu-project/xemu", r"^xemu-[\d.]+-x86_64\.AppImage$")
+    upstream_arch = "x86_64"
     game_options = [
         {
             "option": "main_file",

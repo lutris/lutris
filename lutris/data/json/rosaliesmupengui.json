@@ -3,10 +3,11 @@
     "human_name": "Rosalie's Mupen GUI",
     "description": "Nintendo 64 emulator",
     "platforms": [ "Nintendo 64" ],
-    "runner_executable": "RMG-Portable-Linux64-v0.7.9.AppImage",
-    "flatpak_id": "com.github.Rosalie241.RMG",
+    "runner_executable": "RMG-Linux64.AppImage",
+    "system_executable": "RMG",
+    "upstream": {"repo": "Rosalie241/RMG", "asset": "^RMG-Portable-Linux64-.*\\.AppImage$"},
+    "upstream_arch": "x86_64",
     "runnable_alone": true,
-    "download_url": "https://github.com/Rosalie241/RMG/releases/download/v0.7.9/RMG-Portable-Linux64-v0.7.9.AppImage",
     "game_options": [
         {
             "option": "main_file",

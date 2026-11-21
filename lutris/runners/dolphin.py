@@ -19,9 +19,7 @@ class dolphin(Runner):
         "libOpenGL.so.0",
     ]
     runnable_alone = True
-    runner_executable = "dolphin/Dolphin_Emulator-2512-anylinux-x86_64.AppImage"
-    flatpak_id = "org.DolphinEmu.dolphin-emu"
-    download_url = "https://github.com/pkgforge-dev/Dolphin-emu-AppImage/releases/download/2512%402026-01-26_1769467304/Dolphin_Emulator-2512-anylinux-x86_64.AppImage"
+    system_executable = "dolphin-emu"
     game_options = [
         {
             "option": "main_file",

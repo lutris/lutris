@@ -2,10 +2,12 @@ import hashlib
 import os
 import shutil
 import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 
+from lutris.delegates import InstallUIDelegate
 from lutris.runners import wine
 from lutris.util.test_config import setup_test_environment
 from lutris.util.wine.dll_manager import DLLManager
@@ -55,8 +57,7 @@ class TestProtonGraphics(TestCase):
 
 
 class TestInstallerRunnerVersion(TestCase):
-    """A fresh install with no Wine version anywhere must use the umu default and
-    never ask the API, whose 'latest' build would be downloaded for nothing."""
+    """Use the umu default when an installer does not name a Wine build."""
 
     def get_installer(self, script):
         return SimpleNamespace(runner="wine", script=script, requires=None)
@@ -64,18 +65,14 @@ class TestInstallerRunnerVersion(TestCase):
     @patch.object(wine.wine, "get_runner_version_and_config", side_effect=wine.UnspecifiedVersionError("unset"))
     def test_unspecified_version_uses_default(self, _get_config):
         runner = wine.wine()
-        with patch.object(runner, "get_runner_version") as get_runner_version:
-            version = runner.get_installer_runner_version(self.get_installer({}), use_default=True)
+        version = runner.get_installer_runner_version(self.get_installer({}), use_default=True)
         self.assertEqual(version, wine.get_default_wine_version())
-        get_runner_version.assert_not_called()
 
     @patch.object(wine.wine, "get_runner_version_and_config", side_effect=wine.UnspecifiedVersionError("unset"))
     def test_unspecified_version_needs_no_runner_install(self, _get_config):
         runner = wine.wine()
         interpreter = SimpleNamespace(installer=self.get_installer({}))
-        with patch.object(runner, "get_runner_version") as get_runner_version:
-            self.assertTrue(runner.is_installed_for(interpreter))
-        get_runner_version.assert_not_called()
+        self.assertTrue(runner.is_installed_for(interpreter))
 
     def test_script_version_is_kept(self):
         runner = wine.wine()
@@ -113,19 +110,16 @@ class TestPinnedGeProton(TestCase):
     @patch.object(wine.proton, "get_proton_versions", return_value={})
     def test_missing_release_is_downloaded_from_github(self, _versions):
         runner = wine.wine()
-        with (
-            patch.object(runner, "install_ge_proton") as install_ge_proton,
-            patch.object(runner, "get_runner_version") as get_runner_version,
-        ):
-            runner.install(None, version="GE-Proton11-7")
-        install_ge_proton.assert_called_once_with(None, "GE-Proton11-7", callback=None)
-        get_runner_version.assert_not_called()
+        delegate = InstallUIDelegate()
+        with patch.object(runner, "install_proton_release") as install_proton_release:
+            runner.install(delegate, version="GE-Proton11-7")
+        install_proton_release.assert_called_once_with(delegate, "GE-Proton11-7", callback=None)
 
     @patch.object(wine.proton, "get_steam_compat_dir")
-    @patch.object(wine.proton, "get_ge_proton_checksum")
+    @patch.object(wine.proton, "get_proton_checksum")
     @patch.object(
         wine.proton,
-        "get_ge_proton_release_urls",
+        "get_proton_release_urls",
         return_value=("https://dl/GE-Proton11-7-x86_64.tar.gz", "https://dl/GE-Proton11-7-x86_64.sha512sum"),
     )
     def test_download_is_verified_and_extracted_to_compat_dir(self, _urls, get_checksum, get_compat_dir):
@@ -140,24 +134,25 @@ class TestPinnedGeProton(TestCase):
                     archive.write(payload)
                 return True
 
-            delegate = SimpleNamespace(download_install_file=download)
+            delegate = InstallUIDelegate()
+            delegate.download_install_file = download
             runner = wine.wine()
             with (
                 patch.object(wine.settings, "CACHE_DIR", temp_dir),
                 patch.object(runner, "extract") as extract,
             ):
-                runner.install_ge_proton(delegate, "GE-Proton11-7")
-            extract.assert_called_once_with(
-                archive=os.path.join(temp_dir, "GE-Proton11-7-x86_64.tar.gz"),
-                dest=compat_dir,
-                merge_single=False,
-                callback=None,
+                runner.install_proton_release(delegate, "GE-Proton11-7")
+            archive, destination = extract.call_args.args
+            self.assertEqual(Path(archive).name, "GE-Proton11-7-x86_64.tar.gz")
+            self.assertEqual(destination, compat_dir)
+            self.assertEqual(
+                extract.call_args.kwargs, {"merge_single": False, "executable": "GE-Proton11-7-x86_64/proton"}
             )
 
-    @patch.object(wine.proton, "get_ge_proton_checksum", return_value="0" * 128)
+    @patch.object(wine.proton, "get_proton_checksum", return_value="0" * 128)
     @patch.object(
         wine.proton,
-        "get_ge_proton_release_urls",
+        "get_proton_release_urls",
         return_value=("https://dl/GE-Proton11-7-x86_64.tar.gz", "https://dl/GE-Proton11-7-x86_64.sha512sum"),
     )
     def test_corrupt_download_is_rejected(self, _urls, _checksum):
@@ -174,14 +169,16 @@ class TestPinnedGeProton(TestCase):
                 patch.object(runner, "extract") as extract,
                 self.assertRaises(wine.RunnerInstallationError),
             ):
-                runner.install_ge_proton(SimpleNamespace(download_install_file=download), "GE-Proton11-7")
+                delegate = InstallUIDelegate()
+                delegate.download_install_file = download
+                runner.install_proton_release(delegate, "GE-Proton11-7")
             extract.assert_not_called()
             self.assertEqual(os.listdir(temp_dir), [])
 
-    @patch.object(wine.proton, "get_ge_proton_release_urls", return_value=None)
+    @patch.object(wine.proton, "get_proton_release_urls", return_value=None)
     def test_release_without_a_build_fails_cleanly(self, _urls):
         with self.assertRaises(wine.RunnerInstallationError):
-            wine.wine().install_ge_proton(SimpleNamespace(), "GE-Proton11-7")
+            wine.wine().install_proton_release(InstallUIDelegate(), "GE-Proton11-7")
 
 
 class TestMissingWineVersion(TestCase):

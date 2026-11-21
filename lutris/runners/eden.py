@@ -7,15 +7,18 @@ from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
 from lutris.util.log import logger
+from lutris.util.upstream import ReleaseSource
 
 
-class yuzu(Runner):
-    human_name = _("Yuzu")
+class eden(Runner):
+    human_name = _("Eden")
     platform_dict = Runner.to_platform_dict([_("Nintendo Switch")])
     description = _("Nintendo Switch emulator")
     runnable_alone = True
-    runner_executable = "yuzu/yuzu-mainline.AppImage"
-    flatpak_id = "org.yuzu_emu.yuzu"
+    runner_executable = "eden/Eden.AppImage"
+    system_executable = "eden"
+    upstream = ReleaseSource("eden-emu/eden", r"^Eden-Linux-.*-amd64-gcc-standard\.AppImage$", host="git.eden-emu.dev")
+    upstream_arch = "x86_64"
     game_options = [
         {
             "option": "main_file",
@@ -46,9 +49,9 @@ class yuzu(Runner):
     ]
 
     @property
-    def yuzu_data_dir(self):
-        """Return dir where Yuzu files lie."""
-        candidates = ("~/.local/share/yuzu",)
+    def data_dir(self):
+        """Return dir where Eden files lie."""
+        candidates = ("~/.local/share/eden",)
         for candidate in candidates:
             path = system.fix_path_case(os.path.join(os.path.expanduser(candidate), "nand"))
             if system.path_exists(path):
@@ -70,14 +73,14 @@ class yuzu(Runner):
 
     def _update_key(self, key_type):
         """Update a keys file if set"""
-        yuzu_data_dir = self.yuzu_data_dir
-        if not yuzu_data_dir:
-            logger.error("Yuzu data dir not set")
+        data_dir = self.data_dir
+        if not data_dir:
+            logger.error("Eden data dir not set")
             return
         if key_type == "prod_keys":
-            key_loc = os.path.join(yuzu_data_dir, "keys/prod.keys")
+            key_loc = os.path.join(data_dir, "keys/prod.keys")
         elif key_type == "title_keys":
-            key_loc = os.path.join(yuzu_data_dir, "keys/title.keys")
+            key_loc = os.path.join(data_dir, "keys/title.keys")
         else:
             logger.error("Invalid keys type %s!", key_type)
             return

@@ -1,384 +1,203 @@
-"""Download the components Lutris runs games with, such as umu, gogdl and Winetricks"""
+"""Update game runtime components from their own release channels."""
 
-import concurrent.futures
 import os
-import threading
-import time
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from gettext import gettext as _
-from typing import Any
+from pathlib import Path
+from shutil import copytree
+from tempfile import TemporaryDirectory
+from time import time
+from urllib.parse import urlsplit
 
 from lutris import settings
-from lutris.api import (
-    check_stale_runtime_versions,
-    download_runtime_versions,
-    get_runtime_versions,
-    get_time_from_api_date,
-)
-from lutris.util import http, system
+from lutris.exceptions import LutrisError
+from lutris.util import system
 from lutris.util.downloader import SimpleDownloader
-from lutris.util.extract import extract_archive
-from lutris.util.jobs import AsyncCall
+from lutris.util.extract import ExtractError, extract_archive
+from lutris.util.http import HTTPError
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.progress_info import ProgressInfo
-from lutris.util.strings import parse_version
-from lutris.util.wine.dgvoodoo2 import dgvoodoo2Manager
+from lutris.util.upstream import FileSource, ReleaseSource, UpstreamBuild, UpstreamError, UpstreamSource
 
-RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").casefold() in ("0", "off")
+CHECK_INTERVAL = 6 * 60 * 60
+RUNTIME_DISABLED = os.environ.get("LUTRIS_RUNTIME", "").casefold() in {"0", "off"}
 
-DLL_MANAGERS = {
-    "dgvoodoo2": dgvoodoo2Manager,
-}
 
-# Components Lutris doesn't download: Proton bundles the graphics layers, and the
-# Ubuntu libraries and network tools made up the old Lutris runtime, which Wine and
-# Proton aren't meant to run against
-UNUSED_RUNTIMES = {
-    "d3d_extras",
-    "dxvk",
-    "dxvk-cache-tool",
-    "dxvk-nvapi",
-    "vkd3d",
-    "Ubuntu-18.04-i686",
-    "Ubuntu-18.04-x86_64",
-    "network-tools",
-}
+@dataclass(frozen=True)
+class Component:
+    name: str
+    source: UpstreamSource
+    entry_point: str
+    archive: bool = True
+    executable: bool = True
+
+
+def get_components(arch: str | None) -> list[Component]:
+    components = [
+        Component("umu", ReleaseSource("Open-Wine-Components/umu-launcher", r"-zipapp\.tar$"), "umu-run"),
+        Component("winetricks", ReleaseSource("Winetricks/winetricks"), "src/winetricks"),
+        Component(
+            "umu-games",
+            FileSource("https://raw.githubusercontent.com/Open-Wine-Components/umu-database/main/umu-database.csv"),
+            "umu-database.csv",
+            archive=False,
+            executable=False,
+        ),
+        Component(
+            "gamecontrollerdb",
+            FileSource("https://raw.githubusercontent.com/mdqinc/SDL_GameControllerDB/master/gamecontrollerdb.txt"),
+            "gamecontrollerdb.txt",
+            archive=False,
+            executable=False,
+        ),
+        Component(
+            "dgvoodoo2",
+            FileSource("https://api.github.com/repos/dege-diosg/dgVoodoo2/releases"),
+            "dgvoodoo2_versions.json",
+            archive=False,
+            executable=False,
+        ),
+    ]
+    if arch in {"x86_64", "aarch64"}:
+        asset_arch = {"x86_64": "x86_64", "aarch64": "arm64"}[arch]
+        components.append(
+            Component(
+                "gogdl",
+                ReleaseSource("Heroic-Games-Launcher/heroic-gogdl", rf"^gogdl_linux_{asset_arch}$"),
+                "gogdl",
+                archive=False,
+            )
+        )
+    if seven_zip_arch := {"x86_64": "x64", "i386": "x86", "aarch64": "arm64", "armv7": "arm"}.get(arch or ""):
+        components.append(Component("7zip", ReleaseSource("ip7z/7zip", rf"-linux-{seven_zip_arch}\.tar\.xz$"), "7zz"))
+    if arch == "x86_64":
+        components.append(
+            Component("innoextract", ReleaseSource("dscharrer/innoextract", r"-linux\.tar\.xz$"), "innoextract")
+        )
+    return components
 
 
 class ComponentUpdater:
-    (PENDING, DOWNLOADING, EXTRACTING, COMPLETED) = list(range(4))
-
-    status_formats = {
-        PENDING: _("Updating %s"),
-        DOWNLOADING: _("Downloading %s"),
-        EXTRACTING: _("Extracting %s"),
-        COMPLETED: _("Updated %s"),
-    }
-
     @property
     def name(self) -> str:
         raise NotImplementedError
 
-    @property
-    def should_update(self) -> bool:
-        """True if this update should be installed; false to discard it."""
-        return True
-
     def install_update(self, updater: "RuntimeUpdater") -> None:
-        """Performs the update; runs on a worker thread, and returns when complete.
-        However, some updates spawn a further thread to extract in parallel with the
-        next update even after this."""
         raise NotImplementedError
 
-    def join(self):
-        """Blocks until the update is entirely complete; used when install_update() spawns
-        a thread to finish up. We call this on each update before closing the download queue."""
+    def join(self) -> None:
+        """Wait for any background work from the component to finish."""
 
     def get_progress(self) -> ProgressInfo:
-        """Returns the current progress for the updater as it runs; called from the main thread."""
         return ProgressInfo.ended()
 
 
 class RuntimeUpdater:
-    """Class handling the runtime updates"""
+    def __init__(self, force: bool = False) -> None:
+        self.check_path = Path(settings.CACHE_DIR) / "upstream-runtime-check"
+        enabled = settings.read_bool_setting("auto_update_runtime", default=True)
+        self.has_updates = not RUNTIME_DISABLED and (force or (enabled and self._is_check_due()))
 
-    def __init__(self, force: bool = False):
-        if RUNTIME_DISABLED:
-            logger.warning("Component updates disabled by the LUTRIS_RUNTIME environment variable.")
-            self.update_runtime = False
-        elif force:
-            self.update_runtime = True
-        else:
-            self.update_runtime = settings.read_bool_setting("auto_update_runtime", default=True)
-
-            if not self.update_runtime:
-                logger.warning("Component updates are disabled. This configuration is not supported.")
-
-            if not check_stale_runtime_versions():
-                self.update_runtime = False
-
-        if self.has_updates:
-            self.runtime_versions = download_runtime_versions()
-        else:
-            self.runtime_versions = get_runtime_versions()
-
-    @property
-    def has_updates(self):
-        return self.update_runtime
-
-    def create_component_updaters(self) -> list[ComponentUpdater]:
-        """Creates the component updaters that need to be applied and returns them in a list.
-
-        This tests each to see if it should be used and returns only those you should install.
-        It returns an empty list if has_updates is false.
-
-        This method also downloads fresh runner versions on each call, so we call this on a
-        worker thread, instead of blocking the UI."""
-        if not self.runtime_versions:
-            return []
-
-        updaters: list[ComponentUpdater] = []
-
-        if self.update_runtime:
-            updaters += self._get_runtime_updaters(self.runtime_versions)
-
-        return [u for u in updaters if u.should_update]
-
-    def check_client_versions(self) -> str | None:
-        """Checks if the client is of an old version and no longer supported; this can be blocked
-        with an env-var, and can be temporarily ignored as well, but if we're out of date, then
-        this method returns the version of Lutris that is required. If we're good, or we are ignoring
-        the problem, this returns None.
-
-        I expect that most users will not discover the env-var, so they will be prompted
-        on each new Lutris release."""
-        if self.runtime_versions and not os.environ.get("LUTRIS_NO_CLIENT_VERSION_CHECK"):
-            client_version = self.runtime_versions.get("client_version")
-            if client_version:
-                if parse_version(client_version) > parse_version(settings.VERSION):
-                    ignored = settings.read_setting("ignored_supported_lutris_version")
-                    if not ignored or ignored != client_version:
-                        return client_version
-
-        return None
-
-    @staticmethod
-    def _get_runtime_updaters(runtime_versions: dict[str, Any]) -> list[ComponentUpdater]:
-        """Launch the update process"""
-        updaters: list[ComponentUpdater] = []
-        for name, remote_runtime in runtime_versions.get("runtimes", {}).items():
-            if name in UNUSED_RUNTIMES:
-                continue
-            if remote_runtime["architecture"] == "x86_64" and not LINUX_SYSTEM.is_64_bit:
-                logger.debug("Skipping runtime %s for %s", name, remote_runtime["architecture"])
-                continue
-
-            try:
-                url = remote_runtime.get("url")
-                if url:
-                    if "-proton" not in os.path.basename(url).casefold():
-                        updaters.append(RuntimeExtractedComponentUpdater(remote_runtime))
-                else:
-                    updaters.append(RuntimeFilesComponentUpdater(remote_runtime))
-            except Exception as ex:
-                logger.exception("Unable to download %s: %s", name, ex)
-
-        return updaters
-
-
-class RuntimeComponentUpdater(ComponentUpdater):
-    """A base class for component updates that use the timestamp from a runtime-info dict
-    to decide when an update is required.
-
-    These dicts are part of the 'versions.json' file, sent down from the server. They describe
-    what versions of components are available from the server. This dict includes the modification
-    date-time of the component, and we compare it to the mtime of the relevant directory.
-    """
-
-    def __init__(self, remote_runtime_info: dict[str, Any]) -> None:
-        self.remote_runtime_info = remote_runtime_info
-        self.state = ComponentUpdater.PENDING
-        # Versioned runtimes keep 1 version per folder
-        self.versioned = bool(self.remote_runtime_info.get("versioned"))
-        self.version = str(self.remote_runtime_info.get("version") or "") if self.versioned else ""
-
-    @property
-    def name(self) -> str:
-        return self.remote_runtime_info["name"]
-
-    @property
-    def local_runtime_path(self) -> str:
-        """Return the local path for the runtime directory where the component
-        is kept."""
-        return os.path.join(settings.RUNTIME_DIR, self.name)
-
-    def install_update(self, updater: "RuntimeUpdater") -> None:
-        raise NotImplementedError
-
-    def get_progress(self) -> ProgressInfo:
-        status_text = ComponentUpdater.status_formats[self.state] % self.name
-
-        if self.state == ComponentUpdater.COMPLETED:
-            return ProgressInfo.ended(status_text)
-
-        if self.state == ComponentUpdater.PENDING:
-            return ProgressInfo(0.0, status_text)
-
-        return ProgressInfo(0, status_text)
-
-    def get_updated_at(self) -> time.struct_time:
-        """Return the modification date of the runtime folder"""
-        return time.gmtime(os.path.getmtime(self.local_runtime_path))
-
-    def set_updated_at(self) -> None:
-        """Set the creation and modification time to now"""
-        if not system.path_exists(self.local_runtime_path):
-            logger.error("No local runtime path in %s", self.local_runtime_path)
-            return
-        os.utime(self.local_runtime_path)
-
-    @property
-    def should_update(self) -> bool:
-        """Determine if the current runtime should be updated"""
-        if self.versioned:
-            return not system.path_exists(os.path.join(self.local_runtime_path, self.version))
-
+    def _is_check_due(self) -> bool:
         try:
-            local_updated_at = self.get_updated_at()
+            return time() - self.check_path.stat().st_mtime >= CHECK_INTERVAL
         except FileNotFoundError:
             return True
 
-        remote_updated_at = get_time_from_api_date(self.remote_runtime_info["created_at"])
+    @staticmethod
+    def _resolve_component(component: Component) -> "RuntimeComponentUpdater | None":
+        try:
+            build = component.source.find()
+        except (UpstreamError, HTTPError, ValueError) as ex:
+            logger.warning("Unable to check %s for updates: %s", component.name, ex)
+            return None
+        return RuntimeComponentUpdater(component, build)
 
-        if local_updated_at and local_updated_at >= remote_updated_at:
-            return False
+    def create_component_updaters(self) -> list[ComponentUpdater]:
+        if not self.has_updates:
+            return []
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            resolved = list(executor.map(self._resolve_component, get_components(LINUX_SYSTEM.arch)))
+        if all(updater is not None for updater in resolved):
+            self.check_path.parent.mkdir(parents=True, exist_ok=True)
+            self.check_path.touch()
+        return [updater for updater in resolved if updater is not None and updater.should_update]
 
-        logger.debug(
-            "Runtime %s locally updated on %s, remote created on %s)",
-            self.name,
-            time.strftime("%c", local_updated_at),
-            time.strftime("%c", remote_updated_at),
-        )
-        return True
 
-
-class RuntimeExtractedComponentUpdater(RuntimeComponentUpdater):
-    """Component updater that downloads and extracts an archive."""
-
-    def __init__(self, remote_runtime_info: dict[str, Any]) -> None:
-        super().__init__(remote_runtime_info)
-        self.url = remote_runtime_info["url"]
+class RuntimeComponentUpdater(ComponentUpdater):
+    def __init__(self, component: Component, build: UpstreamBuild) -> None:
+        self.component = component
+        self.build = build
+        self.destination = Path(settings.RUNTIME_DIR) / component.name
+        self.version_file = self.destination / ".upstream-version"
         self.downloader: SimpleDownloader | None = None
-        self.complete_event = threading.Event()
-
-    def get_progress(self) -> ProgressInfo:
-        progress_info = super().get_progress()
-
-        if self.downloader and not progress_info.has_ended:
-            return ProgressInfo(self.downloader.progress_fraction, progress_info.label_markup, self.downloader.cancel)
-
-        return progress_info
+        self.progress = ProgressInfo(0, _("Updating %s") % component.name)
 
     @property
-    def archive_path(self):
-        """This is the path where the archive is downloaded, before being extracted."""
-        return os.path.join(settings.RUNTIME_DIR, os.path.basename(self.url))
+    def name(self) -> str:
+        return self.component.name
 
-    def install_update(self, updater: RuntimeUpdater) -> None:
-        self.state = ComponentUpdater.DOWNLOADING
-        self.complete_event.clear()
-
-        archive_path = self.archive_path
-        self.downloader = SimpleDownloader(self.url, archive_path, overwrite=True)
-        self.downloader.start()
-        self.downloader.join()
-        self.downloader = None
-
-        AsyncCall(self._install, self._install_cb, archive_path)
-
-    def join(self):
-        self.complete_event.wait()
-
-    def _complete(self):
-        self.state = ComponentUpdater.COMPLETED
-        self.complete_event.set()
-
-    def _install(self, path: str):
-        """Finishes the installation after download, on a worker thread. This extracts
-        the archive and downloads the versions file for it, the marks the update complete
-        so join() above will be unblocked."""
-        try:
-            self._extract(path)
-
-            self.set_updated_at()
-            if self.name in DLL_MANAGERS:
-                manager = DLL_MANAGERS[self.name]()
-                manager.fetch_versions()
-        finally:
-            self._complete()
-
-    def _install_cb(self, _completed: bool, error: Exception) -> None:
-        if error:
-            logger.error("Runtime update failed: %s", error)
-
-    def _extract(self, path: str) -> None:
-        """Actions taken once a runtime is downloaded
-
-        Arguments:
-            path: local path to the runtime archive, or None on download failure
-        """
-        if not path:
-            return
-
-        stats = os.stat(path)
-        if not stats.st_size:
-            logger.error("Download failed: file %s is empty, Deleting file.", path)
-            os.unlink(path)
-            return
-        directory, _filename = os.path.split(path)
-
-        # Determine the destination path
-        dest_path = os.path.join(directory, self.name)
-
-        if self.versioned:
-            dest_path = os.path.join(dest_path, self.version)
-        else:
-            # Delete the existing runtime path
-            system.delete_folder(dest_path)
-        # Extract the runtime archive
-        self.state = ComponentUpdater.EXTRACTING
-        archive_path, _destination_path = extract_archive(path, dest_path, merge_single=True)
-        os.unlink(archive_path)
-
-
-class RuntimeFilesComponentUpdater(RuntimeComponentUpdater):
-    """Component updaters that downloads a set of files described by the server
-    individually."""
-
-    def install_update(self, updater: RuntimeUpdater) -> None:
-        """Download a runtime item by individual components. Used for icons only at the moment"""
-        self.state = ComponentUpdater.DOWNLOADING
-        components = self._get_runtime_components()
-        downloads = []
-        for component in components:
-            modified_at = get_time_from_api_date(component["modified_at"])
-            if not self._should_update_component(component["filename"], modified_at):
-                continue
-            downloads.append(component)
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            future_downloads = {
-                executor.submit(self._download_component, component): component["filename"] for component in downloads
-            }
-            for future in concurrent.futures.as_completed(future_downloads):
-                if not future.cancelled() and future.exception():
-                    expected_filename = future_downloads[future]
-                    logger.warning("Failed to get '%s': %s", expected_filename, future.exception())
-        self.state = ComponentUpdater.COMPLETED
-
-    def _should_update_component(self, filename: str, remote_modified_at: time.struct_time) -> bool:
-        """Should an individual component be updated?"""
-        file_path = os.path.join(self.local_runtime_path, filename)
-        if not system.path_exists(file_path):
+    @property
+    def should_update(self) -> bool:
+        if not self.build.version or not (self.destination / self.component.entry_point).is_file():
             return True
-        locally_modified_at = time.gmtime(os.path.getmtime(file_path))
-        if locally_modified_at >= remote_modified_at:
-            return False
-        return True
-
-    def _get_runtime_components(self) -> list[dict[str, Any]]:
-        """Fetch individual runtime files for a component"""
-        request = http.Request(settings.RUNTIME_URL + "/" + self.name)
         try:
-            response = request.get()
-        except http.HTTPError as ex:
-            logger.error("Failed to get components: %s", ex)
-            return []
-        if not response.json:
-            return []
-        return response.json.get("components", [])
+            return self.version_file.read_text(encoding="utf-8") != self.build.version
+        except FileNotFoundError:
+            return True
 
-    def _download_component(self, component: dict[str, Any]) -> None:
-        """Download an individual file from a runtime item"""
-        file_path = os.path.join(self.local_runtime_path, component["filename"])
-        http.download_file(component["url"], file_path)
+    def get_progress(self) -> ProgressInfo:
+        if self.downloader is not None:
+            return ProgressInfo(
+                self.downloader.progress_fraction, _("Downloading %s") % self.name, self.downloader.cancel
+            )
+        return self.progress
+
+    def install_update(self, updater: RuntimeUpdater) -> None:
+        self.destination.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with TemporaryDirectory(dir=self.destination.parent) as tmp:
+                work = Path(tmp)
+                download = work / urlsplit(self.build.url).path.rsplit("/", 1)[-1]
+                self._download(download)
+                self.progress = ProgressInfo(0, _("Installing %s") % self.name)
+                self._install(download, work / "component")
+        except (ExtractError, LutrisError, OSError) as error:
+            self.progress = ProgressInfo.ended(_("Could not update %s") % self.name)
+            updater.check_path.unlink(missing_ok=True)
+            raise LutrisError(_("Could not update %s: %s") % (self.name, error)) from error
+        self.progress = ProgressInfo.ended(_("Updated %s") % self.name)
+
+    def _download(self, destination: Path) -> None:
+        downloader = SimpleDownloader(self.build.url, str(destination), overwrite=True)
+        self.downloader = downloader
+        try:
+            downloader.start()
+            if not downloader.join() or not system.path_exists(str(destination), exclude_empty=True):
+                raise LutrisError(_("Download did not complete."))
+        finally:
+            self.downloader = None
+
+    def _install(self, download: Path, staged: Path) -> None:
+        entry = staged / self.component.entry_point
+        if self.component.archive:
+            extract_archive(str(download), str(staged))
+        else:
+            entry.parent.mkdir(parents=True, exist_ok=True)
+            download.replace(entry)
+        if not entry.is_file():
+            raise ExtractError(_("The upstream build is missing %s.") % self.component.entry_point)
+        if self.component.executable:
+            system.make_executable(str(entry))
+
+        self.destination.mkdir(parents=True, exist_ok=True)
+        if self.component.archive:
+            copytree(staged, self.destination, dirs_exist_ok=True, symlinks=True)
+        else:
+            entry.replace(self.destination / self.component.entry_point)
+        if self.build.version:
+            staged_version = staged / ".upstream-version"
+            staged_version.write_text(self.build.version, encoding="utf-8")
+            staged_version.replace(self.version_file)

@@ -1,95 +1,43 @@
-"""ShadPS4 Runner"""
+"""Run the shadPS4 SDL emulator."""
 
-import os
 from gettext import gettext as _
+from pathlib import Path
 
 from lutris.exceptions import MissingGameExecutableError
-from lutris.runners.runner import Runner
-from lutris.util import system
+from lutris.runners.runner import GamePlayInfoDict, Runner
+from lutris.util.upstream import ReleaseSource
 
 
 class shadps4(Runner):
-    human_name = _("ShadPS4")
-    description = _("PlayStation 4 Emulator")
+    human_name = _("shadPS4")
+    description = _("PlayStation 4 emulator")
     platform_dict = Runner.to_platform_dict([_("Sony PlayStation 4")])
     runnable_alone = True
-    runner_executable = "shadps4/shadPS4QtLauncher-qt.AppImage"
+    runner_executable = "shadps4/Shadps4-sdl.AppImage"
+    system_executable = "shadps4"
+    upstream = ReleaseSource("shadps4-emu/shadPS4", r"^shadps4-linux-sdl-.*\.zip$")
+    upstream_arch = "x86_64"
 
     game_options = [
         {
             "option": "main_file",
             "type": "directory",
             "label": _("Game folder"),
-            "help": _("Path to the game folder (e.g., CUSA00001)"),
+            "help": _("Path to the game folder containing eboot.bin"),
         }
     ]
-
     runner_options = [
-        {
-            "option": "emulator",
-            "type": "choice",
-            "label": _("Emulator"),
-            "choices": [
-                (_("Bundled"), "bundled"),
-                (_("Launcher default"), "default"),
-                (_("Custom"), "custom"),
-            ],
-            "default": "bundled",
-        },
-        {
-            "option": "custom_emulator_path",
-            "type": "file",
-            "label": _("Custom emulator path"),
-            "help": _("Path to ShadPS4 SDL emulator (only used if 'Custom' is selected)"),
-            "advanced": True,
-        },
         {
             "option": "fullscreen",
             "type": "bool",
             "label": _("Fullscreen"),
             "default": True,
-        },
+        }
     ]
 
-    def get_sdl_emulator_path(self):
-        """Derive the SDL emulator path from the launcher path."""
-        launcher = self.get_executable()
-        launcher_dir = os.path.dirname(launcher)
-        # Look for the SDL AppImage in the same directory
-        for name in ("Shadps4-sdl.AppImage", "shadps4-sdl.AppImage", "shadPS4-sdl.AppImage"):
-            sdl_path = os.path.join(launcher_dir, name)
-            if system.path_exists(sdl_path):
-                return sdl_path
-        return None
-
-    def play(self):
-        arguments = self.get_command()
-
-        # Emulator selection
-        emu_choice = self.runner_config.get("emulator", "bundled")
-        if emu_choice == "bundled":
-            emu_path = self.get_sdl_emulator_path()
-            if emu_path:
-                arguments.extend(["-e", emu_path])
-            else:
-                arguments.append("-d")  # Fall back to launcher default
-        elif emu_choice == "custom":
-            custom_path = self.runner_config.get("custom_emulator_path")
-            if custom_path:
-                arguments.extend(["-e", custom_path])
-            else:
-                arguments.append("-d")
-        else:  # default
-            arguments.append("-d")
-
-        # Game
-        game_path = self.game_config.get("main_file") or ""
-        if not system.path_exists(game_path):
-            raise MissingGameExecutableError(filename=game_path)
-        arguments.extend(["-g", game_path])
-
-        # Emulator args after separator
-        arguments.append("--")
-        arguments.extend(["--fullscreen", "true" if self.runner_config.get("fullscreen") else "false"])
-
-        return {"command": arguments}
+    def play(self) -> GamePlayInfoDict:
+        executable = Path(self.game_config.get("main_file") or "").expanduser() / "eboot.bin"
+        if not executable.is_file():
+            raise MissingGameExecutableError(filename=str(executable))
+        fullscreen = "true" if self.runner_config.get("fullscreen") else "false"
+        return {"command": [*self.get_command(), "--game", str(executable), "--fullscreen", fullscreen]}

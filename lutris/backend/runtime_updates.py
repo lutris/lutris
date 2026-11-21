@@ -8,6 +8,7 @@ from collections.abc import Sequence
 
 from lutris import settings
 from lutris.backend.models import RuntimeComponentProgress, RuntimeUpdateStatus
+from lutris.exceptions import LutrisError
 from lutris.runtime import ComponentUpdater, RuntimeUpdater
 from lutris.util.log import logger
 from lutris.util.notifications import NotificationSource
@@ -74,12 +75,17 @@ async def update_runtime(force: bool = False) -> tuple[str, ...]:
             return ()
 
         def install() -> None:
+            failures = []
             for updater in updaters:
-                updater.install_update(runtime_updater)
-            for updater in updaters:
-                updater.join()
+                try:
+                    updater.install_update(runtime_updater)
+                    updater.join()
+                except LutrisError as error:
+                    failures.append(error.message)
             # Proton builds come from outside Lutris too
             clear_wine_version_cache()
+            if failures:
+                raise LutrisError("\n".join(failures))
 
         installing = asyncio.create_task(asyncio.to_thread(install))
         while not installing.done():

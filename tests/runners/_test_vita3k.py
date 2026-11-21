@@ -41,7 +41,7 @@ class TestVita3kRunner(unittest.TestCase):
     @patch("lutris.util.system.path_exists")
     def test_play(self, mock_path_exists, mock_isfile):
         title_id = "PCSG00009"
-        mock_path_exists.return_value = True
+        mock_path_exists.return_value = False
         mock_isfile.return_value = True
         mock_config = MagicMock()
         mock_config.game_config = {"title_id": title_id}

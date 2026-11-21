@@ -70,7 +70,7 @@ def test_runner_manager_downloads_and_removes_an_architecture_suffixed_proton_bu
     monkeypatch.setattr(proton, "get_steam_compat_dir", lambda: str(compat_dir))
     monkeypatch.setattr(proton, "_iter_proton_locations", lambda: iter((str(alternate), str(compat_dir))))
     monkeypatch.setattr(
-        proton, "get_ge_proton_release_urls", lambda _tag: (f"{server}/{archive.name}", server + "/checksum")
+        proton, "get_proton_release_urls", lambda _tag: (f"{server}/{archive.name}", server + "/checksum")
     )
     progress: list[tuple[str, float | None]] = []
 

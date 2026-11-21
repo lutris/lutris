@@ -4,8 +4,10 @@
     "description": "Sony PlayStation Vita emulator",
     "platforms": ["Sony PlayStation Vita"],
     "runner_executable": "Vita3K-x86_64.AppImage",
+    "system_executable": "Vita3K",
+    "upstream": {"repo": "Vita3K/Vita3K", "asset": "^Vita3K-x86_64\\.AppImage$"},
+    "upstream_arch": "x86_64",
     "runnable_alone": true,
-    "download_url": "https://github.com/Vita3K/Vita3K/releases/download/continuous/Vita3K-x86_64.AppImage",
     "entry_point_option": "title_id",
     "game_options": [
         {

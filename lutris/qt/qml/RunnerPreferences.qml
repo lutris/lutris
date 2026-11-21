@@ -101,7 +101,7 @@ ColumnLayout {
                     objectName: "runnerVersions_" + entry.modelData.key
                     visible: entry.modelData.manageProton
                     enabled: !page.controller.busy
-                    text: qsTr("Manage GE-Proton")
+                    text: qsTr("Manage Proton")
                     onClicked: page.controller.show_proton()
                 }
 
@@ -132,7 +132,7 @@ ColumnLayout {
             Label {
                 anchors.centerIn: parent
                 visible: !page.controller.busy && entries.count === 0
-                text: page.controller.proton ? qsTr("No GE-Proton builds found") : qsTr("No runners found")
+                text: page.controller.proton ? qsTr("No Proton builds found") : qsTr("No runners found")
                 color: Theme.textMuted
             }
         }

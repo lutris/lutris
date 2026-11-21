@@ -3,7 +3,10 @@
     "human_name": "Adventure Game Studio",
     "description": "Graphics adventure engine",
     "platforms": ["Linux"],
-    "runner_executable": "ags.sh",
+    "runner_executable": "data/ags64",
+    "system_executable": "ags",
+    "upstream": {"repo": "adventuregamestudio/ags", "asset": "^ags_.*_linux\\.tar\\.gz$"},
+    "upstream_arch": "x86_64",
     "game_options": [
         {
             "option": "main_file",

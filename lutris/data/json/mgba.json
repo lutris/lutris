@@ -6,10 +6,11 @@
         "Nintendo Game Boy Advance",
         "Nintendo Game Boy (Color)"
     ],
-    "runner_executable": "mGBA-0.10.5-appimage-x64.appimage",
-    "flatpak_id": "io.mgba.mGBA",
+    "runner_executable": "mGBA-x64.AppImage",
+    "system_executable": "mgba-qt",
+    "upstream": {"repo": "mgba-emu/mgba", "asset": "^mGBA-.*-appimage-x64\\.appimage$"},
+    "upstream_arch": "x86_64",
     "runnable_alone": true,
-    "download_url": "https://github.com/mgba-emu/mgba/releases/download/0.10.5/mGBA-0.10.5-appimage-x64.appimage",
     "game_options": [
         {
             "option": "main_file",

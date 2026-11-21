@@ -3,28 +3,32 @@
 from __future__ import annotations
 
 import os
+import shutil
 import signal
 from collections.abc import Callable, Iterable
 from gettext import gettext as _
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any, TypeAlias, cast
+from urllib.parse import unquote, urlsplit
 
 from lutris import settings
-from lutris.api import format_runner_version, get_default_runner_version_info
 from lutris.config import LutrisConfig
 from lutris.database.games import get_game_by_field
 from lutris.exceptions import MisconfigurationError, MissingExecutableError, UnavailableLibrariesError
 from lutris.monitored_command import MonitoredCommand
-from lutris.runners import RunnerInstallationError
+from lutris.runners import NonInstallableRunnerError, RunnerInstallationError
 from lutris.util import flatpak, strings, system
 from lutris.util.extract import ExtractError, extract_archive
 from lutris.util.graphics.gpu import get_gpus
+from lutris.util.http import HTTPError
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.process import Process
 from lutris.util.sniper import get_sniper_ld_library_path, get_sniper_run_command
+from lutris.util.upstream import UpstreamError, UpstreamSource
 
 if TYPE_CHECKING:
-    from lutris.api import RunnerVersionDict
     from lutris.config import GameConfigDict, LaunchConfigDict, RunnerConfigDict, SystemConfigDict
     from lutris.delegates import InstallUIDelegate
     from lutris.game import Game
@@ -61,9 +65,11 @@ class Runner:  # pylint: disable=too-many-public-methods
     # is called with a lutris.delegates.Delegate it can ask the user things through
     context_menu_entries = []
     require_libs = []
-    runner_executable = None
+    runner_executable: str | None = None
+    system_executable: str | None = None
     entry_point_option = "main_file"
-    download_url = None
+    upstream: UpstreamSource | None = None
+    upstream_arch: str | None = None
     arch = None  # If the runner is only available for an architecture that isn't x86_64
     flatpak_id = None
     runner_name: str = ""
@@ -216,7 +222,7 @@ class Runner:  # pylint: disable=too-many-public-methods
 
     def get_runner_options(self) -> list[RunnerOptionDict]:
         runner_options = self.runner_options[:]
-        if self.runner_executable:
+        if self.runner_executable or self.system_executable:
             runner_options.append(
                 {
                     "option": "runner_executable",
@@ -254,13 +260,14 @@ class Runner:  # pylint: disable=too-many-public-methods
             runner_executable: str = self.runner_config["runner_executable"]
             if os.path.isfile(runner_executable):
                 return runner_executable
-        if not self.runner_executable_path:
-            raise MisconfigurationError("runner_executable not set for {}".format(self.name))
 
-        exe = os.path.join(settings.RUNNER_DIR, self.runner_executable_path)
-        if not os.path.isfile(exe):
-            raise MissingExecutableError(_("The executable '%s' could not be found.") % exe)
-        return exe
+        if self.runner_executable_path:
+            exe = os.path.join(settings.RUNNER_DIR, self.runner_executable_path)
+            if os.path.isfile(exe):
+                return exe
+        if self.system_executable and (exe := system.find_executable(self.system_executable)):
+            return exe
+        raise MissingExecutableError(_("The %s executable could not be found.") % self.human_name)
 
     def get_command(self) -> list[str]:
         """Returns the command line to run the runner itself; generally a game
@@ -575,10 +582,13 @@ class Runner:  # pylint: disable=too-many-public-methods
         the confliguration before it is saved. This method should modify the dict given."""
         return None
 
-    def get_runner_version(self, version: str | None = None) -> RunnerVersionDict | None:
-        """Get the appropriate version for a runner, as with get_default_runner_version(),
-        but this method allows the runner to apply its configuration."""
-        return get_default_runner_version_info(self.name, version)
+    @property
+    def can_install(self) -> bool:
+        return (
+            self.upstream is not None
+            and bool(self.runner_executable_path)
+            and self.upstream_arch in (None, LINUX_SYSTEM.arch)
+        )
 
     def install(
         self,
@@ -586,82 +596,79 @@ class Runner:  # pylint: disable=too-many-public-methods
         version: str | None = None,
         callback: Callable[[], None] | None = None,
     ) -> None:
-        """Install runner using package management systems."""
-        logger.debug(
-            "Installing %s (version=%s, callback=%s)",
-            self.name,
-            version,
-            callback,
-        )
-        opts = {"install_ui_delegate": install_ui_delegate, "callback": callback}
-        if self.download_url:
-            opts["dest"] = self.directory
-            return self.download_and_extract(self.download_url, **opts)
-        runner_version_info = self.get_runner_version(version)
-        if not runner_version_info:
-            raise RunnerInstallationError(_("Failed to retrieve {} ({}) information").format(self.name, version))
+        """Download the newest build the runner's developers publish into its folder."""
+        if not self.can_install or self.upstream is None:
+            raise NonInstallableRunnerError(
+                _("A managed build of %s is unavailable. Install it locally and configure its executable in Lutris.")
+                % self.human_name,
+            )
+        try:
+            build = self.upstream.find()
+        except (UpstreamError, HTTPError, ValueError) as ex:
+            raise RunnerInstallationError(_("Failed to find a build of %s: %s") % (self.human_name, ex)) from ex
+        logger.info("Installing %s %s from %s", self.name, build.version, build.url)
+        executable = os.path.relpath(os.path.join(settings.RUNNER_DIR, self.runner_executable_path), self.directory)
+        self.download_and_extract(build.url, install_ui_delegate, self.directory, executable, callback)
 
-        if "url" not in runner_version_info:
-            if version:
-                raise RunnerInstallationError(
-                    _("The '%s' version of the '%s' runner can't be downloaded." % (version, self.name))
-                )
-            else:
-                raise RunnerInstallationError(_("The the '%s' runner can't be downloaded." % self.name))
-
-        if "wine" in self.name:
-            opts["merge_single"] = True
-            opts["dest"] = os.path.join(self.directory, format_runner_version(runner_version_info))
-
-        if self.name == "supermodel":
-            opts["merge_single"] = True
-            opts["dest"] = os.path.join(settings.RUNNER_DIR, "supermodel")
-
-        if self.name == "libretro" and version:
-            opts["merge_single"] = False
-            opts["dest"] = os.path.join(settings.RUNNER_DIR, "retroarch/cores")
-
-        url: str = runner_version_info["url"]
-        self.download_and_extract(url, **opts)
-
-    def download_and_extract(self, url: str, **opts: Any) -> None:
-        dest = opts.get("dest")
-        install_ui_delegate = opts["install_ui_delegate"]
-        merge_single = opts.get("merge_single", False)
-        callback = opts.get("callback")
-        tarball_filename = os.path.basename(url)
-        runner_archive = os.path.join(settings.CACHE_DIR, tarball_filename)
-        if not dest:
-            dest = settings.RUNNER_DIR
-
-        download_successful = install_ui_delegate.download_install_file(url, runner_archive)
-        if download_successful:
-            self.extract(archive=runner_archive, dest=dest, merge_single=merge_single, callback=callback)
-        else:
-            logger.info("Download canceled by the user.")
+    def download_and_extract(
+        self,
+        url: str,
+        install_ui_delegate: InstallUIDelegate,
+        dest: str,
+        executable: str,
+        callback: Callable[[], None] | None = None,
+    ) -> None:
+        filename = unquote(urlsplit(url).path.rsplit("/", 1)[-1])
+        if filename in {"", ".", ".."} or os.path.basename(filename) != filename:
+            raise RunnerInstallationError(_("The upstream download has an invalid filename."))
+        os.makedirs(settings.CACHE_DIR, exist_ok=True)
+        with TemporaryDirectory(dir=settings.CACHE_DIR) as download_dir:
+            archive = os.path.join(download_dir, filename)
+            if not install_ui_delegate.download_install_file(url, archive):
+                logger.info("Download canceled by the user.")
+                return
+            self.extract(archive, dest, executable=executable)
+        if callback:
+            callback()
 
     def extract(
-        self, archive: str, dest: str, merge_single: bool = False, callback: Callable[[], None] | None = None
+        self,
+        archive: str,
+        dest: str,
+        merge_single: bool = True,
+        callback: Callable[[], None] | None = None,
+        *,
+        executable: str | None = None,
     ) -> None:
+        """Validate a downloaded build before publishing it in its runner directory."""
         if not system.path_exists(archive, exclude_empty=True):
             raise RunnerInstallationError(_("Failed to extract {}").format(archive))
+        destination = Path(dest)
+        destination.parent.mkdir(parents=True, exist_ok=True)
         try:
-            extract_archive(archive, dest, merge_single=merge_single)
-        except ExtractError as ex:
-            logger.error("Failed to extract the archive %s file may be corrupt", archive)
+            with TemporaryDirectory(dir=destination.parent) as staging_dir:
+                staged = Path(staging_dir) / "build"
+                extract_archive(archive, str(staged), merge_single=merge_single)
+                if executable:
+                    entry_point = staged / executable
+                    source = entry_point
+                    if not source.exists() and source.suffix.casefold() == ".appimage":
+                        # Upstream AppImage filenames may include the release version
+                        appimages = list(entry_point.parent.glob("*.appimage", case_sensitive=False))
+                        if len(appimages) == 1:
+                            source = appimages[0]
+                    if not source.is_file() or not source.resolve().is_relative_to(staged.resolve()):
+                        raise ExtractError(_("The archive is missing %s.") % executable)
+                    if source != entry_point:
+                        source.rename(entry_point)
+                    system.make_executable(str(entry_point))
+                if destination.exists():
+                    shutil.copytree(staged, destination, dirs_exist_ok=True, symlinks=True)
+                else:
+                    staged.replace(destination)
+            os.remove(archive)
+        except (ExtractError, OSError) as ex:
             raise RunnerInstallationError(_("Failed to extract {}: {}").format(archive, ex)) from ex
-        os.remove(archive)
-
-        if self.name == "wine":
-            logger.debug("Clearing wine version cache")
-            from lutris.util.wine.wine import clear_wine_version_cache
-
-            clear_wine_version_cache()
-
-        if self.runner_executable_path:
-            runner_executable = os.path.join(settings.RUNNER_DIR, self.runner_executable_path)
-            if os.path.isfile(runner_executable):
-                system.make_executable(runner_executable)
 
         if callback:
             callback()

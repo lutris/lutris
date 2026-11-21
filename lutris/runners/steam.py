@@ -104,7 +104,7 @@ class steam(Runner):
     description = _("Runs Steam for Linux games")
     human_name = _("Steam")
     platform_dict = Runner.to_platform_dict([_("Linux")])
-    runner_executable = "steam"
+    system_executable = "steam"
     flatpak_id = "com.valvesoftware.Steam"
     game_options = [
         {
@@ -175,9 +175,6 @@ class steam(Runner):
             )
             % DEFAULT_LAUNCH_GRACE_SECONDS,
         },
-    ]
-    system_options_override = [
-        {"option": "gamemode", "default": False},
     ]
 
     # Cache the reaper-PID scan for a fraction of a heartbeat so the two calls
@@ -261,10 +258,7 @@ class steam(Runner):
         if linux.LINUX_SYSTEM.is_flatpak():
             # Fallback to xgd-open for Steam URIs in Flatpak
             return system.find_required_executable("xdg-open")
-        runner_executable = self.runner_config.get("runner_executable")
-        if runner_executable and os.path.isfile(runner_executable):
-            return runner_executable
-        return system.find_required_executable(self.runner_executable)
+        return super().get_executable()
 
     @property
     def has_working_dir(self) -> bool:

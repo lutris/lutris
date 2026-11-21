@@ -474,7 +474,7 @@ def find_winetricks(
 ) -> tuple[str, str | None, dict[str, str]]:
     """Find winetricks path."""
     env = env or {}
-    winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/winetricks")
+    winetricks_path = os.path.join(settings.RUNTIME_DIR, "winetricks/src/winetricks")
     if system_winetricks or not system.path_exists(winetricks_path):
         winetricks_path = system.find_required_executable("winetricks")
         working_dir = None

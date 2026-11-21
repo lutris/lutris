@@ -181,7 +181,7 @@ Example: ``main_file: game.rom``.
 Can also be used to pass the URL for web based games: ``main_file: http://www...``
 
 ``args``: Pass additional arguments to the command.
-Can be used with linux, wine, dosbox, scummvm, pico8 and zdoom runners.
+Can be used with linux, wine, dosbox, scummvm, pico8 and uzdoom runners.
 Example: ``args: -c $GAMEDIR/exult.cfg``
 
 ``working_dir``: Set the working directory for the game executable.
@@ -242,10 +242,9 @@ installer scripts.
 Runner configuration directives
 ===============================
 
-Runners can be customized in a section named after the runner identifier
-(``slug`` field in the API).  A complete list of all runners is available at
-https://lutris.net/api/runners.  Use the runner's slug as the runner
-identifier. Please keep the amount of runner customization to a minimum, only
+Runners can be customized in a section named after the runner identifier.
+Run ``lutris --list-runners`` to list the runner identifiers in your build.
+Please keep the amount of runner customization to a minimum, only
 adding what is needed to make the game run correctly. A lot of runner options
 do not have their place in Lutris installers and are reserved for the user's
 preferences.
@@ -263,8 +262,6 @@ Example: ``version: staging-2.21-x86_64``
 
 DXVK and VKD3D come with Proton, so scripts don't choose them; ``dxvk``,
 ``dxvk_version``, ``vkd3d`` and their kind are ignored.
-
-``esync``: Use this to disable esync. (``esync: false``)
 
 ``overrides``: Overrides for Wine DLLs. List your DLL overrides in a
 mapping with the following values:

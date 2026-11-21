@@ -3,8 +3,7 @@ from gettext import gettext as _
 from lutris.exceptions import MissingGameExecutableError
 from lutris.runners.runner import Runner
 from lutris.util import system
-
-VER_STR = "2123.2"
+from lutris.util.upstream import ReleaseSource
 
 
 class azahar(Runner):
@@ -13,8 +12,9 @@ class azahar(Runner):
     description = _("Nintendo 3DS Emulator")
     runnable_alone = True
     runner_executable = "azahar/azahar.AppImage"
-    flatpak_id = "org.azahar_emu.Azahar"
-    download_url = f"https://github.com/azahar-emu/azahar/releases/download/{VER_STR}/azahar.AppImage"
+    system_executable = "azahar"
+    upstream = ReleaseSource("azahar-emu/azahar", r"^azahar\.AppImage$")
+    upstream_arch = "x86_64"
 
     game_options = [
         {

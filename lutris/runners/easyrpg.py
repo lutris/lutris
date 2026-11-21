@@ -6,6 +6,7 @@ from lutris.exceptions import DirectoryNotFoundError, GameConfigError, MissingGa
 
 # Lutris Modules
 from lutris.runners.runner import Runner
+from lutris.util.upstream import FileSource
 
 
 class easyrpg(Runner):
@@ -15,7 +16,9 @@ class easyrpg(Runner):
     runnable_alone = True
     entry_point_option = "project_path"
     runner_executable = "easyrpg/easyrpg-player"
-    download_url = "https://easyrpg.org/downloads/player/0.8.1.1/easyrpg-player-0.8.1.1-linux.tar.gz"
+    system_executable = "easyrpg-player"
+    upstream = FileSource("https://easyrpg.org/downloads/player/0.8.1.1/easyrpg-player-0.8.1.1-linux.tar.gz", "0.8.1.1")
+    upstream_arch = "x86_64"
 
     game_options = [
         {

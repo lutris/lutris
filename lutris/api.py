@@ -1,130 +1,21 @@
 """Functions to interact with the Lutris REST API"""
 
 import json
-import os
 import re
-import socket
-import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from collections import OrderedDict
-from collections.abc import Callable, Collection, Iterable, Iterator
-from datetime import datetime
-from gettext import gettext as _
+from collections.abc import Collection
 from typing import Any, TypeAlias, cast
 
-import requests
-
 from lutris import settings
-from lutris.util import http, system
-from lutris.util.graphics.gpu import get_gpus_info
-from lutris.util.http import HTTPError, Request
+from lutris.util import http
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
-from lutris.util.strings import time_ago
 
 ApiGameDict: TypeAlias = dict[str, Any]
 GamesPageDict: TypeAlias = dict[str, Any]
 InstallerInfoDict: TypeAlias = dict[str, str]
-RunnerDict: TypeAlias = dict[str, Any]
-RunnerVersionDict: TypeAlias = dict[str, str | bool]
-RuntimeVersionsDict: TypeAlias = dict[str, Any]
-
-
-def get_time_from_api_date(date_string: str) -> time.struct_time:
-    """Convert a date string originating from the API and convert it to a datetime object"""
-    return time.strptime(date_string[: date_string.find(".")], "%Y-%m-%dT%H:%M:%S")
-
-
-def get_runtime_versions_date() -> float:
-    return os.path.getmtime(settings.RUNTIME_VERSIONS_PATH)
-
-
-def get_runtime_versions_date_time_ago() -> str:
-    try:
-        return time_ago(get_runtime_versions_date())
-    except FileNotFoundError:
-        return _("never")
-
-
-def check_stale_runtime_versions() -> bool:
-    """Check if the runtime needs to be updated"""
-    try:
-        modified_at = get_runtime_versions_date()
-        should_update_at = modified_at + 6 * 60 * 60
-        logger.debug(
-            "Modified at %s, will update after %s",
-            datetime.fromtimestamp(modified_at).strftime("%c"),
-            datetime.fromtimestamp(should_update_at).strftime("%c"),
-        )
-        return should_update_at < time.time()
-    except FileNotFoundError:
-        return True
-
-
-def download_runtime_versions() -> RuntimeVersionsDict:
-    """Queries runtime + runners + current client versions and stores the result
-    in a file; the mdate of this file is used to decide when it is stale and should
-    be replaced."""
-    gpus_info = get_gpus_info()
-    pci_ids = [" ".join([gpu["PCI_ID"], gpu["PCI_SUBSYS_ID"]]) for gpu in gpus_info.values()]
-
-    url = settings.SITE_URL + "/api/runtimes/versions?pci_ids=" + ",".join(pci_ids)
-    response = http.Request(url, headers={"Content-Type": "application/json"})
-    try:
-        response.get()
-    except http.HTTPError as ex:
-        logger.error("Unable to get runtimes from API: %s", ex)
-        return {}
-    with open(settings.RUNTIME_VERSIONS_PATH, mode="w", encoding="utf-8") as runtime_file:
-        json.dump(response.json, runtime_file, indent=2)
-    return cast(RuntimeVersionsDict, response.json)
-
-
-def get_runtime_versions() -> RuntimeVersionsDict:
-    """Load runtime versions from the json file that is created at startup
-    if it is missing or stale."""
-    if not system.path_exists(settings.RUNTIME_VERSIONS_PATH):
-        return {}
-    with open(settings.RUNTIME_VERSIONS_PATH, mode="r", encoding="utf-8") as runtime_file:
-        return cast(RuntimeVersionsDict, json.load(runtime_file))
-
-
-def get_runners(runner_name: str) -> RunnerDict:
-    """Return the available runners for a given runner name"""
-    logger.debug("Retrieving runners")
-    api_url = settings.SITE_URL + "/api/runners/" + runner_name
-    host = settings.SITE_URL.split("//")[1]
-
-    answers = socket.getaddrinfo(host, 443)
-    (_family, _type, _proto, _canonname, _sockaddr) = answers[0]
-    headers = OrderedDict({"Host": host})
-    session = requests.Session()
-    session.headers = headers
-    session.proxies = http.get_request_proxies(api_url)
-    response = session.get(api_url, headers=headers)
-    return cast(RunnerDict, response.json())
-
-
-def download_runner_versions(runner_name: str) -> list[RunnerVersionDict]:
-    try:
-        request = Request("{}/api/runners/{}".format(settings.SITE_URL, runner_name))
-        runner_info = request.get().json
-        if not runner_info:
-            logger.error("Failed to get runner information")
-    except HTTPError as ex:
-        logger.error("Unable to get runner information: %s", ex)
-        runner_info = None
-    if not runner_info:
-        return []
-    return runner_info.get("versions") or []
-
-
-def format_runner_version(version_info: RunnerVersionDict) -> str:
-    version: str = version_info.get("version") or ""
-    arch: str = version_info.get("architecture")
-    return format_version_architecture(version, arch)
 
 
 def normalize_version_architecture(version_name: str) -> str:
@@ -162,83 +53,6 @@ def parse_version_architecture(version_name: str) -> tuple[str, str | None]:
             version, arch = version_name.rsplit("-", 1)
             return version, arch
     return version_name, LINUX_SYSTEM.arch
-
-
-def get_runner_version_from_cache(runner_name: str, version: str | None) -> RunnerVersionDict | None:
-    # Prefer to provide the info from our local cache if we can; if this can't find
-    # an unambiguous result, we'll fall back on the API which should know what the default is.
-    version, _arch = parse_version_architecture(version or "")
-    runtime_versions = get_runtime_versions()
-    if runtime_versions:
-        try:
-            runner_versions: list[RunnerVersionDict] = runtime_versions["runners"][runner_name]
-            runner_versions = [r for r in runner_versions if r["architecture"] in (LINUX_SYSTEM.arch, "all")]
-            if version:
-                runner_versions = [r for r in runner_versions if r["version"] == version]
-            if len(runner_versions) == 1:
-                return runner_versions[0]
-        except KeyError:
-            pass
-    return None
-
-
-def iter_get_from_api_candidates(
-    versions: Iterable[RunnerVersionDict], version: str | None, arch: str | None
-) -> Iterator[RunnerVersionDict | None]:
-    """A generator yielding possible version infos, or None for those that are available;
-    we pick the first non-None value yielded."""
-
-    def select_info(
-        predicate: Callable[[RunnerVersionDict], bool], accept_ambiguous: bool = False
-    ) -> RunnerVersionDict | None:
-        candidates = [v for v in versions if predicate(v)]
-
-        if candidates and (accept_ambiguous or len(candidates) == 1):
-            return candidates[0]
-
-        return None
-
-    if version:
-        yield select_info(lambda v: v["architecture"] == arch and v["version"] == version)
-    else:
-        yield select_info(lambda v: v["architecture"] == arch and bool(v["default"]))
-
-    # Try various fallbacks to get some version - we prefer the default version
-    # or a version with the right architecture.
-    yield select_info(lambda v: v["architecture"] == arch and bool(v["default"]))
-    yield select_info(lambda v: v["architecture"] == arch)
-
-    # 64-bit system can use 32-bit version, if it's the default.
-    if LINUX_SYSTEM.is_64_bit:
-        yield select_info(lambda v: bool(v["default"]))
-
-    yield select_info(lambda v: v["architecture"] == arch, accept_ambiguous=True)
-
-
-def get_runner_version_from_api(runner_name: str, version: str | None) -> RunnerVersionDict | None:
-    version, arch = parse_version_architecture(version or "")
-    versions = download_runner_versions(runner_name)
-    for candidate in iter_get_from_api_candidates(versions, version, arch):
-        if candidate:
-            if not version:
-                return candidate
-            if version == candidate.get("version") and arch == candidate.get("architecture"):
-                return candidate
-    return None
-
-
-def get_default_runner_version_info(runner_name: str, version: str | None = None) -> RunnerVersionDict | None:
-    """Get the appropriate version for a runner
-
-    Params:
-        version: Optional version to lookup, will return this one if found
-
-    Returns:
-        Dict containing version, architecture and url for the runner, an empty dict
-        if the data can't be retrieved. If a pseudo-version is accepted, may be
-        a dict containing only the version itself.
-    """
-    return get_runner_version_from_cache(runner_name, version) or get_runner_version_from_api(runner_name, version)
 
 
 def get_http_post_response(url: str, payload: bytes) -> Any:

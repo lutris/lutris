@@ -6,6 +6,7 @@ from lutris.exceptions import MissingGameExecutableError
 # Lutris Modules
 from lutris.runners.runner import Runner
 from lutris.util import system
+from lutris.util.upstream import ReleaseSource
 
 
 class pcsx2(Runner):
@@ -13,8 +14,10 @@ class pcsx2(Runner):
     description = _("PlayStation 2 emulator")
     platform_dict = Runner.to_platform_dict([_("Sony PlayStation 2")])
     runnable_alone = True
-    runner_executable = "pcsx2/PCSX2"
-    flatpak_id = "net.pcsx2.PCSX2"
+    runner_executable = "pcsx2/PCSX2.AppImage"
+    system_executable = "pcsx2-qt"
+    upstream = ReleaseSource("PCSX2/pcsx2", r"^pcsx2-.*-linux-appimage-x64-Qt\.AppImage$")
+    upstream_arch = "x86_64"
     game_options = [
         {
             "option": "main_file",

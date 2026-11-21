@@ -812,7 +812,7 @@ def test_qml_manages_ge_proton_from_preferences(
 
     monkeypatch.setattr(runners, "list_runner_catalog", list_catalog)
     monkeypatch.setattr(runners, "list_proton_builds", list_builds)
-    monkeypatch.setattr(runners, "list_ge_proton_releases", list_releases)
+    monkeypatch.setattr(runners, "list_proton_releases", list_releases)
     monkeypatch.setattr(runners, "install_runner", install_runner)
     monkeypatch.setattr(runners, "uninstall_runner", uninstall_runner)
 

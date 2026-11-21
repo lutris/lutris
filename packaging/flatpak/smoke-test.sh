@@ -36,9 +36,10 @@ print(sys.version.split()[0], PySide6.__version__, gi.__version__)
 
 echo "== Bundled tools"
 as_player flatpak run --command=sh net.lutris.Lutris -c '
-for tool in wine winetricks dosbox glxinfo vulkaninfo xrandr fuser zenity java mono; do
+for tool in wine winetricks dosbox retroarch glxinfo vulkaninfo xrandr fuser zenity java mono; do
     command -v "$tool" >/dev/null || { echo "missing: $tool"; exit 1; }
 done
+retroarch --version
 echo "all present"
 '
 

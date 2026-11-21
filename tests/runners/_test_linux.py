@@ -77,7 +77,7 @@ def test_runtime_wraps_primary_and_alternate_launches(steamapps: Path, tmp_path:
     alternate = make_launcher(tmp_path / "alternate game")
     runner = linux()
     runner.game_config.update(exe=str(primary), args="--original")
-    runner.system_config.update(gamemode=False, prefix_command="wrapper --flag")
+    runner.system_config.update(prefix_command="wrapper --flag")
     runner.runner_config["steam_linux_runtime"] = "sniper"
     info = runner.play()
     command, env = get_launch_parameters(runner, info)
@@ -92,7 +92,7 @@ def test_runtime_wraps_primary_and_alternate_launches(steamapps: Path, tmp_path:
 def test_none_runs_against_no_library_overrides(tmp_path: Path) -> None:
     runner = linux()
     runner.game_config["exe"] = str(make_launcher(tmp_path / "game"))
-    runner.system_config.update(use_sniper_runtime=True, gamemode=False)
+    runner.system_config.update(use_sniper_runtime=True)
 
     command, env = get_launch_parameters(runner, runner.play())
     assert command == ["./game"]

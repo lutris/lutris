@@ -79,42 +79,47 @@ properties:
     description: The runner to be used by this game
     type: string
     enum:
+      - 86box
       - ags
-      - atari800
-      - browser
-      - citra
-      - desmume
-      - dgen
+      - azahar
+      - basiliskii
+      - blastem
+      - cemu
       - dolphin
       - dosbox
-      - frotz
+      - duckstation
+      - easyrpg
+      - eden
+      - flycast
       - fsuae
+      - gargoyle
       - hatari
-      - jzintv
       - libretro
       - linux
       - mame
-      - mednafen
-      - mupen64plus
-      - o2em
+      - melonds
+      - mgba
+      - minivmac
       - openmsx
-      - osmose
       - pcsx2
-      - pcsxr
+      - pico8
       - ppsspp
-      - reicast
+      - rosaliesmupengui
       - rpcs3
+      - ruffle
+      - ryubing
       - scummvm
-      - snes9x
+      - shadps4
+      - sheepshaver
       - steam
-      - winesteam
-      - stella
-      - vice
-      - virtualjaguar
+      - supermodel
+      - tic80
+      - uzdoom
+      - vita3k
       - web
       - wine
-      - yuzu
-      - zdoom
+      - xemu
+      - xenia
   script:
     description: Main script
     type: object
@@ -531,9 +536,6 @@ definitions:
       dxvk_version:
         type: string
         description: DXVK version override
-      esync:
-        type: boolean
-        description: Enable ESync
       overrides:
         type: array
         description: Overrides for Wine DLLs

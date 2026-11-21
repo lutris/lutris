@@ -4,7 +4,9 @@
     "description": "Emulates Flash games",
     "platforms": ["Flash"],
     "runner_executable": "ruffle",
-    "download_url": "https://github.com/ruffle-rs/ruffle/releases/download/v0.6.0/ruffle-0.6.0-linux-x86_64.tar.gz",
+    "system_executable": "ruffle",
+    "upstream": {"repo": "ruffle-rs/ruffle", "asset": "^ruffle-.*-linux-x86_64\\.tar\\.gz$"},
+    "upstream_arch": "x86_64",
     "game_options": [
         {
             "option": "main_file",

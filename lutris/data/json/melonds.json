@@ -4,9 +4,10 @@
     "description": "Nintendo DS emulator",
     "platforms": ["Nintendo DS"],
     "runner_executable": "melonDS-x86_64.AppImage",
+    "system_executable": "melonDS",
+    "upstream": {"repo": "melonDS-emu/melonDS", "asset": "^melonDS-.*appimage-x86_64\\.zip$"},
+    "upstream_arch": "x86_64",
     "runnable_alone": true,
-    "flatpak_id": "net.kuribo64.melonDS",
-    "download_url": "https://melonds.kuribo64.net/downloads/melonDS-appimage-x86_64.zip",
     "game_options": [
         {
             "option": "main_file",

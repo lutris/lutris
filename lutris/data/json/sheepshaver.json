@@ -4,8 +4,7 @@
     "description": "SheepShaver emulates a PowerMacintosh computer",
     "platforms": ["Macintosh"],
     "runnable_alone": "True",
-    "runner_executable": "SheepShaver-x86_64.AppImage",
-    "download_url": "https://github.com/Korkman/macemu-appimage-builder/releases/download/continuous/SheepShaver-x86_64.AppImage",
+    "system_executable": "SheepShaver",
     "game_options": [
         {
             "option": "main_file",

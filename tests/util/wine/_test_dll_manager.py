@@ -5,6 +5,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from lutris.util.upstream import ReleaseSource
 from lutris.util.wine import dll_manager
 from lutris.util.wine.dll_manager import DLLManager
 
@@ -13,7 +14,7 @@ class FakeManager(DLLManager):
     name = "fake"
     human_name = "Fake"
     managed_dlls = ("fake",)
-    releases_url = "https://api.github.com/repos/lutris/fake/releases"
+    release_source = ReleaseSource("example/fake", r"^fake-[\d.]+\.tar\.gz$")
 
 
 class TestGetDownloadUrl(unittest.TestCase):
@@ -32,16 +33,30 @@ class TestGetDownloadUrl(unittest.TestCase):
         self.addCleanup(fake_settings.stop)
         return FakeManager(version=version)
 
-    def test_returns_the_url_of_the_first_asset(self):
+    def test_returns_the_url_of_the_matching_asset(self):
         manager = self._manager(
-            [{"tag_name": "1.0", "assets": [{"browser_download_url": "https://example.com/fake-1.0.tar.gz"}]}]
+            [
+                {
+                    "tag_name": "1.0",
+                    "assets": [
+                        {"name": "fake-1.0.tar.gz", "browser_download_url": "https://example.com/fake-1.0.tar.gz"}
+                    ],
+                }
+            ]
         )
 
         self.assertEqual(manager.get_download_url(), "https://example.com/fake-1.0.tar.gz")
 
     def test_returns_none_when_no_release_matches_the_version(self):
         manager = self._manager(
-            [{"tag_name": "0.9", "assets": [{"browser_download_url": "https://example.com/fake-0.9.tar.gz"}]}]
+            [
+                {
+                    "tag_name": "0.9",
+                    "assets": [
+                        {"name": "fake-0.9.tar.gz", "browser_download_url": "https://example.com/fake-0.9.tar.gz"}
+                    ],
+                }
+            ]
         )
 
         self.assertIsNone(manager.get_download_url())
@@ -49,17 +64,17 @@ class TestGetDownloadUrl(unittest.TestCase):
     def test_returns_none_for_a_release_without_assets(self):
         manager = self._manager([{"tag_name": "1.0", "assets": []}])
 
-        with self.assertLogs(dll_manager.logger, level="WARNING"):
-            self.assertIsNone(manager.get_download_url())
+        self.assertIsNone(manager.get_download_url())
 
     def test_returns_none_when_a_release_has_no_assets_key(self):
         manager = self._manager([{"tag_name": "1.0"}])
 
-        with self.assertLogs(dll_manager.logger, level="WARNING"):
-            self.assertIsNone(manager.get_download_url())
+        self.assertIsNone(manager.get_download_url())
 
     def test_returns_none_when_a_release_has_no_tag_name(self):
-        manager = self._manager([{"assets": [{"browser_download_url": "https://example.com/fake-1.0.tar.gz"}]}])
+        manager = self._manager(
+            [{"assets": [{"name": "fake-1.0.tar.gz", "browser_download_url": "https://example.com/fake-1.0.tar.gz"}]}]
+        )
 
         self.assertIsNone(manager.get_download_url())
 

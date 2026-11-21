@@ -55,8 +55,7 @@ class scummvm(Runner):
     human_name = _("ScummVM")
     platform_dict = Runner.to_platform_dict([_("Linux")])
     runnable_alone = True
-    runner_executable = "scummvm/bin/scummvm"
-    flatpak_id = "org.scummvm.ScummVM"
+    system_executable = "scummvm"
     game_options = [
         {"option": "game_id", "type": "string", "label": _("Game identifier")},
         {"option": "path", "type": "directory", "label": _("Game files location")},

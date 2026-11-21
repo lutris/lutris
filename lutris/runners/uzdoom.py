@@ -6,15 +6,18 @@ from lutris.util import display
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.strings import split_arguments
+from lutris.util.upstream import ReleaseSource
 
 
-class zdoom(Runner):
-    # http://zdoom.org/wiki/Command_line_parameters
-    description = _("GZDoom Game Engine")
-    human_name = _("GZDoom")
+class uzdoom(Runner):
+    # UZDoom continues GZDoom, and keeps its command line: https://zdoom.org/wiki/Command_line_parameters
+    description = _("Doom engine source port")
+    human_name = _("UZDoom")
     platform_dict = Runner.to_platform_dict([_("Linux")])
-    runner_executable = "zdoom/gzdoom"
-    flatpak_id = "org.zdoom.GZDoom"
+    runner_executable = "uzdoom/Linux-UZDoom-Release-x86_64.AppImage"
+    system_executable = "uzdoom"
+    upstream = ReleaseSource("UZDoom/UZDoom", r"^Linux-UZDoom-Release-x86_64\.AppImage$")
+    upstream_arch = "x86_64"
     game_options = [
         {
             "option": "main_file",

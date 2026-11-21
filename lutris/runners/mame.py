@@ -143,8 +143,7 @@ class mame(Runner):  # pylint: disable=invalid-name
 
     human_name = _("MAME")
     description = _("Arcade game emulator")
-    runner_executable = "mame/mame"
-    flatpak_id = "org.mamedev.MAME"
+    system_executable = "mame"
     runnable_alone = True
     config_dir = os.path.expanduser("~/.mame")
     cache_dir = os.path.join(settings.CACHE_DIR, "mame")

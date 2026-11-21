@@ -20,7 +20,7 @@ from lutris.util.log import get_log_contents
 from lutris.util.retroarch.firmware import scan_firmware_directory
 from lutris.util.steam.config import STEAM_ACCOUNT_SETTING, get_steam_users
 from lutris.util.strings import human_size
-from lutris.util.wine.wine import is_esync_limit_set, is_fsync_supported, is_installed_systemwide
+from lutris.util.wine.wine import is_installed_systemwide
 
 MAX_BIOS_FOLDER_SIZE = 8e9
 MAX_BIOS_FILES_IN_FOLDER = 5000
@@ -177,12 +177,9 @@ async def set_steam_account(account_id: str) -> None:
 
 _FEATURES: tuple[tuple[str, Callable[[], object]], ...] = (
     (_("Vulkan support"), linux.LINUX_SYSTEM.is_vulkan_supported),
-    (_("Esync support"), is_esync_limit_set),
-    (_("Fsync support"), is_fsync_supported),
     (_("Wine installed"), is_installed_systemwide),
     (_("Gamescope"), lambda: system.can_find_executable("gamescope")),
     (_("Mangohud"), lambda: system.can_find_executable("mangohud")),
-    (_("Gamemode"), linux.LINUX_SYSTEM.gamemode_available),
     (_("Steam"), linux.LINUX_SYSTEM.has_steam),
     (_("In Flatpak"), linux.LINUX_SYSTEM.is_flatpak),
 )

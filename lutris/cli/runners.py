@@ -6,14 +6,8 @@ from lutris.cli.output import CommandOutput
 from lutris.util.log import logger
 
 
-def _parse_runner(runner: str) -> tuple[str, str | None]:
-    """Return the runner and version a --install-runner argument names: lutris-...
-    names one of the Wine versions Lutris downloads."""
-    return ("wine", runner) if runner.startswith("lutris") else (runner, None)
-
-
 async def install_runner(output: CommandOutput, runner: str) -> None:
-    name, version = _parse_runner(runner)
+    name, version = runners.parse_runner_name(runner)
     label = f"Wine version '{version}'" if version else f"'{name}'"
     try:
         if await runners.is_runner_installed(name, version):
@@ -26,13 +20,14 @@ async def install_runner(output: CommandOutput, runner: str) -> None:
 
 
 async def uninstall_runner(output: CommandOutput, runner: str) -> None:
-    if "wine" in runner:
+    name, version = runners.parse_runner_name(runner)
+    if version:
+        await uninstall_wine_version(output, version)
+        return
+    if name == "wine":
         if not output.ask_yes_or_no("Are sure you want to delete Wine and all of the installed runners?"):
             output.print("Not Removing Wine")
             return
-    elif runner.startswith("lutris"):
-        await uninstall_wine_version(output, runner)
-        return
     await uninstall_runner_by_name(output, runner)
 
 

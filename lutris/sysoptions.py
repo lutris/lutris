@@ -361,15 +361,6 @@ system_options: list[dict[str, Any]] = [  # pylint: disable=invalid-name
         "help": _("Maximum number of CPU cores to be used, if 'Restrict number of cores used' is turned on."),
     },
     {
-        "section": _("CPU"),
-        "option": "gamemode",
-        "type": "bool",
-        "default": linux.LINUX_SYSTEM.gamemode_available(),
-        "condition": linux.LINUX_SYSTEM.gamemode_available(),
-        "label": _("Enable Feral GameMode"),
-        "help": _("Request a set of optimisations be temporarily applied to the host OS"),
-    },
-    {
         "section": _("Audio"),
         "option": "pulse_latency",
         "type": "bool",

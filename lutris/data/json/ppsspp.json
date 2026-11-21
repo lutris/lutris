@@ -3,9 +3,11 @@
     "human_name": "PPSSPP",
     "description": "Sony PSP emulator",
     "platforms": ["Sony PlayStation Portable"],
-    "runner_executable": "PPSSPPSDL",
+    "runner_executable": "PPSSPP-x86_64.AppImage",
+    "system_executable": "PPSSPPSDL",
+    "upstream": {"repo": "hrydgard/ppsspp", "asset": "^PPSSPP-.*-x86_64\\.AppImage$"},
+    "upstream_arch": "x86_64",
     "runnable_alone": true,
-    "flatpak_id": "org.ppsspp.PPSSPP",
     "game_options": [
         {
             "option": "main_file",
