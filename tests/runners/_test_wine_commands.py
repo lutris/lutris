@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from lutris.runners.commands import wine as wine_commands
 from lutris.util.test_config import setup_test_environment
+from lutris.util.wine.cabinstall import CabInstaller
 
 setup_test_environment()
 
@@ -98,6 +99,39 @@ class TestSetRegedit(TestCase):
         # REG_EXPAND_SZ is type 2 and REG_MULTI_SZ is type 7
         self.assertIn('"Value"=hex(2):41,00,00,00', self.get_reg_file("REG_EXPAND_SZ"))
         self.assertIn('"Value"=hex(7):41,00,00,00', self.get_reg_file("REG_MULTI_SZ"))
+
+
+class TestInstallCabComponent(TestCase):
+    """A cab holds manifests for each architecture; their registry files must be applied
+    with the prefix's own WINEARCH, since Wine refuses to run with any other."""
+
+    def install(self, prefix_arch, registry_files):
+        """Return the regedit, WINEARCH and file of each regedit run."""
+        with (
+            patch.object(CabInstaller, "extract_from_cab", return_value=[]),
+            patch.object(CabInstaller, "get_registry_files", return_value=registry_files),
+            patch.object(wine_commands.proton, "is_proton_path", return_value=False),
+            patch.object(wine_commands.system, "path_exists", return_value=False),
+            patch.object(wine_commands, "wineexec") as wineexec,
+        ):
+            wine_commands.install_cab_component(
+                "/tmp/x.cab", "mfplat", "/opt/wine/bin/wine", prefix="/tmp/prefix", arch=prefix_arch
+            )
+        return [(call.args[0], call.kwargs["arch"], call.kwargs["args"]) for call in wineexec.call_args_list]
+
+    def test_32_bit_components_use_the_32_bit_regedit_in_a_64_bit_prefix(self):
+        runs = self.install("win64", [("/tmp/x86.reg", "win32"), ("/tmp/amd64.reg", "win64")])
+        self.assertEqual(
+            runs,
+            [
+                ("C:\\windows\\syswow64\\regedit.exe", "win64", "/S '/tmp/x86.reg'"),
+                ("regedit", "win64", "/S '/tmp/amd64.reg'"),
+            ],
+        )
+
+    def test_a_32_bit_prefix_uses_its_own_regedit(self):
+        runs = self.install("win32", [("/tmp/x86.reg", "win32")])
+        self.assertEqual(runs, [("regedit", "win32", "/S '/tmp/x86.reg'")])
 
 
 class TestWineexecArguments(TestCase):

@@ -19,7 +19,6 @@ from lutris.util.log import logger
 from lutris.util.shell import get_shell_command
 from lutris.util.strings import split_arguments
 from lutris.util.wine import proton
-from lutris.util.wine.cabinstall import CabInstaller
 from lutris.util.wine.prefix import WinePrefixManager
 from lutris.util.wine.wine import (
     WINE_DEFAULT_ARCH,
@@ -70,19 +69,29 @@ def set_regedit(
     os.remove(reg_path)
 
 
-def set_regedit_file(filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None):
-    """Apply a regedit file to the Windows registry."""
-    if arch == "win64" and wine_path and system.path_exists(wine_path + "64"):
-        # Use wine64 by default if set to a 64bit prefix. Using regular wine
-        # will prevent some registry keys from being created. Most likely to be
-        # a bug in Wine. see: https://github.com/lutris/lutris/issues/804
+def set_regedit_file(
+    filename, wine_path=None, prefix=None, arch=WINE_DEFAULT_ARCH, proton_verb=None, use_32_bit_regedit=False
+):
+    """Apply a regedit file to the Windows registry.
+
+    In a 64-bit prefix, 32-bit and 64-bit programs see different keys under
+    HKEY_LOCAL_MACHINE\\Software; the 32-bit ones are kept in Wow6432Node. A file
+    goes where the regedit applying it would look, so use_32_bit_regedit is for
+    keys that 32-bit programs must find."""
+    regedit = "regedit"
+    if arch == "win64" and use_32_bit_regedit:
+        regedit = "C:\\windows\\syswow64\\regedit.exe"
+    elif arch == "win64" and wine_path and system.path_exists(wine_path + "64"):
+        # Older Wine builds ship a separate wine64; plain wine would run the
+        # 32-bit regedit, which puts the keys in Wow6432Node.
+        # See: https://github.com/lutris/lutris/issues/804
         wine_path = wine_path + "64"
 
     if not wine_path or proton.is_proton_path(wine_path):
         proton_verb = "run"
 
     wineexec(
-        "regedit",
+        regedit,
         args="/S '%s'" % filename,
         wine_path=wine_path,
         prefix=prefix,
@@ -635,12 +644,10 @@ def install_cab_component(cabfile, component, wine_path: str, prefix=None, arch=
 
     if proton.is_proton_path(wine_path):
         proton_verb = "run"
-    cab_installer = CabInstaller(prefix, wine_path=wine_path, arch=arch)
-    files = cab_installer.extract_from_cab(cabfile, component)
-    registry_files = cab_installer.get_registry_files(files)
-    for registry_file, _arch in registry_files:
-        set_regedit_file(registry_file, wine_path=wine_path, prefix=prefix, arch=_arch, proton_verb=proton_verb)
-    cab_installer.cleanup()
+    # CabInstaller applies its registry files with set_regedit_file()
+    from lutris.util.wine.cabinstall import CabInstaller
+
+    CabInstaller(prefix, wine_path=wine_path, arch=arch).install(cabfile, component, proton_verb=proton_verb)
 
 
 def open_wine_terminal(
