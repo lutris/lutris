@@ -27,6 +27,7 @@ lutris/game_actions.py
 lutris/game.py
 lutris/gui/addgameswindow.py
 lutris/gui/application.py
+lutris/gui/bigpicture.py
 lutris/gui/config/accounts_box.py
 lutris/gui/config/add_game_dialog.py
 lutris/gui/config/base_config_box.py
