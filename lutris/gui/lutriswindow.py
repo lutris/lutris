@@ -303,6 +303,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
             "kill-wine": Action(self.on_kill_wine),
+            "big-picture": Action(lambda *x: self.application.enter_big_picture(), accel="F11"),
         }
 
         self.actions = {}
