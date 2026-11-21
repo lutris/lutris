@@ -1,0 +1,50 @@
+; Lutris Big Picture: a fullscreen, controller-friendly view of the library.
+; Lutris starts this project and talks to it over a socket; see scripts/link.gd.
+
+config_version=5
+
+[application]
+
+; The name is also the window's application ID, by which the desktop finds
+; the icon for the task bar: it has to be that of Lutris.
+config/name="net.lutris.Lutris"
+config/description="Controller-friendly fullscreen interface for Lutris"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.4")
+run/low_processor_mode=true
+run/low_processor_mode_sleep_usec=12000
+boot_splash/show_image=false
+boot_splash/bg_color=Color(0.043, 0.055, 0.078, 1)
+
+[debug]
+
+file_logging/enable_file_logging=false
+file_logging/enable_file_logging.pc=false
+
+[audio]
+
+; ALSA first: its thread costs half of what PulseAudio's does while nothing
+; plays, and Godot goes on to the other drivers if it is not there.
+driver/driver="ALSA"
+driver/mix_rate=44100
+driver/output_latency=40
+
+[physics]
+
+common/physics_ticks_per_second=10
+common/max_physics_steps_per_frame=1
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/mode=3
+window/stretch/mode="disabled"
+display_server/driver.linuxbsd="wayland"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.043, 0.055, 0.078, 1)
+textures/vram_compression/import_etc2_astc=false
