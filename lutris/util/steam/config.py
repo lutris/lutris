@@ -201,7 +201,11 @@ def read_config(steam_data_dir: str | None) -> dict[str, Any] | None:
 
 
 def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
-    """Read the Steam Library Folders config and return it as an object"""
+    """Read Steam's libraryfolders.vdf and return its library entries.
+
+    Current Steam clients store the authoritative file in ``steamapps``.
+    Older clients used ``config``, so retain that location as a fallback.
+    """
 
     def get_entry_case_insensitive(library_dict: dict[str, Any], path: list[str]) -> Any:
         for key, value in library_dict.items():
@@ -213,24 +217,60 @@ def read_library_folders(steam_data_dir: str | None) -> dict[str, Any] | None:
 
     if not steam_data_dir:
         return None
-    library_filename = os.path.join(steam_data_dir, "config/libraryfolders.vdf")
-    if not system.path_exists(library_filename):
-        return None
-    with open(library_filename, "r", encoding="utf-8") as steam_library_file:
-        library = vdf_parse(steam_library_file, {})
+
+    library_filenames = (
+        os.path.join(steam_data_dir, "steamapps/libraryfolders.vdf"),
+        os.path.join(steam_data_dir, "config/libraryfolders.vdf"),
+    )
+    for library_filename in library_filenames:
+        if not system.path_exists(library_filename):
+            continue
+        try:
+            with open(library_filename, "r", encoding="utf-8") as steam_library_file:
+                library = vdf_parse(steam_library_file, {})
+            library_folders = get_entry_case_insensitive(library, ["libraryfolders"])
+        except (OSError, KeyError) as ex:
+            logger.warning("Unable to read Steam library folders from %s: %s", library_filename, ex)
+            continue
+        if not isinstance(library_folders, dict):
+            logger.warning(
+                "Steam libraryfolders %s is not a dictionary: %s",
+                library_filename,
+                type(library_folders).__name__,
+            )
+            continue
+        # The contentstatsid key is metadata, not a library entry.
+        library_folders.pop("contentstatsid", None)
+        logger.debug("Using Steam library folders from %s", library_filename)
+        return library_folders
+    return None
+
+
+def get_mounted_steamapps_dirs(mounts_filename: str = "/proc/mounts") -> list[str]:
+    """Find conventional Steam library directories at user-data mount roots.
+
+    This is a bounded fallback for Steam installations whose configuration has
+    lost a secondary library: only the mount root and its SteamLibrary child
+    are checked, without recursively scanning mounted filesystems.
+    """
+    data_filesystems = {"ext4", "ext3", "xfs", "btrfs", "ntfs", "vfat", "exfat", "fuseblk", "ntfs3"}
+    steamapps_dirs = []
     try:
-        library_folders = get_entry_case_insensitive(library, ["libraryfolders"])
-    except KeyError as ex:
-        logger.error("Steam libraryfolders %s is empty: %s", library_filename, ex)
-        return None
-    if not isinstance(library_folders, dict):
-        logger.error(
-            "Steam libraryfolders %s is not a dictionary: %s", library_filename, type(library_folders).__name__
-        )
-        return None
-    # The contentstatsid key is unused and causes problems when looking for library paths.
-    library_folders.pop("contentstatsid", None)
-    return library_folders
+        with open(mounts_filename, "r", encoding="utf-8") as mounts_file:
+            for line in mounts_file:
+                parts = line.split()
+                if len(parts) < 3 or parts[2] not in data_filesystems:
+                    continue
+                mount_path = parts[1].replace(r"\040", " ").replace(r"\011", "\t").replace(r"\134", "\\")
+                if mount_path == "/":
+                    continue
+                for relative_path in ("steamapps", os.path.join("SteamLibrary", "steamapps")):
+                    steamapps_path = os.path.join(mount_path, relative_path)
+                    if os.path.isdir(steamapps_path):
+                        steamapps_dirs.append(steamapps_path)
+    except OSError as ex:
+        logger.debug("Unable to inspect mounted Steam libraries: %s", ex)
+    return steamapps_dirs
 
 
 def get_steam_config() -> dict[str, Any] | None:
@@ -243,8 +283,12 @@ def get_library_config() -> dict[str, Any] | None:
     return read_library_folders(get_steam_dir())
 
 
-def get_steamapps_dirs() -> Iterable[str]:
-    """Return a list of the Steam library main + custom folders."""
+def get_steamapps_dirs(include_mounted: bool = False) -> Iterable[str]:
+    """Return Steam's main and configured library folders.
+
+    Proton discovery can opt into unlisted libraries on data mounts. These
+    fallback paths come last and must not be used for installed-game syncing.
+    """
     dirs = []
     # Extra colon-separated compatibility tools dirs environment variable
     if compat_tool_paths := os.getenv("STEAM_EXTRA_COMPAT_TOOLS_PATHS"):
@@ -287,4 +331,7 @@ def get_steamapps_dirs() -> Iterable[str]:
         for path in paths:
             if path and os.path.isdir(path):
                 dirs.append(path)
+    # Prefer Steam's configured libraries over potentially stale mount copies.
+    if include_mounted:
+        dirs.extend(get_mounted_steamapps_dirs())
     return system.list_unique_folders(dirs)

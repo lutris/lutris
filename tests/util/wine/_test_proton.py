@@ -112,6 +112,20 @@ class TestIsGeProtonRelease(unittest.TestCase):
         self.assertFalse(proton.is_ge_proton_release(None))
 
 
+class TestProtonLocations(unittest.TestCase):
+    def test_requests_unlisted_mounted_libraries(self):
+        with (
+            patch.object(
+                proton, "get_steamapps_dirs", return_value=["/listed/steamapps", "/mount/steamapps"]
+            ) as discover,
+            patch.object(proton, "get_steam_compat_dir", return_value="/compat"),
+        ):
+            locations = list(proton._iter_proton_locations())
+
+        discover.assert_called_once_with(include_mounted=True)
+        self.assertLess(locations.index("/listed/steamapps/common"), locations.index("/mount/steamapps/common"))
+
+
 class TestSteamCompatDir(unittest.TestCase):
     @patch.object(proton.LINUX_SYSTEM, "is_flatpak", return_value=False)
     def test_follows_xdg_data_home(self, _is_flatpak):
