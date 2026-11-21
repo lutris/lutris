@@ -1,0 +1,6 @@
+option(
+  'bigpicture',
+  type: 'boolean',
+  value: false,
+  description: 'Pack and install the Big Picture interface (requires the Godot engine, 4.4 or later, at build time)',
+)

@@ -23,6 +23,7 @@ help:
 	@echo "  make format         Auto-format code and sort imports"
 	@echo "  make mypy           Run mypy against the baseline"
 	@echo "  make appimage       Build the AppImage"
+	@echo "  make bigpicture     Pack the Big Picture interface for installing (needs Godot)"
 	@echo "  make install-hooks  Install the git pre-commit hook"
 	@echo
 	@echo "Release/packaging tasks: make -f packaging/Makefile help"
@@ -95,6 +96,21 @@ mypy:
 
 mypy-reset-baseline:  # Add new typing errors to mypy. Use sparingly.
 	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline sync
+
+# =====================
+# Big Picture interface
+# =====================
+
+# The Big Picture interface is a Godot project. Run from the source tree,
+# Lutris uses it as it is; packed into one file, it can be installed.
+# (Phony, as there is a directory called bigpicture: make would take that
+# for the target, already built.)
+.PHONY: bigpicture bigpicture-check
+bigpicture:
+	godot --headless --path bigpicture --export-pack Lutris $(CURDIR)/bigpicture/bigpicture.pck
+
+bigpicture-check:
+	godot --headless --path bigpicture --script res://tests/run.gd
 
 # ==============================
 # Packaging (developer-facing)

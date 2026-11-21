@@ -22,6 +22,10 @@ tests/coverage/*
 # meson builddirs
 builddir
 
+# Big Picture interface (Godot): the engine's cache, and the packed project
+/bigpicture/.godot
+/bigpicture/*.pck
+
 # i18n files
 po/lutris.pot
 po/*.mo

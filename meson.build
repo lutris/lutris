@@ -123,4 +123,23 @@ if appstreamcli.found()
   )
 endif
 
+# The Big Picture interface is a Godot project, which Godot packs into one
+# file. It is opt-in (-Dbigpicture=true) because that needs Godot at build
+# time; Lutris works without it, minus Big Picture mode.
+if get_option('bigpicture')
+  godot = find_program('godot4', 'godot')
+  custom_target(
+    'bigpicture.pck',
+    output: 'bigpicture.pck',
+    command: [
+      godot, '--headless',
+      '--path', join_paths(meson.source_root(), 'bigpicture'),
+      '--export-pack', 'Lutris', '@OUTPUT@',
+    ],
+    build_by_default: true,
+    install: true,
+    install_dir: join_paths(datadir, 'lutris'),
+  )
+endif
+
 meson.add_install_script('utils/meson_post_install.py')
