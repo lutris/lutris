@@ -65,6 +65,32 @@ you can run it directly from the source directory::
     cd lutris
     ./bin/lutris
 
+Big Picture mode
+----------------
+
+Big Picture mode, the fullscreen interface for controllers, is a project for
+the `Godot engine <https://godotengine.org>`_, written in GDScript. It needs
+Godot 4.4 or later (the ``godot`` package of most distributions) to run, and
+nothing has to be compiled. Lutris works without Godot, but the Big Picture
+button will then only tell you that it is missing.
+
+When running Lutris from the source directory, there is nothing to build:
+Lutris has Godot run the project in the ``bigpicture`` directory as it is.
+
+When installing Lutris with meson, enable the ``bigpicture`` option to have
+the project packed into one file and installed with Lutris's data; this needs
+Godot at build time::
+
+    meson setup builddir -Dbigpicture=true
+
+``make bigpicture`` makes the same file, ``bigpicture/bigpicture.pck``, by
+hand, and ``make bigpicture-check`` runs the interface's tests.
+
+Lutris looks for Godot as ``godot4`` and ``godot`` on ``$PATH``; set
+``$LUTRIS_GODOT`` to use another. It looks for the interface in the source
+tree, then for the packed file in its data directory; set
+``$LUTRIS_BIGPICTURE`` to a project directory or a pack file to override that.
+
 Run Lutris
 -----------
 
