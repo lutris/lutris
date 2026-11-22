@@ -73,6 +73,11 @@ class SteamWindowsService(SteamService):
 
         application.show_installer_window(installers, service=self, appid=appid)
 
+    def add_installed_games(self):
+        """Do nothing. SteamService's sync adds the games it finds as native Steam games, and
+        uninstalls native Steam games missing from this client; games installed through the
+        Windows Steam client get their Lutris entries from the installer instead."""
+
     @property
     def steamapps_paths(self):
         """Return steamapps paths"""
