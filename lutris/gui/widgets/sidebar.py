@@ -198,7 +198,12 @@ class OnlineServiceSidebarRow(ServiceSidebarRow):
         displayed_buttons = []
         if self.service.is_launchable():
             displayed_buttons.append(buttons["run"])
-        if self.service.is_authenticated():
+        try:
+            authenticated = self.service.is_authenticated()
+        except Exception as ex:
+            logger.exception("Could not determine whether '%s' is authenticated: %s", self.service.id, ex)
+            authenticated = False
+        if authenticated:
             displayed_buttons += [buttons["refresh"], buttons["disconnect"]]
         else:
             displayed_buttons += [buttons["connect"]]

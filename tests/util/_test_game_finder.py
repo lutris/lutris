@@ -41,7 +41,10 @@ class GameFinderTestCase(TestCase):
                 pass
 
         def fake_from_file(path, **_kwargs):
-            return file_types[os.path.basename(path)]
+            file_type = file_types[os.path.basename(path)]
+            if isinstance(file_type, Exception):
+                raise file_type  # libmagic can't read it, like a broken link
+            return file_type
 
         walk_result = [(game_dir, [], list(order or file_types))]
         with patch("lutris.util.magic.from_file", fake_from_file):
@@ -174,3 +177,32 @@ class TestFindLinuxGameExecutable(GameFinderTestCase):
         with self.game_folder(file_types, dir_name="still-leben") as game_dir:
             found = find_linux_game_executable(game_dir)
         self.assertEqual(os.path.basename(found), "start.sh")
+
+
+class TestFilesLibmagicCannotRead(GameFinderTestCase):
+    """A broken link, say to a system library the game expects, must not end the search."""
+
+    def test_linux_search_skips_unreadable_files(self):
+        file_types = {
+            "aaa-broken-link": FileNotFoundError("No such file or directory"),
+            "StillLeben.x86_64": LINUX_UNITY_BUILD["StillLeben.x86_64"],
+        }
+        with self.game_folder(file_types) as game_dir:
+            found = find_linux_game_executable(game_dir)
+        self.assertEqual(os.path.basename(found), "StillLeben.x86_64")
+
+    def test_windows_search_skips_unreadable_files(self):
+        file_types = {
+            "aaa-unreadable.exe": PermissionError("Permission denied"),
+            "StillLeben.exe": WINDOWS_UNITY_BUILD["StillLeben.exe"],
+        }
+        with self.game_folder(file_types) as game_dir:
+            found = find_windows_game_executable(game_dir)
+        self.assertEqual(os.path.basename(found), "StillLeben.exe")
+
+
+class TestExcludedFolders(GameFinderTestCase):
+    def test_game_inside_a_folder_called_windows_is_searched(self):
+        with self.game_folder(WINDOWS_UNITY_BUILD, dir_name="windows/stillleben") as game_dir:
+            found = find_windows_game_executable(game_dir)
+        self.assertEqual(os.path.basename(found), "StillLeben.exe")
