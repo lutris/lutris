@@ -8,6 +8,16 @@ from lutris.util import magic, system
 from lutris.util.log import logger
 
 
+def get_file_type(path):
+    """Return libmagic's description of a file, or "" if it can't be read; a
+    broken link or an unreadable file must not stop the search."""
+    try:
+        return magic.from_file(path)
+    except (OSError, magic.MagicException) as ex:
+        logger.debug("Can't identify %s: %s", path, ex)
+        return ""
+
+
 def normalize_name(name):
     """Reduces a name to just its letters and digits, so an executable can be
     compared against the name of the folder holding it."""
@@ -67,7 +77,7 @@ def find_linux_game_executable(path, make_executable=False):
             if is_excluded_elf(_file):
                 continue
             abspath = os.path.join(base, _file)
-            file_type = magic.from_file(abspath)
+            file_type = get_file_type(abspath)
             if "ASCII text executable" in file_type:
                 candidates["shell"].append(abspath)
             if "Bourne-Again shell script" in file_type:
@@ -139,7 +149,9 @@ def find_windows_game_executable(path):
 
     for base, _dirs, files in os.walk(path):
         candidates = defaultdict(list)
-        if is_excluded_dir(base):
+        # Only the part inside the game's folder counts; the game may well be in
+        # a folder of its own that happens to be called 'windows'.
+        if is_excluded_dir(os.path.relpath(base, path)):
             continue
         for _file in files:
             if is_excluded_exe(_file):
@@ -147,7 +159,7 @@ def find_windows_game_executable(path):
             abspath = os.path.join(base, _file)
             if os.path.islink(abspath):
                 continue
-            file_type = magic.from_file(abspath)
+            file_type = get_file_type(abspath)
             if "MS Windows shortcut" in file_type:
                 candidates["link"].append(abspath)
             elif "(DLL)" in file_type:

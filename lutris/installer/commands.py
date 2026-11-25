@@ -857,6 +857,13 @@ class CommandsMixin:
             text = " — ".join(parts) if parts else ""
             self.interpreter_ui_delegate.report_progress(fraction, text)
 
+        def on_gogdl_started(stop_gogdl):
+            # Cancelling the install stops gogdl, rather than leave it downloading
+            # into the folder being removed.
+            self.abort_current_task = stop_gogdl
+            if self.cancelled:
+                stop_gogdl()
+
         try:
             outcome = run_gogdl(
                 command=command,
@@ -866,11 +873,14 @@ class CommandsMixin:
                 lang=lang,
                 dlcs=dlcs,
                 progress_callback=progress_callback,
+                on_started=on_gogdl_started,
             )
         except FileNotFoundError as err:
             raise ScriptingError(_("gogdl runtime component not found. Please update your Lutris runtime.")) from err
         except Exception as err:
             raise ScriptingError(_("GOG depot download failed: %s") % err) from err
+        finally:
+            self.abort_current_task = None
 
         self.interpreter_ui_delegate.report_progress(None)
 
