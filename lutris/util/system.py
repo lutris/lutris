@@ -411,6 +411,14 @@ def merge_folders(source: str, destination: str) -> None:
         dst_abspath = os.path.join(destination, source_relpath)
         for dirname in dirnames:
             new_dir = os.path.join(dst_abspath, dirname)
+            source_dir = os.path.join(dirpath, dirname)
+            if os.path.islink(source_dir):
+                # os.walk() lists a link to a folder with the folders, but doesn't enter it;
+                # copy the link itself, as shutil.copy() does below for links to files.
+                if not os.path.lexists(new_dir):
+                    os.makedirs(dst_abspath, exist_ok=True)
+                    os.symlink(os.readlink(source_dir), new_dir)
+                continue
             logger.debug("creating dir: %s", new_dir)
             try:
                 os.mkdir(new_dir)

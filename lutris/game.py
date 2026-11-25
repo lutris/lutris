@@ -3,6 +3,7 @@
 # pylint: disable=too-many-public-methods disable=too-many-lines
 import json
 import os
+import re
 import shlex
 import shutil
 import signal
@@ -1151,7 +1152,6 @@ class Game:
 
     def move(self, new_location: str, no_signal: bool = False) -> str:
         logger.info("Moving %s to %s", self, new_location)
-        new_config = ""
         old_location = self.directory
         target_directory = self._get_move_target_directory(new_location)
 
@@ -1160,13 +1160,12 @@ class Game:
                 _("Lutris can't move '%s' to a location inside of itself, '%s'.") % (old_location, new_location)
             )
 
-        self.directory = target_directory
-        self.save(no_signal=no_signal)
-
         if not old_location:
             # We can't move or update the config without an initial
-            # location, but no-one expects us to. We've just updated
-            # the game directory, and that will do.
+            # location, but no-one expects us to. Updating the game
+            # directory will do.
+            self.directory = target_directory
+            self.save(no_signal=no_signal)
             return target_directory
 
         if not self.config:
@@ -1176,28 +1175,32 @@ class Game:
         if not config_path:
             raise RuntimeError(f"Game configuration path not found for {self.name}.")
 
+        # Move the files before recording the new location, so that if the move fails
+        # the game still points at its files, and the error reaches the user.
+        if system.path_exists(old_location):
+            if system.path_exists(target_directory):
+                raise InvalidGameMoveError(
+                    _("Lutris can't move the game, because '%s' already exists.") % target_directory
+                )
+            shutil.move(old_location, new_location)
+        else:
+            logger.warning("Initial location %s does not exist, files may have already been moved.", old_location)
+
+        self.directory = target_directory
+        self.save(no_signal=no_signal)
+
+        # Only replace the old location as a whole path, not where it is just the
+        # start of a longer name ('/games/doom' must not match '/games/doom2').
+        old_path = re.compile(re.escape(old_location) + r"(?=/|$|[\s'\"])")
         with open(config_path, encoding="utf-8") as config_file:
+            new_config = ""
             for line in config_file.readlines():
                 if target_directory in line:
                     new_config += line
                 else:
-                    new_config += line.replace(old_location, target_directory)
+                    new_config += old_path.sub(lambda _match: target_directory, line)
         with open(config_path, "w", encoding="utf-8") as config_file:
             config_file.write(new_config)
-
-        if not system.path_exists(old_location):
-            logger.warning("Initial location %s does not exist, files may have already been moved.")
-            return target_directory
-
-        try:
-            shutil.move(old_location, new_location)
-        except OSError as ex:
-            logger.error(
-                "Failed to move %s to %s, you may have to move files manually (Exception: %s)",
-                old_location,
-                new_location,
-                ex,
-            )
         return target_directory
 
     def set_location(self, new_location: str) -> str:

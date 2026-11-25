@@ -74,7 +74,7 @@ class SteamInstaller:
             AsyncCall(self.runner.install_game, self.on_steam_game_installed, self.appid)
             self.install_start_time = time.localtime()
             self.steam_poll = schedule_repeating_at_idle(self._monitor_steam_game_install, interval_seconds=2.0)
-            self.stop_func = lambda: self.runner.remove_game_data(appid=self.appid)
+            self.stop_func = lambda: self.runner.remove_game_data(app_id=self.appid)
 
     def get_steam_data_path(self):
         """Return path of Steam files"""

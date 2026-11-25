@@ -17,7 +17,7 @@ from lutris.services.base import SERVICE_LOGIN, OnlineService
 from lutris.services.service_game import ServiceGame
 from lutris.services.service_media import ServiceMedia
 from lutris.util import system
-from lutris.util.http import HTTPError, Request
+from lutris.util.http import HTTPError, Request, UnauthorizedAccessError
 from lutris.util.log import logger
 from lutris.util.strings import computer_size
 
@@ -90,18 +90,19 @@ class ZoomService(OnlineService):
 
     def is_connected(self) -> bool:
         """Return whether the user is authenticated and if the service is available"""
-
+        if not self.is_authenticated():
+            return False
         try:
             request = self.make_request(f"{self.api_url}/li/loggedin")
-        except AuthenticationError:
+        except (AuthenticationError, UnauthorizedAccessError):
             logger.debug("User is not authenticated")
+            return False
+        except HTTPError as ex:
+            logger.exception("Failed to query Zoom login status: %s", ex)
             return False
 
         logger.debug("User is authenticated: %s", request)
         return True
-
-    def is_authenticated(self):
-        return self.is_connected()
 
     def load(self) -> list[ZoomGame]:
         """Load the user game library from the Zoom API"""
