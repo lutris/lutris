@@ -17,7 +17,10 @@ import os
 import time
 from enum import Enum
 
+from lutris import settings
+from lutris.cache import get_custom_cache_path
 from lutris.util.log import logger
+from lutris.util.system import path_contains
 
 
 class CacheState(Enum):
@@ -228,6 +231,17 @@ def safe_delete_folder(folder_path: str) -> bool:
         # Only remove directories if they're empty
         for name in dirs:
             dir_path = os.path.join(root, name)
+            if os.path.islink(dir_path):
+                # os.walk() lists links to folders with the folders; remove the link
+                # itself, as for a link to a file, and never what it points to.
+                if is_safe_to_delete(dir_path):
+                    try:
+                        os.remove(dir_path)
+                    except OSError as ex:
+                        logger.warning("Failed to remove %s: %s", dir_path, ex)
+                else:
+                    preserved_files.append(dir_path)
+                continue
             try:
                 if not os.listdir(dir_path):
                     os.rmdir(dir_path)
@@ -250,3 +264,23 @@ def safe_delete_folder(folder_path: str) -> bool:
         pass
 
     return True
+
+
+def sweep_installer_cache() -> None:
+    """Clean up every game's folder in the installer cache, as finishing that game's
+    install would. Each game's folder is otherwise only cleaned when its installer
+    window closes, so files kept for a retry after a failed install were never removed
+    if the install wasn't tried again. Cache locks still protect files in use, and
+    files from a failed install until they are a week old."""
+    cache_dir = settings.INSTALLER_CACHE_DIR
+    if not os.path.isdir(cache_dir):
+        return
+    custom_cache_path = get_custom_cache_path()
+    for name in os.listdir(cache_dir):
+        folder = os.path.join(cache_dir, name)
+        if os.path.islink(folder) or not os.path.isdir(folder):
+            continue
+        # The user's own download cache could be set to a folder in here; never sweep that
+        if custom_cache_path and (path_contains(folder, custom_cache_path) or path_contains(custom_cache_path, folder)):
+            continue
+        safe_delete_folder(folder)

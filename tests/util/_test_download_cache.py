@@ -6,7 +6,9 @@ import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
+from unittest.mock import patch
 
+from lutris.util import download_cache
 from lutris.util.download_cache import (
     CacheState,
     create_cache_lock,
@@ -307,3 +309,72 @@ class TestDownloaderChunkSize(TestCase):
 
         d = SimpleDownloader("http://example.com/test", "/tmp/test")
         assert d.session is None
+
+
+class TestFolderLinks(TestCase):
+    """Games often ship links to folders, like 'lib -> lib64'."""
+
+    def test_link_to_a_folder_is_removed_but_not_its_target(self):
+        with TemporaryDirectory() as temp_dir:
+            cache = Path(temp_dir) / "cache"
+            outside = Path(temp_dir) / "outside"
+            (cache / "game" / "lib64").mkdir(parents=True)
+            (cache / "game" / "lib64" / "libgame.so").write_text("library")
+            (cache / "game" / "lib").symlink_to("lib64")
+            outside.mkdir()
+            (outside / "keep.txt").write_text("not ours")
+            (cache / "game" / "elsewhere").symlink_to(outside)
+
+            self.assertTrue(safe_delete_folder(str(cache)))
+            self.assertFalse(os.path.lexists(cache))
+            self.assertTrue((outside / "keep.txt").is_file())
+
+
+class TestSweepInstallerCache(TestCase):
+    """Shutting down cleans every game's folder in the installer cache, as its install would."""
+
+    def setUp(self):
+        temp_dir = TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        self.cache = Path(temp_dir.name) / "installer"
+        self.cache.mkdir()
+        self.custom_cache = None
+        for mock_patch in (
+            patch.object(download_cache.settings, "INSTALLER_CACHE_DIR", str(self.cache)),
+            patch.object(download_cache, "get_custom_cache_path", side_effect=lambda: self.custom_cache),
+        ):
+            mock_patch.start()
+            self.addCleanup(mock_patch.stop)
+
+    def add_download(self, game, state=None, days_old=0.0):
+        path = self.cache / game / "setup" / "setup.exe"
+        path.parent.mkdir(parents=True)
+        path.write_text("installer")
+        if state:
+            create_cache_lock(str(path), state)
+            lock_path = str(path) + ".cache_lock"
+            with open(lock_path, encoding="utf-8") as lock_file:
+                lock = json.load(lock_file)
+            lock["updated_at"] = time.time() - days_old * 86400
+            with open(lock_path, "w", encoding="utf-8") as lock_file:
+                json.dump(lock, lock_file)
+        return path
+
+    def test_expired_and_finished_downloads_are_removed(self):
+        self.add_download("finished", CacheState.INSTALLED)
+        self.add_download("failed-long-ago", CacheState.FAILED, days_old=8)
+        download_cache.sweep_installer_cache()
+        self.assertEqual(os.listdir(self.cache), [])
+
+    def test_downloads_in_use_or_kept_for_a_retry_stay(self):
+        downloading = self.add_download("downloading", CacheState.DOWNLOADING)
+        failed = self.add_download("failed-recently", CacheState.FAILED, days_old=1)
+        download_cache.sweep_installer_cache()
+        self.assertTrue(downloading.is_file())
+        self.assertTrue(failed.is_file())
+
+    def test_custom_download_cache_inside_is_left_alone(self):
+        kept = self.add_download("my-downloads")
+        self.custom_cache = str(self.cache / "my-downloads")
+        download_cache.sweep_installer_cache()
+        self.assertTrue(kept.is_file())
