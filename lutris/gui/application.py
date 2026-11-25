@@ -50,6 +50,7 @@ from lutris.services import get_enabled_services
 from lutris.startup import init_lutris, run_all_checks
 from lutris.style_manager import StyleManager
 from lutris.util import datapath, log, resources, system
+from lutris.util.download_cache import sweep_installer_cache
 from lutris.util.http import HTTPError, Request
 from lutris.util.log import file_handler, logger
 from lutris.util.savesync import save_check, show_save_stats, upload_save
@@ -1132,6 +1133,10 @@ Also, check that the version specified is in the correct format.
             selected_category = "%s:%s" % self.window.selected_category
             settings.write_setting("selected_category", selected_category)
             self.window.destroy()
+        try:
+            sweep_installer_cache()
+        except Exception as ex:
+            logger.exception("Failed to clean up the installer cache: %s", ex)
         Gtk.Application.do_shutdown(self)
 
     def set_tray_icon(self) -> None:

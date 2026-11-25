@@ -15,6 +15,7 @@ This module handles:
 import json
 import os
 import re
+import signal
 import subprocess
 import threading
 import time
@@ -190,7 +191,9 @@ class GogdlProgress:
         return False
 
 
-def run_gogdl(command, game_id, path, platform="windows", lang=None, dlcs=None, progress_callback=None):
+def run_gogdl(
+    command, game_id, path, platform="windows", lang=None, dlcs=None, progress_callback=None, on_started=None
+):
     """Run a gogdl command as a subprocess.
 
     Args:
@@ -201,6 +204,8 @@ def run_gogdl(command, game_id, path, platform="windows", lang=None, dlcs=None, 
         lang: Language code
         dlcs: True (all), False (none), or comma-separated DLC ID string
         progress_callback: Called with (GogdlProgress) on progress updates
+        on_started: Called with a function that stops gogdl, once it is running;
+            not used for "info"
     Returns:
         For "info": parsed JSON dict
         For other commands: the GogdlProgress, which records the outcome
@@ -230,7 +235,17 @@ def run_gogdl(command, game_id, path, platform="windows", lang=None, dlcs=None, 
     progress = GogdlProgress()
     error_lines = []
 
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+    # gogdl gets a process group of its own, so that stopping it stops any
+    # processes it started too.
+    process = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env, start_new_session=True
+    )
+
+    def stop():
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
 
     def read_stderr():
         for line in process.stderr:
@@ -256,6 +271,8 @@ def run_gogdl(command, game_id, path, platform="windows", lang=None, dlcs=None, 
     stdout_thread = threading.Thread(target=read_stdout, daemon=True)
     stderr_thread.start()
     stdout_thread.start()
+    if on_started:
+        on_started(stop)
 
     process.wait()
     stderr_thread.join(timeout=5)
