@@ -1,10 +1,10 @@
 import os
 import re
 import shutil
-import subprocess
 import tempfile
 import xml.etree.ElementTree
 
+from lutris.runners.commands.wine import set_regedit_file
 from lutris.util.log import logger
 from lutris.util.system import execute, read_process_output
 
@@ -21,9 +21,6 @@ class CabInstaller:
         self.tmpdir = tempfile.mkdtemp()
         self.wine_path = wine_path
 
-        self.register_dlls = False  # Whether to register DLLs, I don't the purpose of that
-        self.strip_dlls = False  # When registering, strip the full path
-
     @staticmethod
     def process_key(key):
         """I have no clue why"""
@@ -36,10 +33,6 @@ class CabInstaller:
         arch_map = {"amd64": "win64", "x86": "win32", "wow64": "wow64"}
         return arch_map[arch]
 
-    def get_winebin(self, arch):
-        wine_path = self.wine_path or "wine"
-        return wine_path if arch in ("win32", "wow64") else wine_path + "64"
-
     @staticmethod
     def get_arch_from_dll(dll_path):
         if "x86-64" in read_process_output(["file", dll_path]):
@@ -49,9 +42,6 @@ class CabInstaller:
     def cleanup(self):
         logger.info("Cleaning up %s", self.tmpdir)
         shutil.rmtree(self.tmpdir)
-
-    def check_dll_arch(self, dll_path):
-        return self.get_arch_from_dll(dll_path)
 
     def replace_variables(self, value, arch):
         if "$(" in value:
@@ -109,10 +99,6 @@ class CabInstaller:
             value = '"%s"' % value
         if value:
             value = self.replace_variables(value, arch)
-            if self.strip_dlls:
-                if ".dll" in value:
-                    value = value.lower().replace("c:\\\\windows\\\\system32\\\\", "")
-                    value = value.lower().replace("c:\\\\windows\\\\syswow64\\\\", "")
         return name, value
 
     def get_registry_from_manifest(self, file_name):
@@ -156,14 +142,13 @@ class CabInstaller:
 
     def install_dll(self, dll_path):
         dest_dir = self.get_dll_destdir(dll_path)
+        dest_path = os.path.join(dest_dir, os.path.basename(dll_path))
+        # Proton fills a prefix with links to its own DLLs; copying onto one would
+        # overwrite Proton's copy, used by every prefix it runs.
+        if os.path.islink(dest_path):
+            os.unlink(dest_path)
         logger.debug("Copying %s to %s", dll_path, dest_dir)
-        shutil.copy(dll_path, dest_dir)
-
-        dest_dll_path = os.path.join(dest_dir, os.path.basename(dll_path))
-        if not self.register_dlls:
-            return
-        arch = self.get_arch_from_dll(dest_dll_path)
-        subprocess.call([self.get_winebin(arch), "regsvr32", os.path.basename(dest_dll_path)])
+        shutil.copy(dll_path, dest_path)
 
     def get_registry_files(self, output_files):
         reg_files = []
@@ -180,9 +165,19 @@ class CabInstaller:
                 self.install_dll(file_path)
         return reg_files
 
-    def apply_to_registry(self, file_path, arch):
+    def apply_to_registry(self, file_path, arch, proton_verb=None):
+        """Apply a registry file made from a manifest for the given arch."""
         logger.info("Applying %s to registry", file_path)
-        subprocess.call([self.get_winebin(arch), "regedit", os.path.join(self.tmpdir, file_path)])
+        # WINEARCH must be the prefix's own, or Wine won't run at all; a 32-bit
+        # component's keys go where 32-bit programs look for them.
+        set_regedit_file(
+            file_path,
+            wine_path=self.wine_path,
+            prefix=self.prefix,
+            arch=self.winearch,
+            proton_verb=proton_verb,
+            use_32_bit_regedit=arch in ("win32", "wow64"),
+        )
 
     def extract_from_cab(self, cabfile, component):
         """Extracts files matching a `component` name from a `cabfile`
@@ -197,11 +192,11 @@ class CabInstaller:
         execute(["cabextract", "-F", "*%s*" % component, "-d", self.tmpdir, cabfile])
         return [os.path.join(r, file) for r, d, f in os.walk(self.tmpdir) for file in f]
 
-    def install(self, cabfile, component):
+    def install(self, cabfile, component, proton_verb=None):
         """Install `component` from `cabfile`"""
         logger.info("Installing %s from %s", component, cabfile)
 
         for file_path, arch in self.get_registry_files(self.extract_from_cab(cabfile, component)):
-            self.apply_to_registry(file_path, arch)
+            self.apply_to_registry(file_path, arch, proton_verb=proton_verb)
 
         self.cleanup()

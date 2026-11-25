@@ -82,3 +82,59 @@ class TestResponseIsClosed(TestCase):
         self._run(response)
 
         assert response.closed
+
+
+class NoFileDownloader(SimpleDownloader):
+    """A downloader that writes nothing, for testing its state machine."""
+
+    def _prepare_destination(self):
+        pass
+
+
+class TestJoinWakesUp(TestCase):
+    """join() waits on the progress event; every way a download ends must set it."""
+
+    def make_downloader(self):
+        return NoFileDownloader("https://example.com/game.zip", "/nonexistent/game.zip")
+
+    def test_completion_failure_and_cancel_all_set_the_event(self):
+        for finish in (
+            lambda dl: dl.on_download_completed(),
+            lambda dl: dl.on_download_failed(RuntimeError("broken")),
+            lambda dl: dl.cancel(),
+        ):
+            downloader = self.make_downloader()
+            downloader.state = downloader.DOWNLOADING
+            finish(downloader)
+            self.assertTrue(downloader.progress_event.is_set())
+
+    def test_join_raises_when_the_download_fails_before_any_data(self):
+        join_is_waiting = threading.Event()
+
+        class SignallingEvent(threading.Event):
+            def wait(self, timeout=None):
+                join_is_waiting.set()
+                return super().wait(timeout)
+
+        def fail_once_join_waits(_downloader):
+            join_is_waiting.wait()
+            raise RuntimeError("404 Not Found")
+
+        downloader = self.make_downloader()
+        downloader.RETRY_ATTEMPTS = 1
+        downloader.progress_event = SignallingEvent()
+        outcome = {}
+
+        def run_join():
+            try:
+                downloader.join()
+            except RuntimeError as ex:
+                outcome["raised"] = str(ex)
+
+        with patch.object(NoFileDownloader, "_do_download", fail_once_join_waits):
+            downloader.start()
+            joiner = threading.Thread(target=run_join, daemon=True)
+            joiner.start()
+            joiner.join(timeout=10)
+        self.assertFalse(joiner.is_alive(), "join() never returned")
+        self.assertEqual(outcome.get("raised"), "404 Not Found")
