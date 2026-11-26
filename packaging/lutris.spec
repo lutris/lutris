@@ -140,7 +140,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/%{appid}1.desktop
 %{_datadir}/locale/
 
 %changelog
-* Sat Mar 15 2026 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.23
+* Mon Nov 16 2026 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.23
 - Release 0.5.23
 
 * Mon Feb 24 2026 Mathieu Comandon <mathieucomandon@gmail.com> 0.5.22
