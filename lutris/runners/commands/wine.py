@@ -286,13 +286,9 @@ def winekill(prefix, arch=WINE_DEFAULT_ARCH, wine_path="", env=None, initial_pid
         if not runner:
             runner = import_runner("wine")()
         env = dict(runner.system_config.get("env") or {})
-        env.update(
-            {
-                "WINEARCH": arch,
-                "WINEPREFIX": prefix,
-                "GAMEID": proton.DEFAULT_GAMEID,
-            }
-        )
+        env.update({"WINEARCH": arch, "GAMEID": proton.DEFAULT_GAMEID})
+        if prefix:
+            env["WINEPREFIX"] = prefix
     env["PROTON_VERB"] = "runinprefix"  # must not block until the game exits, that would be sily!
 
     # An empty wine_path counts as a Proton path, so resolve it before we decide
@@ -352,7 +348,7 @@ def use_lutris_runtime(wine_path, force_disable=False):
 
 def wineexec(
     executable: str,
-    prefix: str,
+    prefix: str | None,
     args: str = "",
     wine_path: str | None = None,
     arch: str = WINE_DEFAULT_ARCH,
@@ -373,7 +369,7 @@ def wineexec(
 
     Args:
         executable (str): wine program to run, pass None to run wine itself
-        prefix (str): path to the wine prefix to use
+        prefix (str or None): path to the wine prefix to use; if None, Wine uses its default prefix
         args (str): program arguments
         wine_path (str): path to the wine version to use
         arch (str): wine architecture of the prefix
@@ -415,7 +411,7 @@ def wineexec(
         if os.path.isfile(executable):
             working_dir = os.path.dirname(executable)
 
-    executable, _args, working_dir = get_real_executable(executable, working_dir)
+    real_executable, _args, working_dir = get_real_executable(executable, working_dir)
     if _args:
         # Running an .msi, .bat or .lnk takes arguments of its own, ahead of the caller's
         args = ('{} "{}" {}'.format(_args[0], _args[1], args)).strip()
@@ -432,7 +428,7 @@ def wineexec(
     # Create prefix if necessary
     if arch not in ("win32", "win64"):
         arch = detect_arch(prefix, wine_path)
-    if not is_prefix_directory(prefix):
+    if prefix and not is_prefix_directory(prefix):
         wine_bin = winetricks_wine if winetricks_wine and not proton.is_proton_path(wine_path) else wine_path
         create_prefix(prefix, wine_path=wine_bin, arch=arch, runner=runner)
 
@@ -480,11 +476,11 @@ def wineexec(
             command_parameters.append("winetricks")
     else:
         command_parameters.append(wine_path)
-    if executable:
-        command_parameters.append(executable)
+    if real_executable:
+        command_parameters.append(real_executable)
     command_parameters += split_arguments(args)
 
-    runner.prelaunch()
+    runner.prelaunch(executable)
 
     if blocking:
         # We collect stderr in a file rather than a pipe: wineserver keeps running with the
@@ -539,7 +535,7 @@ def find_winetricks(
 
 def winetricks(
     app: str | None,
-    prefix: str,
+    prefix: str | None,
     arch: str = WINE_DEFAULT_ARCH,
     silent: bool = True,
     wine_path: str | None = None,
@@ -651,8 +647,15 @@ def install_cab_component(cabfile, component, wine_path: str, prefix=None, arch=
 
 
 def open_wine_terminal(
-    terminal: str | None, wine_path: str, prefix: str, env: dict[str, str] | None, system_winetricks: bool
+    terminal: str | None,
+    wine_path: str,
+    prefix: str | None,
+    working_dir: str,
+    env: dict[str, str] | None,
+    system_winetricks: bool,
 ):
+    """Open a terminal with a shell set up to run Wine in 'prefix', in 'working_dir'. If
+    'prefix' is None, Wine uses its default prefix."""
     winetricks_path, _working_dir, env = find_winetricks(env, system_winetricks)
     path_paths = [os.path.dirname(wine_path)]
     if proton.is_proton_path(wine_path):
@@ -670,7 +673,8 @@ def open_wine_terminal(
         "wineboot": wine_command + "boot",
         "winetricks": winetricks_path,
     }
-    env["WINEPREFIX"] = prefix
+    if prefix:
+        env["WINEPREFIX"] = prefix
     # Ensure scripts you run see the desired version of WINE too
     # by putting it on the PATH.
 
@@ -678,6 +682,6 @@ def open_wine_terminal(
     path_paths = [p for p in path_paths if p]
     if path_paths:
         env["PATH"] = ":".join(path_paths)
-    shell_command = get_shell_command(prefix, env, aliases)
+    shell_command = get_shell_command(working_dir, env, aliases)
     terminal = terminal or linux.get_required_default_terminal()
     system.spawn([terminal, "-e", shell_command])
