@@ -264,7 +264,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "toggle-badges": Action(
                 self.on_toggle_badges,
                 type="b",
-                default=settings.read_setting("hide_badges_on_icons"),
+                default=settings.read_bool_setting("hide_badges_on_icons"),
                 accel="<Primary>p",
             ),
             "icon-type": Action(self.on_icontype_state_change, type="s", default=self.icon_type),

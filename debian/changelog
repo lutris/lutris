@@ -4,11 +4,15 @@ lutris (0.5.23) jammy; urgency=medium
   * Add a repair option for GOG depot installs under "Install updates"
   * Add GOG cloud save synchronization
   * Add GameJolt as a game source
+  * Add DLsite as a game source
   * Add store page URLs for GOG, Steam, itch.io, Humble Bundle, Flathub, ZOOM Platform, and GameJolt
   * Add Playtron import
   * Add parallel GOG download connections with resume support
   * Replace google-protobuf dependency with custom decoder for Battle.net
   * Improve Humble Bundle authentication and error handling
+  * Offer both the Linux and Windows installers for Humble Bundle games
+  * Fall back to the other OS's GOG installers when none match the runner
+  * Show release dates for Amazon games
   * Improve EA App auth handling and logo compositing
   * Refresh expired Epic Games Store tokens automatically instead of forcing a re-login
   * Speed up Epic Games Store library sync by batching catalog requests
@@ -18,7 +22,12 @@ lutris (0.5.23) jammy; urgency=medium
   * Add links to the issue tracker from the main menu and the About dialog
   * Show the default Wine version in System Information
   * Honor a custom RetroArch cores directory in the libretro runner
-  * Update the Ruffle runner to release 0.3.0
+  * Update the Ruffle runner to release 0.6.0
+  * Follow the desktop (KDE, GNOME) proxy settings for downloads and API requests
+  * Use GE-Proton through umu as the default for installers instead of downloading a Wine build
+  * Download GE-Proton releases pinned by an installer script from GitHub
+  * Allow regedit files to delete single registry values
+  * Show the install location page when an installer script uses $GAMEDIR
   * Enable DXVK-Sarek on Proton runners when Vulkan < 1.3
   * Add sorting and filtering to Uncategorized, Missing, and Running views
   * Use cover art for grid view and banners for list view by default
@@ -32,6 +41,21 @@ lutris (0.5.23) jammy; urgency=medium
   * Fix crash when closing Add Games dialog with Escape
   * Fix optional libretro firmware incorrectly treated as required
   * Fix favorites view not updating when removing a game from favorites
+  * Fix service games being installed as a second library entry
+  * Fix Steam shortcut creation from the installer
+  * Fix nested archives being extracted automatically, which broke some Humble Bundle installers
+  * Fix prefer_system_libs being ignored in installer execute steps
+  * Fix a game's GE-Proton (Latest) choice being overridden by the runner's Wine version
+  * Don't launch a game when its Wine version is missing
+  * Fix virtual desktop options being applied to Proton prefixes
+  * Fix Wine's Templates folder staying linked to ~/Templates in sandboxed prefixes
+  * Fix the launch configuration dialog not showing after 'lutris -i' or a lutris: link
+  * Fix files that could not be trashed being reported as moved to the trash
+  * Fix erratic download speed display
+  * Fix imported EA App games sharing the same slug
+  * Fix detection of installed Epic Games Store base games
+  * Fix the Steam API key being logged when the library is empty
+  * Fix crashes on malformed vulkaninfo, Steam and Ubisoft data
   * Report real return codes for installer commands and games (1 rather than 256); installer
     scripts using the old values in 'return_code' still work
   * Fix 'lutris -e' never exiting after its command finishes, and make it exit with the
@@ -39,9 +63,11 @@ lutris (0.5.23) jammy; urgency=medium
   * Added Swedish (sv) translation
   * Added Galician (gl_ES) translation
   * Added Traditional Chinese (zh_TW) translation
+  * Updated el, fr, pt_BR and zh_CN translations
   * Add experimental AppImage packaging
+  * Add a shell.nix development environment for NixOS
 
- -- Mathieu Comandon <mathieucomandon@gmail.com>  Sat, 15 Mar 2026 21:00:00 -0800
+ -- Mathieu Comandon <mathieucomandon@gmail.com>  Mon, 16 Nov 2026 20:00:00 -0800
 
 lutris (0.5.22) jammy; urgency=medium
 
