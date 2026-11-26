@@ -291,7 +291,8 @@ class BlizzardProductDbParser:
         database = ProductDb()
         database.decode(self.data)
 
-        for product_install in database.product_installs:  # pylint: disable=no-member
+        # The decoder leaves this None if product.db holds no products at all
+        for product_install in database.product_installs or []:  # pylint: disable=no-member
             # process region
             if product_install.product_code in ["agent", "bna"] and not self.region:
                 self._region = product_install.settings.play_region

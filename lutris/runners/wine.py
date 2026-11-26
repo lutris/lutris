@@ -712,7 +712,8 @@ class wine(Runner):
 
     @property
     def prefix_path(self):
-        """Return the absolute path of the Wine prefix. Falls back to default WINE prefix."""
+        """Return the absolute path of the Wine prefix, or None if the game has none; Wine
+        then uses its default prefix."""
         _prefix_path = self._prefix or self.game_config.get("prefix") or os.environ.get("WINEPREFIX")
         if not _prefix_path and self.game_config.get("exe"):
             # Find prefix from game if we have one
@@ -1083,10 +1084,12 @@ class wine(Runner):
     def run_wine_terminal(self, *args) -> None:
         terminal = self.system_config.get("terminal_app")
         system_winetricks: bool = self.runner_config.get("system_winetricks", False)
+        prefix_path = self.prefix_path
         open_wine_terminal(
             terminal=terminal,
             wine_path=self.get_executable(),
-            prefix=self.prefix_path,
+            prefix=prefix_path,
+            working_dir=prefix_path or self.game_path or os.path.expanduser("~"),
             env=self.get_env(os_env=True),
             system_winetricks=system_winetricks,
         )
@@ -1201,7 +1204,9 @@ class wine(Runner):
         if proton.is_umu_path(wine_exe):
             monitored_command.log_handlers.append(proton.UmuLaunchStatusParser(game))
 
-    def prelaunch(self):
+    def prelaunch(self, executable=None):
+        """Prepare the prefix for running something in it; wineexec() passes the
+        'executable' it is about to run, and other callers need not."""
         prefix_path = self.prefix_path
         if prefix_path:
             if os.path.islink(prefix_path) and not os.path.exists(prefix_path):
@@ -1226,16 +1231,21 @@ class wine(Runner):
 
         client_exe = self.game_config.get("client_exe")
         if client_exe:
-            self._ensure_client_running(client_exe)
+            if not os.path.isabs(client_exe):
+                if not prefix_path:
+                    raise MisconfigurationError(
+                        _("This game has no Wine prefix to find its client '%s' in; set its Wine prefix.") % client_exe
+                    )
+                client_exe = os.path.join(prefix_path, client_exe)
+            # Starting the client runs this again, for the client itself
+            if executable != client_exe:
+                self._ensure_client_running(client_exe)
 
     def _ensure_client_running(self, client_exe, wait_time=15):
         """Launch a client application (e.g. Battle.net) and wait for it to be ready.
         Many game clients need to be fully initialized before they can accept
         commands like --exec to launch a specific game."""
         import time
-
-        if not os.path.isabs(client_exe):
-            client_exe = os.path.join(self.prefix_path, client_exe)
 
         if not os.path.exists(client_exe):
             logger.warning("Client executable not found: %s", client_exe)
@@ -1251,11 +1261,15 @@ class wine(Runner):
             return
 
         logger.info("Launching client %s", exe_name)
+        # The client starts the game itself, so the game gets the client's environment;
+        # run the client with this game's settings, not just the runner's.
         wineexec(
             client_exe,
             prefix=self.prefix_path,
             wine_path=self.get_executable(),
             arch=self.wine_arch,
+            env=self.get_env(os_env=True),
+            runner=self,
         )
         logger.info("Waiting %d seconds for client to be ready", wait_time)
         time.sleep(wait_time)

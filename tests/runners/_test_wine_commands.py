@@ -139,7 +139,7 @@ class TestWineexecArguments(TestCase):
         runner = SimpleNamespace(
             system_config={"disable_runtime": True, "prefer_system_libs": True},
             get_env=lambda disable_runtime: {},
-            prelaunch=lambda: None,
+            prelaunch=lambda executable=None: None,
         )
         with (
             patch.object(wine_commands, "is_prefix_directory", return_value=True),
@@ -164,3 +164,54 @@ class TestWineexecArguments(TestCase):
     def test_exe_arguments_are_passed_as_given(self):
         command = self.run_wineexec("/games/setup.exe", "/S /VERYSILENT")
         self.assertEqual(command, ["/opt/wine/bin/wine", "/games/setup.exe", "/S", "/VERYSILENT"])
+
+
+class TestWineexecWithoutPrefix(TestCase):
+    def test_wine_uses_its_default_prefix(self):
+        runner = SimpleNamespace(
+            system_config={"disable_runtime": True, "prefer_system_libs": True},
+            get_env=lambda disable_runtime: {},
+            prelaunch=lambda executable=None: None,
+        )
+        with (
+            patch.object(wine_commands, "create_prefix") as create_prefix,
+            patch.object(wine_commands.proton, "is_proton_path", return_value=False),
+            patch.object(wine_commands.proton, "is_umu_path", return_value=False),
+            patch.object(wine_commands.system, "execute_with_error", return_value=("", "")) as execute,
+        ):
+            wine_commands.wineexec(
+                "winecfg.exe", prefix=None, wine_path="/opt/wine/bin/wine", runner=runner, blocking=True
+            )
+
+        create_prefix.assert_not_called()
+        self.assertNotIn("WINEPREFIX", execute.call_args.kwargs["env"])
+
+
+class TestOpenWineTerminal(TestCase):
+    def open_wine_terminal(self, prefix, working_dir):
+        with (
+            patch.object(wine_commands, "find_winetricks", return_value=("winetricks", None, {})),
+            patch.object(wine_commands.proton, "is_proton_path", return_value=False),
+            patch.object(wine_commands, "get_shell_command", return_value="shell") as get_shell_command,
+            patch.object(wine_commands.system, "spawn"),
+        ):
+            wine_commands.open_wine_terminal(
+                terminal="xterm",
+                wine_path="/opt/wine/bin/wine",
+                prefix=prefix,
+                working_dir=working_dir,
+                env=None,
+                system_winetricks=False,
+            )
+        cwd, env, _aliases = get_shell_command.call_args.args
+        return cwd, env
+
+    def test_shell_starts_in_the_working_dir_with_the_prefix(self):
+        cwd, env = self.open_wine_terminal("/games/prefix", "/games/prefix")
+        self.assertEqual(cwd, "/games/prefix")
+        self.assertEqual(env["WINEPREFIX"], "/games/prefix")
+
+    def test_without_a_prefix_wine_uses_its_default(self):
+        cwd, env = self.open_wine_terminal(None, "/games/game")
+        self.assertEqual(cwd, "/games/game")
+        self.assertNotIn("WINEPREFIX", env)

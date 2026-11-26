@@ -28,12 +28,15 @@
   <url type="vcs-browser">https://github.com/lutris/lutris</url>
   <launchable type="desktop-id">net.lutris.Lutris.desktop</launchable>
   <releases>
-    <release version="0.5.23" date="2026-03-15" urgency="low">
+    <release version="0.5.23" date="2026-11-16" urgency="low">
       <description>
         <ul>
-          <li>Add GOG depot-based downloads via gogdl integration</li>
+          <li>Add GOG depot-based downloads, DLC installs and incremental updates via gogdl integration</li>
           <li>Add GOG cloud save synchronization</li>
+          <li>Add GameJolt and DLsite as game sources</li>
           <li>Add Playtron import</li>
+          <li>Follow the desktop proxy settings for downloads and API requests</li>
+          <li>Use GE-Proton through umu as the default for installers</li>
           <li>Add parallel GOG download connections with resume support</li>
           <li>Replace google-protobuf dependency with custom decoder for Battle.net</li>
           <li>Improve Humble Bundle authentication and error handling</li>
@@ -46,7 +49,8 @@
           <li>Fix optional libretro firmware incorrectly treated as required</li>
           <li>Fix favorites view not updating when removing a game from favorites</li>
           <li>Performance improvements for large game libraries</li>
-          <li>Updated pt_BR translation</li>
+          <li>Added Swedish, Galician and Traditional Chinese translations</li>
+          <li>Updated el, fr, pt_BR and zh_CN translations</li>
         </ul>
       </description>
     </release>
