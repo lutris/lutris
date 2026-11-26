@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from http.client import HTTPResponse
     from http.cookiejar import CookieJar
 
-DEFAULT_TIMEOUT = read_setting("default_http_timeout") or 30
+DEFAULT_TIMEOUT = int(read_setting("default_http_timeout") or 30)
 
 
 def _create_ssl_context() -> ssl.SSLContext:
