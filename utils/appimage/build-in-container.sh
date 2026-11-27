@@ -117,8 +117,16 @@ echo "Passing ${#LIB_ARGS[@]} native extensions to linuxdeploy: ${LIB_ARGS[*]}"
 # GnomeDesktop the typelib gets bundled anyway, so a host without
 # libgnome-desktop-3.so.20 logs a load failure and display detection
 # falls back to xrandr.
+#
+# libproxy is in the same position: only glib-networking's
+# libgiolibproxy.so GIO module needs it, and we copy the GIO modules in
+# by hand after linuxdeploy has run, so nothing walks their deps. Left
+# to the host, libproxy drags in the host libcurl, which needs newer
+# OpenSSL symbols than the libssl.so.3 we bundle and the stdlib's _ssl
+# has already loaded; the module then fails to load and GIO loses
+# libproxy's proxy configuration (the one KDE users get).
 GI_LIB_ARGS=()
-for soname in libwebkit2gtk-4.1.so.0 libjavascriptcoregtk-4.1.so.0 libgnome-desktop-3.so.20; do
+for soname in libwebkit2gtk-4.1.so.0 libjavascriptcoregtk-4.1.so.0 libgnome-desktop-3.so.20 libproxy.so.1; do
     so_path="$(ldconfig -p | awk -v n="$soname" '$1 == n { print $NF; exit }')"
     if [ -n "$so_path" ] && [ -f "$so_path" ]; then
         GI_LIB_ARGS+=(--library "$so_path")
@@ -240,12 +248,23 @@ fi
 # the host's libs at runtime — exactly the ABI mismatch we're trying to
 # avoid. Stamp them with an $ORIGIN-relative RPATH pointing at the bundled
 # $APPDIR/usr/lib so they pick up our libgirepository / libdbus / libglib.
+#
+# The stdlib's lib-dynload modules need the same treatment. linuxdeploy
+# does bundle their deps (libssl, libcrypto, libffi, liblzma, ...) into
+# usr/lib, but stamps the modules with a bare $ORIGIN, which points at
+# lib-dynload itself. That goes unnoticed wherever the host has the same
+# sonames, but on a host without them, e.g. Arch once it moved to
+# OpenSSL 4 and dropped libssl.so.3, `import ssl` fails and Lutris
+# can't start.
 LIB_DIR="$APPDIR/usr/lib"
 while IFS= read -r -d '' so; do
     rel="$(realpath --relative-to="$(dirname "$so")" "$LIB_DIR")"
     patchelf --set-rpath "\$ORIGIN/$rel" "$so"
     echo "  rpath \$ORIGIN/$rel -> $so"
-done < <(find "$TARGET" -maxdepth 3 \( -name '_gi*.so' -o -name '_dbus*.so' \) -print0 2>/dev/null)
+done < <(
+    find "$TARGET" -maxdepth 3 \( -name '_gi*.so' -o -name '_dbus*.so' -o -name '_cairo*.so' \) -print0 2>/dev/null
+    find "$APPDIR/usr/lib/python${PY_VER}/lib-dynload" -name '*.so' -print0
+)
 
 # Finally, pack the AppDir into a single-file AppImage.
 cd "$OUT"
