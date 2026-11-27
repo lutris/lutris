@@ -148,7 +148,11 @@ def get_default_config_path(path):
 def _download_libretro_info():
     """Download the libretro core info archive from the buildbot. Run on a worker thread."""
     info_path = os.path.join(RETROARCH_DIR, "info")
-    req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True, timeout=5)
+    try:
+        req = requests.get("http://buildbot.libretro.com/assets/frontend/info.zip", allow_redirects=True, timeout=5)
+    except requests.RequestException as ex:
+        logger.error("Error retrieving libretro info archive from server: %s", ex)
+        return False
     if req.status_code == requests.codes.ok:  # pylint: disable=no-member
         os.makedirs(RETROARCH_DIR, exist_ok=True)
         with open(os.path.join(RETROARCH_DIR, "info.zip"), "wb") as info_zip:
@@ -244,6 +248,11 @@ class libretro(Runner):
     def __init__(self, config: LutrisConfig | None = None) -> None:
         super().__init__(config)
         self.platform_dict = {}
+        # Every runner is instantiated at startup, so don't download the core info here.
+        if os.path.exists(os.path.join(RETROARCH_DIR, "info")):
+            self._load_platform_dict()
+
+    def _load_platform_dict(self):
         for core in get_libretro_cores():
             platform = core[2]
             if lutris_platform := RETROARCH_TO_LUTRIS_PLATFORM_MAP.get(platform):
@@ -260,6 +269,8 @@ class libretro(Runner):
         if not game_core:
             logger.warning("Game don't have a core set")
             return
+        if not self.platform_dict:
+            self._load_platform_dict()
         for core in get_libretro_cores():
             if core[1] == game_core and core[2] in self.platform_dict:
                 return self.platform_dict[core[2]]
