@@ -12,8 +12,12 @@ setup_test_environment()
 
 class DatabaseTester(unittest.TestCase):
     def setUp(self):
-        if os.path.exists(settings.DB_PATH):
-            os.remove(settings.DB_PATH)
+        # The side files belong to the database: leaving a write-ahead log behind while the
+        # database itself is removed would make the next test start from a stale log.
+        for suffix in ("", "-wal", "-shm"):
+            path = settings.DB_PATH + suffix
+            if os.path.exists(path):
+                os.remove(path)
         schema.syncdb()
 
 
