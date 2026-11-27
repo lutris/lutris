@@ -52,6 +52,15 @@
   background-color: @theme_base_color;
 }
 
+.notes-frame {
+  border-radius: 5px;
+  background-color: @theme_base_color;
+}
+
+.notes-frame text {
+  background-color: transparent;
+}
+
 .in-app-notification {
     padding: 5px;
     border-radius: 0
