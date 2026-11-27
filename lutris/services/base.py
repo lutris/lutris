@@ -145,8 +145,15 @@ class BaseService:
             try:
                 self.is_loading = True
 
-                self.wipe_game_cache()
-                self.load()
+                # load() saves games as it goes, so it can't be made all-or-nothing. If it fails,
+                # put back what was there before instead of leaving the library emptied or half-filled.
+                previous_games = ServiceGameCollection.get_for_service(self.id)
+                try:
+                    self.wipe_game_cache()
+                    self.load()
+                except Exception:
+                    self._restore_games(previous_games)
+                    raise
                 self.load_icons()
                 self.add_installed_games()
                 logger.debug("'%s' games reloaded", self.name)
@@ -160,6 +167,13 @@ class BaseService:
 
         SERVICE_GAMES_LOADING.fire(self)
         AsyncCall(do_reload, reload_cb)
+
+    def _restore_games(self, games):
+        """Put back the cached games of this service after a failed reload"""
+        try:
+            ServiceGameCollection.replace_for_service(self.id, games)
+        except Exception:
+            logger.exception("Unable to restore the '%s' games after a failed reload", self.name)
 
     def load(self):
         logger.warning("Load method not implemented")
