@@ -65,6 +65,36 @@ you can run it directly from the source directory::
     cd lutris
     ./bin/lutris
 
+Big Picture mode
+----------------
+
+Big Picture mode, the fullscreen interface for controllers, is a separate
+program written in Rust: ``lutris-bigpicture``. Lutris works without it, but
+the Big Picture button will then only tell you that it is missing. The
+AppImage comes with it; otherwise it has to be built.
+
+Building it needs a Rust toolchain (``cargo``, Rust 1.95 or later) and the
+development files of ALSA, for its navigation sounds, and of udev, for
+controllers (``libasound2-dev`` and ``libudev-dev``, ``alsa-lib-devel`` and
+``systemd-devel``, or ``alsa-lib`` and ``systemd-libs``, depending on the
+distribution). The Rust libraries it uses are downloaded by cargo. At run time
+it needs nothing beyond OpenGL, fontconfig, udev and ALSA, which PipeWire and
+PulseAudio both provide.
+
+When running Lutris from the source directory, build it in place and Lutris
+will find it::
+
+    make bigpicture
+
+When installing Lutris with meson, enable the ``bigpicture`` option to have it
+built and installed next to ``lutris``::
+
+    meson setup builddir -Dbigpicture=true
+
+Lutris looks for the program in the source tree, then next to the ``lutris``
+executable, then on ``$PATH``; set ``$LUTRIS_BIGPICTURE`` to its path to
+override the search.
+
 Run Lutris
 -----------
 
