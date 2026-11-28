@@ -76,6 +76,25 @@ The Lutris side of this is `lutris/gui/bigpicture.py`.
 To try the program without Lutris, start it with `--windowed` and type the
 messages into its standard input; `--help` lists its options.
 
+## Translating
+
+The interface has no translations of its own: it gets its text from Lutris,
+which translates it with gettext like the rest of its strings.
+
+- In the Rust code, everything shown on screen goes through `self.t("…")`
+  with its English text, which is also what is shown if there is no
+  translation.
+- Each such text is listed in `get_interface_strings()` in
+  `lutris/gui/bigpicture.py`, wrapped in `_()`. That is where gettext's tools
+  find it, and a test fails if the interface shows text that is not listed.
+- Translators then find the strings in `po/<language>.po` with all the
+  others; `po/README.md` explains how to update a catalog.
+
+Lutris run from the source tree compiles the catalogs by itself, so a
+translation can be tried at once:
+
+    LANGUAGE=de ./bin/lutris --big-picture
+
 ## The source
 
 | File | What is in it |
