@@ -1,5 +1,9 @@
+import gettext
 import os
+import re
+import shutil
 import stat
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -202,6 +206,55 @@ class TestMessages(BigPictureTester):
             mode._handle_message({"type": "launch", "id": game_id})
         self.assertEqual(mode.sent[0], {"type": "error", "message": "it broke"})
         self.assertEqual(mode.sent[1]["state"], "stopped")
+
+
+SOURCE_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+class TestTranslations(unittest.TestCase):
+    # Names of keys that are the same wherever there are keyboards.
+    UNTRANSLATED_KEYS = {"Esc", "Tab"}
+
+    def interface_text(self):
+        """What the interface's source has in quotes that reads like text:
+        it starts with a capital and has lower case letters."""
+        with open(os.path.join(SOURCE_ROOT, "bigpicture", "src", "app.rs"), encoding="utf-8") as source_file:
+            source = source_file.read().split("#[cfg(test)]")[0]
+
+        literals = set()
+        for line in source.split("\n"):
+            if not line.strip().startswith("//"):
+                literals.update(re.findall(r'(?<![\\\'#])"((?:[^"\\\n]|\\.)*)"', line))
+
+        return {text for text in literals if re.match(r"[A-Z]", text) and re.search(r"[a-z]", text)}
+
+    def test_everything_the_interface_shows_can_be_translated(self):
+        strings = bigpicture.get_interface_strings()
+        text = self.interface_text()
+
+        self.assertGreater(len(text), 30, "the source was read")
+        self.assertEqual(sorted(text - set(strings) - self.UNTRANSLATED_KEYS), [])
+
+    def test_the_count_keeps_its_number(self):
+        self.assertIn("%d", bigpicture.get_interface_strings()["Games: %d"])
+
+    @unittest.skipUnless(shutil.which("msgfmt"), "msgfmt is needed to compile the catalog")
+    def test_german_catalog_covers_the_interface(self):
+        with tempfile.TemporaryDirectory() as directory:
+            compiled = os.path.join(directory, "lutris.mo")
+            subprocess.run(["msgfmt", os.path.join(SOURCE_ROOT, "po", "de.po"), "-o", compiled], check=True)
+            with open(compiled, "rb") as catalog_file:
+                german = gettext.GNUTranslations(catalog_file)
+
+        with mock.patch.object(bigpicture, "_", german.gettext), mock.patch.object(bigpicture, "C_", german.pgettext):
+            strings = bigpicture.get_interface_strings()
+
+        untranslated = [key for key, text in strings.items() if key == text]
+
+        self.assertEqual(untranslated, [])
+        self.assertEqual(strings["Sorted by name"], "Nach Name sortiert")
+        self.assertEqual(strings["Menu"], "Menü", "not the Menu key of a keyboard")
+        self.assertIn("%d", strings["Games: %d"])
 
 
 class TestSteamInput(BigPictureTester):
