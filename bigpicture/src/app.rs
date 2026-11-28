@@ -392,6 +392,9 @@ impl App {
 
         self.games = games;
         self.got_library = true;
+
+        // The library changing is also when covers may have.
+        self.covers.refresh();
         self.statuses
             .retain(|id, _| self.games.iter().any(|game| &game.id == id));
         self.overlays.retain(|overlay| match overlay {

@@ -5,6 +5,7 @@
 use std::collections::HashMap;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Condvar, Mutex};
+use std::time::{Duration, Instant, SystemTime};
 
 use eframe::egui::{self, ColorImage, TextureHandle, TextureOptions};
 
@@ -39,6 +40,10 @@ const BLUR_MAX_HEIGHT: u32 = 160;
 /// How strongly the copy is blurred: the sigma of the Gaussian, in pixels.
 const BLUR_SIGMA: f32 = 2.5;
 
+/// A cover that could not be loaded is tried again after this long, if it
+/// is still wanted: Lutris may have been busy downloading it.
+const RETRY_FAILED_AFTER: Duration = Duration::from_secs(10);
+
 pub struct Cover {
     pub texture: TextureHandle,
     /// A tiny blurred copy, stretched over the screen as a backdrop.
@@ -50,12 +55,15 @@ pub struct Cover {
 enum Entry {
     Loading,
     Ready(Cover),
-    Failed,
+    /// It could not be loaded, at the time given.
+    Failed(Instant),
 }
 
 struct Slot {
     entry: Entry,
     last_used: u64,
+    /// When the file was last changed, as of asking for it.
+    modified: Option<SystemTime>,
 }
 
 type Queue = Arc<(Mutex<Vec<String>>, Condvar)>;
@@ -65,6 +73,8 @@ pub struct CoverCache {
     queue: Queue,
     results: Receiver<(String, Option<Cover>)>,
     frame: u64,
+    /// For asking to be drawn again when a failed cover is due another try.
+    ctx: egui::Context,
 }
 
 impl CoverCache {
@@ -89,6 +99,7 @@ impl CoverCache {
             queue,
             results,
             frame: 0,
+            ctx: ctx.clone(),
         }
     }
 
@@ -101,7 +112,7 @@ impl CoverCache {
             if let Some(slot) = self.slots.get_mut(&path) {
                 slot.entry = match cover {
                     Some(cover) => Entry::Ready(cover),
-                    None => Entry::Failed,
+                    None => Entry::Failed(Instant::now()),
                 };
             }
         }
@@ -115,8 +126,12 @@ impl CoverCache {
     /// `None` is returned until it arrives.
     pub fn get(&mut self, path: &str) -> Option<&Cover> {
         let frame = self.frame;
+        let wanted = match self.slots.get(path) {
+            None => true,
+            Some(slot) => retry_due(&slot.entry, Instant::now()),
+        };
 
-        if !self.slots.contains_key(path) {
+        if wanted {
             self.request(path);
         }
 
@@ -125,7 +140,13 @@ impl CoverCache {
         slot.last_used = frame;
         match &slot.entry {
             Entry::Ready(cover) => Some(cover),
-            _ => None,
+            Entry::Failed(_) => {
+                // Nothing else may cause a frame in which to try again.
+                self.ctx.request_repaint_after(RETRY_FAILED_AFTER);
+
+                None
+            }
+            Entry::Loading => None,
         }
     }
 
@@ -135,6 +156,7 @@ impl CoverCache {
             Slot {
                 entry: Entry::Loading,
                 last_used: self.frame,
+                modified: modified(path),
             },
         );
 
@@ -152,6 +174,17 @@ impl CoverCache {
         condvar.notify_one();
     }
 
+    /// Forgets the covers whose files have changed since they were asked
+    /// for, and those that could not be loaded, so that they are loaded
+    /// anew. For when Lutris says that the library has changed.
+    pub fn refresh(&mut self) {
+        self.slots.retain(|path, slot| match slot.entry {
+            Entry::Loading => true,
+            Entry::Ready(_) => slot.modified == modified(path),
+            Entry::Failed(_) => false,
+        });
+    }
+
     fn evict(&mut self) {
         let frame = self.frame;
         let mut idle: Vec<(u64, String)> = self
@@ -166,6 +199,19 @@ impl CoverCache {
         for (_, path) in idle.into_iter().take(excess) {
             self.slots.remove(&path);
         }
+    }
+}
+
+/// When the file at `path` was last changed, if that can be told.
+fn modified(path: &str) -> Option<SystemTime> {
+    std::fs::metadata(path).and_then(|metadata| metadata.modified()).ok()
+}
+
+/// Whether a cover that could not be loaded is due another attempt.
+fn retry_due(entry: &Entry, now: Instant) -> bool {
+    match entry {
+        Entry::Failed(at) => now.duration_since(*at) >= RETRY_FAILED_AFTER,
+        _ => false,
     }
 }
 
@@ -236,4 +282,26 @@ fn load(path: &str, ctx: &egui::Context) -> Option<Cover> {
         blurred,
         aspect: width as f32 / height as f32,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_failed_cover_is_tried_again_only_after_a_while() {
+        let failed_at = Instant::now();
+        let failed = Entry::Failed(failed_at);
+
+        assert!(!retry_due(&failed, failed_at));
+        assert!(!retry_due(&failed, failed_at + RETRY_FAILED_AFTER / 2));
+        assert!(retry_due(&failed, failed_at + RETRY_FAILED_AFTER));
+        assert!(!retry_due(&Entry::Loading, failed_at + RETRY_FAILED_AFTER));
+    }
+
+    #[test]
+    fn a_file_that_is_not_there_has_no_time_of_change() {
+        assert!(modified("/nowhere/cover.jpg").is_none());
+        assert!(modified(env!("CARGO_MANIFEST_DIR")).is_some());
+    }
 }
