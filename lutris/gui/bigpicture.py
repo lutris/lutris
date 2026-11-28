@@ -593,7 +593,7 @@ class BigPictureMode:
         self.send_game_state(game_id, Game.STATE_STOPPED)
 
     def _on_game_error(self, game: Game, error: BaseException) -> None:
-        logger.error("%s failed in Big Picture mode: %s", game, error)
+        logger.error("%s failed in Big Picture mode: %s", game, error, exc_info=error)
         self.send_error(error)
         if game.state == Game.STATE_STOPPED:
             self.send_game_state(game.id, Game.STATE_STOPPED)
