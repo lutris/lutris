@@ -41,7 +41,8 @@ from lutris.gui.widgets import NotificationRegistration
 from lutris.runners import get_runner_human_name, import_runner
 from lutris.runners.steam import get_steam_pid
 from lutris.services.base import LutrisCoverart
-from lutris.util import datapath, system
+from lutris.util import datapath, flatpak, system
+from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime
 
@@ -66,6 +67,12 @@ SPLASH_SETTING = "bigpicture_start_animation"
 # no controller layout: told to use it, Steam leaves the controller alone.
 STEAM_CLIENT_APPID = 7
 
+# What pgrep finds the Steam client by, as lutris.runners.steam does.
+STEAM_PROCESS_PATTERN = "steam$"
+
+# The variables by which Steam takes a command to come from one of its games.
+STEAM_GAME_VARIABLES = ("SteamAppId", "SteamGameId", "STEAM_COMPAT_APP_ID")
+
 # The app ID that has Steam go back to choosing the layout by itself.
 STEAM_NO_FORCED_APPID = 0
 
@@ -76,8 +83,8 @@ STEAM_INPUT_CHECK_INTERVAL = 5
 # the Steam that is running and returns at once.
 STEAM_REQUEST_TIMEOUT = 10
 
-# How long, in seconds, leaving Big Picture mode waits for Steam to be told
-# to take the controller back, which is a little longer than one request.
+# How long, in seconds, a caller that asks to wait gives Steam to be told
+# something, which is a little longer than one request.
 STEAM_RELEASE_TIMEOUT = 15
 
 # How long to wait for further changes before sending the library again; a
@@ -261,22 +268,65 @@ def get_library() -> list[dict[str, Any]]:
     return library
 
 
+def get_running_steam_pid() -> str | None:
+    """The process ID of the Steam that is running, if one is.
+
+    As a Flatpak, Lutris cannot see the host's processes, so the host is
+    asked instead; that takes the permission to talk to it, which the Lutris
+    Flatpak has for its other dealings with the host."""
+    if not LINUX_SYSTEM.is_flatpak():
+        return get_steam_pid()
+
+    try:
+        found = subprocess.run(
+            ["flatpak-spawn", "--host", "pgrep", STEAM_PROCESS_PATTERN],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=STEAM_REQUEST_TIMEOUT,
+            check=False,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError) as ex:
+        logger.debug("Unable to look for Steam on the host: %s", ex)
+
+        return None
+
+    pids = found.stdout.split()
+
+    return pids[0] if pids else None
+
+
+def get_steam_request_command(url: str) -> list[str]:
+    """The command that hands a steam:// URL to the Steam that is running:
+    Steam's own, or that of its Flatpak if that is how Steam is installed.
+    Raises MissingExecutableError if there is neither."""
+    runner = import_runner("steam")()
+    flatpak_id = runner.flatpak_id
+    try:
+        return runner.get_command() + [url]
+    except MissingExecutableError:
+        if not flatpak_id or not flatpak.is_app_installed(flatpak_id):
+            raise
+
+    return flatpak.get_run_command(flatpak_id) + [url]
+
+
 def force_steam_input_appid(appid: int) -> bool:
     """Tells the running Steam to use the controller layout of the app given,
-    whatever window has the focus, or with 0 to go back to choosing by itself.
-    This is the request Proton makes for games that Steam cannot see the
-    window of. Returns False if it could not be made.
+    whatever window has the focus, or with STEAM_NO_FORCED_APPID to go back
+    to choosing by itself. This is the request Proton makes for games that
+    Steam cannot see the window of. Returns False if it could not be made.
 
     Steam must be running: the same command would otherwise start it."""
-    if not get_steam_pid():
+    if not get_running_steam_pid():
         return False
 
     # Without these, Steam takes the request to come from a game of its own.
-    env = {k: v for k, v in os.environ.items() if k not in ("SteamAppId", "SteamGameId", "STEAM_COMPAT_APP_ID")}
+    env = {k: v for k, v in os.environ.items() if k not in STEAM_GAME_VARIABLES}
     try:
-        command = import_runner("steam")().get_command() + ["steam://forceinputappid/%d" % appid]
         subprocess.run(
-            command,
+            get_steam_request_command("steam://forceinputappid/%d" % appid),
             env=env,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
@@ -286,9 +336,11 @@ def force_steam_input_appid(appid: int) -> bool:
         )
     except Exception as ex:  # pylint: disable=broad-except
         logger.warning("Unable to set the Steam Input app ID to %s: %s", appid, ex)
+
         return False
 
     logger.debug("Steam Input app ID set to %s", appid)
+
     return True
 
 
@@ -306,8 +358,14 @@ class SteamInputHold:
 
     So while Big Picture mode is in front, Steam is told to use a layout
     with nothing in it, and when a game starts or the mode is left, to go
-    back to choosing layouts by itself. Steam is never started for this, and
-    nothing in its settings is changed."""
+    back to choosing layouts by itself. Nothing in Steam's settings is
+    changed, and the requests are only made while Steam is running, as they
+    would otherwise start it; only a Steam that exits in the instant between
+    that check and the request would come back up.
+
+    The requests are slow, so they are made on a thread. It is not a daemon
+    thread: if Lutris quits while Steam is being told to take the controller
+    back, Python waits for that to finish, and nothing else has to."""
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
@@ -315,6 +373,9 @@ class SteamInputHold:
         self._worker: threading.Thread | None = None
         # The Steam that has been told to keep off, by its process ID.
         self._held_pid: str | None = None
+        # The Steam that could not be told anything, so as not to keep
+        # trying, and warning, every few seconds for as long as it runs.
+        self._unreachable_pid: str | None = None
 
     def hold(self, wait: bool = False) -> None:
         """Has Steam leave the controller alone, if Steam is running."""
@@ -329,7 +390,7 @@ class SteamInputHold:
             self._wanted = wanted
             worker = self._worker
             if not worker:
-                worker = self._worker = threading.Thread(target=self._apply, daemon=True)
+                worker = self._worker = threading.Thread(target=self._apply)
                 worker.start()
 
         if wait:
@@ -337,24 +398,30 @@ class SteamInputHold:
 
     def _apply(self) -> None:
         """Brings Steam into line with what is wanted, and again if that has
-        changed in the meantime; the requests are slow, so this is a thread."""
+        changed in the meantime."""
         while True:
             with self._lock:
                 wanted = self._wanted
-                steam_pid = get_steam_pid()
+                steam_pid = get_running_steam_pid()
                 if not steam_pid:
                     self._held_pid = None  # nothing to hold, and nothing held
 
+                if steam_pid != self._unreachable_pid:
+                    self._unreachable_pid = None  # another Steam: try again
+
                 held = bool(steam_pid) and steam_pid == self._held_pid
-                if wanted == held or not steam_pid:
+                if wanted == held or not steam_pid or self._unreachable_pid:
                     self._worker = None
+
                     return
 
             done = force_steam_input_appid(STEAM_CLIENT_APPID if wanted else STEAM_NO_FORCED_APPID)
 
             with self._lock:
                 if not done:
+                    self._unreachable_pid = steam_pid
                     self._worker = None
+
                     return
 
                 self._held_pid = steam_pid if wanted else None
@@ -651,9 +718,9 @@ class BigPictureMode:
         self._process = None
         self._stdin = None
 
-        # Waited for, as Lutris may be about to quit, and Steam must not be
-        # left ignoring the controller.
-        self._steam_input.release(wait=True)
+        # Not waited for, as that would hold up the window; should Lutris be
+        # about to quit, Python waits for the request by itself.
+        self._steam_input.release()
 
     def _on_exited(self, process: Gio.Subprocess, result: Gio.AsyncResult) -> None:
         try:
