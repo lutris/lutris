@@ -52,7 +52,7 @@ smoke:
 
 req-python:
 	pip3 install PyYAML lxml requests Pillow setproctitle python-magic distro dbus-python evdev \
-	 PyGObject pypresence protobuf moddb
+	 PyGObject pypresence protobuf moddb msgspec
 
 install-hooks:
 	ln -sf -t .git/hooks/ ../../.hooks/pre-commit
