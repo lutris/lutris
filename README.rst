@@ -41,62 +41,12 @@ Big Picture mode
 Big Picture mode is a fullscreen view of your installed games, made to be used
 from the couch with a controller (keyboard and mouse work too). Enter it with
 the television button in the header bar, with F11, or by starting Lutris with
-``lutris --big-picture``; leave it from its menu to return to the regular
-window.
+``lutris --big-picture``; leave it from its menu.
 
-Its interface is a separate program written in Rust, in the ``bigpicture``
-directory. See ``INSTALL.rst`` for how to build it.
-
-It opens with a short animation of the Lutris icon, which any button cuts
-short; the *Start animation* entry of its menu switches it off for good.
-
-If Steam is running, it reads the controller too and would turn its buttons
-into key presses of its own. Big Picture mode asks Steam to leave the
-controller alone while it is in front, and hands it back when a game starts
-and when the mode is left; nothing needs to be set up in Steam for this.
-
-Navigation sounds
------------------
-
-Moving around in Big Picture mode makes quiet sounds. The *Sounds* entry of
-its menu switches between the sound packs that are installed, and no sounds
-at all.
-
-A sound pack is a directory holding one audio file for each sound, named
-after the sound:
-
-==========  ==========================================================
-``move``    The focus moved
-``select``  Something was chosen
-``back``    Going back, or closing something
-``tab``     Switching between the home screen and the library
-``open``    The menu or the on-screen keyboard opened
-``key``     A character was typed
-``toggle``  A setting was switched, such as a favorite or the sorting
-``launch``  A game is being launched
-``error``   Something went wrong
-==========  ==========================================================
-
-Ogg Vorbis is the format to use, as it keeps the files small; WAV and MP3 are
-read as well.
-
-The sounds Lutris comes with are such a pack, called ``default``, in
-``share/lutris/bigpicture/sounds``. To make your own, copy that directory to
-``~/.local/share/lutris/bigpicture/sounds`` under another name, for example
-``~/.local/share/lutris/bigpicture/sounds/arcade``, and replace the files you
-want to change. A pack need not have every sound: what it leaves out is taken
-from the default pack. An optional ``pack.json`` in the directory can name
-the pack, turn it down, and silence sounds instead::
-
-    {"name": "Arcade", "volume": 0.8, "silent": ["key"]}
-
-A pack of your own that is called ``default`` takes the place of Lutris's.
-
-The default sounds were made for Lutris: a program written for the purpose
-synthesized them, from no recordings or samples of anything else. They are
-under the same license as the rest of Lutris, the GPL, version 3 or later.
-
-Keep the files short: they are played in full, over each other if need be.
+Its interface is a separate program in the ``bigpicture`` directory, which not
+every package of Lutris includes; the button is only there if it does.
+``bigpicture/README.md`` describes its controls, its navigation sounds and how
+to replace them, and ``INSTALL.rst`` how to build it.
 
 Game library
 ============

@@ -70,8 +70,11 @@ Big Picture mode
 
 Big Picture mode, the fullscreen interface for controllers, is a separate
 program written in Rust: ``lutris-bigpicture``. Lutris works without it, but
-the Big Picture button will then only tell you that it is missing. The
-AppImage comes with it; otherwise it has to be built.
+the Big Picture button is then left out, and ``lutris --big-picture`` only
+tells you that it is missing. The AppImage comes with it. The Debian and RPM
+packages do not build it yet, and neither does the Flatpak, which is built
+from Flathub's own repository; with those, and from source, it has to be
+built by hand.
 
 Building it needs a Rust toolchain (``cargo``, Rust 1.95 or later) and the
 development files of ALSA, for its navigation sounds, and of udev, for
