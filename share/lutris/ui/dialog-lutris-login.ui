@@ -151,6 +151,22 @@
               </packing>
             </child>
             <child>
+              <object class="GtkLinkButton" id="register_linkbutton">
+                <property name="label" translatable="yes">No account yet? Create one</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">False</property>
+                <property name="halign">center</property>
+                <property name="relief">none</property>
+                <property name="uri">https://lutris.net/user/register</property>
+              </object>
+              <packing>
+                <property name="left-attach">0</property>
+                <property name="top-attach">2</property>
+                <property name="width">2</property>
+              </packing>
+            </child>
+            <child>
               <placeholder/>
             </child>
             <child>
