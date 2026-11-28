@@ -43,6 +43,72 @@ class TestDxvkVersionWarning(TestCase):
             self.assertIsNone(wine._get_dxvk_version_warning("dxvk_version", config))
 
 
+class TestDefaultGamePrefix(TestCase):
+    def setUp(self):
+        self.game_path = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.game_path)
+        patcher = patch.dict(os.environ, {"WINEPREFIX": ""})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def set_prefix(self, game_config, game_path=None, runner_name="wine", is_db_stored=False):
+        config = SimpleNamespace(
+            game_config=dict(game_config),
+            raw_game_config=dict(game_config),
+            system_config={"game_path": self.game_path if game_path is None else game_path},
+        )
+        game = SimpleNamespace(config=config, runner_name=runner_name, is_db_stored=is_db_stored, slug="some-game")
+        wine.set_default_game_prefix(game)
+        self.assertEqual(config.game_config.get("prefix"), config.raw_game_config.get("prefix"))
+        return config.raw_game_config.get("prefix")
+
+    def test_new_game_without_a_prefix_gets_its_own(self):
+        prefix = self.set_prefix({"exe": "/opt/game/game.exe"})
+        self.assertEqual(prefix, os.path.join(self.game_path, "some-game"))
+        self.assertTrue(os.path.isdir(prefix))
+
+    def test_missing_installation_folder_is_created(self):
+        game_path = os.path.join(self.game_path, "Games")
+        self.assertEqual(self.set_prefix({}, game_path=game_path), os.path.join(game_path, "some-game"))
+        self.assertTrue(os.path.isdir(game_path))
+
+    def test_saved_game_is_left_alone(self):
+        self.assertIsNone(self.set_prefix({}, is_db_stored=True))
+        self.assertFalse(os.path.exists(os.path.join(self.game_path, "some-game")))
+
+    def test_other_runner_is_left_alone(self):
+        self.assertIsNone(self.set_prefix({}, runner_name="linux"))
+
+    def test_wineprefix_from_the_environment_is_kept(self):
+        with patch.dict(os.environ, {"WINEPREFIX": "/opt/prefix"}):
+            self.assertIsNone(self.set_prefix({}))
+
+    def test_game_prefix_is_kept(self):
+        self.assertEqual(self.set_prefix({"prefix": "/opt/prefix"}), "/opt/prefix")
+
+    def test_exe_inside_a_prefix_keeps_it(self):
+        prefix = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, prefix)
+        os.makedirs(os.path.join(prefix, "drive_c", "game"))
+        open(os.path.join(prefix, "user.reg"), "w", encoding="utf-8").close()
+        self.assertIsNone(self.set_prefix({"exe": os.path.join(prefix, "drive_c", "game", "game.exe")}))
+
+    def test_existing_folder_is_not_taken_over(self):
+        folder = os.path.join(self.game_path, "some-game")
+        os.makedirs(folder)
+        self.assertIsNone(self.set_prefix({}))
+        open(os.path.join(folder, "game.exe"), "w", encoding="utf-8").close()
+        self.assertIsNone(self.set_prefix({"exe": os.path.join(folder, "game.exe")}))
+
+    def test_no_installation_folder(self):
+        self.assertIsNone(self.set_prefix({}, game_path=""))
+
+    def test_unwritable_installation_folder(self):
+        game_path = os.path.join(self.game_path, "file")
+        open(game_path, "w", encoding="utf-8").close()
+        self.assertIsNone(self.set_prefix({}, game_path=game_path))
+
+
 class TestInstallerRunnerVersion(TestCase):
     """A fresh install with no Wine version anywhere must use the umu default and
     never ask the API, whose 'latest' build would be downloaded for nothing."""

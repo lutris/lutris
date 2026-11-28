@@ -125,6 +125,38 @@ def _get_prefix_warning(_option_key: str, config: LutrisConfig) -> str | None:
     return _("<b>Warning</b> Some Wine configuration options cannot be applied, if no prefix can be found.")
 
 
+def set_default_game_prefix(game: Game) -> None:
+    """Give a Wine game being added without a prefix its own: the game's folder in the
+    default installation folder, where installers put $GAMEDIR."""
+    if game.runner_name != "wine" or game.is_db_stored or os.environ.get("WINEPREFIX"):
+        return
+
+    config = game.config
+    if not config or config.game_config.get("prefix"):
+        return
+
+    exe = config.game_config.get("exe")
+    if exe and find_prefix(exe):
+        return
+
+    game_path = config.system_config.get("game_path")
+    if not game_path or not game.slug:
+        return
+
+    prefix = os.path.join(os.path.expanduser(game_path), game.slug)
+    # An existing folder may be another game's files or prefix, even before its first launch
+    if os.path.exists(prefix):
+        return
+    try:
+        # create_prefix() refuses a prefix whose parent folder doesn't exist
+        os.makedirs(prefix)
+    except OSError as ex:
+        logger.warning("Can't create %s for the game's Wine prefix: %s", prefix, ex)
+        return
+    config.raw_game_config["prefix"] = prefix
+    config.game_config["prefix"] = prefix
+
+
 def _get_exe_warning(_option_key: str, config: LutrisConfig) -> str | None:
     exe = config.game_config.get("exe") or ""
     stripped_exe = exe.strip()
