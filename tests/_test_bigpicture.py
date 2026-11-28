@@ -227,6 +227,52 @@ class TestSteamInput(BigPictureTester):
 
         self.assertEqual(forced, [bigpicture.STEAM_CLIENT_APPID] * 2)
 
+    def test_a_steam_that_cannot_be_told_is_asked_only_once(self):
+        steam_pid = ["100"]
+        hold = bigpicture.SteamInputHold()
+        asked = []
+
+        with mock.patch.object(bigpicture, "get_steam_pid", side_effect=lambda: steam_pid[0]):
+            with mock.patch.object(
+                bigpicture, "force_steam_input_appid", side_effect=lambda appid: asked.append(appid) and False
+            ):
+                hold.hold(wait=True)
+                hold.hold(wait=True)
+                hold.release(wait=True)
+
+                self.assertEqual(len(asked), 1, "no use trying, and warning, again")
+
+                # Another Steam may be one that can be told.
+                steam_pid[0] = "200"
+                hold.hold(wait=True)
+
+                self.assertEqual(len(asked), 2)
+
+    def test_steam_is_looked_for_on_the_host_from_a_flatpak(self):
+        found = mock.Mock(stdout="4242\n")
+        with mock.patch.object(bigpicture.LINUX_SYSTEM, "is_flatpak", return_value=True):
+            with mock.patch.object(bigpicture.subprocess, "run", return_value=found) as run:
+                self.assertEqual(bigpicture.get_running_steam_pid(), "4242")
+
+            self.assertEqual(run.call_args[0][0][:3], ["flatpak-spawn", "--host", "pgrep"])
+
+            with mock.patch.object(bigpicture.subprocess, "run", side_effect=OSError("no flatpak-spawn")):
+                self.assertIsNone(bigpicture.get_running_steam_pid())
+
+    def test_a_flatpak_steam_is_asked_by_way_of_flatpak(self):
+        url = "steam://forceinputappid/7"
+        runner = mock.Mock(flatpak_id="com.valvesoftware.Steam")
+        runner.get_command.side_effect = bigpicture.MissingExecutableError("no steam")
+
+        with mock.patch.object(bigpicture, "import_runner", return_value=lambda: runner):
+            with mock.patch.object(bigpicture.flatpak, "is_app_installed", return_value=True):
+                with mock.patch.object(bigpicture.flatpak, "get_run_command", return_value=["flatpak", "run", "x"]):
+                    self.assertEqual(bigpicture.get_steam_request_command(url), ["flatpak", "run", "x", url])
+
+            with mock.patch.object(bigpicture.flatpak, "is_app_installed", return_value=False):
+                with self.assertRaises(bigpicture.MissingExecutableError):
+                    bigpicture.get_steam_request_command(url)
+
     def test_request_is_not_made_without_steam(self):
         with mock.patch.object(bigpicture, "get_steam_pid", return_value=None):
             with mock.patch.object(bigpicture.subprocess, "run") as run:
@@ -269,7 +315,7 @@ class TestSteamInput(BigPictureTester):
 
         mode._cleanup()
 
-        mode._steam_input.release.assert_called_with(wait=True)
+        mode._steam_input.release.assert_called_with()
         self.assertFalse(mode._update_steam_input(), "nothing more to do once left")
 
 
