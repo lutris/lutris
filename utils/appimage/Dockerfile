@@ -56,7 +56,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     glib-networking \
     adwaita-icon-theme \
     librsvg2-common \
+    libasound2-dev \
+    libudev-dev \
  && rm -rf /var/lib/apt/lists/*
+
+# The Big Picture interface (bigpicture/) is a Rust program, which links
+# against ALSA and udev: hence the two -dev packages that end the list
+# above. Noble's own Rust (1.75) is older than the interface's
+# dependencies ask for, so the toolchain comes from rustup instead,
+# pinned to the version that bigpicture/Cargo.toml names as its minimum
+# to keep builds reproducible.
+ARG RUST_VERSION=1.95.0
+ENV RUSTUP_HOME=/opt/rust/rustup
+ENV CARGO_HOME=/opt/rust/cargo
+ENV PATH=/opt/rust/cargo/bin:$PATH
+RUN curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs \
+  | sh -s -- -y --profile minimal --default-toolchain "$RUST_VERSION"
 
 # Two pip installs into the build image's system Python:
 #   * pycairo, so PyGObject's meson build can find its C headers (apt's

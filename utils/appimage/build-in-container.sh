@@ -76,6 +76,16 @@ python3 -m pip install --no-compile --break-system-packages --target="$TARGET" \
     'PyGObject<3.50' \
     dbus-python
 
+# Build the Big Picture interface and put it next to bin/lutris, which is
+# where Lutris looks for it. The build goes to /tmp rather than into the
+# mounted source tree, so that it leaves no root-owned files behind there.
+# --locked holds cargo to the dependency versions in Cargo.lock.
+BIGPICTURE="$APPDIR/usr/bin/lutris-bigpicture"
+cargo build --release --locked \
+    --manifest-path "$SRC/bigpicture/Cargo.toml" \
+    --target-dir /tmp/bigpicture-target
+install -m 0755 /tmp/bigpicture-target/release/lutris-bigpicture "$BIGPICTURE"
+
 # Stage desktop file + icon for linuxdeploy. It looks for them at the AppDir
 # root, so symlink from the canonical install locations.
 DESKTOP_FILE="$APPDIR/usr/share/applications/net.lutris.Lutris.desktop"
@@ -132,6 +142,7 @@ linuxdeploy \
     --appdir "$APPDIR" \
     --plugin gtk \
     --executable "$APPDIR/usr/bin/python${PY_VER}" \
+    --executable "$BIGPICTURE" \
     "${LIB_ARGS[@]}" \
     "${GI_LIB_ARGS[@]}" \
     --desktop-file "$DESKTOP_FILE" \
