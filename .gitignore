@@ -22,6 +22,9 @@ tests/coverage/*
 # meson builddirs
 builddir
 
+# Big Picture interface (Rust) build output
+/bigpicture/target
+
 # i18n files
 po/lutris.pot
 po/*.mo
