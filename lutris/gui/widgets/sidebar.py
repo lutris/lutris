@@ -776,7 +776,7 @@ class LutrisSidebar(Gtk.ListBox):
                     insert_row(runner_row)
                     self.runner_rows[runner_name] = runner_row
                 except Exception as ex:
-                    logger.exception("Sidebar row for '%s' could not be loaded: %s", service_name, ex)
+                    logger.exception("Sidebar row for '%s' could not be loaded: %s", runner_name, ex)
 
         for platform in self.active_platforms:
             if platform not in self.platform_rows:

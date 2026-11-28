@@ -103,3 +103,19 @@ class ImportRunnerTest(DatabaseTester):
             self.assertEqual(game_config.runner_slug, "wine")
             wine = wine_runner(game_config)
             self.assertEqual(wine.system_config.get("resolution"), "1680x1050")
+
+
+class GetInstalledTest(DatabaseTester):
+    def test_broken_runner_is_skipped(self):
+        """A runner whose constructor raises is left out instead of failing the whole list."""
+        from lutris.runners.libretro import libretro
+
+        with (
+            patch("lutris.runners.runner.Runner.is_installed", return_value=True),
+            patch.object(libretro, "__init__", side_effect=ConnectionError("Read timed out.")),
+            patch("lutris.runners.logger") as logger,
+        ):
+            installed = [runner.name for runner in runners.get_installed(sort=False)]
+        self.assertNotIn("libretro", installed)
+        self.assertIn("linux", installed)
+        logger.exception.assert_called_once()

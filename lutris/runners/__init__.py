@@ -44,6 +44,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Any, cast
 
 from lutris.exceptions import LutrisError, MisconfigurationError
+from lutris.util.log import logger
 
 if TYPE_CHECKING:
     from lutris.runners.runner import Runner
@@ -91,12 +92,16 @@ def import_task(runner: str, task: str) -> Callable[..., Any]:
 
 
 def get_installed(sort: bool = True) -> list["Runner"]:
-    """Return a list of installed runners (class instances)."""
+    """Return a list of installed runners (class instances). A runner that fails
+    to load is logged and left out, so one broken runner can't break the whole list."""
     installed = []
     for runner_name in __all__:
-        runner = import_runner(runner_name)()
-        if runner.is_installed():
-            installed.append(runner)
+        try:
+            runner = import_runner(runner_name)()
+            if runner.is_installed():
+                installed.append(runner)
+        except Exception as ex:
+            logger.exception("Runner '%s' could not be loaded: %s", runner_name, ex)
     return sorted(installed) if sort else installed
 
 
