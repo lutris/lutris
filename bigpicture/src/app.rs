@@ -1471,9 +1471,13 @@ impl App {
         let mut x = screen.right() - SCREEN_MARGIN * u;
 
         for (glyph, label) in hints.into_iter().rev() {
-            let label = self.t(label).to_owned();
+            // Keys have names in other languages too; buttons are left as they are.
+            let glyph = match glyph {
+                Glyph::Text(name) => Glyph::Text(self.t(name)),
+                symbol => symbol,
+            };
 
-            x = draw::hint(painter, pos2(x, y), glyph, &label, u) - HINT_GAP * u;
+            x = draw::hint(painter, pos2(x, y), glyph, self.t(label), u) - HINT_GAP * u;
         }
     }
 
@@ -1812,7 +1816,7 @@ impl App {
 
         let summary = format!(
             "{}  ·  {}",
-            self.t("%d games").replace("%d", &self.view.len().to_string()),
+            self.t("Games: %d").replace("%d", &self.view.len().to_string()),
             self.t(sort)
         );
         let summary = draw::text(

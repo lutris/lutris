@@ -77,8 +77,9 @@ pub enum PadButton {
 
 /// How a button is shown: by its letter or name, or by the symbol on it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Glyph {
-    Text(&'static str),
+pub enum Glyph<'a> {
+    /// A name: of a controller's button, or of a key, which is translated.
+    Text(&'a str),
     Cross,
     Circle,
     Square,
@@ -117,7 +118,7 @@ impl PadStyle {
     /// controller. The buttons are told apart by where they are - the
     /// bottom one of the four accepts, on every controller - so it is only
     /// their names that differ.
-    pub fn glyph(self, button: PadButton) -> Glyph {
+    pub fn glyph(self, button: PadButton) -> Glyph<'static> {
         use Glyph::{Circle, Cross, Square, Text, Triangle};
         match (self, button) {
             (Self::PlayStation, PadButton::Accept) => Cross,

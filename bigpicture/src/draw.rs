@@ -236,7 +236,7 @@ pub fn game_tile(painter: &Painter, covers: &mut CoverCache, game: &Game, rect: 
 
 /// A button hint such as "(A) Select". Returns the x where it starts, so the
 /// next one can be placed to its left.
-pub fn hint(painter: &Painter, right: Pos2, glyph: Glyph, label: &str, u: f32) -> f32 {
+pub fn hint(painter: &Painter, right: Pos2, glyph: Glyph<'_>, label: &str, u: f32) -> f32 {
     // Sizes in units.
     const LABEL_SIZE: f32 = 22.0;
     const BADGE_HEIGHT: f32 = 34.0;
@@ -290,7 +290,7 @@ pub fn hint(painter: &Painter, right: Pos2, glyph: Glyph, label: &str, u: f32) -
 
 /// Draws one of the symbols on a PlayStation controller's buttons. They are
 /// drawn rather than written, as fonts cannot be relied on to have them.
-fn pad_symbol(painter: &Painter, center: Pos2, symbol: Glyph, size: f32, stroke: Stroke) {
+fn pad_symbol(painter: &Painter, center: Pos2, symbol: Glyph<'_>, size: f32, stroke: Stroke) {
     // Proportions of `size`, chosen so the symbols look equally large.
     const CROSS_ARM: f32 = 0.85;
     const SQUARE_HALF_SIDE: f32 = 0.9;
