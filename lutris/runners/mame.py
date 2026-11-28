@@ -10,7 +10,7 @@ from typing import Any
 from lutris import runtime, settings
 from lutris.exceptions import GameConfigError
 from lutris.runners.runner import Runner
-from lutris.util import async_choices, system
+from lutris.util import async_choices, cache_single, system
 from lutris.util.log import logger
 from lutris.util.mame.database import get_supported_systems
 from lutris.util.strings import split_arguments
@@ -95,21 +95,17 @@ def _build_mame_systems_cache(force: bool = False) -> bool:
     return True
 
 
-_machine_mapping_cache: dict[str, str] | None = None
-
-
+@cache_single
 def _get_machine_mapping() -> dict[str, str]:
-    """Return a cached mapping of machine ID to platform name."""
-    global _machine_mapping_cache
-    if _machine_mapping_cache is not None:
-        return _machine_mapping_cache
-    _machine_mapping_cache = {choice[1]: choice[0] for choice in _get_system_choices(include_year=False)}
-    return _machine_mapping_cache
+    """Return a cached mapping of machine ID to platform name. This is empty until the
+    systems cache is built; _get_system_choices() clears it once that is done."""
+    return {choice[1]: choice[0] for choice in _get_system_choices(include_year=False)}
 
 
 @async_choices(
     generate=_build_mame_systems_cache,
     ready=lambda: system.path_exists(mame.SYSTEMS_PATH, exclude_empty=True),
+    invalidate=_get_machine_mapping.cache_clear,
     error_message="Failed to build MAME systems cache",
 )
 def _get_system_choices(include_year: bool = True) -> Generator[tuple[str, str], None, None]:
@@ -154,9 +150,8 @@ class mame(Runner):  # pylint: disable=invalid-name
     CACHE_DIR = cache_dir
     XML_PATH = xml_path
 
-    platform_dict = {
-        _("Arcade"): "arcade",
-    }
+    # get_platform() works out the platform from the machine and ROM instead.
+    platform_dict = NotImplemented
 
     game_options = [
         {
