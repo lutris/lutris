@@ -43,7 +43,7 @@ class LaunchUIDelegate(Delegate):
         False, the launch is cancelled. The default is to return True with no
         actual checks.
         """
-        if not game.runner.is_installed():
+        if not game.runner.is_installed(suppress_allowed=False):
             raise UnavailableRunnerError(_("The required runner '%s' is not installed.") % game.runner.name)
         return True
 
@@ -165,7 +165,7 @@ class DialogLaunchUIDelegate(LaunchUIDelegate):
     """This provides UI for game launch via dialogs."""
 
     def check_game_launchable(self, game: Game) -> bool:
-        if not game.runner.is_installed():
+        if not game.runner.is_installed(suppress_allowed=False):
             installed = game.runner.install_dialog(cast(InstallUIDelegate, self))
             if not installed:
                 return False
