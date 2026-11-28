@@ -50,8 +50,17 @@ class RecordingBigPictureMode(bigpicture.BigPictureMode):
         self.sent.append(message)
 
 
+def call_at_once(function, callback):
+    """Stands in for AsyncCall: the work is done before it returns."""
+    callback(function(), None)
+
+
 class BigPictureTester(unittest.TestCase):
     def setUp(self):
+        patch = mock.patch.object(bigpicture, "AsyncCall", side_effect=call_at_once)
+        patch.start()
+        self.addCleanup(patch.stop)
+
         if os.path.exists(settings.DB_PATH):
             os.remove(settings.DB_PATH)
         schema.syncdb()
@@ -117,6 +126,36 @@ class TestMessages(BigPictureTester):
         mode = RecordingBigPictureMode(application)
         mode._send_library()
         self.assertEqual(mode.sent[0]["games"][0]["state"], "running")
+
+    def test_a_library_gathered_for_a_mode_since_left_is_not_sent(self):
+        games_db.add_game(name="A Game", runner="linux", installed=1)
+        mode = RecordingBigPictureMode(FakeApplication())
+        pending = []
+
+        with mock.patch.object(
+            bigpicture, "AsyncCall", side_effect=lambda function, callback: pending.append(callback)
+        ):
+            mode._send_library()
+            mode._send_library()
+
+        # The first request was overtaken by the second.
+        pending[0](bigpicture.get_library(), None)
+
+        self.assertEqual(mode.sent, [])
+
+        pending[1](bigpicture.get_library(), None)
+
+        self.assertEqual([message["type"] for message in mode.sent], ["library"])
+
+        with mock.patch.object(
+            bigpicture, "AsyncCall", side_effect=lambda function, callback: pending.append(callback)
+        ):
+            mode._send_library()
+
+        mode._cleanup()
+        pending[2](bigpicture.get_library(), None)
+
+        self.assertEqual(len(mode.sent), 1, "nothing is sent once the mode was left")
 
     def test_set_favorite(self):
         game_id = games_db.add_game(name="A Game", runner="linux", installed=1)
