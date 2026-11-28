@@ -18,6 +18,7 @@ import threading
 import time
 from collections.abc import Callable
 from gettext import gettext as _
+from gettext import pgettext as C_
 from typing import TYPE_CHECKING, Any
 
 from gi.repository import Gio, GLib
@@ -179,23 +180,33 @@ def get_sound_pack_dirs() -> list[str]:
 
 def get_interface_strings() -> dict[str, str]:
     """The text of the Big Picture interface, translated. The interface looks
-    these up by their English text, and falls back on it."""
+    these up by their English text, and falls back on it.
+
+    Everything the interface shows has to be in here: it has no translations
+    of its own, and what is here is found by xgettext with the rest of
+    Lutris's strings. tests/_test_bigpicture.py checks that nothing is missing."""
     return {
+        # Translators: The first tab of Big Picture mode, which shows what was played lately.
         "Home": _("Home"),
         "Library": _("Library"),
         "Recently played": _("Recently played"),
         "Favorites": _("Favorites"),
         "Recently added": _("Recently added"),
         "All games": _("All games"),
-        "%d games": _("%d games"),
+        # Translators: How many games the library shows; %d is their number.
+        "Games: %d": _("Games: %d"),
         "Sorted by name": _("Sorted by name"),
         "Sorted by last played": _("Sorted by last played"),
         "Sorted by play time": _("Sorted by play time"),
         "Search": _("Search"),
         "Sort": _("Sort"),
+        # Translators: What a button does: it chooses what has the focus.
         "Select": _("Select"),
+        # Translators: What a button does: it goes back to the previous screen.
         "Back": _("Back"),
-        "Menu": _("Menu"),
+        # Translators: What a button does: it opens the menu of Big Picture mode.
+        # (With a context, as Lutris also has a "Menu" that is a key.)
+        "Menu": C_("big picture", "Menu"),
         "Play": _("Play"),
         "Stop": _("Stop"),
         "Launching…": _("Launching…"),
@@ -212,13 +223,23 @@ def get_interface_strings() -> dict[str, str]:
         "Quit Lutris": _("Quit Lutris"),
         "Sounds": _("Sounds"),
         "Start animation": _("Start animation"),
+        # Translators: The state of a setting that is switched on.
         "On": _("On"),
+        # Translators: The name of the navigation sounds that Lutris comes with.
         "Default": _("Default"),
         "Off": _("Off"),
+        # Translators: A key of the on-screen keyboard: the space bar.
         "Space": _("Space"),
+        # Translators: A key of the on-screen keyboard: it removes the last character.
         "Delete": _("Delete"),
+        # Translators: A key of the on-screen keyboard: it removes everything typed.
         "Clear": _("Clear"),
+        # Translators: A key of the on-screen keyboard: it closes the keyboard.
         "Done": _("Done"),
+        # Translators: The Enter key, as it is named on a keyboard.
+        "Enter": _("Enter"),
+        # Translators: The key combination Ctrl+S, with the Ctrl key as it is named on a keyboard.
+        "Ctrl+S": _("Ctrl+S"),
         "Loading library…": _("Loading library…"),
         "Your library is empty": _("Your library is empty"),
         "Install games in Lutris to see them here.": _("Install games in Lutris to see them here."),
