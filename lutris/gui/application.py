@@ -884,7 +884,7 @@ class LutrisApplication(Gtk.Application):
         try:
             self.big_picture.start()
         except (MissingExecutableError, GLib.Error) as ex:
-            logger.error("Unable to start Big Picture mode: %s", ex)
+            logger.exception("Unable to start Big Picture mode: %s", ex)
             ErrorDialog(ex, parent=self.window)
 
     def on_big_picture_ready(self) -> None:
