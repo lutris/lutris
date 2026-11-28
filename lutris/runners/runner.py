@@ -186,20 +186,6 @@ class Runner:  # pylint: disable=too-many-public-methods
         """
         return {platform: platform for platform in platform_list}
 
-    @property
-    def platforms(self) -> list[str]:
-        """
-        Retrieve the Lutris platform names as list using the keys
-        """
-        return list(self.platform_dict.keys())
-
-    @platforms.setter
-    def platforms(self, platform_list: list[str]) -> None:
-        """
-        Setter for platform dictionary, set the platform from a list
-        """
-        self.platform_dict = {platform: platform for platform in platform_list}
-
     def get_platform(self) -> str:
         """
         Retrieve the Lutris Platform name from the keys of the platform dictionary
