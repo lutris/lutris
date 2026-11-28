@@ -470,8 +470,9 @@ msgstr "Spiel zu Lutris hinzufügen"
 
 #. Action buttons
 #: lutris/gui/addgameswindow.py:88 lutris/gui/installerwindow.py:79
+#: lutris/gui/bigpicture.py
 msgid "Back"
-msgstr ""
+msgstr "Zurück"
 
 #. defer destory so the game dialog can be centered first
 #. Continue Button
@@ -6193,6 +6194,128 @@ msgid ""
 msgstr ""
 "Die von Ihnen ausgewählte Wine-Version unterstützt keinen Fsync.\n"
 "Bitte wechseln Sie zu einer Fsync-fähigen Version."
+
+#: lutris/gui/bigpicture.py
+msgctxt "big picture"
+msgid "Menu"
+msgstr "Menü"
+
+#: lutris/gui/bigpicture.py
+msgid "Home"
+msgstr "Start"
+
+#: lutris/gui/bigpicture.py
+msgid "Recently played"
+msgstr "Zuletzt gespielt"
+
+#: lutris/gui/bigpicture.py
+msgid "Recently added"
+msgstr "Zuletzt hinzugefügt"
+
+#: lutris/gui/bigpicture.py
+msgid "All games"
+msgstr "Alle Spiele"
+
+#: lutris/gui/bigpicture.py
+#, c-format
+msgid "Games: %d"
+msgstr "Spiele: %d"
+
+#: lutris/gui/bigpicture.py
+msgid "Sorted by name"
+msgstr "Nach Name sortiert"
+
+#: lutris/gui/bigpicture.py
+msgid "Sorted by last played"
+msgstr "Nach zuletzt gespielt sortiert"
+
+#: lutris/gui/bigpicture.py
+msgid "Sorted by play time"
+msgstr "Nach Spielzeit sortiert"
+
+#: lutris/gui/bigpicture.py
+msgid "Search"
+msgstr "Suchen"
+
+#: lutris/gui/bigpicture.py
+msgid "Sort"
+msgstr "Sortieren"
+
+#: lutris/gui/bigpicture.py
+msgid "Select"
+msgstr "Auswählen"
+
+#: lutris/gui/bigpicture.py
+msgid "Launching…"
+msgstr "Wird gestartet…"
+
+#: lutris/gui/bigpicture.py
+msgid "Play time"
+msgstr "Spielzeit"
+
+#: lutris/gui/bigpicture.py
+msgid "Last played"
+msgstr "Zuletzt gespielt"
+
+#: lutris/gui/bigpicture.py
+msgid "Resume"
+msgstr "Fortsetzen"
+
+#: lutris/gui/bigpicture.py
+msgid "Exit Big Picture"
+msgstr "Big Picture beenden"
+
+#: lutris/gui/bigpicture.py
+msgid "Quit Lutris"
+msgstr "Lutris beenden"
+
+#: lutris/gui/bigpicture.py
+msgid "Sounds"
+msgstr "Töne"
+
+#: lutris/gui/bigpicture.py
+msgid "Start animation"
+msgstr "Startanimation"
+
+#: lutris/gui/bigpicture.py
+msgid "On"
+msgstr "An"
+
+#: lutris/gui/bigpicture.py
+msgid "Default"
+msgstr "Standard"
+
+#: lutris/gui/bigpicture.py
+msgid "Space"
+msgstr "Leertaste"
+
+#: lutris/gui/bigpicture.py
+msgid "Clear"
+msgstr "Leeren"
+
+#: lutris/gui/bigpicture.py
+msgid "Done"
+msgstr "Fertig"
+
+#: lutris/gui/bigpicture.py
+msgid "Enter"
+msgstr "Eingabe"
+
+#: lutris/gui/bigpicture.py
+msgid "Ctrl+S"
+msgstr "Strg+S"
+
+#: lutris/gui/bigpicture.py
+msgid "Loading library…"
+msgstr "Bibliothek wird geladen…"
+
+#: lutris/gui/bigpicture.py
+msgid "Your library is empty"
+msgstr "Ihre Bibliothek ist leer"
+
+#: lutris/gui/bigpicture.py
+msgid "Install games in Lutris to see them here."
+msgstr "Installieren Sie Spiele in Lutris, um sie hier zu sehen."
 
 #~ msgid "video game preservation platform"
 #~ msgstr "Die Bewahrungsplattform für Videospiele"
