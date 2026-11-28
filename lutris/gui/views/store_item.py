@@ -196,6 +196,25 @@ class StoreItem:
 
     def get_media_paths(self) -> list[MediaPath]:
         """Returns the path to the image file for this item"""
+        game_data = self._game_data if "service_id" in self._game_data else self._installed_game_data
+        kind = {"banner": "banner", "coverart": "cover", "icon": "icon"}.get(self.service_media.api_field)
+        if kind is None:
+            service = self._service_obj or SERVICES.get(self.service_media.service)
+            if service:
+                for role, media_type in {**service.medias, **service.extra_medias}.items():
+                    if type(self.service_media) is media_type:
+                        if role.startswith("banner"):
+                            kind = "banner"
+                        elif role == "cover" or role.startswith("coverart"):
+                            kind = "cover"
+                        elif role == "icon":
+                            kind = "icon"
+                        break
+        if game_data and game_data.get("id") and kind:
+            from lutris.artwork import get_game_media_paths
+
+            return get_game_media_paths(game_data, self.service_media, kind=kind)
+
         if self._game_data.get("icon"):
             icon = self._game_data["icon"]
             if isinstance(icon, MediaPath):

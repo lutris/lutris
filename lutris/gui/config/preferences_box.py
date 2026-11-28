@@ -6,8 +6,10 @@ from gi.repository import Gio, Gtk  # type: ignore
 from lutris import settings
 from lutris.gui.config.base_config_box import BaseConfigBox
 from lutris.gui.config.widget_generator import WidgetGenerator
+from lutris.gui.widgets.artwork_source import ArtworkSourceButtons
 from lutris.gui.widgets.status_icon import supports_status_icon
 from lutris.settings import read_setting
+from lutris.util.jobs import AsyncCall
 
 
 def _is_system_dark_by_default():
@@ -52,6 +54,16 @@ class InterfacePreferencesBox(BaseConfigBox):
             "type": "bool",
         },
         {
+            "option": "steamgriddb_api_key",
+            "label": _("SteamGridDB API key"),
+            "type": "string",
+            "help": _(
+                "Required when SteamGridDB is selected as the artwork source. "
+                "The key is stored in your local Lutris configuration file. "
+                "Get a key at https://www.steamgriddb.com/profile/preferences."
+            ),
+        },
+        {
             "option": "preferred_theme",
             "type": "choice",
             "label": _("Theme"),
@@ -79,6 +91,20 @@ class InterfacePreferencesBox(BaseConfigBox):
         gen.changed.register(self.on_setting_changed)
         self.widget_generator = gen
 
+        row = Gtk.ListBoxRow(visible=True, selectable=False, activatable=False)
+        box = Gtk.Box(visible=True, spacing=12, margin=12)
+        box.pack_start(Gtk.Label(label=_("Artwork source"), visible=True, xalign=0), True, True, 0)
+        source = settings.read_setting("artwork_source", default="lutris")
+        buttons = ArtworkSourceButtons(
+            [(_("Lutris.net"), "lutris"), (_("SteamGridDB"), "steamgriddb")],
+            source if source in ("lutris", "steamgriddb") else "lutris",
+            self.on_artwork_source_changed,
+        )
+        box.pack_end(buttons, False, False, 0)
+        buttons.show_all()
+        row.add(box)
+        listbox.add(row)
+
         for option in self.settings_options:
             gen.generate_container(option)
 
@@ -93,6 +119,22 @@ class InterfacePreferencesBox(BaseConfigBox):
 
     def on_setting_changed(self, option_key, new_value):
         settings.write_setting(option_key, new_value)
+
+    def on_artwork_source_changed(self, source):
+        from lutris.artwork import ARTWORK_LOCK, refresh_artwork
+
+        with ARTWORK_LOCK:
+            settings.write_setting("artwork_source", source)
+        AsyncCall(refresh_artwork, None, force=True, inherited_only=True)
+        if source == "steamgriddb" and not (settings.read_setting("steamgriddb_api_key") or "").strip():
+            dialog = Gtk.MessageDialog(
+                transient_for=self.get_toplevel(),
+                message_type=Gtk.MessageType.INFO,
+                buttons=Gtk.ButtonsType.OK,
+                text=_("Add a SteamGridDB API key in Preferences."),
+            )
+            dialog.run()
+            dialog.destroy()
 
 
 class PreferencesWidgetGenerator(WidgetGenerator):
@@ -114,6 +156,10 @@ class PreferencesWidgetGenerator(WidgetGenerator):
     def build_option_widget(
         self, option: dict[str, Any], widget: Gtk.Widget | None, no_label: bool = False, expand: bool = False
     ) -> Gtk.Widget | None:
+        if option["option"] == "steamgriddb_api_key" and isinstance(widget, Gtk.Entry):
+            widget.set_visibility(False)
+            widget.set_input_purpose(Gtk.InputPurpose.PASSWORD)
+
         if no_label:
             return super().build_option_widget(option, widget, no_label=no_label, expand=expand)
 

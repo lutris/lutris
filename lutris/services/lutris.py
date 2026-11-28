@@ -7,7 +7,7 @@ from typing import Any
 from gi.repository import Gio
 
 from lutris import settings
-from lutris.api import get_api_games, get_game_installers, read_api_key
+from lutris.api import get_game_installers, read_api_key
 from lutris.database.games import get_games
 from lutris.database.services import ServiceGameCollection
 from lutris.game import Game
@@ -113,9 +113,13 @@ class LutrisService(OnlineService):
         return lutris_games
 
     def load_icons(self):
-        super().load_icons()
-        # Also load any media for games that use Lutris media,
-        # but are not in the Lutris library.
+        # Remote-only library entries retain their legacy service artwork.
+        local_slugs = {game["slug"] for game in get_games()}
+        for media_type in {**self.medias, **self.extra_medias}.values():
+            media = media_type()
+            urls = {slug: url for slug, url in media.get_media_urls().items() if slug not in local_slugs}
+            download_media(urls, media)
+            media.render()
         sync_media()
 
     def get_installed_slug(self, db_game):
@@ -168,6 +172,20 @@ class LutrisService(OnlineService):
 
 
 def download_lutris_media(slug):
+    """Refresh every local row sharing this slug using its selected provider."""
+    rows = [game for game in get_games() if game["slug"] == slug]
+    if rows:
+        from lutris.artwork import refresh_artwork
+
+        refresh_artwork([game["id"] for game in rows])
+    else:
+        from lutris.artwork import get_effective_source
+
+        if get_effective_source({}) == "lutris":
+            _download_lutris_media(slug)
+
+
+def _download_lutris_media(slug):
     """Download all media types for a single lutris game"""
     url = settings.SITE_URL + "/api/games/%s" % slug
     request = http.Request(url)
@@ -191,66 +209,19 @@ def download_lutris_media(slug):
 
 
 def sync_media(slugs: Iterable[str] | None = None) -> dict[str, int]:
-    """Download missing media for Lutris games; if a set of slugs
-    is not provided, downloads them for all games in the PGA."""
-    if slugs is None:
-        slugs = {game["slug"] for game in get_games()}
-    else:
-        slugs = set(s for s in slugs if s)
+    """Refresh matching library rows and retain the legacy plural count contract."""
+    from lutris.artwork import refresh_artwork
 
-    if not slugs:
+    selected = set(slugs) if slugs is not None else None
+    game_ids = [game["id"] for game in get_games() if selected is None or game["slug"] in selected]
+    if not game_ids:
         return {}
-
-    banners_available = {fn.split(".")[0] for fn in os.listdir(settings.BANNER_PATH)}
-    icons_available = {
-        fn.split(".")[0].replace("lutris_", "") for fn in os.listdir(settings.ICON_PATH) if fn.startswith("lutris_")
-    }
-    covers_available = {fn.split(".")[0] for fn in os.listdir(settings.COVERART_PATH)}
-    complete_games = banners_available.intersection(icons_available).intersection(covers_available)
-
-    slugs_to_download = slugs - complete_games
-    if not slugs_to_download:
-        return {}
-    games = get_api_games(list(slugs_to_download))
-
-    alias_map = {}
-    api_slugs = set()
-    for game in games:
-        api_slugs.add(game["slug"])
-        for alias in game["aliases"]:
-            if alias["slug"] in slugs_to_download:
-                alias_map[game["slug"]] = alias["slug"]
-    alias_slugs = set(alias_map.values())
-    used_alias_slugs = alias_slugs - api_slugs
-    for alias_slug in used_alias_slugs:
-        for game in games:
-            if alias_slug in [alias["slug"] for alias in game["aliases"]]:
-                game["slug"] = alias_map[game["slug"]]
-                continue
-    banner_urls = {
-        game["slug"]: _get_response_game_banner(game)
-        for game in games
-        if game["slug"] not in banners_available and _get_response_game_banner(game)
-    }
-    icon_urls = {
-        game["slug"]: _get_response_game_icon(game)
-        for game in games
-        if game["slug"] not in icons_available and _get_response_game_icon(game)
-    }
-    coverart_urls = {
-        game["slug"]: _get_response_game_coverart(game)
-        for game in games
-        if game["slug"] not in covers_available and _get_response_game_coverart(game)
-    }
-    logger.debug("Syncing %s banners, %s icons and %s covers", len(banner_urls), len(icon_urls), len(coverart_urls))
-    downloaded_banners = download_media(banner_urls, LutrisBanner())
-    downloaded_icons = download_media(icon_urls, LutrisIcon())
-    downloaded_covers = download_media(coverart_urls, LutrisCoverart())
-    return {
-        "banners": len(downloaded_banners),
-        "icons": len(downloaded_icons),
-        "covers": len(downloaded_covers),
-    }
+    counts = {"banners": 0, "icons": 0, "covers": 0}
+    names = {"banner": "banners", "icon": "icons", "cover": "covers"}
+    for result in refresh_artwork(game_ids).values():
+        for kind in result.updated_kinds:
+            counts[names[kind]] += 1
+    return counts
 
 
 def _get_response_game_coverart(api_game: dict[str, Any]) -> str | None:

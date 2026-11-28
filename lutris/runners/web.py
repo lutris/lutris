@@ -201,7 +201,7 @@ class web(Runner):
 
             return {"command": command}
 
-        icon = resources.get_icon_path(game_data.get("slug"))
+        icon = resources.get_icon_path(game_data.get("slug"), game_data=game_data)
         if not system.path_exists(icon):
             icon = DEFAULT_ICON
 

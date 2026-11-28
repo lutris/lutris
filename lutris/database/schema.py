@@ -30,6 +30,7 @@ DATABASE: dict[str, DBSchema] = {
         {"name": "has_custom_banner", "type": "INTEGER"},
         {"name": "has_custom_icon", "type": "INTEGER"},
         {"name": "has_custom_coverart_big", "type": "INTEGER"},
+        {"name": "artwork_source", "type": "TEXT"},
         {"name": "playtime", "type": "REAL"},
         {"name": "service", "type": "TEXT"},
         {"name": "service_id", "type": "TEXT"},

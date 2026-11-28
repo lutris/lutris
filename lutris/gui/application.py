@@ -921,7 +921,7 @@ class LutrisApplication(Gtk.Application):
 
         for game in game_list:
             playtime = timedelta(hours=game["playtime"]) if game["playtime"] else None
-            cover_path = resources.get_cover_path(game["slug"]) if game["slug"] else None
+            cover_path = resources.get_cover_path(game["slug"], game_data=game) if game["slug"] else None
 
             if cover_path and not os.path.exists(cover_path):
                 cover_path = None

@@ -1,7 +1,7 @@
 """Game Info Panel implementation"""
 
 import os
-import shutil
+import tempfile
 import uuid
 
 # Standard Library
@@ -17,13 +17,14 @@ from gi.repository import GdkPixbuf, Gtk, Pango
 
 # Lutris Modules
 from lutris import settings
-from lutris.game import Game
+from lutris.game import GAME_UPDATED, Game
 from lutris.gui.config.boxes import AdvancedSettingsBox
+from lutris.gui.widgets.artwork_source import ArtworkSourceButtons
 from lutris.gui.widgets.common import Label, NumberEntry, SlugEntry
 from lutris.gui.widgets.scaled_image import ScaledImage
-from lutris.gui.widgets.utils import MEDIA_CACHE_INVALIDATED, get_image_file_extension, open_uri
+from lutris.gui.widgets.utils import open_uri
 from lutris.runners import get_installed
-from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon, download_lutris_media
+from lutris.services.lutris import LutrisBanner, LutrisCoverart, LutrisIcon
 from lutris.services.service_media import resolve_media_path
 from lutris.util.jobs import AsyncCall
 from lutris.util.log import logger
@@ -39,6 +40,8 @@ class GameInfoBox(AdvancedSettingsBox):
     def __init__(self, parent_widget: Any, game: Game | None, **kwargs) -> None:
         super().__init__(**kwargs)
         self.parent_widget = parent_widget
+        self._artwork_destroyed = False
+        self.connect("destroy", lambda *_: setattr(self, "_artwork_destroyed", True))
 
         self.game = game
 
@@ -69,6 +72,7 @@ class GameInfoBox(AdvancedSettingsBox):
             self._get_banner_entries()  # Cover Browse, Banner Browse, Icon Browse
 
         self.pack_start(self._get_name_box(), False, False, 6)  # Game name
+        self.pack_start(self._get_artwork_source_box(), False, False, 6)
         self.pack_start(self._get_sortname_box(), False, False, 6)  # Game sort name
 
         self.pack_start(self._get_runner_box(), False, False, 6)  # Runner
@@ -126,6 +130,32 @@ class GameInfoBox(AdvancedSettingsBox):
                 self.sortname_entry.set_text(self.game.sortname)
         box.pack_start(self.sortname_entry, True, True, 0)
         return box
+
+    def _get_artwork_source_box(self):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, margin_left=12, margin_right=12)
+        row = Gtk.Box(spacing=12)
+        row.pack_start(Label(_("Artwork source")), False, False, 0)
+        source = getattr(self.game, "artwork_source", None) if self.game else None
+        self.artwork_source_buttons = ArtworkSourceButtons(
+            [(_("Use global"), None), (_("Lutris.net"), "lutris"), (_("SteamGridDB"), "steamgriddb")],
+            source if source in (None, "lutris", "steamgriddb") else None,
+            self._on_artwork_source_changed,
+        )
+        row.pack_start(self.artwork_source_buttons, False, False, 0)
+        box.pack_start(row, False, False, 0)
+        self.artwork_source_help = Gtk.Label(
+            label=_("Use the exact SteamGridDB game title. Capitalization does not matter."),
+            xalign=0,
+            wrap=True,
+        )
+        self.artwork_source_help.set_no_show_all(True)
+        box.pack_start(self.artwork_source_help, False, False, 0)
+        self._on_artwork_source_changed(self.artwork_source_buttons.get_value())
+        return box
+
+    def _on_artwork_source_changed(self, source):
+        effective = source or settings.read_setting("artwork_source", default="lutris")
+        self.artwork_source_help.set_visible(effective == "steamgriddb")
 
     def _get_year_box(self):
         box = Gtk.Box(spacing=12, margin_right=12, margin_left=12)
@@ -372,10 +402,13 @@ class GameInfoBox(AdvancedSettingsBox):
         self.image_buttons[image_type] = image_button
 
     def _set_image(self, image_format, image_button):
+        from lutris.artwork import get_game_media_paths
+
         scale_factor = self.get_scale_factor()
         service_media = self.service_medias[image_format]
         game_slug = self.slug or (self.game.slug if self.game else "")
-        media_path = resolve_media_path(service_media.get_possible_media_paths(game_slug)).path
+        game_data = self._artwork_game_data(game_slug)
+        media_path = resolve_media_path(get_game_media_paths(game_data, service_media)).path
         try:
             image = ScaledImage.new_from_media_path(media_path, service_media.config_ui_size, scale_factor)
             image_button.set_image(image)
@@ -433,7 +466,7 @@ class GameInfoBox(AdvancedSettingsBox):
         self.slug_entry.set_sensitive(False)
         if self.slug_change_button:
             self.slug_change_button.set_label(_("Change"))
-        AsyncCall(download_lutris_media, self.refresh_all_images_cb, self.slug)
+        self.refresh_all_images_cb(None, None)
 
     def refresh_all_images_cb(self, _result, _error):
         for image_type, image_button in self.image_buttons.items():
@@ -446,12 +479,20 @@ class GameInfoBox(AdvancedSettingsBox):
 
         service_media = self.service_medias[image_type]
         game_slug = self.slug or (self.game.slug if self.game else "")
-        media_path = resolve_media_path(service_media.get_possible_media_paths(game_slug))
+        from lutris.artwork import get_game_media_paths
+
+        media_path = resolve_media_path(get_game_media_paths(self._artwork_game_data(game_slug), service_media))
 
         image_path = None
         if media_path.exists:
             image_path = Path(media_path.path)
         return image_path
+
+    def _artwork_game_data(self, slug):
+        from lutris.database.games import get_games_by_ids
+
+        games = get_games_by_ids([self.game.id]) if self.game and self.game.id else []
+        return games[0] if games else {"slug": slug}
 
     def on_open_image_location_in_file_browser_clicked(self, _widget, image_type):
         if path := self.get_image_path(image_type):
@@ -515,100 +556,71 @@ class GameInfoBox(AdvancedSettingsBox):
                         if chunk:
                             fp.write(chunk)
 
-            self.save_custom_media(image_type, tmp_file)
+            return tmp_file
 
-        def download_cb(_result, error):
+        def download_cb(result, error):
+            if self._artwork_destroyed:
+                return
             if error:
                 raise error
+            if result:
+                self.save_custom_media(image_type, result)
 
         AsyncCall(download, download_cb)
 
     def save_custom_media(self, image_type: str, image_path: str) -> None:
-        slug = self.slug or (self.game.slug if self.game else "")
-        service_media = self.service_medias[image_type]
-        if self.game:
-            self.game.custom_images.add(image_type)
-        dest_paths = [mp.path for mp in service_media.get_possible_media_paths(slug)]
+        from lutris.artwork import save_custom_artwork
 
-        if image_path not in dest_paths:
-            ext = get_image_file_extension(image_path)
+        if not self.game or not self.game.id:
+            return
+        game_id = self.game.id
+        kind = "cover" if image_type == COVERART_KEY else image_type
+        game = self.game
 
-            if ext:
-                for candidate in dest_paths:
-                    if candidate.casefold().endswith(ext):
-                        self._save_copied_media_to(candidate, image_type, image_path)
-                        return
-
-            self._save_transcoded_media_to(dest_paths[0], image_type, image_path)
-
-    def _save_copied_media_to(self, dest_path: str, image_type: str, image_path: str) -> None:
-        """Copies a media file to the dest_path, but trashes the existing media
-        for the game first. When complete, this updates the button indicated by
-        image_type as well."""
-        slug = self.slug or (self.game.slug if self.game else "")
-        service_media = self.service_medias[image_type]
-
-        def on_trashed():
-            AsyncCall(copy_image, self.image_refreshed_cb)
-
-        def copy_image():
-            shutil.copy(image_path, dest_path, follow_symlinks=True)
-            MEDIA_CACHE_INVALIDATED.fire()
+        def save():
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file(image_path)
+            with tempfile.NamedTemporaryFile(suffix=".png") as staged:
+                pixbuf.savev(staged.name, "png", [], [])
+                save_custom_artwork(game_id, kind, staged.name)
             return image_type
 
-        service_media.trash_media(slug, completion_function=on_trashed)
-
-    def _save_transcoded_media_to(self, dest_path: str, image_type: str, image_path: str) -> None:
-        """Transcode an image, copying it to a new path and selecting the file type
-        based on the file extension of dest_path. Trashes all media for the current
-        game too. Runs in the background, and when complete updates the button indicated
-        by image_type."""
-        slug = self.slug or (self.game.slug if self.game else "")
-        service_media = self.service_medias[image_type]
-        ext = get_image_file_extension(dest_path) or ".png"
-        file_format = {".jpg": "jpeg", ".png": "png"}[ext]
-
-        # If we must transcode the image, we'll scale the image up based on
-        # the UI scale factor, to try to avoid blurriness. Of course this won't
-        # work if the user changes the scaling later, but what can you do.
-        scale_factor = self.get_scale_factor()
-        width, height = service_media.custom_media_storage_size
-        width = width * scale_factor
-        height = height * scale_factor
-        temp_file = dest_path + ".tmp"
-
-        def transcode():
-            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(image_path, width, height)
-            # JPEG encoding looks rather better at high quality;
-            # PNG encoding just ignores this option.
-            pixbuf.savev(temp_file, file_format, ["quality"], ["100"])
-            service_media.trash_media(slug, completion_function=on_trashed)
-
-        def transcode_cb(_result, error):
+        def saved(result, error):
+            if not error:
+                game.custom_images.add(image_type)
+                GAME_UPDATED.fire(game)
+            if self._artwork_destroyed:
+                return
+            self.parent_widget.set_sensitive(True)
             if error:
-                raise error
+                logger.error("Unable to save artwork: %s", error)
+                return
+            self.image_refreshed_cb(result)
 
-        def on_trashed():
-            os.rename(temp_file, dest_path)
-            MEDIA_CACHE_INVALIDATED.fire()
-            self.image_refreshed_cb(image_type)
-
-        AsyncCall(transcode, transcode_cb)
+        self.parent_widget.set_sensitive(False)
+        AsyncCall(save, saved, callback_target=self.parent_widget)
 
     def refresh_image(self, image_type):
-        slug = self.slug or (self.game.slug if self.game else "")
-        service_media = self.service_medias[image_type]
-        if self.game:
-            self.game.custom_images.discard(image_type)
+        from lutris.artwork import reset_custom_artwork
 
-        def on_trashed():
-            AsyncCall(download, self.image_refreshed_cb)
+        if not self.game or not self.game.id:
+            return
+        game = self.game
+        kind = "cover" if image_type == COVERART_KEY else image_type
 
-        def download():
-            download_lutris_media(slug)
-            return image_type
+        def done(result, error):
+            if not error and result.status == "success":
+                game.custom_images.discard(image_type)
+                GAME_UPDATED.fire(game)
+            if self._artwork_destroyed:
+                return
+            self.parent_widget.set_sensitive(True)
+            if error or result.status != "success":
+                logger.warning("Unable to reset artwork")
+                return
+            self.image_refreshed_cb(image_type)
 
-        service_media.trash_media(slug, completion_function=on_trashed)
+        self.parent_widget.set_sensitive(False)
+        AsyncCall(reset_custom_artwork, done, self.game.id, kind, callback_target=self.parent_widget)
 
     def image_refreshed_cb(self, image_type, _error=None):
         if image_type:
