@@ -209,6 +209,8 @@ class libretro(Runner):
     runnable_alone = True
     runner_executable = "retroarch/retroarch"
     flatpak_id = "org.libretro.RetroArch"
+    # Only get_platform() needs the platforms, and it reads them from the core info itself.
+    platform_dict = NotImplemented
 
     game_options = [
         {"option": "main_file", "type": "file", "label": _("ROM file")},
@@ -241,16 +243,6 @@ class libretro(Runner):
         },
     ]
 
-    def __init__(self, config: LutrisConfig | None = None) -> None:
-        super().__init__(config)
-        self.platform_dict = {}
-        for core in get_libretro_cores():
-            platform = core[2]
-            if lutris_platform := RETROARCH_TO_LUTRIS_PLATFORM_MAP.get(platform):
-                self.platform_dict[lutris_platform] = platform
-            else:
-                self.platform_dict[platform] = platform
-
     @property
     def directory(self):
         return os.path.join(settings.RUNNER_DIR, "retroarch")
@@ -261,8 +253,8 @@ class libretro(Runner):
             logger.warning("Game don't have a core set")
             return
         for core in get_libretro_cores():
-            if core[1] == game_core and core[2] in self.platform_dict:
-                return self.platform_dict[core[2]]
+            if core[1] == game_core:
+                return RETROARCH_TO_LUTRIS_PLATFORM_MAP.get(core[2]) or core[2]
         logger.warning("'%s' not found in Libretro cores", game_core)
         return ""
 
