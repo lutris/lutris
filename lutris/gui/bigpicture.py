@@ -42,6 +42,7 @@ from lutris.runners import get_runner_human_name, import_runner
 from lutris.runners.steam import get_steam_pid
 from lutris.services.base import LutrisCoverart
 from lutris.util import datapath, flatpak, system
+from lutris.util.jobs import AsyncCall
 from lutris.util.linux import LINUX_SYSTEM
 from lutris.util.log import logger
 from lutris.util.strings import get_formatted_playtime
@@ -473,6 +474,8 @@ class BigPictureMode:
         self._stdin: Gio.OutputStream | None = None
         self._registrations: list[NotificationRegistration] = []
         self._library_update_source = 0
+        # Counts the requests for the library, to tell the latest from older ones.
+        self._library_request = 0
         self._steam_input = SteamInputHold()
         self._steam_input_source = 0
 
@@ -571,7 +574,22 @@ class BigPictureMode:
         self._send({"type": "error", "message": str(error)})
 
     def _send_library(self) -> None:
-        library = get_library()
+        """Gathers the library and sends it. The gathering is done on a
+        thread: with a few thousand games it takes long enough to be felt,
+        and this is called again whenever a game was stopped or changed."""
+        self._library_request += 1
+        request = self._library_request
+
+        def on_gathered(library: list[dict[str, Any]], error: Exception | None) -> None:
+            if error:
+                logger.error("Unable to gather the library for Big Picture mode: %s", error, exc_info=error)
+            elif request == self._library_request:
+                # Not overtaken by a later request, or by the mode being left.
+                self._send_gathered_library(library)
+
+        AsyncCall(get_library, on_gathered)
+
+    def _send_gathered_library(self, library: list[dict[str, Any]]) -> None:
         states = {game.id: game for game in self.application.get_running_games()}
         for entry in library:
             game = states.get(entry["id"])
@@ -716,6 +734,7 @@ class BigPictureMode:
             self._steam_input_source = 0
         self.pending_launches.clear()
         self._process = None
+        self._library_request += 1  # whatever is being gathered is not wanted
         self._stdin = None
 
         # Not waited for, as that would hold up the window; should Lutris be
