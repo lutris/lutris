@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import requests
 
 from lutris.runners import libretro as libretro_module
-from lutris.runners.libretro import _download_libretro_info, get_libretro_cores, libretro
+from lutris.runners.libretro import get_libretro_cores, libretro
 from lutris.util.test_config import setup_test_environment
 
 setup_test_environment()
@@ -26,8 +26,7 @@ class TestLibretroCoreInfo(unittest.TestCase):
     @patch("lutris.runners.libretro.requests.get")
     def test_init_does_not_download_core_info(self, mock_get):
         mock_get.side_effect = requests.ConnectionError("Read timed out.")
-        runner = libretro()
-        self.assertEqual(runner.platform_dict, {})
+        libretro()
         mock_get.assert_not_called()
 
     def write_core_info(self, core, systemname):
@@ -38,23 +37,24 @@ class TestLibretroCoreInfo(unittest.TestCase):
             info_file.write('categories = "Emulator"\n')
             info_file.write('systemname = "%s"\n' % systemname)
 
-    def test_init_reads_downloaded_core_info(self):
-        self.write_core_info("mgba", "Game Boy Advance")
+    def get_platform(self, core):
         runner = libretro()
-        self.assertEqual(runner.platform_dict, {"Nintendo Game Boy Advance": "Game Boy Advance"})
-
-    @patch("lutris.runners.libretro.requests.get")
-    def test_download_failure_returns_false(self, mock_get):
-        mock_get.side_effect = requests.ConnectionError("Read timed out.")
-        self.assertFalse(_download_libretro_info())
-        self.assertEqual(get_libretro_cores(), [])
-
-    @patch("lutris.runners.libretro.requests.get")
-    def test_get_platform_after_core_info_arrives(self, mock_get):
-        mock_get.side_effect = requests.ConnectionError("Read timed out.")
-        runner = libretro()
-        self.write_core_info("puae", "Amiga")
-        get_libretro_cores.cache_clear()
         runner.config = MagicMock()
-        runner.config.game_config = {"core": "puae"}
-        self.assertEqual(runner.get_platform(), "Amiga")
+        runner.config.game_config = {"core": core}
+        return runner.get_platform()
+
+    def test_get_platform_maps_core_system(self):
+        self.write_core_info("mgba", "Game Boy Advance")
+        self.assertEqual(self.get_platform("mgba"), "Nintendo Game Boy Advance")
+
+    def test_get_platform_keeps_unmapped_core_system(self):
+        self.write_core_info("puae", "Amiga")
+        self.assertEqual(self.get_platform("puae"), "Amiga")
+
+    @patch("lutris.runners.libretro.requests.get")
+    def test_failed_download_is_not_cached(self, mock_get):
+        mock_get.side_effect = requests.ConnectionError("Read timed out.")
+        with self.assertRaises(requests.ConnectionError):
+            get_libretro_cores()
+        self.write_core_info("mgba", "Game Boy Advance")
+        self.assertEqual(get_libretro_cores(), [("mgba", "mgba", "Game Boy Advance")])
