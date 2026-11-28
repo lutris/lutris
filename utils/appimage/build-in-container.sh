@@ -80,6 +80,11 @@ python3 -m pip install --no-compile --break-system-packages --target="$TARGET" \
 # where Lutris looks for it. The build goes to /tmp rather than into the
 # mounted source tree, so that it leaves no root-owned files behind there.
 # --locked holds cargo to the dependency versions in Cargo.lock.
+#
+# The program is not handed to linuxdeploy as an --executable: beyond libc
+# it links only against ALSA and udev, and loads the display and OpenGL
+# libraries by name at run time, all of which are to be the host's. See
+# also where its rpath is removed, below.
 BIGPICTURE="$APPDIR/usr/bin/lutris-bigpicture"
 cargo build --release --locked \
     --manifest-path "$SRC/bigpicture/Cargo.toml" \
@@ -142,11 +147,18 @@ linuxdeploy \
     --appdir "$APPDIR" \
     --plugin gtk \
     --executable "$APPDIR/usr/bin/python${PY_VER}" \
-    --executable "$BIGPICTURE" \
     "${LIB_ARGS[@]}" \
     "${GI_LIB_ARGS[@]}" \
     --desktop-file "$DESKTOP_FILE" \
     --icon-file "$ICON_FILE"
+
+# linuxdeploy points every program in usr/bin at the bundled libraries,
+# the Big Picture interface included. Undo that for it, so that it takes
+# libasound and libudev from the host: a bundled libasound would not find
+# the host's PipeWire and PulseAudio plugins (linuxdeploy leaves it out for
+# that reason), and libudev is only in the bundle because GTK's own
+# libraries need it.
+patchelf --remove-rpath "$BIGPICTURE"
 
 # linuxdeploy writes its own AppRun; restore ours (which knows to exec
 # python3 with bin/lutris and to source linuxdeploy-plugin-gtk's hook).
