@@ -23,6 +23,7 @@ help:
 	@echo "  make format         Auto-format code and sort imports"
 	@echo "  make mypy           Run mypy against the baseline"
 	@echo "  make appimage       Build the AppImage"
+	@echo "  make bigpicture     Build the Big Picture interface (needs Rust)"
 	@echo "  make install-hooks  Install the git pre-commit hook"
 	@echo
 	@echo "Release/packaging tasks: make -f packaging/Makefile help"
@@ -95,6 +96,23 @@ mypy:
 
 mypy-reset-baseline:  # Add new typing errors to mypy. Use sparingly.
 	mypy . --python-version 3.10 --install-types --non-interactive 2>&1 | mypy-baseline sync
+
+# =====================
+# Big Picture interface
+# =====================
+
+# The Big Picture interface is a Rust program that Lutris starts on demand.
+# When run from the source tree, Lutris picks up the build made here.
+# (Phony, as there is a directory called bigpicture: make would take that
+# for the target, already built.)
+.PHONY: bigpicture bigpicture-check
+bigpicture:
+	cargo build --release --locked --manifest-path bigpicture/Cargo.toml
+
+bigpicture-check:
+	cargo fmt --manifest-path bigpicture/Cargo.toml -- --check
+	cargo clippy --release --locked --manifest-path bigpicture/Cargo.toml -- -D warnings
+	cargo test --release --locked --manifest-path bigpicture/Cargo.toml
 
 # ==============================
 # Packaging (developer-facing)

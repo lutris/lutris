@@ -35,6 +35,19 @@ in either JSON or YAML.
 The scripting syntax is described in ``docs/installers.rst``, and is also
 available online at `lutris.net <https://lutris.net>`_.
 
+Big Picture mode
+================
+
+Big Picture mode is a fullscreen view of your installed games, made to be used
+from the couch with a controller (keyboard and mouse work too). Enter it with
+the television button in the header bar, with F11, or by starting Lutris with
+``lutris --big-picture``; leave it from its menu.
+
+Its interface is a separate program in the ``bigpicture`` directory, which not
+every package of Lutris includes; the button is only there if it does.
+``bigpicture/README.md`` describes its controls, its navigation sounds and how
+to replace them, and ``INSTALL.rst`` how to build it.
+
 Game library
 ============
 

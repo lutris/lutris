@@ -35,7 +35,9 @@ from lutris.api import get_runners, parse_installer_url
 from lutris.database import games as games_db
 from lutris.database.services import ServiceGameCollection
 from lutris.exception_backstops import init_exception_backstops
+from lutris.exceptions import MissingExecutableError
 from lutris.game import GAME_START, GAME_STOPPED, Game, export_game, import_game
+from lutris.gui.bigpicture import BigPictureMode
 from lutris.gui.dialogs import ErrorDialog, InstallOrPlayDialog, NoticeDialog, display_error
 from lutris.gui.dialogs.delegates import CommandLineUIDelegate, InstallUIDelegate, LaunchUIDelegate
 from lutris.gui.dialogs.issue import IssueReportWindow
@@ -102,6 +104,7 @@ class LutrisApplication(Gtk.Application):
         self.tray = None
 
         self.quit_on_game_exit = False
+        self.big_picture = BigPictureMode(self)
         self.style_manager = StyleManager()
 
         if os.geteuid() == 0:
@@ -326,6 +329,14 @@ class LutrisApplication(Gtk.Application):
             None,
         )
         self.add_main_option("submit-issue", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE, _("Submit an issue"), None)
+        self.add_main_option(
+            "big-picture",
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            _("Start in Big Picture mode, a fullscreen interface for controllers"),
+            None,
+        )
         self.add_main_option(
             GLib.OPTION_REMAINING,
             0,
@@ -790,7 +801,11 @@ class LutrisApplication(Gtk.Application):
                 signal.signal(signal.SIGTERM, game_stop_signal_handler)
                 signal.signal(signal.SIGINT, game_stop_signal_handler)
         elif self.window:
-            self.window.present()
+            if options.contains("big-picture"):
+                # The window stays out of the way until Big Picture mode is left.
+                self.enter_big_picture()
+            if not self.big_picture.is_active:
+                self.window.present()
             self.start_runtime_updates()
             # If the Lutris GUI is started by itself, don't quit it when a game stops
             self.quit_on_game_exit = False
@@ -824,7 +839,9 @@ class LutrisApplication(Gtk.Application):
         else:
             logger.debug("Game has already been removed from running IDs?")
 
-        if self.window and settings.read_bool_setting("hide_client_on_game_start") and not self.quit_on_game_exit:
+        if self.big_picture.is_active:
+            pass  # the window stays hidden until Big Picture mode is left
+        elif self.window and settings.read_bool_setting("hide_client_on_game_start") and not self.quit_on_game_exit:
             self.window.show()  # Show launcher window
         else:
             self._quit_if_hidden_and_idle()
@@ -837,7 +854,9 @@ class LutrisApplication(Gtk.Application):
 
     def _quit_if_hidden_and_idle(self) -> None:
         """Quits Lutris if the window is not visible and there is no ongoing activity
-        (running games or active downloads) keeping it alive."""
+        (running games, active downloads or Big Picture mode) keeping it alive."""
+        if self.big_picture.is_active:
+            return
         if not self.window or not self.window.is_visible():
             if not self.has_running_games and not self.has_active_downloads:
                 if self.quit_on_game_exit or not self.has_tray_icon():
@@ -857,6 +876,30 @@ class LutrisApplication(Gtk.Application):
         choices made on the command line are passed to the launch they apply to
         instead. Before that, it provides no UI."""
         return self.window or LaunchUIDelegate()
+
+    def enter_big_picture(self) -> None:
+        """Switches to Big Picture mode. The main window is hidden once the Big
+        Picture interface is up, and comes back when that is left."""
+        if self.big_picture.is_active:
+            return
+        try:
+            self.big_picture.start()
+        except (MissingExecutableError, GLib.Error) as ex:
+            logger.exception("Unable to start Big Picture mode: %s", ex)
+            ErrorDialog(ex, parent=self.window)
+
+    def on_big_picture_ready(self) -> None:
+        """Called when the Big Picture interface has appeared."""
+        if self.window:
+            self.window.hide()
+
+    def on_big_picture_exited(self, quit_lutris: bool) -> None:
+        """Called when Big Picture mode has been left; if quit_lutris is true the user
+        asked to quit Lutris from there, otherwise we return to the main window."""
+        if quit_lutris:
+            self.quit()
+        elif self.window:
+            self.window.present()
 
     def get_running_games(self) -> list[Game]:
         # This method reflects games that have stopped even if the 'game-stopped' signal
@@ -1129,6 +1172,7 @@ Also, check that the version specified is in the correct format.
 
     def do_shutdown(self) -> None:  # pylint: disable=arguments-differ
         logger.info("Shutting down Lutris")
+        self.big_picture.force_stop()
         if self.window:
             selected_category = "%s:%s" % self.window.selected_category
             settings.write_setting("selected_category", selected_category)

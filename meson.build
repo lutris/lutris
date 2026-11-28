@@ -123,4 +123,27 @@ if appstreamcli.found()
   )
 endif
 
+# The Big Picture interface is a Rust program, built with cargo. It is opt-in
+# (-Dbigpicture=true) because cargo downloads its dependencies unless they
+# have been vendored; Lutris works without it, minus Big Picture mode.
+if get_option('bigpicture')
+  cargo = find_program('cargo')
+  custom_target(
+    'lutris-bigpicture',
+    output: 'lutris-bigpicture',
+    command: [
+      'sh', '-c',
+      '"$1" build --release --locked --manifest-path "$2" --target-dir "$3" && cp "$3/release/lutris-bigpicture" "$4"',
+      'build-bigpicture',
+      cargo,
+      join_paths(meson.source_root(), 'bigpicture', 'Cargo.toml'),
+      join_paths(meson.build_root(), 'bigpicture-target'),
+      '@OUTPUT@',
+    ],
+    build_by_default: true,
+    install: true,
+    install_dir: bindir,
+  )
+endif
+
 meson.add_install_script('utils/meson_post_install.py')

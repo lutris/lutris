@@ -1,0 +1,27 @@
+[package]
+name = "lutris-bigpicture"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.95"
+license = "GPL-3.0-or-later"
+description = "Controller-friendly fullscreen interface for Lutris"
+publish = false
+
+[dependencies]
+eframe = { version = "0.37", default-features = false, features = ["default_fonts", "glow", "system_fonts", "wayland", "x11"] }
+gilrs = "0.11"
+libc = "0.2"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rodio = { version = "0.23.0", default-features = false, features = ["playback", "vorbis", "wav", "mp3"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+strip = true
+panic = "abort"
+
+# Image decoding is the only heavy CPU work; keep it fast in debug builds too.
+[profile.dev.package."*"]
+opt-level = 2

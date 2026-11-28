@@ -1,0 +1,12 @@
+The navigation sounds of Lutris's Big Picture mode.
+
+They were made for Lutris: bigpicture/tools/make_sounds.py in the source
+tree synthesizes them from sine waves, using no recordings or samples of
+anything else.
+They are under the same license as the rest of Lutris, the GNU General
+Public License, version 3 or (at your option) any later version; see the
+file LICENSE at the top of the Lutris source tree.
+
+This directory is a sound pack like any other. To make your own, copy it
+to ~/.local/share/lutris/bigpicture/sounds under another name and replace
+the files; bigpicture/README.md in the source tree has the details.

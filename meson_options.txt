@@ -1,0 +1,6 @@
+option(
+  'bigpicture',
+  type: 'boolean',
+  value: false,
+  description: 'Build and install the Big Picture interface (requires cargo and a Rust toolchain)',
+)

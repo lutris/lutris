@@ -38,6 +38,10 @@ pkgs.mkShell {
     meson
     ninja
     gettext
+    # the Big Picture interface (bigpicture/, `make bigpicture`)
+    cargo
+    rustc
+    pkg-config
   ];
 
   buildInputs = with pkgs; [
@@ -50,6 +54,9 @@ pkgs.mkShell {
     glib-networking
     gsettings-desktop-schemas
     file # libmagic, loaded via ctypes by lutris/util/magic.py
+    # linked by the Big Picture interface: sound, and controllers
+    alsa-lib
+    udev
     # tools Lutris shells out to
     psmisc
     cabextract

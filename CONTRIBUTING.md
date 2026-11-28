@@ -68,6 +68,10 @@ new dependencies, check in the package configuration files for new packages to
 install. Debian based distros will have their dependencies listed
 in `debian/control` and RPM based ones in `packaging/lutris.spec`.
 
+The Big Picture interface in `bigpicture/` is a Rust program with
+dependencies of its own, which those two files do not list as the packages do
+not build it; see "Big Picture mode" in `INSTALL.rst` for what it needs.
+
 The PyGOject introspection libraries are not regular python packages, for that
 reason, using a virtualenv for development is heavily discouraged. Make
 sure to always use PyGOject from your distribution's package manager. Also

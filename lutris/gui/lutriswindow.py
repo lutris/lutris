@@ -37,6 +37,7 @@ from lutris.game import (
 )
 from lutris.gui import dialogs
 from lutris.gui.addgameswindow import AddGamesWindow
+from lutris.gui.bigpicture import find_big_picture_executable
 from lutris.gui.config.edit_saved_search import SearchFiltersBox
 from lutris.gui.config.preferences_dialog import PreferencesDialog
 from lutris.gui.dialogs import ClientLoginDialog, ErrorDialog, QuestionDialog, get_error_handler, register_error_handler
@@ -95,6 +96,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
     sidebar_scrolled: Gtk.ScrolledWindow = GtkTemplate.Child()
     game_revealer: Gtk.Revealer = GtkTemplate.Child()
     search_entry: Gtk.SearchEntry = GtkTemplate.Child()
+    big_picture_button: Gtk.Button = GtkTemplate.Child()
     search_filters_button: Gtk.MenuButton = GtkTemplate.Child()
     search_box: Gtk.Box = GtkTemplate.Child()
     zoom_adjustment: Gtk.Adjustment = GtkTemplate.Child()
@@ -161,6 +163,11 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             self.maximize()
         self.init_template()
         self._init_actions()
+
+        # Not every package builds the Big Picture interface, and without it
+        # the button could only say that it is missing.
+        self.big_picture_button.set_no_show_all(True)
+        self.big_picture_button.set_visible(bool(find_big_picture_executable()))
 
         # Per-game progress functions for launch-status (e.g. umu runtime
         # downloads). Keyed by game id so we can retrieve the same function
@@ -303,6 +310,7 @@ class LutrisWindow(Gtk.ApplicationWindow, DialogLaunchUIDelegate, DialogInstallU
             "open-discord": Action(lambda *x: open_uri("https://discord.gg/Pnt5CuY")),
             "donate": Action(lambda *x: open_uri("https://lutris.net/donate")),
             "kill-wine": Action(self.on_kill_wine),
+            "big-picture": Action(lambda *x: self.application.enter_big_picture(), accel="F11"),
         }
 
         self.actions = {}
