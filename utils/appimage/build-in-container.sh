@@ -45,6 +45,12 @@ rm -rf "$APPDIR/usr/lib/python${PY_VER}/test" \
 cd "$SRC"
 python3 setup.py install --root="$APPDIR" --prefix=/usr --install-layout=deb --no-compile
 
+# setup.py doesn't generate the optional_settings.py a meson install gets, so write one here.
+# The AppImage bundles no translations, hence the empty LOCALE_DIR. safe.directory lets git
+# read the checkout in CI, where it isn't owned by the container's root user.
+COMMIT=$(git -c safe.directory="$SRC" -C "$SRC" rev-parse --short HEAD 2>/dev/null || true)
+printf 'LOCALE_DIR = ""\nCOMMIT = "%s"\n' "$COMMIT" > "$APPDIR/usr/lib/python3/dist-packages/lutris/optional_settings.py"
+
 # Install runtime Python deps directly into the AppDir's site-packages.
 SITE_PACKAGES=$(python3 -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])')
 SITE_PACKAGES=${SITE_PACKAGES#/usr/}

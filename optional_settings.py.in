@@ -2,3 +2,5 @@
 
 # Paths
 LOCALE_DIR = "@localedir_path@"
+
+COMMIT = "@commit@"

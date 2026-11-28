@@ -18,6 +18,18 @@ VERSION = __version__
 COPYRIGHT = _("(c) 2009 Lutris Team")
 AUTHORS = [_("The Lutris team")]
 
+
+def get_display_version() -> str:
+    """VERSION with the short commit hash appended, for builds that recorded one."""
+    try:
+        from lutris import optional_settings  # type: ignore
+
+        commit = getattr(optional_settings, "COMMIT", "")
+    except ImportError:
+        commit = ""
+    return f"{VERSION}-{commit}" if commit else VERSION
+
+
 # Paths
 CONFIG_DIR = os.path.join(GLib.get_user_config_dir(), "lutris")
 DATA_DIR = os.path.join(GLib.get_user_data_dir(), "lutris")
